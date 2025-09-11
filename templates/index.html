@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>기업 정보 조회 시스템</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>기업 정보 조회 <span id="results-count" class="header-subtext"></span></h1>
+            <a href="{{ url_for('logout') }}" class="logout-button-new">로그아웃</a>
+        </header>
+
+        <div class="main-actions">
+            <button type="button" id="excel-download-button" class="action-button excel-button">엑셀저장</button>
+            <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">초기화</button>
+            <button type="button" id="search-button" class="action-button">검색</button>
+        </div>
+
+        <div class="search-container">
+            <form id="search-form" class="search-grid" onsubmit="return false;">
+                <input type="text" id="company_name" name="company_name" placeholder="기업명">
+                <input type="text" id="biz_no" name="biz_no" placeholder="사업자번호">
+                <input type="text" id="industry_code" name="industry_code" placeholder="업종코드">
+                <input type="text" id="industry_name" name="industry_name" placeholder="업종명">
+                <input type="text" id="region" name="region" placeholder="지역 (예: 서울 강남)">
+                <select id="company_size" name="company_size">
+                    <option value="전체">기업규모(전체)</option>
+                    <option value="대기업">대기업</option>
+                    <option value="중견기업">중견기업</option>
+                    <option value="중소기업">중소기업</option>
+                </select>
+                <div class="range-input">
+                    <input type="number" id="ret_min" name="ret_min" placeholder="이익잉여금(최소, 백만)">
+                    <span>~</span>
+                    <input type="number" id="ret_max" name="ret_max" placeholder="이익잉여금(최대, 백만)">
+                </div>
+            </form>
+        </div>
+
+        <div class="results-container">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>순번</th>
+                        <th>사업자번호</th>
+                        <th>기업명</th>
+                        <th>대표자명</th>
+                        <th>기업규모</th>
+                        <th>지역</th>
+                        <th class="text-right">자산총계(백만)</th>
+                        <th class="text-right">매출액(백만)</th>
+                        <th class="text-right">이익잉여금(백만)</th>
+                    </tr>
+                </thead>
+                <tbody id="results-tbody">
+                </tbody>
+            </table>
+            <button id="load-more-btn" style="display:none;">더보기</button>
+        </div>
+    </div>
+    
+    <div class="scroll-buttons">
+        <button id="scroll-top">▲ 맨위로</button>
+        <button id="scroll-bottom">▼ 맨아래로</button>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchForm = document.getElementById('search-form');
+        const searchButton = document.getElementById('search-button');
+        const excelButton = document.getElementById('excel-download-button');
+        const resetButton = document.getElementById('reset-button');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const resultsTbody = document.getElementById('results-tbody');
+        const resultsCount = document.getElementById('results-count');
+
+        let currentPage = 1;
+        let totalPages = 1;
+        let isSearching = false;
+
+        async function fetchCompanies(page, append = false) {
+            if (isSearching) return;
+            isSearching = true;
+
+            const formData = new FormData(searchForm);
+            const params = new URLSearchParams(formData);
+            params.append('page', page);
+            
+            const perPage = 50;
+            const offset = (page - 1) * perPage;
+
+            if (!append) {
+                resultsTbody.innerHTML = `<tr><td colspan="9" class="text-center">검색 중...</td></tr>`;
+            }
+
+            try {
+                const response = await fetch(`/api/companies?${params.toString()}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+
+                if (!append) {
+                    resultsTbody.innerHTML = '';
+                }
+
+                if (data.companies.length === 0 && !append) {
+                    resultsTbody.innerHTML = `<tr><td colspan="9" class="text-center">검색 결과가 없습니다.</td></tr>`;
+                }
+
+                data.companies.forEach((company, index) => {
+                    const row = document.createElement('tr');
+                    row.style.cursor = 'pointer';
+                    row.onclick = () => { window.location.href = `/company/${company.biz_no}`; };
+                    
+                    // [수정된 부분] 접촉 이력이 있으면 has-history 클래스 추가
+                    if (company.has_history) {
+                        row.classList.add('has-history');
+                    }
+                    
+                    const formatNumber = (num) => num ? Math.round(num / 1000000).toLocaleString() : '';
+
+                    // [수정된 부분] '순번' 표시 로직 추가
+                    row.innerHTML = `
+                        <td>${offset + index + 1}</td>
+                        <td>${company.biz_no || ''}</td>
+                        <td>${company.company_name || ''}</td>
+                        <td>${company.representative_name || ''}</td>
+                        <td>${company.company_size || ''}</td>
+                        <td>${company.region || ''}</td>
+                        <td class="text-right">${formatNumber(company.total_assets)}</td>
+                        <td class="text-right">${formatNumber(company.sales_revenue)}</td>
+                        <td class="text-right">${formatNumber(company.retained_earnings)}</td>
+                    `;
+                    resultsTbody.appendChild(row);
+                });
+
+                currentPage = data.currentPage;
+                totalPages = data.totalPages;
+                resultsCount.textContent = `(총 ${data.totalRows.toLocaleString()}건)`;
+
+                loadMoreBtn.style.display = (currentPage < totalPages) ? 'block' : 'none';
+
+            } catch (error) {
+                console.error('Failed to fetch companies:', error);
+                resultsCount.textContent = '(오류 발생)';
+                if (!append) {
+                    resultsTbody.innerHTML = `<tr><td colspan="9" class="text-center">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
+                }
+            } finally {
+                isSearching = false;
+            }
+        }
+
+        searchButton.addEventListener('click', () => {
+            currentPage = 1;
+            fetchCompanies(currentPage, false);
+        });
+        
+        searchForm.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchButton.click();
+            }
+        });
+
+        resetButton.addEventListener('click', () => {
+            setTimeout(() => {
+                 searchButton.click();
+            }, 0);
+        });
+
+        excelButton.addEventListener('click', () => {
+            const formData = new FormData(searchForm);
+            const params = new URLSearchParams(formData);
+            window.location.href = `/export_excel?${params.toString()}`;
+        });
+
+        loadMoreBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                fetchCompanies(currentPage + 1, true);
+            }
+        });
+
+        const scrollTopBtn = document.getElementById('scroll-top');
+        const scrollBottomBtn = document.getElementById('scroll-bottom');
+        scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+
+        fetchCompanies(1, false);
+    });
+    </script>
+</body>
+</html>
