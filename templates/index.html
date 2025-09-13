@@ -15,7 +15,7 @@
         <div class="main-actions">
             <button type="button" id="excel-download-button" class="action-button excel-button">엑셀저장</button>
             <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">초기화</button>
-            <button type="button" id="search-button" class="action-button">검색</button>
+            <button type="button" id="search-button" class="action-button search-button">검색</button>
         </div>
 
         <div class="search-container">
@@ -24,12 +24,17 @@
                 <input type="text" id="biz_no" name="biz_no" placeholder="사업자번호">
                 <input type="text" id="industry_code" name="industry_code" placeholder="업종코드">
                 <input type="text" id="industry_name" name="industry_name" placeholder="업종명">
-                <input type="text" id="region" name="region" placeholder="지역 (예: 서울 강남)">
+                <input type="text" id="region" name="region" placeholder="지역/주소 (예: 서울 강남)">
                 <select id="company_size" name="company_size">
                     <option value="전체">기업규모(전체)</option>
                     <option value="대기업">대기업</option>
                     <option value="중견기업">중견기업</option>
                     <option value="중소기업">중소기업</option>
+                </select>
+                <select id="research_institute" name="research_institute">
+                    <option value="전체">기업부설연구소(전체)</option>
+                    <option value="유">유</option>
+                    <option value="무">무</option>
                 </select>
                 <div class="range-input">
                     <input type="number" id="ret_min" name="ret_min" placeholder="이익잉여금(최소, 백만)">
@@ -48,7 +53,8 @@
                         <th>기업명</th>
                         <th>대표자명</th>
                         <th>기업규모</th>
-                        <th>지역</th>
+                        <th class="address-col">주소</th>
+                        <th>업종</th>
                         <th class="text-right">자산총계(백만)</th>
                         <th class="text-right">매출액(백만)</th>
                         <th class="text-right">이익잉여금(백만)</th>
@@ -62,8 +68,8 @@
     </div>
     
     <div class="scroll-buttons">
-        <button id="scroll-top">▲ 맨위로</button>
-        <button id="scroll-bottom">▼ 맨아래로</button>
+        <button id="scroll-top">▲</button>
+        <button id="scroll-bottom">▼</button>
     </div>
 
     <script>
@@ -92,7 +98,7 @@
             const offset = (page - 1) * perPage;
 
             if (!append) {
-                resultsTbody.innerHTML = `<tr><td colspan="9" class="text-center">검색 중...</td></tr>`;
+                resultsTbody.innerHTML = `<tr><td colspan="10" class="text-center">검색 중...</td></tr>`;
             }
 
             try {
@@ -105,7 +111,7 @@
                 }
 
                 if (data.companies.length === 0 && !append) {
-                    resultsTbody.innerHTML = `<tr><td colspan="9" class="text-center">검색 결과가 없습니다.</td></tr>`;
+                    resultsTbody.innerHTML = `<tr><td colspan="10" class="text-center">검색 결과가 없습니다.</td></tr>`;
                 }
 
                 data.companies.forEach((company, index) => {
@@ -113,21 +119,16 @@
                     row.style.cursor = 'pointer';
                     row.onclick = () => { window.location.href = `/company/${company.biz_no}`; };
                     
-                    // [수정된 부분] 접촉 이력이 있으면 has-history 클래스 추가
-                    if (company.has_history) {
-                        row.classList.add('has-history');
-                    }
-                    
                     const formatNumber = (num) => num ? Math.round(num / 1000000).toLocaleString() : '';
 
-                    // [수정된 부분] '순번' 표시 로직 추가
                     row.innerHTML = `
                         <td>${offset + index + 1}</td>
                         <td>${company.biz_no || ''}</td>
                         <td>${company.company_name || ''}</td>
                         <td>${company.representative_name || ''}</td>
                         <td>${company.company_size || ''}</td>
-                        <td>${company.region || ''}</td>
+                        <td class="address-col">${company.address || ''}</td>
+                        <td>${company.industry_name || ''} (${company.industry_code || ''})</td>
                         <td class="text-right">${formatNumber(company.total_assets)}</td>
                         <td class="text-right">${formatNumber(company.sales_revenue)}</td>
                         <td class="text-right">${formatNumber(company.retained_earnings)}</td>
@@ -145,7 +146,7 @@
                 console.error('Failed to fetch companies:', error);
                 resultsCount.textContent = '(오류 발생)';
                 if (!append) {
-                    resultsTbody.innerHTML = `<tr><td colspan="9" class="text-center">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
+                    resultsTbody.innerHTML = `<tr><td colspan="10" class="text-center">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
                 }
             } finally {
                 isSearching = false;
@@ -165,6 +166,7 @@
         });
 
         resetButton.addEventListener('click', () => {
+            searchForm.reset();
             setTimeout(() => {
                  searchButton.click();
             }, 0);
