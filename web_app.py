@@ -31,18 +31,23 @@ def calculate_unlisted_stock_value(financial_data):
 
     latest_data = df_financial.sort_values(by='fiscal_year', ascending=False).iloc[0]
 
-    total_assets = float(latest_data.get('total_assets', 0) or 0)
-    total_liabilities = float(latest_data.get('total_liabilities', 0) or 0)
-    net_income_3y_avg = df_financial['net_income'].astype(float).mean()
+    total_assets = float(latest_data.get('total_assets') or 0)
+    total_liabilities = float(latest_data.get('total_liabilities') or 0)
     
+    net_income_3y_avg = pd.to_numeric(df_financial['net_income'], errors='coerce').mean()
+    if pd.isna(net_income_3y_avg):
+        net_income_3y_avg = 0
+
     asset_value = total_assets - total_liabilities
     profit_value = net_income_3y_avg / 0.1
     
     calculated_value = (asset_value * 2 + profit_value * 3) / 5
     
-    total_shares = float(latest_data.get('shares_issued_count', 1) or 1)
-    
-    stock_value = calculated_value / total_shares if total_shares else 0
+    total_shares = float(latest_data.get('shares_issued_count') or 1)
+    if total_shares == 0:
+        total_shares = 1
+
+    stock_value = calculated_value / total_shares
 
     return {
         "asset_value": asset_value,
@@ -60,12 +65,13 @@ def query_companies_data(filters):
     SELECT
         cb.biz_no, cb.company_name, cb.representative_name, cb.company_size, 
         cb.address, cb.phone_number, cb.industry_name, cb.industry_code,
-        cf.total_assets, cf.sales_revenue, cf.retained_earnings
+        cf.total_assets, cf.sales_revenue, cf.retained_earnings, cf.fiscal_year
     FROM
         Company_Basic AS cb
     LEFT JOIN (
-        SELECT * FROM Company_Financial ORDER BY fiscal_year DESC
-    ) AS cf ON cb.biz_no = cf.biz_no
+        SELECT biz_no, MAX(fiscal_year) as max_year FROM Company_Financial GROUP BY biz_no
+    ) AS latest_fy ON cb.biz_no = latest_fy.biz_no
+    LEFT JOIN Company_Financial AS cf ON cb.biz_no = cf.biz_no AND cf.fiscal_year = latest_fy.max_year
     LEFT JOIN Company_Additional AS ca ON cb.biz_no = ca.biz_no
     """
     
@@ -75,15 +81,26 @@ def query_companies_data(filters):
     if filters.get('industry_code'): where_clauses.append("cb.industry_code LIKE ?"); params.append(f"%{filters['industry_code']}%")
     if filters.get('industry_name'): where_clauses.append("cb.industry_name LIKE ?"); params.append(f"%{filters['industry_name']}%")
     if filters.get('region'): where_clauses.append("cb.address LIKE ?"); params.append(f"%{filters['region']}%")
-    if filters.get('company_size') and filters['company_size'] != '전체': where_clauses.append("cb.company_size = ?"); params.append(filters['company_size'])
+    
+    # <-- 수정: '기업규모' 필터 로직 확장
+    company_size_filter = filters.get('company_size')
+    if company_size_filter and company_size_filter != '전체':
+        if company_size_filter == '기타':
+            # '기타'는 기업규모가 비어있거나(NULL), 공백('')인 경우를 검색
+            where_clauses.append("(cb.company_size IS NULL OR TRIM(cb.company_size) = '')")
+        else:
+            # 그 외의 모든 특정 기업규모를 검색
+            where_clauses.append("cb.company_size = ?")
+            params.append(company_size_filter)
+
     if filters.get('ret_min'): where_clauses.append("cf.retained_earnings >= ?"); params.append(float(filters['ret_min']) * 1000000)
     if filters.get('ret_max'): where_clauses.append("cf.retained_earnings <= ?"); params.append(float(filters['ret_max']) * 1000000)
     if filters.get('research_institute') and filters['research_institute'] != '전체': 
         where_clauses.append("ca.has_research_institute = ?"); params.append('1' if filters['research_institute'] == '유' else '0')
 
-    query = base_query + " GROUP BY cb.biz_no"
+    query = base_query
     if where_clauses:
-        query += " HAVING " + " AND ".join(where_clauses)
+        query += " WHERE " + " AND ".join(where_clauses)
     query += " ORDER BY cb.company_name"
 
     try:
@@ -95,7 +112,7 @@ def query_companies_data(filters):
         conn.close()
     return df
 
-# --- 라우팅 ---
+# --- 라우팅 (이하 수정 없음) ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -154,10 +171,9 @@ def export_excel():
         df.rename(columns={
             'biz_no': '사업자번호', 'company_name': '기업명', 'representative_name': '대표자명', 'phone_number': '전화번호',
             'company_size': '기업규모', 'address': '주소', 'industry_name': '업종명', 'fiscal_year': '최신결산년도',
-            'total_assets': '자산총계', 'sales_revenue': '매출액', 'retained_earnings': '이익잉여금',
-            'net_income': '당기순이익'
+            'total_assets': '자산총계', 'sales_revenue': '매출액', 'retained_earnings': '이익잉여금'
         }, inplace=True)
-        excel_cols = ['사업자번호', '기업명', '대표자명', '전화번호', '기업규모', '주소', '업종명', '최신결산년도', '자산총계', '매출액', '이익잉여금', '당기순이익']
+        excel_cols = ['사업자번호', '기업명', '대표자명', '전화번호', '기업규모', '주소', '업종명', '최신결산년도', '자산총계', '매출액', '이익잉여금']
         df_excel = df[[col for col in excel_cols if col in df.columns]]
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -295,4 +311,4 @@ def delete_contact_history(history_id):
         conn.close()
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
