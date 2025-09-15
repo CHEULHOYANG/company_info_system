@@ -9,7 +9,9 @@ import io
 # --- 기본 설정 ---
 app = Flask(__name__)
 app.secret_key = 'your_very_secret_key_12345'
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "company_database.db")
+
+# DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "company_database.db")
+DB_PATH = "/var/data/company_database.db"
 
 # --- 사용자 정보 ---
 USERS = { 'ct0001': 'ych1123!', 'ct0002': None, 'ct0003': None, 'ct0004': None, 'ct0005': None }
@@ -316,3 +318,4 @@ def delete_contact_history(history_id):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
