@@ -43,7 +43,13 @@ def calculate_unlisted_stock_value(financial_data):
     
     calculated_value = (asset_value * 2 + profit_value * 3) / 5
     
-    total_shares = float(latest_data.get('shares_issued_count') or 1)
+    total_shares = float(latest_data.get('shares_issued_count') or 0)
+    if total_shares <= 1:
+        capital_stock = float(latest_data.get('capital_stock_value') or 0)
+        if capital_stock > 0:
+            total_shares = capital_stock / 5000
+        else:
+            total_shares = 1
     if total_shares == 0:
         total_shares = 1
 
@@ -82,14 +88,11 @@ def query_companies_data(filters):
     if filters.get('industry_name'): where_clauses.append("cb.industry_name LIKE ?"); params.append(f"%{filters['industry_name']}%")
     if filters.get('region'): where_clauses.append("cb.address LIKE ?"); params.append(f"%{filters['region']}%")
     
-    # <-- 수정: '기업규모' 필터 로직 확장
     company_size_filter = filters.get('company_size')
     if company_size_filter and company_size_filter != '전체':
         if company_size_filter == '기타':
-            # '기타'는 기업규모가 비어있거나(NULL), 공백('')인 경우를 검색
             where_clauses.append("(cb.company_size IS NULL OR TRIM(cb.company_size) = '')")
         else:
-            # 그 외의 모든 특정 기업규모를 검색
             where_clauses.append("cb.company_size = ?")
             params.append(company_size_filter)
 
@@ -112,7 +115,7 @@ def query_companies_data(filters):
         conn.close()
     return df
 
-# --- 라우팅 (이하 수정 없음) ---
+# --- 라우팅 ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -200,7 +203,8 @@ def company_detail(biz_no):
     
     financial_query = """
     SELECT fiscal_year, sales_revenue, net_income, total_assets, total_equity, retained_earnings, corporate_tax, 
-           undistributed_retained_earnings, advances_paid, advances_received, shares_issued_count, total_liabilities
+           undistributed_retained_earnings, advances_paid, advances_received, shares_issued_count, total_liabilities,
+           IFNULL(capital_stock_value, 0) as capital_stock_value
     FROM Company_Financial WHERE biz_no = ? ORDER BY fiscal_year DESC LIMIT 3
     """
     financial_info = conn.execute(financial_query, (biz_no,)).fetchall()
