@@ -33,7 +33,7 @@ header h1 { color: #364F6B; margin: 0; font-size: 1.6em; }
 .main-actions { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 15px; }
 .action-button { padding: 10px 20px; border-radius: 5px; border: none; font-size: 14px; cursor: pointer; color: white; }
 .action-button.excel-button { background-color: #28a745; }
-.action-button.reset-button { background-color: #9c094e; }
+.action-button.reset-button { background-color: #4e3440; }
 .action-button.search-button { background-color: #0b4e7b; }
 
 .search-container { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #dee2e6; }
