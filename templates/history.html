@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>접촉이력 조회</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>접촉이력 조회 <span id="results-count" class="header-subtext"></span></h1>
+            <div>
+                 <a href="{{ url_for('main') }}" class="back-button">메인으로</a>
+            </div>
+        </header>
+
+        <div class="main-actions">
+            <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">초기화</button>
+            <button type="button" id="search-button" class="action-button search-button">검색</button>
+        </div>
+
+        <div class="search-container">
+            <form id="search-form" class="search-grid" onsubmit="return false;">
+                <input type="text" id="registered_by" name="registered_by" placeholder="담당자 ID">
+                <input type="date" id="start_date" name="start_date">
+                <input type="date" id="end_date" name="end_date">
+                <input type="text" id="biz_no" name="biz_no" placeholder="사업자번호">
+            </form>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>순번</th>
+                        <th>접촉일시</th>
+                        <th>기업명</th>
+                        <th>사업자번호</th>
+                        <th>접촉유형</th>
+                        <th>기업담당자</th>
+                        <th style="width: 30%;">내용</th>
+                        <th>작성자</th>
+                    </tr>
+                </thead>
+                <tbody id="history-list">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="scroll-buttons">
+        <button id="scroll-top">▲</button>
+        <button id="scroll-bottom">▼</button>
+    </div>
+
+    <script>
+    function openCompanyPopup(bizNo) {
+        const url = `/company/${bizNo}?source=history_popup`;
+        const features = 'width=1200,height=800,scrollbars=yes,resizable=yes';
+        window.open(url, '_blank', features);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchButton = document.getElementById('search-button');
+        const resetButton = document.getElementById('reset-button');
+        const searchForm = document.getElementById('search-form');
+        const historyList = document.getElementById('history-list');
+        const resultsCountSpan = document.getElementById('results-count');
+
+        function performSearch() {
+            historyList.innerHTML = '<tr><td colspan="8" class="loading">검색 중...</td></tr>';
+            const formData = new FormData(searchForm);
+            const params = new URLSearchParams(formData);
+
+            fetch(`/api/history_search?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    historyList.innerHTML = '';
+                    resultsCountSpan.textContent = `조회건수 : ${data.length.toLocaleString()}건`;
+
+                    if (data.length === 0) {
+                        historyList.innerHTML = '<tr><td colspan="8">검색 결과가 없습니다.</td></tr>';
+                        return;
+                    }
+
+                    data.forEach((item, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${item.contact_datetime || ''}</td>
+                            <td><a href="#" onclick="openCompanyPopup('${item.biz_no}')">${item.company_name || ''}</a></td>
+                            <td>${item.biz_no || ''}</td>
+                            <td>${item.contact_type || ''}</td>
+                            <td>${item.contact_person || ''}</td>
+                            <td class="memo-cell">${item.memo || ''}</td>
+                            <td>${item.registered_by || ''}</td>
+                        `;
+                        historyList.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching history:', error);
+                    historyList.innerHTML = '<tr><td colspan="8">데이터 조회 중 오류가 발생했습니다.</td></tr>';
+                });
+        }
+
+        searchButton.addEventListener('click', performSearch);
+        
+        resetButton.addEventListener('click', () => {
+            searchForm.reset();
+            performSearch();
+        });
+
+        const scrollTopBtn = document.getElementById('scroll-top');
+        const scrollBottomBtn = document.getElementById('scroll-bottom');
+        scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+        
+        performSearch(); // 페이지 로드 시 전체 내역 조회
+    });
+    </script>
+</body>
+</html>
