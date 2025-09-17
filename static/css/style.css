@@ -57,32 +57,83 @@ header h1 { color: #364F6B; margin: 0; font-size: 1.6em; }
 .scroll-buttons button { width: 40px; height: 40px; border-radius: 50%; border: none; background-color: #333; color: white; cursor: pointer; font-size: 18px; }
 
 /* Detail Page Styles */
+/*.tab-nav {                                      */ 
+/*    display: flex;                              */
+/*    border-bottom: 2px solid #1c65a0;           */
+/*    margin-bottom: -2px;                        */
+/*}                                               */
+/*.tab-link {                                     */
+/*    padding: 10px 20px;                         */
+/*    cursor: pointer;                            */
+/*    background: none;                           */
+/*    border: none;                               */
+/*    font-size: 16px;                            */
+/*    font-weight: bold;                          */
+/*    color: #868e96;                             */
+/*    border-bottom: 2px solid transparent;       */
+/*    margin-bottom: -2px;                        */
+/*}                                               */
+/*.tab-link.active {                              */
+/*    color: #007bff;                             */
+/*    border-bottom-color: #007bff;               */
+/*}                                               */
+/*.tab-content {                                  */
+/*    padding-top: 20px;                          */
+/*}                                               */
+/*.tab-pane {                                     */
+/*    display: none;                              */
+/*}                                               */
+/*.tab-pane.active {                              */
+/*    display: block;                             */
+/*}                                               */
+
+/* 탭을 감싸는 전체 내비게이션 바 스타일 */
 .tab-nav {
-    display: flex;
     border-bottom: 2px solid #dee2e6;
-    margin-bottom: -2px;
+    display: flex;
 }
-.tab-link {
-    padding: 10px 20px;
+
+/* 탭 버튼 기본 스타일 */
+.tab-nav .tab-link {
+    background-color: #617488;  /* 배경색 파란색 */
+    color: white;               /* 글씨 흰색 */
+    border: 1px solid transparent;
+    border-bottom: none;
+    padding: 12px 24px;
     cursor: pointer;
-    background: none;
-    border: none;
     font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease; /* 부드러운 색상 전환 효과 */
+    margin-right: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+/* 마우스를 올렸을 때의 스타일 */
+.tab-nav .tab-link:hover {
+    background-color: #617488; /* 살짝 어두운 파란색 */
+}
+
+/* 현재 선택된(active) 탭 버튼의 스타일 */
+.tab-nav .tab-link.active {
+    background-color: #ffffff;  /* 배경색 흰색 */
+    color: #617488;              /* 글씨 파란색 */
+    border: 1px solid #dee2e6;
+    border-bottom: 1px solid #ffffff; /* 아래쪽 테두리를 흰색으로 만들어 연결된 것처럼 보이게 함 */
     font-weight: bold;
-    color: #868e96;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -2px;
 }
-.tab-link.active {
-    color: #007bff;
-    border-bottom-color: #007bff;
-}
+
+/* 탭 내용(Pane)을 감싸는 영역 */
 .tab-content {
-    padding-top: 20px;
+    padding: 25px 0;
 }
+
+/* 탭 내용(Pane) 기본 스타일 - 평소에는 숨겨둠 (가장 중요한 부분) */
 .tab-pane {
     display: none;
 }
+
+/* 선택된(active) 탭 내용만 보여줌 (가장 중요한 부분) */
 .tab-pane.active {
     display: block;
 }
