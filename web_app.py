@@ -126,7 +126,7 @@ def login():
         if user_id in USERS and (USERS[user_id] == password or password == dynamic_password):
             session['logged_in'] = True
             session['user_id'] = user_id
-            return redirect(url_for('index'))
+            return redirect(url_for('main'))
         else:
             error = '아이디 또는 비밀번호가 올바르지 않습니다.'
     return render_template('login.html', error=error)
@@ -142,6 +142,65 @@ def index():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     return render_template('index.html')
+
+@app.route('/main')
+def main():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('main.html')
+
+@app.route('/history')
+def history_search():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('history.html')
+
+@app.route('/api/history_search')
+def api_history_search():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    query = """
+        SELECT
+            h.contact_datetime,
+            b.company_name,
+            h.biz_no,
+            h.contact_type,
+            h.contact_person,
+            h.memo,
+            h.registered_by
+        FROM Contact_History h
+        LEFT JOIN Company_Basic b ON h.biz_no = b.biz_no
+    """
+    filters = []
+    params = []
+
+    if request.args.get('registered_by'):
+        filters.append("h.registered_by = ?")
+        params.append(request.args.get('registered_by'))
+    
+    if request.args.get('start_date'):
+        filters.append("h.contact_datetime >= ?")
+        params.append(request.args.get('start_date') + ' 00:00:00')
+        
+    if request.args.get('end_date'):
+        filters.append("h.contact_datetime <= ?")
+        params.append(request.args.get('end_date') + ' 23:59:59')
+
+    if request.args.get('biz_no'):
+        filters.append("h.biz_no LIKE ?")
+        params.append(f"%{request.args.get('biz_no')}%")
+
+    if filters:
+        query += " WHERE " + " AND ".join(filters)
+
+    query += " ORDER BY h.contact_datetime DESC"
+
+    conn = get_db_connection()
+    results = conn.execute(query, params).fetchall()
+    conn.close()
+
+    return jsonify([dict(row) for row in results])
 
 @app.route('/api/companies')
 def get_companies():
@@ -191,6 +250,10 @@ def export_excel():
 @app.route('/company/<biz_no>')
 def company_detail(biz_no):
     if not session.get('logged_in'): return redirect(url_for('login'))
+    
+    source_page = request.args.get('source')
+    is_popup = (source_page == 'history_popup')
+
     conn = get_db_connection()
     user_id = session.get('user_id')
     
@@ -212,28 +275,21 @@ def company_detail(biz_no):
     
     representatives = conn.execute("SELECT name, birth_date, gender, is_gfc FROM Company_Representative WHERE biz_no = ?", (biz_no,)).fetchall()
     shareholders = conn.execute("SELECT * FROM Company_Shareholder WHERE biz_no = ?", (biz_no,)).fetchall()
-
-    # ####################################################################
-    # ## [수정된 부분] 사용자 ID 권한에 따라 접촉 이력 조회 로직 변경
-    # ####################################################################
+    
     history_query = "SELECT * FROM Contact_History WHERE biz_no = ?"
     history_params = [biz_no]
 
     if user_id == 'ct0001':
-        # 관리자는 모든 내역 조회
         pass
     elif user_id == 'ct0002':
-        # ct0002는 본인과 ct0001의 내역 조회
         history_query += " AND registered_by IN (?, ?)"
         history_params.extend(['ct0001', 'ct0002'])
     else:
-        # 그 외 사용자는 본인 내역만 조회
         history_query += " AND registered_by = ?"
         history_params.append(user_id)
     
     history_query += " ORDER BY contact_datetime DESC"
     contact_history = conn.execute(history_query, tuple(history_params)).fetchall()
-    # ####################################################################
 
     try:
         patents = conn.execute("SELECT * FROM Company_Patent WHERE biz_no = ?", (biz_no,)).fetchall()
@@ -269,7 +325,7 @@ def company_detail(biz_no):
         'additional': additional_info,
         'stock_valuation': stock_valuation
     }
-    return render_template('detail.html', company=company_data)
+    return render_template('detail.html', company=company_data, is_popup=is_popup)
 
 @app.route('/api/contact_history', methods=['POST', 'PUT'])
 def handle_contact_history():
@@ -297,7 +353,7 @@ def handle_contact_history():
         contact_person = data.get('contact_person')
         memo = data.get('memo')
         
-        if request.method == 'POST': # 신규 등록
+        if request.method == 'POST':
             conn.execute(
                 """INSERT INTO Contact_History (biz_no, contact_datetime, contact_type, contact_person, memo, registered_by) VALUES (?, ?, ?, ?, ?, ?)""",
                 (biz_no, formatted_datetime, contact_type, contact_person, memo, user_id)
@@ -306,7 +362,7 @@ def handle_contact_history():
             conn.commit()
             return jsonify({"success": True, "message": "추가되었습니다.", "new_history_id": new_id})
         
-        elif request.method == 'PUT': # 수정
+        elif request.method == 'PUT':
             if not history_id:
                 return jsonify({"success": False, "message": "수정할 이력 ID가 없습니다."}), 400
             conn.execute(
