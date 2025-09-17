@@ -9,9 +9,7 @@ import io
 # --- 기본 설정 ---
 app = Flask(__name__)
 app.secret_key = 'your_very_secret_key_12345'
-
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "company_database.db")
-# DB_PATH = "/var/data/company_database.db"
 
 # --- 사용자 정보 ---
 USERS = { 'ct0001': 'ych1123!', 'ct0002': None, 'ct0003': None, 'ct0004': None, 'ct0005': None }
@@ -194,6 +192,7 @@ def export_excel():
 def company_detail(biz_no):
     if not session.get('logged_in'): return redirect(url_for('login'))
     conn = get_db_connection()
+    user_id = session.get('user_id')
     
     basic_query = """
     SELECT cb.*, cf.rating1, cb.group_transaction_yn, cb.gfc_transaction_yn
@@ -213,8 +212,29 @@ def company_detail(biz_no):
     
     representatives = conn.execute("SELECT name, birth_date, gender, is_gfc FROM Company_Representative WHERE biz_no = ?", (biz_no,)).fetchall()
     shareholders = conn.execute("SELECT * FROM Company_Shareholder WHERE biz_no = ?", (biz_no,)).fetchall()
-    contact_history = conn.execute("SELECT * FROM Contact_History WHERE biz_no = ? ORDER BY contact_datetime DESC", (biz_no,)).fetchall()
+
+    # ####################################################################
+    # ## [수정된 부분] 사용자 ID 권한에 따라 접촉 이력 조회 로직 변경
+    # ####################################################################
+    history_query = "SELECT * FROM Contact_History WHERE biz_no = ?"
+    history_params = [biz_no]
+
+    if user_id == 'ct0001':
+        # 관리자는 모든 내역 조회
+        pass
+    elif user_id == 'ct0002':
+        # ct0002는 본인과 ct0001의 내역 조회
+        history_query += " AND registered_by IN (?, ?)"
+        history_params.extend(['ct0001', 'ct0002'])
+    else:
+        # 그 외 사용자는 본인 내역만 조회
+        history_query += " AND registered_by = ?"
+        history_params.append(user_id)
     
+    history_query += " ORDER BY contact_datetime DESC"
+    contact_history = conn.execute(history_query, tuple(history_params)).fetchall()
+    # ####################################################################
+
     try:
         patents = conn.execute("SELECT * FROM Company_Patent WHERE biz_no = ?", (biz_no,)).fetchall()
     except sqlite3.OperationalError:
@@ -318,5 +338,3 @@ def delete_contact_history(history_id):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
-
