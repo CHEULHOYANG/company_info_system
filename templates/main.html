@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>메인 대시보드</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .dashboard-container {
+            text-align: center;
+            padding-top: 100px;
+        }
+        .dashboard-buttons {
+            margin-top: 40px;
+        }
+        .dashboard-button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 20px 40px;
+            margin: 0 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .dashboard-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container dashboard-container">
+        <header>
+            <h1>CT 파트너스 업무 시스템</h1>
+        </header>
+        <div class="dashboard-buttons">
+            <a href="{{ url_for('index') }}" class="dashboard-button">기업정보 조회</a>
+            <a href="{{ url_for('history_search') }}" class="dashboard-button">접촉이력 조회</a>
+        </div>
+        <div style="position: absolute; top: 20px; right: 20px;">
+             <a href="{{ url_for('logout') }}" class="logout-button-new">로그아웃</a>
+        </div>
+    </div>
+</body>
+</html>
