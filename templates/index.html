@@ -9,7 +9,10 @@
     <div class="container">
         <header>
             <h1>기업 정보 조회 <span id="results-count" class="header-subtext"></span></h1>
-            <a href="{{ url_for('logout') }}" class="logout-button-new">로그아웃</a>
+            <div>
+                <a href="{{ url_for('main') }}" class="back-button">메인으로</a>
+                <a href="{{ url_for('logout') }}" class="logout-button-new" style="margin-left: 10px;">로그아웃</a>
+            </div>
         </header>
 
         <div class="main-actions">
@@ -20,30 +23,15 @@
 
         <div class="search-container">
             <form id="search-form" class="search-grid" onsubmit="return false;">
-                <input type="text" id="company_name" name="company_name" placeholder="기업명">
-                <input type="text" id="biz_no" name="biz_no" placeholder="사업자번호">
-                <input type="text" id="industry_code" name="industry_code" placeholder="업종코드">
-                <input type="text" id="industry_name" name="industry_name" placeholder="업종명">
-                <input type="text" id="region" name="region" placeholder="지역/주소 (예: 서울 강남)">
-                <select id="company_size" name="company_size">
-                   <option value="전체">기업규모(전체)</option>
-                   <option value="중견기업">중견기업</option>
-                   <option value="중기업">중기업</option>
-                   <option value="소기업">소기업</option>
-                   <option value="소상공인">소상공인</option>
-                   <option value="보호대상중견기업">보호대상중견기업</option>
-                   <option value="한시성중소기업">한시성중소기업</option>
-                   <option value="기타">기타</option>
-                </select>
-                <select id="research_institute" name="research_institute">
-                    <option value="전체">기업부설연구소(전체)</option>
-                    <option value="유">유</option>
-                    <option value="무">무</option>
-                </select>
+                <input type="text" name="company_name" placeholder="기업명">
+                <input type="text" name="biz_no" placeholder="사업자번호">
+                <input type="text" name="industry_code" placeholder="업종코드">
+                <input type="text" name="industry_name" placeholder="업종명">
+                <input type="text" name="region" placeholder="지역 (예: 서울 강남)">
                 <div class="range-input">
-                    <input type="number" id="ret_min" name="ret_min" placeholder="이익잉여금(최소, 백만)">
+                    <input type="number" name="ret_min" placeholder="이익잉여금(Min)">
                     <span>~</span>
-                    <input type="number" id="ret_max" name="ret_max" placeholder="이익잉여금(최대, 백만)">
+                    <input type="number" name="ret_max" placeholder="이익잉여금(Max)">
                 </div>
             </form>
         </div>
@@ -52,115 +40,103 @@
             <table class="results-table">
                 <thead>
                     <tr>
-                        <th>순번</th>
                         <th>사업자번호</th>
                         <th>기업명</th>
                         <th>대표자명</th>
-                        <th>기업규모</th>
-                        <th class="address-col">주소</th>
                         <th>업종</th>
-                        <th class="text-right">자산총계(백만)</th>
-                        <th class="text-right">매출액(백만)</th>
-                        <th class="text-right">이익잉여금(백만)</th>
+                        <th>주소</th>
+                        <th>최신결산년도</th>
+                        <th>자산총계</th>
+                        <th>매출액</th>
+                        <th>이익잉여금</th>
                     </tr>
                 </thead>
-                <tbody id="results-tbody">
-                </tbody>
+                <tbody id="company-list">
+                    </tbody>
             </table>
-            <button id="load-more-btn" style="display:none;">더보기</button>
         </div>
+
+        <div id="pagination" class="pagination"></div>
     </div>
-    
+
     <div class="scroll-buttons">
         <button id="scroll-top">▲</button>
         <button id="scroll-bottom">▼</button>
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const searchForm = document.getElementById('search-form');
+    document.addEventListener('DOMContentLoaded', function () {
+        const companyList = document.getElementById('company-list');
         const searchButton = document.getElementById('search-button');
-        const excelButton = document.getElementById('excel-download-button');
+        const searchForm = document.getElementById('search-form');
+        const resultsCountSpan = document.getElementById('results-count');
         const resetButton = document.getElementById('reset-button');
-        const loadMoreBtn = document.getElementById('load-more-btn');
-        const resultsTbody = document.getElementById('results-tbody');
-        const resultsCount = document.getElementById('results-count');
+        const excelButton = document.getElementById('excel-download-button');
+        const paginationContainer = document.getElementById('pagination');
 
         let currentPage = 1;
-        let totalPages = 1;
-        let isSearching = false;
 
-        async function fetchCompanies(page, append = false) {
-            if (isSearching) return;
-            isSearching = true;
-
+        function fetchCompanies(page = 1) {
+            companyList.innerHTML = '<tr><td colspan="9" class="loading">검색 중...</td></tr>';
+            
             const formData = new FormData(searchForm);
             const params = new URLSearchParams(formData);
-            params.append('page', page);
-            
-            const perPage = 50;
-            const offset = (page - 1) * perPage;
+            params.set('page', page);
 
-            if (!append) {
-                resultsTbody.innerHTML = `<tr><td colspan="10" class="text-center">검색 중...</td></tr>`;
-            }
+            fetch(`/api/companies?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    companyList.innerHTML = '';
+                    resultsCountSpan.textContent = `조회건수 : ${data.totalRows.toLocaleString()}건`;
 
-            try {
-                const response = await fetch(`/api/companies?${params.toString()}`);
-                if (!response.ok) throw new Error('Network response was not ok');
-                const data = await response.json();
+                    if (data.companies.length === 0) {
+                        companyList.innerHTML = '<tr><td colspan="9">검색 결과가 없습니다.</td></tr>';
+                        renderPagination(0, page);
+                        return;
+                    }
 
-                if (!append) {
-                    resultsTbody.innerHTML = '';
-                }
-
-                if (data.companies.length === 0 && !append) {
-                    resultsTbody.innerHTML = `<tr><td colspan="10" class="text-center">검색 결과가 없습니다.</td></tr>`;
-                }
-
-                data.companies.forEach((company, index) => {
-                    const row = document.createElement('tr');
-                    row.style.cursor = 'pointer';
-                    row.onclick = () => { window.location.href = `/company/${company.biz_no}`; };
-                    
-                    const formatNumber = (num) => num ? Math.round(num / 1000000).toLocaleString() : '';
-
-                    row.innerHTML = `
-                        <td>${offset + index + 1}</td>
-                        <td>${company.biz_no || ''}</td>
-                        <td>${company.company_name || ''}</td>
-                        <td>${company.representative_name || ''}</td>
-                        <td>${company.company_size || ''}</td>
-                        <td class="address-col">${company.address || ''}</td>
-                        <td>${company.industry_name || ''} (${company.industry_code || ''})</td>
-                        <td class="text-right">${formatNumber(company.total_assets)}</td>
-                        <td class="text-right">${formatNumber(company.sales_revenue)}</td>
-                        <td class="text-right">${formatNumber(company.retained_earnings)}</td>
-                    `;
-                    resultsTbody.appendChild(row);
+                    data.companies.forEach(company => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="text-center"><a href="/company/${company.biz_no}">${company.biz_no}</a></td>
+                            <td><a href="/company/${company.biz_no}">${company.company_name}</a></td>
+                            <td class="text-center">${company.representative_name || ''}</td>
+                            <td>${company.industry_name || ''}</td>
+                            <td>${company.address || ''}</td>
+                            <td class="text-center">${company.fiscal_year || ''}</td>
+                            <td class="text-right">${company.total_assets ? company.total_assets.toLocaleString() : ''}</td>
+                            <td class="text-right">${company.sales_revenue ? company.sales_revenue.toLocaleString() : ''}</td>
+                            <td class="text-right">${company.retained_earnings ? company.retained_earnings.toLocaleString() : ''}</td>
+                        `;
+                        companyList.appendChild(row);
+                    });
+                    renderPagination(data.totalPages, data.currentPage);
+                })
+                .catch(error => {
+                    console.error('Failed to fetch companies:', error);
+                    companyList.innerHTML = '<tr><td colspan="9">데이터 조회 중 오류가 발생했습니다.</td></tr>';
                 });
+        }
 
-                currentPage = data.currentPage;
-                totalPages = data.totalPages;
-                resultsCount.textContent = `(총 ${data.totalRows.toLocaleString()}건)`;
+        function renderPagination(totalPages, currentPage) {
+            paginationContainer.innerHTML = '';
+            if (totalPages <= 1) return;
 
-                loadMoreBtn.style.display = (currentPage < totalPages) ? 'block' : 'none';
-
-            } catch (error) {
-                console.error('Failed to fetch companies:', error);
-                resultsCount.textContent = '(오류 발생)';
-                if (!append) {
-                    resultsTbody.innerHTML = `<tr><td colspan="10" class="text-center">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
+            for (let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = 'page-btn';
+                if (i === currentPage) {
+                    pageButton.classList.add('active');
                 }
-            } finally {
-                isSearching = false;
+                pageButton.addEventListener('click', () => {
+                    fetchCompanies(i);
+                });
+                paginationContainer.appendChild(pageButton);
             }
         }
 
-        searchButton.addEventListener('click', () => {
-            currentPage = 1;
-            fetchCompanies(currentPage, false);
-        });
+        searchButton.addEventListener('click', () => fetchCompanies(1));
         
         searchForm.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -171,9 +147,7 @@
 
         resetButton.addEventListener('click', () => {
             searchForm.reset();
-            setTimeout(() => {
-                 searchButton.click();
-            }, 0);
+            fetchCompanies(1);
         });
 
         excelButton.addEventListener('click', () => {
@@ -182,18 +156,12 @@
             window.location.href = `/export_excel?${params.toString()}`;
         });
 
-        loadMoreBtn.addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                fetchCompanies(currentPage + 1, true);
-            }
-        });
-
         const scrollTopBtn = document.getElementById('scroll-top');
         const scrollBottomBtn = document.getElementById('scroll-bottom');
         scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
         scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
 
-        fetchCompanies(1, false);
+        fetchCompanies(1);
     });
     </script>
 </body>
