@@ -107,15 +107,37 @@ header h1 { color: #2c3e50; margin: 0; font-size: 1.7em; font-weight: 600; }
 .table-container td a:hover { text-decoration: underline; }
 .memo-cell { white-space: pre-wrap; word-break: break-all; text-align: left; }
 
-#pagination { margin-top: 20px; text-align: center; }
-.page-btn { background: #fff; border: 1px solid #dee2e6; color: #0d6efd; padding: 8px 12px; margin: 0 2px; cursor: pointer; }
-.page-btn:hover { background: #e9ecef; }
-.page-btn.active { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+/* ==============================================
+    '다음' 버튼 스타일 수정
+   ==============================================
+*/
+.footer-actions {
+    margin-top: 20px;
+}
+#load-next-btn {
+    display: block;
+    width: 100%; /* 너비를 100%로 설정하여 길게 만듦 */
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    background-color: #0b4e7b; /* 검색 버튼과 동일한 색상 */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+#load-next-btn:hover {
+    opacity: 0.85;
+}
+/* ============================================== */
+
 
 .scroll-buttons { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100; }
 .scroll-buttons button { width: 40px; height: 40px; border-radius: 50%; border: none; background-color: #343a40; color: white; cursor: pointer; font-size: 18px; opacity: 0.7; }
 .scroll-buttons button:hover { opacity: 1; }
 
+/* Tab Navigation Style */
 .tab-nav { display: flex; border-bottom: 1px solid #dee2e6; }
 .tab-nav .tab-link { background-color: #f1f3f5; color: #495057; border: 1px solid #dee2e6; border-bottom: none; padding: 12px 24px; cursor: pointer; font-size: 16px; font-weight: 500; transition: all 0.2s ease-in-out; margin-right: 4px; border-top-left-radius: 6px; border-top-right-radius: 6px; }
 .tab-nav .tab-link:hover { background-color: #e9ecef; }
@@ -124,6 +146,7 @@ header h1 { color: #2c3e50; margin: 0; font-size: 1.7em; font-weight: 600; }
 .tab-pane { display: none; }
 .tab-pane.active { display: block; }
 
+/* Detail Page Specifics */
 .detail-main-grid { display: grid; grid-template-columns: 2fr 3fr; gap: 20px; }
 .detail-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e9ecef; margin-bottom: 20px; }
 .detail-card h3 { color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-top: 0; }
@@ -155,6 +178,7 @@ header h1 { color: #2c3e50; margin: 0; font-size: 1.7em; font-weight: 600; }
 .progress-container { width: 100%; background-color: #e9ecef; border-radius: 4px; overflow: hidden; }
 .progress-bar { height: 20px; background-color: #0d6efd; color: white; text-align: center; line-height: 20px; border-radius: 4px; font-size: 12px; white-space: nowrap; }
 
+/* Login Page */
 .login-body { display: flex; justify-content: center; align-items: center; height: 100vh; padding: 20px; box-sizing: border-box; background-color: #eef2f7; }
 .login-container { background: #fff; padding: 30px 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
 .login-container h2 { text-align: center; color: #2c3e50; margin-top: 0; margin-bottom: 25px; font-size: 1.8em; }

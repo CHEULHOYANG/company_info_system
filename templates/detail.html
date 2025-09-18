@@ -7,11 +7,18 @@
 </head>
 <body>
     <div class="container">
-        <header><h1>{{ company.basic.company_name }} <span class="header-subtext">상세 정보</span></h1>
-            <div>
-                <a href="javascript:history.back()" class="back-button">목록으로</a>
-            </div>
-        </header>
+ <header>
+    <h1>{{ company.basic.company_name }} <span class="header-subtext">상세 정보</span></h1>
+    <div>
+        {# is_popup 변수가 True이면 '닫기' 버튼을, 아니면 '목록으로' 버튼을 보여줌 #}
+        {% if is_popup %}
+            <a href="javascript:window.close();" class="back-button">닫기</a>
+        {# 일반 화면으로 열렸을 경우 '목록으로' 버튼 표시 #}
+        {% else %}
+            <a href="javascript:history.back()" class="back-button">목록으로</a>
+        {% endif %}
+    </div>
+</header>
 
         <div class="tab-nav">
             <button class="tab-link active" data-tab="tab1">기업 상세 조회</button>
@@ -92,6 +99,7 @@
 
                         <div class="detail-card">
                             <h3>비상장주식가치 평가 (참고용)</h3>
+                            {% if company.stock_valuation and company.stock_valuation.total_shares_issued is defined %}
                             <div class="info-grid">
                                 <div><strong>자산가치</strong></div>
                                 <div>{{ "{:,.0f}".format(company.stock_valuation.asset_value) if company.stock_valuation.asset_value else 'N/A' }} 원</div>
@@ -102,6 +110,9 @@
                                 <div></div>
                                 <div><span class="text-primary-large">(발행주식수: {{ "{:,.0f}".format(company.stock_valuation.total_shares_issued) if company.stock_valuation.total_shares_issued else 'N/A' }} 주)</span></div>
                             </div>
+                            {% else %}
+                                <p>재무 데이터가 부족하여 가치 평가 정보를 산출할 수 없습니다.</p>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -197,24 +208,26 @@
                             <button type="button" id="cancel-btn" style="display:none;">취소</button>
                         </div>
                     </form>
-                    <table class="results-table">
-                        <thead><tr><th>일시</th><th>유형</th><th>담당자</th><th>내용</th><th>작성자</th><th>작업</th></tr></thead>
-                        <tbody id="history-tbody">
-                            {% for item in company.history %}
-                            <tr data-id="{{ item.history_id }}">
-                                <td class="datetime-value">{{ item.contact_datetime }}</td>
-                                <td class="type">{{ item.contact_type }}</td>
-                                <td class="person">{{ item.contact_person }}</td>
-                                <td class="memo">{{ item.memo }}</td>
-                                <td>{{ item.registered_by }}</td>
-                                <td>
-                                    <button class="edit-btn">수정</button>
-                                    <button class="delete-btn">삭제</button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="table-container">
+                        <table class="results-table">
+                            <thead><tr><th>일시</th><th>유형</th><th>담당자</th><th>내용</th><th>작성자</th><th>작업</th></tr></thead>
+                            <tbody id="history-tbody">
+                                {% for item in company.history %}
+                                <tr data-id="{{ item.history_id }}">
+                                    <td class="datetime-value">{{ item.contact_datetime }}</td>
+                                    <td class="type">{{ item.contact_type }}</td>
+                                    <td class="person">{{ item.contact_person }}</td>
+                                    <td class="memo">{{ item.memo }}</td>
+                                    <td>{{ item.registered_by }}</td>
+                                    <td>
+                                        <button class="edit-btn">수정</button>
+                                        <button class="delete-btn">삭제</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

@@ -96,8 +96,10 @@ def query_companies_data(filters):
             where_clauses.append("cb.company_size = ?")
             params.append(company_size_filter)
 
+    # [수정] 금액 단위는 백만 단위로 입력받으므로, 기존 로직 유지
     if filters.get('ret_min'): where_clauses.append("cf.retained_earnings >= ?"); params.append(float(filters['ret_min']) * 1000000)
     if filters.get('ret_max'): where_clauses.append("cf.retained_earnings <= ?"); params.append(float(filters['ret_max']) * 1000000)
+    
     if filters.get('research_institute') and filters['research_institute'] != '전체': 
         where_clauses.append("ca.has_research_institute = ?"); params.append('1' if filters['research_institute'] == '유' else '0')
 
@@ -155,10 +157,13 @@ def history_search():
         return redirect(url_for('login'))
     return render_template('history.html')
 
+# ▼▼▼ [수정] api_history_search 함수 ▼▼▼
 @app.route('/api/history_search')
 def api_history_search():
     if not session.get('logged_in'):
         return jsonify({"error": "Unauthorized"}), 401
+    
+    user_id = session.get('user_id') # 현재 로그인한 사용자 ID
 
     query = """
         SELECT
@@ -175,9 +180,18 @@ def api_history_search():
     filters = []
     params = []
 
-    if request.args.get('registered_by'):
+    search_user = request.args.get('registered_by')
+
+    # [수정] ct0001 관리자 권한 로직 추가
+    if user_id == 'ct0001':
+        # ct0001은 검색창에 ID를 입력하면 해당 ID의 내역을, 입력하지 않으면 전체 내역을 본다.
+        if search_user:
+            filters.append("h.registered_by = ?")
+            params.append(search_user)
+    else:
+        # 다른 사용자는 본인 내역만 볼 수 있다.
         filters.append("h.registered_by = ?")
-        params.append(request.args.get('registered_by'))
+        params.append(user_id)
     
     if request.args.get('start_date'):
         filters.append("h.contact_datetime >= ?")
@@ -202,6 +216,7 @@ def api_history_search():
 
     return jsonify([dict(row) for row in results])
 
+# ▼▼▼ [수정] get_companies 함수 ▼▼▼
 @app.route('/api/companies')
 def get_companies():
     if not session.get('logged_in'):
@@ -210,14 +225,18 @@ def get_companies():
         page = request.args.get('page', 1, type=int)
         per_page = 50
         offset = (page - 1) * per_page
+        
         all_data = query_companies_data(request.args)
         total_rows = len(all_data)
-        total_pages = math.ceil(total_rows / per_page) if total_rows > 0 else 1
+        
+        has_next_page = total_rows > (offset + per_page)
+        
         paginated_data = all_data.iloc[offset : offset + per_page].where(pd.notnull(all_data), None)
+        
         return jsonify({
             'companies': paginated_data.to_dict('records'),
-            'currentPage': page,
-            'totalPages': total_pages,
+            'hasNextPage': has_next_page,
+            'offset': offset,
             'totalRows': total_rows
         })
     except Exception as e:
