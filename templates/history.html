@@ -4,6 +4,37 @@
     <meta charset="UTF-8">
     <title>접촉이력 조회</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* history.html 페이지 전용 버튼 스타일 */
+        .main-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .action-button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: white;
+            transition: opacity 0.2s;
+        }
+        .action-button:hover {
+            opacity: 0.85;
+        }
+        .action-button.excel-button {
+            background-color: #208e4c;
+        }
+        .action-button.reset-button {
+            background-color: #6c757d;
+        }
+        .action-button.search-button {
+            background-color: #0b4e7b;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -15,6 +46,7 @@
         </header>
 
         <div class="main-actions">
+            <button type="button" id="excel-download-button" class="action-button excel-button">엑셀저장</button>
             <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">초기화</button>
             <button type="button" id="search-button" class="action-button search-button">검색</button>
         </div>
@@ -63,6 +95,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         const searchButton = document.getElementById('search-button');
         const resetButton = document.getElementById('reset-button');
+        const excelButton = document.getElementById('excel-download-button');
         const searchForm = document.getElementById('search-form');
         const historyList = document.getElementById('history-list');
         const resultsCountSpan = document.getElementById('results-count');
@@ -111,12 +144,18 @@
             performSearch();
         });
 
+        excelButton.addEventListener('click', () => {
+            const formData = new FormData(searchForm);
+            const params = new URLSearchParams(formData);
+            window.location.href = `/export_history_excel?${params.toString()}`;
+        });
+
         const scrollTopBtn = document.getElementById('scroll-top');
         const scrollBottomBtn = document.getElementById('scroll-bottom');
         scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
         scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
         
-        performSearch(); // 페이지 로드 시 전체 내역 조회
+        performSearch();
     });
     </script>
 </body>
