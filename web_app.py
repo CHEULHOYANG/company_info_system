@@ -65,6 +65,7 @@ def calculate_unlisted_stock_value(financial_data):
 
 # --- 데이터 처리 함수 (공통 로직) ---
 def query_companies_data(filters):
+    # ... (이전과 동일, 수정 없음) ...
     conn = get_db_connection()
     
     base_query = """
@@ -96,7 +97,6 @@ def query_companies_data(filters):
             where_clauses.append("cb.company_size = ?")
             params.append(company_size_filter)
 
-    # [수정] 금액 단위는 백만 단위로 입력받으므로, 기존 로직 유지
     if filters.get('ret_min'): where_clauses.append("cf.retained_earnings >= ?"); params.append(float(filters['ret_min']) * 1000000)
     if filters.get('ret_max'): where_clauses.append("cf.retained_earnings <= ?"); params.append(float(filters['ret_max']) * 1000000)
     
@@ -117,8 +117,49 @@ def query_companies_data(filters):
         conn.close()
     return df
 
+# [신규] 접촉이력 검색 로직을 별도 함수로 분리 (재사용 목적)
+def query_contact_history(filters, user_id):
+    query = """
+        SELECT
+            h.contact_datetime, b.company_name, h.biz_no,
+            h.contact_type, h.contact_person, h.memo, h.registered_by
+        FROM Contact_History h
+        LEFT JOIN Company_Basic b ON h.biz_no = b.biz_no
+    """
+    where_clauses = []
+    params = []
+    
+    search_user = filters.get('registered_by')
+    if user_id == 'ct0001':
+        if search_user:
+            where_clauses.append("h.registered_by = ?")
+            params.append(search_user)
+    else:
+        where_clauses.append("h.registered_by = ?")
+        params.append(user_id)
+    
+    if filters.get('start_date'):
+        where_clauses.append("h.contact_datetime >= ?")
+        params.append(filters.get('start_date') + ' 00:00:00')
+    if filters.get('end_date'):
+        where_clauses.append("h.contact_datetime <= ?")
+        params.append(filters.get('end_date') + ' 23:59:59')
+    if filters.get('biz_no'):
+        where_clauses.append("h.biz_no LIKE ?")
+        params.append(f"%{filters.get('biz_no')}%")
+
+    if where_clauses:
+        query += " WHERE " + " AND ".join(where_clauses)
+    query += " ORDER BY h.contact_datetime DESC"
+    
+    conn = get_db_connection()
+    results = conn.execute(query, params).fetchall()
+    conn.close()
+    return results
+
 # --- 라우팅 ---
 @app.route('/login', methods=['GET', 'POST'])
+# ... (이전과 동일, 수정 없음) ...
 def login():
     error = None
     if request.method == 'POST':
@@ -134,90 +175,44 @@ def login():
     return render_template('login.html', error=error)
 
 @app.route('/logout')
+# ... (이전과 동일, 수정 없음) ...
 def logout():
     session.pop('logged_in', None)
     session.pop('user_id', None)
     return redirect(url_for('login'))
     
 @app.route('/')
+# ... (이전과 동일, 수정 없음) ...
 def index():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     return render_template('index.html')
 
 @app.route('/main')
+# ... (이전과 동일, 수정 없음) ...
 def main():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     return render_template('main.html')
 
 @app.route('/history')
+# ... (이전과 동일, 수정 없음) ...
 def history_search():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     return render_template('history.html')
 
-# ▼▼▼ [수정] api_history_search 함수 ▼▼▼
 @app.route('/api/history_search')
 def api_history_search():
     if not session.get('logged_in'):
         return jsonify({"error": "Unauthorized"}), 401
     
-    user_id = session.get('user_id') # 현재 로그인한 사용자 ID
-
-    query = """
-        SELECT
-            h.contact_datetime,
-            b.company_name,
-            h.biz_no,
-            h.contact_type,
-            h.contact_person,
-            h.memo,
-            h.registered_by
-        FROM Contact_History h
-        LEFT JOIN Company_Basic b ON h.biz_no = b.biz_no
-    """
-    filters = []
-    params = []
-
-    search_user = request.args.get('registered_by')
-
-    # [수정] ct0001 관리자 권한 로직 추가
-    if user_id == 'ct0001':
-        # ct0001은 검색창에 ID를 입력하면 해당 ID의 내역을, 입력하지 않으면 전체 내역을 본다.
-        if search_user:
-            filters.append("h.registered_by = ?")
-            params.append(search_user)
-    else:
-        # 다른 사용자는 본인 내역만 볼 수 있다.
-        filters.append("h.registered_by = ?")
-        params.append(user_id)
-    
-    if request.args.get('start_date'):
-        filters.append("h.contact_datetime >= ?")
-        params.append(request.args.get('start_date') + ' 00:00:00')
-        
-    if request.args.get('end_date'):
-        filters.append("h.contact_datetime <= ?")
-        params.append(request.args.get('end_date') + ' 23:59:59')
-
-    if request.args.get('biz_no'):
-        filters.append("h.biz_no LIKE ?")
-        params.append(f"%{request.args.get('biz_no')}%")
-
-    if filters:
-        query += " WHERE " + " AND ".join(filters)
-
-    query += " ORDER BY h.contact_datetime DESC"
-
-    conn = get_db_connection()
-    results = conn.execute(query, params).fetchall()
-    conn.close()
-
+    user_id = session.get('user_id')
+    results = query_contact_history(request.args, user_id)
     return jsonify([dict(row) for row in results])
 
-# ▼▼▼ [수정] get_companies 함수 ▼▼▼
 @app.route('/api/companies')
+# ... (이전과 동일, 수정 없음) ...
 def get_companies():
     if not session.get('logged_in'):
         return jsonify({"error": "Unauthorized"}), 401
@@ -244,6 +239,7 @@ def get_companies():
         return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/export_excel')
+# ... (이전과 동일, 수정 없음) ...
 def export_excel():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
@@ -266,7 +262,55 @@ def export_excel():
         print(f"Error in export_excel: {e}")
         return "엑셀 파일 생성 중 오류가 발생했습니다.", 500
 
+# ▼▼▼ [신규] 접촉 이력 엑셀 다운로드 API 추가 ▼▼▼
+@app.route('/export_history_excel')
+def export_history_excel():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
+    try:
+        user_id = session.get('user_id')
+        results = query_contact_history(request.args, user_id)
+        
+        if not results:
+            return "다운로드할 데이터가 없습니다.", 404
+            
+        df = pd.DataFrame([dict(row) for row in results])
+        
+        # 컬럼 순서 및 이름 변경
+        column_mapping = {
+            'contact_datetime': '접촉일시',
+            'company_name': '기업명',
+            'biz_no': '사업자번호',
+            'contact_type': '접촉유형',
+            'contact_person': '기업담당자',
+            'memo': '내용',
+            'registered_by': '작성자'
+        }
+        df.rename(columns=column_mapping, inplace=True)
+        
+        # 요청한 순서대로 컬럼 정렬
+        ordered_columns = ['접촉일시', '기업명', '사업자번호', '접촉유형', '기업담당자', '내용', '작성자']
+        df_excel = df[ordered_columns]
+
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df_excel.to_excel(writer, index=False, sheet_name='접촉이력')
+        
+        output.seek(0)
+        
+        return Response(
+            output,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment;filename=contact_history.xlsx"}
+        )
+    except Exception as e:
+        print(f"Error in export_history_excel: {e}")
+        return "엑셀 파일 생성 중 오류가 발생했습니다.", 500
+
+
 @app.route('/company/<biz_no>')
+# ... (이전과 동일, 수정 없음) ...
 def company_detail(biz_no):
     if not session.get('logged_in'): return redirect(url_for('login'))
     
@@ -347,6 +391,7 @@ def company_detail(biz_no):
     return render_template('detail.html', company=company_data, is_popup=is_popup)
 
 @app.route('/api/contact_history', methods=['POST', 'PUT'])
+# ... (이전과 동일, 수정 없음) ...
 def handle_contact_history():
     if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
     
@@ -398,6 +443,7 @@ def handle_contact_history():
         conn.close()
 
 @app.route('/api/contact_history/<int:history_id>', methods=['DELETE'])
+# ... (이전과 동일, 수정 없음) ...
 def delete_contact_history(history_id):
     if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
     conn = get_db_connection()
