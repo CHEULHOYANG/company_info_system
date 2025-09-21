@@ -22,7 +22,7 @@ def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
-
+  
 # --- 비상장 주식 가치 계산 ---
 def calculate_unlisted_stock_value(financial_data):
     if not financial_data: return {}
