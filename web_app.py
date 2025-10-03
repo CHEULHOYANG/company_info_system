@@ -1,48 +1,66 @@
 import os
 import sqlite3
+import io
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, Response
 from datetime import datetime
 import pandas as pd
 import math
-import io
-
+import csv
+from werkzeug.utils import secure_filename
 # --- 기본 설정 ---
 app = Flask(__name__)
 app.secret_key = 'your_very_secret_key_12345'
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "company_database.db")
 
-# --- 사용자 정보 ---
-USERS = { 'ct0001': 'ych1123!', 'ct0002': None, 'ct0003': None, 'ct0004': None, 'ct0005': None }
-
-def get_dynamic_password():
-    return f"ctlove{datetime.now().strftime('%m%d')}"
-
-# --- 데이터베이스 연결 ---
+# --- DB 연결 함수 및 사용자 계정 ---
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
-  
+
+
+# --- 사용자 정보 및 동적 비밀번호 규칙 ---
+USERS = {
+    'ct0001': {'name': '양철호', 'password': 'ych1123!'},
+    'ct0002': {'name': '서은정', 'password_rule': lambda: f"ctlove{datetime.now().strftime('%m%d')}"},
+    'dt0003': {'name': '김영희', 'password_rule': lambda: f"lee0202{datetime.now().strftime('%m%d')}"},
+    'dt0004': {'name': '지은영', 'password_rule': lambda: f"eyoung{datetime.now().strftime('%m%d')}"},
+    'dt0005': {'name': '구자균', 'password_rule': lambda: f"gugu{datetime.now().strftime('%m%d')}"},
+    'dt0006': {'name': '이영창', 'password_rule': lambda: f"ychang{datetime.now().strftime('%m%d')}"},
+    'dt0007': {'name': '정재승', 'password_rule': lambda: f"jsung{datetime.now().strftime('%m%d')}"},
+}
+
 # --- 비상장 주식 가치 계산 ---
 def calculate_unlisted_stock_value(financial_data):
-    if not financial_data: return {}
+    """
+    필요한 재무 항목:
+    - total_assets: 자산총계
+    - total_liabilities: 부채총계
+    - net_income: 순이익(최근 3년 평균)
+    - shares_issued_count: 발행주식수(없으면 자본금/5000)
+    - capital_stock_value: 자본금
+    """
+    if not financial_data:
+        return {}
     df_financial = pd.DataFrame(financial_data)
-    if df_financial.empty: return {}
+    if df_financial.empty:
+        return {}
 
     latest_data = df_financial.sort_values(by='fiscal_year', ascending=False).iloc[0]
 
     total_assets = float(latest_data.get('total_assets') or 0)
     total_liabilities = float(latest_data.get('total_liabilities') or 0)
-    
+
+    # 최근 3년 평균 순이익
     net_income_3y_avg = pd.to_numeric(df_financial['net_income'], errors='coerce').mean()
     if pd.isna(net_income_3y_avg):
         net_income_3y_avg = 0
 
     asset_value = total_assets - total_liabilities
-    profit_value = net_income_3y_avg / 0.1
-    
+    profit_value = net_income_3y_avg / 0.1 if net_income_3y_avg else 0
+
     calculated_value = (asset_value * 2 + profit_value * 3) / 5
-    
+
     total_shares = float(latest_data.get('shares_issued_count') or 0)
     if total_shares <= 1:
         capital_stock = float(latest_data.get('capital_stock_value') or 0)
@@ -53,7 +71,7 @@ def calculate_unlisted_stock_value(financial_data):
     if total_shares == 0:
         total_shares = 1
 
-    stock_value = calculated_value / total_shares
+    stock_value = calculated_value / total_shares if total_shares else 0
 
     return {
         "asset_value": asset_value,
@@ -63,156 +81,223 @@ def calculate_unlisted_stock_value(financial_data):
         "estimated_stock_value": stock_value
     }
 
-# --- 데이터 처리 함수 (공통 로직) ---
-def query_companies_data(filters):
-    # ... (이전과 동일, 수정 없음) ...
+# --- 기업정보 데이터 조회 함수 추가 ---
+def query_companies_data(args):
     conn = get_db_connection()
-    
-    base_query = """
-    SELECT
-        cb.biz_no, cb.company_name, cb.representative_name, cb.company_size, 
-        cb.address, cb.phone_number, cb.industry_name, cb.industry_code,
-        cf.total_assets, cf.sales_revenue, cf.retained_earnings, cf.fiscal_year
-    FROM
-        Company_Basic AS cb
-    LEFT JOIN (
-        SELECT biz_no, MAX(fiscal_year) as max_year FROM Company_Financial GROUP BY biz_no
-    ) AS latest_fy ON cb.biz_no = latest_fy.biz_no
-    LEFT JOIN Company_Financial AS cf ON cb.biz_no = cf.biz_no AND cf.fiscal_year = latest_fy.max_year
-    LEFT JOIN Company_Additional AS ca ON cb.biz_no = ca.biz_no
-    """
-    
-    where_clauses, params = [], []
-    if filters.get('company_name'): where_clauses.append("cb.company_name LIKE ?"); params.append(f"%{filters['company_name']}%")
-    if filters.get('biz_no'): where_clauses.append("cb.biz_no LIKE ?"); params.append(f"%{filters['biz_no']}%")
-    if filters.get('industry_code'): where_clauses.append("cb.industry_code LIKE ?"); params.append(f"%{filters['industry_code']}%")
-    if filters.get('industry_name'): where_clauses.append("cb.industry_name LIKE ?"); params.append(f"%{filters['industry_name']}%")
-    if filters.get('region'): where_clauses.append("cb.address LIKE ?"); params.append(f"%{filters['region']}%")
-    
-    company_size_filter = filters.get('company_size')
-    if company_size_filter and company_size_filter != '전체':
-        if company_size_filter == '기타':
-            where_clauses.append("(cb.company_size IS NULL OR TRIM(cb.company_size) = '')")
-        else:
-            where_clauses.append("cb.company_size = ?")
-            params.append(company_size_filter)
-
-    if filters.get('ret_min'): where_clauses.append("cf.retained_earnings >= ?"); params.append(float(filters['ret_min']) * 1000000)
-    if filters.get('ret_max'): where_clauses.append("cf.retained_earnings <= ?"); params.append(float(filters['ret_max']) * 1000000)
-    
-    if filters.get('research_institute') and filters['research_institute'] != '전체': 
-        where_clauses.append("ca.has_research_institute = ?"); params.append('1' if filters['research_institute'] == '유' else '0')
-
-    query = base_query
-    if where_clauses:
-        query += " WHERE " + " AND ".join(where_clauses)
-    query += " ORDER BY cb.company_name"
-
-    try:
-        df = pd.read_sql_query(query, conn, params=params)
-    except sqlite3.OperationalError as e:
-        print(f"Query failed: {query}\nParams: {params}\nError: {e}")
-        return pd.DataFrame()
-    finally:
-        conn.close()
-    return df
-
-# [신규] 접촉이력 검색 로직을 별도 함수로 분리 (재사용 목적)
-def query_contact_history(filters, user_id):
     query = """
         SELECT
-            h.contact_datetime, b.company_name, h.biz_no,
-            h.contact_type, h.contact_person, h.memo, h.registered_by
-        FROM Contact_History h
-        LEFT JOIN Company_Basic b ON h.biz_no = b.biz_no
+            b.*,
+            f.fiscal_year,
+            f.total_assets,
+            f.sales_revenue,
+            f.retained_earnings
+        FROM Company_Basic b
+        LEFT JOIN (
+            SELECT biz_no, fiscal_year, total_assets, sales_revenue, retained_earnings
+            FROM Company_Financial
+            WHERE (biz_no, fiscal_year) IN (
+                SELECT biz_no, MAX(fiscal_year) FROM Company_Financial GROUP BY biz_no
+            )
+        ) f ON b.biz_no = f.biz_no
     """
-    where_clauses = []
+    filters = []
     params = []
-    
-    search_user = filters.get('registered_by')
-    if user_id == 'ct0001':
-        if search_user:
-            where_clauses.append("h.registered_by = ?")
-            params.append(search_user)
-    else:
-        where_clauses.append("h.registered_by = ?")
-        params.append(user_id)
-    
-    if filters.get('start_date'):
-        where_clauses.append("h.contact_datetime >= ?")
-        params.append(filters.get('start_date') + ' 00:00:00')
-    if filters.get('end_date'):
-        where_clauses.append("h.contact_datetime <= ?")
-        params.append(filters.get('end_date') + ' 23:59:59')
-    if filters.get('biz_no'):
-        where_clauses.append("h.biz_no LIKE ?")
-        params.append(f"%{filters.get('biz_no')}%")
-
-    if where_clauses:
-        query += " WHERE " + " AND ".join(where_clauses)
-    query += " ORDER BY h.contact_datetime DESC"
-    
-    conn = get_db_connection()
-    results = conn.execute(query, params).fetchall()
+    if args.get('biz_no'):
+        filters.append("b.biz_no LIKE ?")
+        params.append(f"%{args.get('biz_no')}%")
+    if args.get('company_name'):
+        filters.append("b.company_name LIKE ?")
+        params.append(f"%{args.get('company_name')}%")
+    if args.get('industry_name'):
+        filters.append("b.industry_name LIKE ?")
+        params.append(f"%{args.get('industry_name')}%")
+    if args.get('company_size') and args.get('company_size') != '전체':
+        filters.append("b.company_size = ?")
+        params.append(args.get('company_size'))
+    # 지역(주소) 검색: 모든 키워드가 포함되어야 함
+    if args.get('region'):
+        region_keywords = [kw.strip() for kw in args.get('region').split() if kw.strip()]
+        for kw in region_keywords:
+            filters.append("b.address LIKE ?")
+            params.append(f"%{kw}%")
+    # 이익잉여금 min/max (retained_earnings, 백만단위 입력값을 실제 단위로 변환)
+    if args.get('ret_min'):
+        try:
+            ret_min_val = int(args.get('ret_min')) * 1000000
+            filters.append("f.retained_earnings >= ?")
+            params.append(ret_min_val)
+        except Exception:
+            pass
+    if args.get('ret_max'):
+        try:
+            ret_max_val = int(args.get('ret_max')) * 1000000
+            filters.append("f.retained_earnings <= ?")
+            params.append(ret_max_val)
+        except Exception:
+            pass
+    if filters:
+        query += " WHERE " + " AND ".join(filters)
+    query += " ORDER BY b.biz_no"
+    df = pd.read_sql_query(query, conn, params=params)
     conn.close()
-    return results
+    return df
 
-# --- 라우팅 ---
+# --- 로그아웃 라우트 추가 ---
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
+
+# --- 접촉이력 조회 라우트 추가 ---
+@app.route('/history')
+def history_search():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('history.html', user_name=session.get('user_name'))
+
+# --- 로그인 라우트 추가 ---
 @app.route('/login', methods=['GET', 'POST'])
-# ... (이전과 동일, 수정 없음) ...
 def login():
     error = None
     if request.method == 'POST':
         user_id = request.form['user_id']
         password = request.form['password']
-        dynamic_password = get_dynamic_password()
-        if user_id in USERS and (USERS[user_id] == password or password == dynamic_password):
-            session['logged_in'] = True
-            session['user_id'] = user_id
-            return redirect(url_for('main'))
-        else:
-            error = '아이디 또는 비밀번호가 올바르지 않습니다.'
+        user_info = USERS.get(user_id)
+        if user_info:
+            if user_id == 'ct0001' and user_info['password'] == password:
+                session['logged_in'] = True
+                session['user_id'] = user_id
+                session['user_name'] = user_info['name']
+                return redirect(url_for('main'))
+            elif 'password_rule' in user_info and password == user_info['password_rule']():
+                session['logged_in'] = True
+                session['user_id'] = user_id
+                session['user_name'] = user_info['name']
+                return redirect(url_for('main'))
+        error = '아이디 또는 비밀번호가 올바르지 않습니다.'
     return render_template('login.html', error=error)
 
-@app.route('/logout')
-# ... (이전과 동일, 수정 없음) ...
-def logout():
-    session.pop('logged_in', None)
-    session.pop('user_id', None)
-    return redirect(url_for('login'))
-    
+# --- index(홈) 페이지 라우트 추가 ---
+
 @app.route('/')
-# ... (이전과 동일, 수정 없음) ...
 def index():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    return render_template('index.html')
+    return render_template('index.html', user_name=session.get('user_name'))
+
 
 @app.route('/main')
-# ... (이전과 동일, 수정 없음) ...
 def main():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    return render_template('main.html')
-
-@app.route('/history')
-# ... (이전과 동일, 수정 없음) ...
-def history_search():
+    return render_template('main.html', user_name=session.get('user_name'))
+# (불필요한 잘못된 들여쓰기 라인 제거)
+# --- 접촉이력 데이터 조회 API 추가 ---
+@app.route('/api/contact_history_csv', methods=['GET', 'POST'])
+def contact_history_csv():
     if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    return render_template('history.html')
-
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    if request.method == 'GET':
+        # 조건 없이 전체 Contact_History를 CSV로 반환
+        conn = get_db_connection()
+        rows = conn.execute('SELECT history_id, contact_datetime, biz_no, contact_type, contact_person, memo, registered_by FROM Contact_History ORDER BY history_id').fetchall()
+        conn.close()
+        si = io.StringIO()
+        cw = csv.writer(si)
+        cw.writerow(['history_id','contact_datetime','biz_no','contact_type','contact_person','memo','registered_by'])
+        for row in rows:
+            cw.writerow([row['history_id'], row['contact_datetime'], row['biz_no'], row['contact_type'], row['contact_person'], row['memo'], row['registered_by']])
+        output = si.getvalue().encode('utf-8-sig')
+        return Response(output, mimetype='text/csv', headers={"Content-Disposition": "attachment;filename=contact_history.csv"})
+    else:
+        # 업로드: 기존 데이터 전체 삭제 후, 업로드된 CSV로 전체 대체
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
+        file = request.files['file']
+        if not file.filename.endswith('.csv'):
+            return jsonify({'success': False, 'message': 'CSV 파일만 업로드 가능합니다.'}), 400
+        stream = io.StringIO(file.stream.read().decode('utf-8-sig'))
+        reader = csv.DictReader(stream)
+        conn = get_db_connection()
+        try:
+            conn.execute('DELETE FROM Contact_History')
+            inserted, updated = 0, 0
+            for row in reader:
+                if row.get('history_id'):
+                    cur = conn.execute("SELECT 1 FROM Contact_History WHERE history_id = ?", (row['history_id'],))
+                    if cur.fetchone():
+                        conn.execute("UPDATE Contact_History SET contact_datetime=?, biz_no=?, contact_type=?, contact_person=?, memo=?, registered_by=? WHERE history_id = ?",
+                            (row['contact_datetime'], row['biz_no'], row['contact_type'], row['contact_person'], row['memo'], row['registered_by'], row['history_id']))
+                        updated += 1
+                        continue
+                conn.execute("INSERT INTO Contact_History (history_id, contact_datetime, biz_no, contact_type, contact_person, memo, registered_by) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (row.get('history_id'), row.get('contact_datetime'), row.get('biz_no'), row.get('contact_type'), row.get('contact_person'), row.get('memo'), row.get('registered_by')))
+                inserted += 1
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            return jsonify({'success': False, 'message': str(e)}), 500
+        finally:
+            conn.close()
+        return jsonify({'success': True, 'inserted': inserted, 'updated': updated})
 @app.route('/api/history_search')
 def api_history_search():
     if not session.get('logged_in'):
         return jsonify({"error": "Unauthorized"}), 401
-    
+
     user_id = session.get('user_id')
-    results = query_contact_history(request.args, user_id)
+    query = """
+        SELECT
+            h.history_id,
+            h.contact_datetime,
+            b.company_name,
+            h.biz_no,
+            h.contact_type,
+            h.contact_person,
+            h.memo,
+            h.registered_by
+        FROM Contact_History h
+        LEFT JOIN Company_Basic b ON h.biz_no = b.biz_no
+    """
+    filters = []
+    params = []
+
+
+    search_user = request.args.get('registered_by')
+    # 관리자: ct0001~ct0010은 전체 이력 조회, 그 외는 본인 이력만 조회
+    if user_id.startswith('ct00') and len(user_id) == 6 and user_id[2:].isdigit() and 1 <= int(user_id[2:]) <= 10:
+        # 관리자: 전체 이력(필터 없음), 단 registered_by 파라미터가 있으면 해당 유저만
+        if search_user:
+            filters.append("h.registered_by = ?")
+            params.append(search_user)
+    else:
+        # 일반 사용자: 본인 등록 이력만
+        filters.append("h.registered_by = ?")
+        params.append(user_id)
+
+    if request.args.get('start_date'):
+        filters.append("h.contact_datetime >= ?")
+        params.append(request.args.get('start_date') + ' 00:00:00')
+    if request.args.get('end_date'):
+        filters.append("h.contact_datetime <= ?")
+        params.append(request.args.get('end_date') + ' 23:59:59')
+    if request.args.get('biz_no'):
+        filters.append("h.biz_no LIKE ?")
+        params.append(f"%{request.args.get('biz_no')}%")
+
+    if filters:
+        query += " WHERE " + " AND ".join(filters)
+    query += " ORDER BY h.contact_datetime DESC"
+
+    conn = get_db_connection()
+    results = conn.execute(query, params).fetchall()
+    conn.close()
+
     return jsonify([dict(row) for row in results])
 
+# ▼▼▼ [수정] get_companies 함수 ▼▼▼
 @app.route('/api/companies')
-# ... (이전과 동일, 수정 없음) ...
 def get_companies():
     if not session.get('logged_in'):
         return jsonify({"error": "Unauthorized"}), 401
@@ -239,11 +324,11 @@ def get_companies():
         return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/export_excel')
-# ... (이전과 동일, 수정 없음) ...
 def export_excel():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     try:
+        import xlsxwriter  # ensure xlsxwriter is installed
         df = query_companies_data(request.args)
         df.rename(columns={
             'biz_no': '사업자번호', 'company_name': '기업명', 'representative_name': '대표자명', 'phone_number': '전화번호',
@@ -258,59 +343,13 @@ def export_excel():
         output.seek(0)
         return Response(output, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         headers={"Content-Disposition": "attachment;filename=company_data.xlsx"})
+    except ImportError:
+        return "엑셀 파일 생성에 필요한 'xlsxwriter' 패키지가 설치되어 있지 않습니다. 관리자에게 문의하세요.", 500
     except Exception as e:
         print(f"Error in export_excel: {e}")
-        return "엑셀 파일 생성 중 오류가 발생했습니다.", 500
-
-# ▼▼▼ [신규] 접촉 이력 엑셀 다운로드 API 추가 ▼▼▼
-@app.route('/export_history_excel')
-def export_history_excel():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    
-    try:
-        user_id = session.get('user_id')
-        results = query_contact_history(request.args, user_id)
-        
-        if not results:
-            return "다운로드할 데이터가 없습니다.", 404
-            
-        df = pd.DataFrame([dict(row) for row in results])
-        
-        # 컬럼 순서 및 이름 변경
-        column_mapping = {
-            'contact_datetime': '접촉일시',
-            'company_name': '기업명',
-            'biz_no': '사업자번호',
-            'contact_type': '접촉유형',
-            'contact_person': '기업담당자',
-            'memo': '내용',
-            'registered_by': '작성자'
-        }
-        df.rename(columns=column_mapping, inplace=True)
-        
-        # 요청한 순서대로 컬럼 정렬
-        ordered_columns = ['접촉일시', '기업명', '사업자번호', '접촉유형', '기업담당자', '내용', '작성자']
-        df_excel = df[ordered_columns]
-
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            df_excel.to_excel(writer, index=False, sheet_name='접촉이력')
-        
-        output.seek(0)
-        
-        return Response(
-            output,
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": "attachment;filename=contact_history.xlsx"}
-        )
-    except Exception as e:
-        print(f"Error in export_history_excel: {e}")
-        return "엑셀 파일 생성 중 오류가 발생했습니다.", 500
-
+        return f"엑셀 파일 생성 중 오류가 발생했습니다. 상세: {e}", 500
 
 @app.route('/company/<biz_no>')
-# ... (이전과 동일, 수정 없음) ...
 def company_detail(biz_no):
     if not session.get('logged_in'): return redirect(url_for('login'))
     
@@ -391,7 +430,6 @@ def company_detail(biz_no):
     return render_template('detail.html', company=company_data, is_popup=is_popup)
 
 @app.route('/api/contact_history', methods=['POST', 'PUT'])
-# ... (이전과 동일, 수정 없음) ...
 def handle_contact_history():
     if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
     
@@ -443,7 +481,6 @@ def handle_contact_history():
         conn.close()
 
 @app.route('/api/contact_history/<int:history_id>', methods=['DELETE'])
-# ... (이전과 동일, 수정 없음) ...
 def delete_contact_history(history_id):
     if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
     conn = get_db_connection()
@@ -457,5 +494,50 @@ def delete_contact_history(history_id):
     finally:
         conn.close()
 
+# --- 증여세 계산기 라우트 ---
+@app.route('/gift_tax')
+def gift_tax():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('gift_tax.html', user_name=session.get('user_name'))
+
+# --- 양도소득세 계산기 라우트 ---
+@app.route('/transfer_tax')
+def transfer_tax():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('transfer_tax.html', user_name=session.get('user_name'))
+
+# --- 종합소득세 계산기 라우트 ---
+@app.route('/income_tax')
+def income_tax():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('income_tax.html', user_name=session.get('user_name'))
+
+# --- 4대보험료 계산기 라우트 ---
+@app.route('/social_ins_tax')
+def social_ins_tax():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('social_ins_tax.html', user_name=session.get('user_name'))
+
+
+# --- 취득세 계산기 라우트 ---
+@app.route('/acquisition_tax')
+def acquisition_tax():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('acquisition_tax.html', user_name=session.get('user_name'))
+
+# --- 퇴직금 계산기 라우트 ---
+@app.route('/retirement_pay')
+def retirement_pay():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    return render_template('retirement_pay.html', user_name=session.get('user_name'))
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+

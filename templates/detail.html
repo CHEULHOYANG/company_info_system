@@ -4,19 +4,25 @@
     <meta charset="UTF-8">
     <title>{{ company.basic.company_name }} - 상세 정보</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <div class="container">
- <header>
-    <h1>{{ company.basic.company_name }} <span class="header-subtext">상세 정보</span></h1>
+<header style="display:flex; align-items:center; justify-content:space-between;">
     <div>
-        {# is_popup 변수가 True이면 '닫기' 버튼을, 아니면 '목록으로' 버튼을 보여줌 #}
-        {% if is_popup %}
-            <a href="javascript:window.close();" class="back-button">닫기</a>
-        {# 일반 화면으로 열렸을 경우 '목록으로' 버튼 표시 #}
-        {% else %}
-            <a href="javascript:history.back()" class="back-button">목록으로</a>
-        {% endif %}
+        <h1 style="display:inline-block;">{{ company.basic.company_name }} <span class="header-subtext">상세 정보</span></h1>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+    <a href="javascript:window.close();" class="back-button">닫기</a>
+    <span id="user-name-header" style="font-weight:bold; color:#333; margin-left:10px;">{{ user_name }}님</span>
+    </div>
+</header>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var closeXBtn = document.getElementById('close-x-btn');
+    if (closeXBtn) {
+        closeXBtn.onclick = function() {
+            window.close();
+        };
+    }
+});
+</script>
     </div>
 </header>
 
@@ -42,6 +48,8 @@
                                 <div>{{ company.basic.company_size }}</div>
                                 <div><strong>신용등급</strong></div>
                                 <div>{{ company.basic.rating1 or 'N/A' }}</div>
+                                <div><strong>직원수</strong></div>
+                                <div>{{ company.basic.pension_count or 'N/A' }}</div>
                                 <div><strong>업종</strong></div>
                                 <div>{{ company.basic.industry_name }}</div>
                                 <div><strong>주소</strong></div>

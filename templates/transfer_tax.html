@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>양도소득세 계산기</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .transfer-tax-container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
+        .transfer-tax-title { font-size: 1.6em; font-weight: bold; margin-bottom: 24px; color: #17506b; text-align:center; }
+        .transfer-tax-form label { font-weight: 500; margin-bottom: 6px; display:block; }
+        .transfer-tax-form input, .transfer-tax-form select { width: 100%; padding: 10px; margin-bottom: 18px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; }
+        .transfer-tax-form button { width: 100%; background: #17506b; color: #fff; border: none; border-radius: 5px; padding: 13px; font-size: 17px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .transfer-tax-form button:hover { background: #003366; }
+        .result-box { background: #f8f9fa; border-radius: 6px; padding: 18px; margin-top: 18px; font-size: 1.1em; color: #0b4e7b; text-align:center; }
+        .top-bar { display:flex; justify-content:flex-end; margin-bottom:18px; }
+        .main-btn { background:#003366; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-size:15px; font-weight:600; cursor:pointer; }
+        .main-btn:hover { background:#17506b; }
+        .tax-type-btns { display:flex; gap:10px; justify-content:center; margin-bottom:18px; }
+        .tax-type-btn { background:#208e4c; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-size:15px; font-weight:600; cursor:pointer; }
+        .tax-type-btn:hover { background:#003366; }
+    </style>
+</head>
+<body>
+    <div class="transfer-tax-container">
+        <div class="top-bar">
+            <a href="{{ url_for('main') }}" class="main-btn">메인으로</a>
+        </div>
+        <div class="transfer-tax-title">양도소득세 계산기</div>
+        <div class="tax-type-btns">
+            <button type="button" class="tax-type-btn" onclick="showTaxRate('land')">토지 양도세율</button>
+            <button type="button" class="tax-type-btn" onclick="showTaxRate('house')">주택 양도세율</button>
+        </div>
+        <form class="transfer-tax-form" id="transferTaxForm" onsubmit="return false;">
+            <label>양도일자</label>
+            <input type="date" id="transferDate" required>
+            <label>취득일자</label>
+            <input type="date" id="acquireDate" required>
+            <label>실제양도가액(원)</label>
+            <input type="text" id="transferPrice" required pattern="[0-9,]*" placeholder="예: 500,000,000">
+            <label>실제취득가액(원)</label>
+            <input type="text" id="acquirePrice" required pattern="[0-9,]*" placeholder="예: 120,000,000">
+            <label>필요경비(원)</label>
+            <input type="text" id="expense" required pattern="[0-9,]*" placeholder="예: 2,000,000">
+            <label>비사업용토지 해당여부</label>
+            <select id="nonBusinessLand">
+                <option value="no">아니오</option>
+                <option value="yes">예</option>
+            </select>
+            <label>양도하는 토지 지정지역 해당여부</label>
+            <select id="designatedArea">
+                <option value="no">아니오</option>
+                <option value="yes">예</option>
+            </select>
+            <label>양도소득기본공제(원)</label>
+            <input type="text" id="basicDeduction" value="2,500,000" readonly style="background:#f2f2f2;">
+            <button type="submit">계산하기</button>
+        </form>
+        <div class="result-box" id="resultBox" style="display:none;"></div>
+    </div>
+    <!-- 토지/주택 양도세율 모달 -->
+    <div id="taxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);">
+        <div style="background:#fff;max-width:700px;margin:60px auto;padding:32px 28px;border-radius:10px;position:relative;">
+            <button id="closeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">×</button>
+            <div id="taxRateContent"></div>
+        </div>
+    </div>
+    <script>
+    // 3자리 콤마
+    function addComma(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    function removeComma(str) {
+        return str.replace(/,/g, '');
+    }
+    // 입력란 콤마 자동
+    ['transferPrice','acquirePrice','expense','basicDeduction'].forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', function(e) {
+            let val = removeComma(this.value);
+            if (val) this.value = addComma(Number(val));
+        });
+    });
+    // 세율 안내 모달
+    function showTaxRate(type) {
+        const modal = document.getElementById('taxRateModal');
+        const content = document.getElementById('taxRateContent');
+        if(type==='land') {
+            content.innerHTML = `<h3 style='color:#17506b;'>토지 양도세율</h3><table style='width:100%;border-collapse:collapse;text-align:center;'><thead><tr style='background:#2980b9;color:#fff;'><th>과세표준</th><th>세율</th><th>누진공제</th></tr></thead><tbody><tr><td>1,200만원 이하</td><td>6%</td><td></td></tr><tr><td>4,600만원 이하</td><td>15%</td><td>1,080,000원</td></tr><tr><td>8,800만원 이하</td><td>24%</td><td>5,220,000원</td></tr><tr><td>1억5천만원 이하</td><td>35%</td><td>14,900,000원</td></tr><tr><td>3억원 이하</td><td>38%</td><td>19,400,000원</td></tr><tr><td>5억원 이하</td><td>40%</td><td>25,400,000원</td></tr><tr><td>10억원 이하</td><td>42%</td><td>45,400,000원</td></tr><tr><td>10억원 초과</td><td>45%</td><td>75,400,000원</td></tr></tbody></table>`;
+        } else {
+            content.innerHTML = `<h3 style='color:#17506b;'>주택 양도세율</h3><table style='width:100%;border-collapse:collapse;text-align:center;'><thead><tr style='background:#2980b9;color:#fff;'><th>과세표준</th><th>세율</th><th>누진공제</th></tr></thead><tbody><tr><td>1,200만원 이하</td><td>6%</td><td></td></tr><tr><td>4,600만원 이하</td><td>15%</td><td>1,080,000원</td></tr><tr><td>8,800만원 이하</td><td>24%</td><td>5,220,000원</td></tr><tr><td>1억5천만원 이하</td><td>35%</td><td>14,900,000원</td></tr><tr><td>3억원 이하</td><td>38%</td><td>19,400,000원</td></tr><tr><td>5억원 이하</td><td>40%</td><td>25,400,000원</td></tr><tr><td>10억원 이하</td><td>42%</td><td>45,400,000원</td></tr><tr><td>10억원 초과</td><td>45%</td><td>75,400,000원</td></tr></tbody></table>`;
+        }
+        modal.style.display = 'block';
+    }
+    document.getElementById('closeTaxRateModal').onclick = function() {
+        document.getElementById('taxRateModal').style.display = 'none';
+    };
+    // 계산
+    document.getElementById('transferTaxForm').addEventListener('submit', function() {
+        const transferPrice = parseInt(removeComma(document.getElementById('transferPrice').value)) || 0;
+        const acquirePrice = parseInt(removeComma(document.getElementById('acquirePrice').value)) || 0;
+        const expense = parseInt(removeComma(document.getElementById('expense').value)) || 0;
+        const basicDeduction = parseInt(removeComma(document.getElementById('basicDeduction').value)) || 0;
+        const gain = transferPrice - acquirePrice - expense - basicDeduction;
+        // 단순 예시: 토지/주택 동일 누진공제표 적용
+        const brackets = [
+            { limit: 12000000, rate: 0.06, minus: 0 },
+            { limit: 46000000, rate: 0.15, minus: 1080000 },
+            { limit: 88000000, rate: 0.24, minus: 5220000 },
+            { limit: 150000000, rate: 0.35, minus: 14900000 },
+            { limit: 300000000, rate: 0.38, minus: 19400000 },
+            { limit: 500000000, rate: 0.40, minus: 25400000 },
+            { limit: 1000000000, rate: 0.42, minus: 45400000 },
+            { limit: Infinity, rate: 0.45, minus: 75400000 }
+        ];
+        let tax = 0, rate = 0, minus = 0;
+        for (let i = 0; i < brackets.length; i++) {
+            if (gain <= brackets[i].limit) {
+                rate = brackets[i].rate;
+                minus = brackets[i].minus;
+                break;
+            }
+        }
+        tax = Math.floor(gain * rate - minus);
+        if (tax < 0) tax = 0;
+        const resultBox = document.getElementById('resultBox');
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = `양도차익: <b>${addComma(gain)}원</b><br>양도소득세(예상): <b>${addComma(tax)}원</b>`;
+    });
+    </script>
+</body>
+</html>

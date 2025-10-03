@@ -4,51 +4,25 @@
     <meta charset="UTF-8">
     <title>접촉이력 조회</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        /* history.html 페이지 전용 버튼 스타일 */
-        .main-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .action-button {
-            padding: 10px 20px;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            color: white;
-            transition: opacity 0.2s;
-        }
-        .action-button:hover {
-            opacity: 0.85;
-        }
-        .action-button.excel-button {
-            background-color: #208e4c;
-        }
-        .action-button.reset-button {
-            background-color: #6c757d;
-        }
-        .action-button.search-button {
-            background-color: #0b4e7b;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>접촉이력 조회 <span id="results-count" class="header-subtext"></span></h1>
-            <div>
-                 <a href="{{ url_for('main') }}" class="back-button">메인으로</a>
+            <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+                <a href="{{ url_for('index') }}" class="back-button">기업정보조회</a>
+                <a href="{{ url_for('main') }}" class="back-button">메인으로</a>
+                <span style="font-weight:bold; color:#333;">{{ user_name }}님</span>
+                <a href="{{ url_for('logout') }}" class="logout-button-new">로그아웃</a>
             </div>
         </header>
 
         <div class="main-actions">
-            <button type="button" id="excel-download-button" class="action-button excel-button">엑셀저장</button>
             <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">초기화</button>
             <button type="button" id="search-button" class="action-button search-button">검색</button>
+            <button type="button" id="download-csv" class="action-button csv-button-dark">CSV 내리기</button>
+            <label for="upload-csv" class="action-button csv-button-dark" style="display:inline-block;cursor:pointer;">CSV 올리기</label>
+            <input type="file" id="upload-csv" accept=".csv" style="display:none;">
         </div>
 
         <div class="search-container">
@@ -72,6 +46,7 @@
                         <th>기업담당자</th>
                         <th style="width: 30%;">내용</th>
                         <th>작성자</th>
+                    <th>삭제</th>
                     </tr>
                 </thead>
                 <tbody id="history-list">
@@ -86,6 +61,35 @@
     </div>
 
     <script>
+    // CSV 내리기
+    document.getElementById('download-csv').addEventListener('click', function() {
+        const formData = new FormData(document.getElementById('search-form'));
+        const params = new URLSearchParams(formData);
+        window.location.href = `/api/contact_history_csv?${params.toString()}`;
+    });
+
+    // CSV 올리기
+    document.getElementById('upload-csv').addEventListener('change', function(e) {
+        if (!confirm('CSV를 업로드하면 기존 이력 데이터가 모두 삭제되고, 새 파일로 대체됩니다. 진행하시겠습니까?')) return;
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        fetch('/api/contact_history_csv', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('CSV 업로드 및 반영 완료!');
+                location.reload();
+            } else {
+                alert('업로드 실패: ' + (data.message || '오류'));
+            }
+        })
+        .catch(() => alert('업로드 중 오류 발생'));
+    });
     function openCompanyPopup(bizNo) {
         const url = `/company/${bizNo}?source=history_popup`;
         const features = 'width=1200,height=800,scrollbars=yes,resizable=yes';
@@ -95,7 +99,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         const searchButton = document.getElementById('search-button');
         const resetButton = document.getElementById('reset-button');
-        const excelButton = document.getElementById('excel-download-button');
         const searchForm = document.getElementById('search-form');
         const historyList = document.getElementById('history-list');
         const resultsCountSpan = document.getElementById('results-count');
@@ -127,6 +130,7 @@
                             <td>${item.contact_person || ''}</td>
                             <td class="memo-cell">${item.memo || ''}</td>
                             <td>${item.registered_by || ''}</td>
+                            <td><button class="delete-btn" data-id="${item.history_id}" onclick="deleteHistory(this)">삭제</button></td>
                         `;
                         historyList.appendChild(row);
                     });
@@ -144,18 +148,32 @@
             performSearch();
         });
 
-        excelButton.addEventListener('click', () => {
-            const formData = new FormData(searchForm);
-            const params = new URLSearchParams(formData);
-            window.location.href = `/export_history_excel?${params.toString()}`;
-        });
-
         const scrollTopBtn = document.getElementById('scroll-top');
         const scrollBottomBtn = document.getElementById('scroll-bottom');
         scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
         scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
         
-        performSearch();
+        performSearch(); // 페이지 로드 시 전체 내역 조회
+    // 삭제 버튼 기능
+    window.deleteHistory = function(btn) {
+        const historyId = btn.getAttribute('data-id');
+        if (!historyId) {
+            alert('삭제할 이력 ID가 없습니다.');
+            return;
+        }
+        if (!confirm('정말 삭제하시겠습니까?')) return;
+        fetch(`/api/contact_history/${historyId}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('삭제되었습니다!');
+                    performSearch();
+                } else {
+                    alert('삭제 실패: ' + (data.message || '오류'));
+                }
+            })
+            .catch(() => alert('삭제 중 오류가 발생했습니다.'));
+    }
     });
     </script>
 </body>

@@ -9,9 +9,11 @@
     <div class="container">
         <header>
             <h1>기업 정보 조회 <span id="results-count" class="header-subtext"></span></h1>
-            <div>
+            <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+                <a href="{{ url_for('history_search') }}" class="back-button">접촉이력 조회</a>
                 <a href="{{ url_for('main') }}" class="back-button">메인으로</a>
-                <a href="{{ url_for('logout') }}" class="logout-button-new" style="margin-left: 10px;">로그아웃</a>
+                <span style="font-weight:bold; color:#333;">{{ user_name }}님</span>
+                <a href="{{ url_for('logout') }}" class="logout-button-new">로그아웃</a>
             </div>
         </header>
 

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>퇴직금 계산기</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body { background:#f6f8fa; }
+        .container-retire { max-width:700px; margin:40px auto 30px auto; background:#fff; border-radius:12px; box-shadow:0 2px 12px #0001; padding:36px 28px 28px 28px; }
+        .retire-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+        .retire-title { color:#17506b; font-size:2em; font-weight:700; }
+        .retire-tax-btn { background:#208e4c; color:#fff; font-weight:600; padding:7px 22px; border-radius:6px; border:none; font-size:1em; }
+        .retire-form { background:#f8f8f8; padding:24px 18px 18px 18px; border-radius:10px; }
+        .retire-btn { background:#17506b; color:#fff; font-weight:600; padding:7px 28px; border-radius:6px; border:none; font-size:1.1em; margin-left:10px; }
+        @media (max-width:600px) {
+            .container-retire { padding:10px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container-retire">
+    <div class="retire-header">
+        <div class="retire-title">퇴직금 계산기</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <a href="/main" class="retire-tax-btn" style="background:#17506b;">메인으로</a>
+            <button type="button" id="showRetireTaxRateBtn" class="retire-tax-btn">퇴직소득세율표 보기</button>
+        </div>
+    </div>
+    <form id="retirementForm" class="retire-form" autocomplete="off">
+        <div style="display:flex;align-items:center;gap:18px;margin-bottom:12px;">
+            <label style="font-weight:600;">입사일</label>
+            <select id="joinYear"></select>
+            <select id="joinMonth"></select>
+            <select id="joinDay"></select>
+        </div>
+        <div style="display:flex;align-items:center;gap:18px;margin-bottom:12px;">
+            <label style="font-weight:600;">퇴사일</label>
+            <select id="leaveYear"></select>
+            <select id="leaveMonth"></select>
+            <select id="leaveDay"></select>
+        </div>
+        <div style="margin-bottom:12px;">
+            <label>퇴직 직전 1년간 총 급여</label>
+            <input type="text" id="last1ySalary" placeholder="예: 200,000,000" required pattern="[0-9,]*" inputmode="numeric" autocomplete="off"> 원
+        </div>
+        <div style="margin-bottom:12px;">
+            <label>퇴직 직전 3년간 총 급여(임원 한도용)</label>
+            <input type="text" id="last3ySalary" placeholder="예: 600,000,000" pattern="[0-9,]*" inputmode="numeric" autocomplete="off"> 원
+            <span style="font-size:0.95em;color:#888;">* 임원/대표일 때만 입력, 한도 계산에 사용</span>
+        </div>
+        <div style="margin-bottom:12px;display:flex;align-items:center;gap:18px;">
+            <label style="font-weight:600;">임원 이상 여부</label>
+            <label style="font-weight:400;"><input type="radio" name="executive" value="no" checked> 일반</label>
+            <label style="font-weight:400;"><input type="radio" name="executive" value="yes"> 임원/대표 등</label>
+        </div>
+        <div id="execOptions" style="display:none;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                <label style="font-weight:600;min-width:140px;">임원 퇴직소득 한도 배수</label>
+                <input type="text" id="execMultiplier" min="0.1" max="10" step="0.1" value="2" style="width:70px;" pattern="[0-9.]*" inputmode="decimal" autocomplete="off">&nbsp;배수
+    <!-- 안내문구 -->
+    <div style="font-size:0.95em;color:#888;margin-bottom:8px;">
+        * 2011년 이전 정관에서 정한 배수, 2012~2019년 3배수, 2020년 이후 2배수 등 실무 기준에 맞게 입력<br>
+        * 입력란은 숫자만, 지급배수는 소수점만 허용, 입력 즉시 콤마 자동 적용
+    </div>
+<script>
+// 입력란 천단위 콤마 자동 적용 및 숫자만 허용
+function setCommaInput(id, allowFloat=false) {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('input', function(e) {
+        let val = el.value.replace(/[^\d.]/g, '');
+        // 소수점 1개만 허용
+        if(allowFloat) {
+            const parts = val.split('.');
+            if(parts.length>2) val = parts[0]+'.'+parts.slice(1).join('');
+            // 소수점 앞부분만 콤마
+            if(parts.length>1) {
+                el.value = addComma(parts[0]) + '.' + parts[1];
+                return;
+            }
+        } else {
+            val = val.replace(/\./g, '');
+        }
+        if(val) el.value = addComma(val);
+        else el.value = '';
+    });
+}
+setCommaInput('last1ySalary');
+setCommaInput('last3ySalary');
+setCommaInput('execMultiplier', true);
+setCommaInput('exec3ySalary');
+</script>
+            </div>
+            <div style="font-size:0.95em;color:#888;margin-bottom:8px;">* 2011년 이전 정관에서 정한 배수, 2012~2019년 3배수, 2020년 이후 2배수 등 실무 기준에 맞게 입력</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <label style="min-width:140px;">직전 3년 급여 총액(임원용)</label>
+                <input type="text" id="exec3ySalary" placeholder="예: 300,000,000" pattern="[0-9,]*" style="width:180px;">&nbsp;원
+            </div>
+            <div style="font-size:0.95em;color:#888;">* 임원일 때만 입력, 평균임금은 3년 총액/10</div>
+        </div>
+        <div style="margin-bottom:18px;text-align:right;">
+            <button type="submit" class="retire-btn">계산</button>
+        </div>
+    </form>
+    <div id="retireResult" style="display:none;background:#eaf6f0;padding:18px 14px;border-radius:8px;margin-top:18px;"></div>
+    <div style="font-size:0.95em;color:#666;margin-top:18px;">
+        <b>유의 사항</b><br>
+        1. 퇴직금은 1년 이상 재직한 근로자에 한해 지급되며, 별도의 사유가 없다면 재직기간 1년당 30일분의 평균임금이 지급됩니다.<br>
+        2. "평균임금"이란 이를 산정하여야 할 사유가 발생한 날 이전 3개월 동안 그 근로자에게 지급된 임금의 총액을 그 기간의 총일수로 나눈 금액.<br>
+        3. 근로자가 취업한 후 3개월 미만인 경우도 이에 준한다.<br>
+        4. 이에 따라 산출된 금액이 그 근로자의 통상임금보다 적으면 그 통상임금액을 평균임금으로 한다.<br>
+        5. 위 계산결과는 근로자퇴직급여 보장법상 퇴직금 지급규정에 따른 산출금액이며, 별도의 세금 등이 있는 경우 위 계산결과와 약간의 오차가 발생할 수 있습니다.<br>
+    </div>
+    <!-- 퇴직소득세율 안내 모달 -->
+    <div id="retireTaxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);">
+        <div style="background:#fff;max-width:700px;margin:60px auto;padding:32px 28px;border-radius:10px;position:relative;">
+            <button id="closeRetireTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">×</button>
+            <h3 style="color:#17506b;">퇴직소득세율표</h3>
+            <table style="width:100%;border-collapse:collapse;text-align:center;">
+                <thead><tr style="background:#2980b9;color:#fff;"><th>과세표준</th><th>세율</th><th>누진공제</th></tr></thead>
+                <tbody>
+                    <tr><td>1,200만원 이하</td><td>6%</td><td>0</td></tr>
+                    <tr><td>4,600만원 이하</td><td>15%</td><td>108만원</td></tr>
+                    <tr><td>8,800만원 이하</td><td>24%</td><td>522만원</td></tr>
+                    <tr><td>1억5천만원 이하</td><td>35%</td><td>1,490만원</td></tr>
+                    <tr><td>3억원 이하</td><td>38%</td><td>1,940만원</td></tr>
+                    <tr><td>5억원 이하</td><td>40%</td><td>2,540만원</td></tr>
+                    <tr><td>5억원 초과</td><td>42%</td><td>3,540만원</td></tr>
+                </tbody>
+            </table>
+            <div style="font-size:0.95em;color:#888;margin-top:10px;">실제 세율은 법령 및 상황에 따라 다를 수 있습니다.</div>
+        </div>
+    </div>
+</div>
+<script>
+// 날짜 셀렉트 박스 자동 생성
+function fillDateSelect(id, start, end, val) {
+    const sel = document.getElementById(id);
+    for(let i=start;i<=end;i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.text = i;
+        if(i===val) opt.selected = true;
+        sel.appendChild(opt);
+    }
+}
+const today = new Date();
+fillDateSelect('joinYear', 1980, today.getFullYear(), today.getFullYear()-1);
+fillDateSelect('joinMonth', 1, 12, 1);
+fillDateSelect('joinDay', 1, 31, 1);
+fillDateSelect('leaveYear', 1980, today.getFullYear(), today.getFullYear());
+fillDateSelect('leaveMonth', 1, 12, today.getMonth()+1);
+fillDateSelect('leaveDay', 1, 31, today.getDate());
+
+// 임원 여부에 따라 한도 기준 노출
+const execRadios = document.getElementsByName('executive');
+for(const r of execRadios) {
+    r.onchange = function() {
+        document.getElementById('execOptions').style.display = (this.value==='yes')?'block':'none';
+    }
+}
+
+// 콤마 처리
+function addComma(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+function removeComma(x) { return x.replace(/,/g,""); }
+
+// 퇴직금 계산
+function calcRetirementPay(join, leave, recent3, bonus1y, annual, isExec, execMultiplier, exec3ySalary) {
+    // 1. 재직일수 계산
+    const joinDate = new Date(join[0], join[1]-1, join[2]);
+    const leaveDate = new Date(leave[0], leave[1]-1, leave[2]);
+    const days = Math.floor((leaveDate-joinDate)/(1000*60*60*24));
+    if(days<0) return {error:'퇴사일이 입사일보다 빠릅니다.'};
+    const years = days/365;
+    let avgSalary = (recent3+bonus1y+annual)/90;
+    let retirePay = avgSalary*30*years;
+    let limitPay = null;
+    if(isExec) {
+        // 임원 평균임금: 직전 3년 총액/10
+        if(exec3ySalary>0) avgSalary = exec3ySalary/10;
+        retirePay = avgSalary*30*years;
+        limitPay = avgSalary*30*years*execMultiplier;
+        if(retirePay>limitPay) retirePay=limitPay;
+    }
+    return {retirePay:Math.floor(retirePay), years:years.toFixed(2), avgSalary:Math.floor(avgSalary), limitPay:limitPay?Math.floor(limitPay):null};
+}
+
+// 세율표 모달
+const showBtn = document.getElementById('showRetireTaxRateBtn');
+const modal = document.getElementById('retireTaxRateModal');
+const closeBtn = document.getElementById('closeRetireTaxRateModal');
+showBtn.onclick = ()=>{ modal.style.display='block'; };
+closeBtn.onclick = ()=>{ modal.style.display='none'; };
+
+// 계산 이벤트
+const form = document.getElementById('retirementForm');
+form.onsubmit = function(e) {
+    e.preventDefault();
+    const join = [parseInt(document.getElementById('joinYear').value),parseInt(document.getElementById('joinMonth').value),parseInt(document.getElementById('joinDay').value)];
+    const leave = [parseInt(document.getElementById('leaveYear').value),parseInt(document.getElementById('leaveMonth').value),parseInt(document.getElementById('leaveDay').value)];
+    const last1ySalary = parseInt(removeComma(document.getElementById('last1ySalary').value))||0;
+    const last3ySalary = parseInt(removeComma(document.getElementById('last3ySalary').value))||0;
+    const isExec = document.querySelector('input[name="executive"]:checked').value==='yes';
+    let execMultiplier = 1;
+    if(isExec) execMultiplier = parseFloat(removeComma(document.getElementById('execMultiplier').value))||1;
+    const result = calcRetirementPay(join, leave, last1ySalary, last3ySalary, isExec, execMultiplier);
+    const box = document.getElementById('retireResult');
+    if(result.error) {
+        box.style.display='block';
+        box.innerHTML = `<span style='color:red;'>${result.error}</span>`;
+        return;
+    }
+    box.style.display='block';
+    box.innerHTML =
+        `재직기간: <b>${result.years}년</b><br>`+
+        (isExec && result.limitPay ? `임원 퇴직금 한도(세법상): <b>${addComma(result.limitPay)}원</b><br>` : '')+
+        `<hr style='margin:10px 0;'>예상 퇴직금: <b style='color:#17506b;font-size:1.2em;'>${addComma(result.retirePay)}원</b>`;
+};
+</script>
+</body>
+</html>
+</script>

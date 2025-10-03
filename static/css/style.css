@@ -31,12 +31,25 @@ header h1 { color: #2c3e50; margin: 0; font-size: 1.7em; font-weight: 600; }
 .logout-button-new, .back-button { display: inline-block; padding: 8px 15px; background-color: #6c757d; color: white; text-align: center; text-decoration: none; border-radius: 4px; font-size: 14px; border: none; cursor: pointer; transition: background-color 0.2s; }
 .logout-button-new:hover, .back-button:hover { background-color: #5a6268; }
 
+/* 메인으로 버튼만 CSV 내리기 버튼 색상 적용 */
+a.back-button[href$="/main"] {
+    background-color: #003366 !important;
+    color: #fff !important;
+}
+a.back-button[href$="/main"]:hover {
+    background-color: #002244 !important;
+}
+
 .main-actions { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 15px; }
 .action-button { padding: 10px 20px; border-radius: 5px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; color: white; transition: opacity 0.2s; }
 .action-button:hover { opacity: 0.85; }
 .action-button.excel-button { background-color: #208e4c; }
 .action-button.reset-button { background-color: #6c757d; }
 .action-button.search-button { background-color: #0b4e7b; }
+.csv-button-dark {
+    background-color: #003366 !important;
+    color: #fff !important;
+}
 
 .search-container { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #dee2e6; }
 .search-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; align-items: center; }

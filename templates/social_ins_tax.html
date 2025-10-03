@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>4대보험료 계산기</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .ins-tax-container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
+        .ins-tax-title { font-size: 1.6em; font-weight: bold; margin-bottom: 24px; color: #17506b; text-align:center; }
+        .ins-tax-form label { font-weight: 500; margin-bottom: 6px; display:block; }
+        .ins-tax-form input, .ins-tax-form select { width: 100%; padding: 10px; margin-bottom: 18px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; }
+        .ins-tax-form button { width: 100%; background: #17506b; color: #fff; border: none; border-radius: 5px; padding: 13px; font-size: 17px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .ins-tax-form button:hover { background: #003366; }
+        .result-box { background: #f8f9fa; border-radius: 6px; padding: 18px; margin-top: 18px; font-size: 1.1em; color: #0b4e7b; text-align:center; }
+        .top-bar { display:flex; justify-content:flex-end; margin-bottom:18px; }
+        .main-btn { background:#003366; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-size:15px; font-weight:600; cursor:pointer; }
+        .main-btn:hover { background:#17506b; }
+        .ins-type-btns { display:flex; gap:10px; justify-content:center; margin-bottom:18px; }
+        .ins-type-btn { background:#208e4c; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-size:15px; font-weight:600; cursor:pointer; }
+        .ins-type-btn:hover { background:#003366; }
+    </style>
+</head>
+<body>
+    <div class="ins-tax-container">
+        <div class="top-bar">
+            <a href="{{ url_for('main') }}" class="main-btn">메인으로</a>
+        </div>
+        <div class="ins-tax-title">4대보험료 계산기</div>
+        <form class="ins-tax-form" id="insTaxForm" onsubmit="return false;">
+            <label>급여액</label>
+            <div style="display:flex;gap:10px;margin-bottom:10px;">
+                <label style="font-weight:400;"><input type="radio" name="salaryType" value="month" checked> 월급</label>
+                <label style="font-weight:400;"><input type="radio" name="salaryType" value="year"> 연봉</label>
+            </div>
+            <input type="text" id="salary" required pattern="[0-9,]*" placeholder="예: 3,000,000">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">비과세 급여 포함한 총액을 입력합니다.</div>
+            <label>비과세 급여(원)</label>
+            <input type="text" id="taxFree" value="0" required pattern="[0-9,]*" placeholder="예: 200,000">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">비과세에는 식대, 자가운전 보조금 등이 포함됩니다.</div>
+            <label>부양가족수 선택</label>
+            <select id="familyCount">
+                <option value="1">1명</option>
+                <option value="2">2명</option>
+                <option value="3">3명</option>
+                <option value="4">4명</option>
+                <option value="5">5명</option>
+                <option value="6">6명</option>
+            </select>
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">본인을 포함한 부양가족수</div>
+            <label>부양 대상 가족 중 8세 이상 20세 이하 자녀수</label>
+            <select id="childCount">
+                <option value="0">0명</option>
+                <option value="1">1명</option>
+                <option value="2">2명</option>
+                <option value="3">3명</option>
+                <option value="4">4명</option>
+                <option value="5">5명</option>
+            </select>
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">전체 부양 대상 가족 중 8세~20세 이하 자녀수(연간 소득 100만원 초과시 제외)</div>
+            <button type="submit">계산</button>
+        </form>
+        <div class="result-box" id="resultBox" style="display:none;"></div>
+    </div>
+    <script>
+    // 3자리 콤마
+    function addComma(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    function removeComma(str) {
+        return str.replace(/,/g, '');
+    }
+    // 입력란 콤마 자동
+    ['salary','taxFree'].forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', function(e) {
+            let val = removeComma(this.value);
+            if (val) this.value = addComma(Number(val));
+        });
+    });
+    // 2025년 4대보험 요율(예시)
+    const RATES = {
+        health: 0.0709, // 건강보험
+        longterm: 0.1295, // 장기요양보험(건강보험료의 12.95%)
+        pension: 0.090,
+        employment: 0.009,
+        employment_worker: 0.008,
+        employment_employer: 0.009,
+        industrial: 0.0065 // 산재보험(사업주 전액)
+    };
+    document.getElementById('insTaxForm').addEventListener('submit', function() {
+        let salary = parseInt(removeComma(document.getElementById('salary').value)) || 0;
+        const salaryType = document.querySelector('input[name="salaryType"]:checked').value;
+        const taxFree = parseInt(removeComma(document.getElementById('taxFree').value)) || 0;
+        // 연봉 입력 시 월환산
+        if(salaryType==='year') salary = Math.floor(salary/12);
+        // 4대보험 계산(비과세 20만원 초과분만 포함)
+        const salaryForIns = salary - Math.max(taxFree-200000,0);
+        // 건강보험
+        const health = Math.floor(salaryForIns * RATES.health);
+        // 장기요양보험
+        const longterm = Math.floor(health * RATES.longterm);
+        // 국민연금
+        const pension = Math.floor(salaryForIns * RATES.pension);
+        // 고용보험(근로자)
+        const employment = Math.floor(salaryForIns * RATES.employment_worker);
+        // 고용보험(사업주)
+        const employmentEmp = Math.floor(salaryForIns * RATES.employment_employer);
+        // 산재보험(사업주)
+        const industrial = Math.floor(salaryForIns * RATES.industrial);
+        const resultBox = document.getElementById('resultBox');
+        resultBox.style.display = 'block';
+        resultBox.innerHTML =
+            `<b>월 4대보험료(근로자 부담)</b><br>`+
+            `건강보험: <b>${addComma(health)}원</b><br>`+
+            `장기요양보험: <b>${addComma(longterm)}원</b><br>`+
+            `국민연금: <b>${addComma(pension)}원</b><br>`+
+            `고용보험: <b>${addComma(employment)}원</b><br>`+
+            `<hr style='margin:10px 0;'>`+
+            `<b>월 4대보험료(사업주 부담)</b><br>`+
+            `건강보험: <b>${addComma(health)}원</b><br>`+
+            `장기요양보험: <b>${addComma(longterm)}원</b><br>`+
+            `국민연금: <b>${addComma(pension)}원</b><br>`+
+            `고용보험: <b>${addComma(employmentEmp)}원</b><br>`+
+            `산재보험: <b>${addComma(industrial)}원</b><br>`;
+    });
+    </script>
+</body>
+</html>
