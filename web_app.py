@@ -497,28 +497,28 @@ def delete_contact_history(history_id):
 # --- 증여세 계산기 라우트 ---
 @app.route('/gift_tax')
 def gift_tax():
-    if not session.get('logged_in'):
+    if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('gift_tax.html', user_name=session.get('user_name'))
 
 # --- 양도소득세 계산기 라우트 ---
 @app.route('/transfer_tax')
 def transfer_tax():
-    if not session.get('logged_in'):
+    if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('transfer_tax.html', user_name=session.get('user_name'))
 
 # --- 종합소득세 계산기 라우트 ---
 @app.route('/income_tax')
 def income_tax():
-    if not session.get('logged_in'):
+    if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('income_tax.html', user_name=session.get('user_name'))
 
 # --- 4대보험료 계산기 라우트 ---
 @app.route('/social_ins_tax')
 def social_ins_tax():
-    if not session.get('logged_in'):
+    if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('social_ins_tax.html', user_name=session.get('user_name'))
 
@@ -526,14 +526,14 @@ def social_ins_tax():
 # --- 취득세 계산기 라우트 ---
 @app.route('/acquisition_tax')
 def acquisition_tax():
-    if not session.get('logged_in'):
+    if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('acquisition_tax.html', user_name=session.get('user_name'))
 
 # --- 퇴직금 계산기 라우트 ---
 @app.route('/retirement_pay')
 def retirement_pay():
-    if not session.get('logged_in'):
+    if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('retirement_pay.html', user_name=session.get('user_name'))
 
