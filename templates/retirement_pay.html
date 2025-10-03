@@ -85,10 +85,6 @@ function setCommaInput(id, allowFloat=false) {
         else el.value = '';
     });
 }
-setCommaInput('last1ySalary');
-setCommaInput('last3ySalary');
-setCommaInput('execMultiplier', true);
-setCommaInput('exec3ySalary');
 </script>
             </div>
             <div style="font-size:0.95em;color:#888;margin-bottom:8px;">* 2011년 이전 정관에서 정한 배수, 2012~2019년 3배수, 2020년 이후 2배수 등 실무 기준에 맞게 입력</div>
@@ -96,7 +92,7 @@ setCommaInput('exec3ySalary');
                 <label style="min-width:140px;">직전 3년 급여 총액(임원용)</label>
                 <input type="text" id="exec3ySalary" placeholder="예: 300,000,000" pattern="[0-9,]*" style="width:180px;">&nbsp;원
             </div>
-            <div style="font-size:0.95em;color:#888;">* 임원일 때만 입력, 평균임금은 3년 총액/10</div>
+            <div style="font-size:0.95em;color:#888;">* 임원일 때만 입력, 평균임금은 직전 3년 총액을 일수 기준으로 나눈 값(직전3년총액/1080)</div>
         </div>
         <div style="margin-bottom:18px;text-align:right;">
             <button type="submit" class="retire-btn">계산</button>
@@ -164,25 +160,40 @@ for(const r of execRadios) {
 function addComma(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 function removeComma(x) { return x.replace(/,/g,""); }
 
+// 입력란에 콤마 적용 (요소가 모두 렌더된 이후에 호출)
+setCommaInput('last1ySalary');
+setCommaInput('last3ySalary');
+setCommaInput('execMultiplier', true);
+setCommaInput('exec3ySalary');
+
 // 퇴직금 계산
-function calcRetirementPay(join, leave, recent3, bonus1y, annual, isExec, execMultiplier, exec3ySalary) {
+// 입력: join, leave, last1ySalary(직전 1년 총급여), last3ySalary(임원 한도용 3년 합, 선택), isExec(Boolean), execMultiplier, exec3ySalary(임원용 3년 합 입력란)
+function calcRetirementPay(join, leave, last1ySalary, last3ySalary, isExec, execMultiplier, exec3ySalary) {
     // 1. 재직일수 계산
     const joinDate = new Date(join[0], join[1]-1, join[2]);
     const leaveDate = new Date(leave[0], leave[1]-1, leave[2]);
     const days = Math.floor((leaveDate-joinDate)/(1000*60*60*24));
     if(days<0) return {error:'퇴사일이 입사일보다 빠릅니다.'};
     const years = days/365;
-    let avgSalary = (recent3+bonus1y+annual)/90;
-    let retirePay = avgSalary*30*years;
+
+    // 평균임금 산정
+    // - 일반 근로자: 직전 1년 총급여를 기준으로 3개월 총액을 추정(연봉/12*3) => 평균임금(일) = 연봉/360
+    // - 임원(직전3년 입력이 있으면): 직전 3년 총액을 일수 기준으로 나눔 => exec3ySalary / (3*360) = exec3ySalary/1080
+    let avgSalary = 0;
+    if(isExec && exec3ySalary && exec3ySalary>0) {
+        avgSalary = exec3ySalary / 1080; // 일당 평균
+    } else {
+        avgSalary = last1ySalary / 360; // 일당 평균
+    }
+
+    let retirePay = avgSalary * 30 * years; // 1년당 30일분
     let limitPay = null;
     if(isExec) {
-        // 임원 평균임금: 직전 3년 총액/10
-        if(exec3ySalary>0) avgSalary = exec3ySalary/10;
-        retirePay = avgSalary*30*years;
-        limitPay = avgSalary*30*years*execMultiplier;
-        if(retirePay>limitPay) retirePay=limitPay;
+        // 임원 한도: 평균임금 기반으로 배수 적용
+        limitPay = avgSalary * 30 * years * execMultiplier;
+        if(retirePay > limitPay) retirePay = limitPay;
     }
-    return {retirePay:Math.floor(retirePay), years:years.toFixed(2), avgSalary:Math.floor(avgSalary), limitPay:limitPay?Math.floor(limitPay):null};
+    return {retirePay: Math.floor(retirePay), years: years.toFixed(2), avgSalary: Math.floor(avgSalary), limitPay: limitPay?Math.floor(limitPay):null};
 }
 
 // 세율표 모달
@@ -203,7 +214,8 @@ form.onsubmit = function(e) {
     const isExec = document.querySelector('input[name="executive"]:checked').value==='yes';
     let execMultiplier = 1;
     if(isExec) execMultiplier = parseFloat(removeComma(document.getElementById('execMultiplier').value))||1;
-    const result = calcRetirementPay(join, leave, last1ySalary, last3ySalary, isExec, execMultiplier);
+    const exec3ySalary = parseInt(removeComma(document.getElementById('exec3ySalary').value))||0;
+    const result = calcRetirementPay(join, leave, last1ySalary, last3ySalary, isExec, execMultiplier, exec3ySalary);
     const box = document.getElementById('retireResult');
     if(result.error) {
         box.style.display='block';
@@ -219,4 +231,3 @@ form.onsubmit = function(e) {
 </script>
 </body>
 </html>
-</script>
