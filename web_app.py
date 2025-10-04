@@ -154,7 +154,7 @@ def logout():
 def history_search():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    return render_template('history.html', user_name=session.get('user_name'))
+    return render_template('history.html', user_name=session.get('user_name'), user_id=session.get('user_id'))
 
 # --- 로그인 라우트 추가 ---
 @app.route('/login', methods=['GET', 'POST'])
@@ -184,7 +184,7 @@ def login():
 def index():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    return render_template('index.html', user_name=session.get('user_name'))
+    return render_template('index.html', user_name=session.get('user_name'), user_id=session.get('user_id'))
 
 
 @app.route('/main')
@@ -536,6 +536,13 @@ def retirement_pay():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('retirement_pay.html', user_name=session.get('user_name'))
+
+# --- 산재보상계산기 라우트 ---
+@app.route('/industrial_accident_calc')
+def industrial_accident_calc():
+    if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
+        return redirect(url_for('login'))
+    return render_template('industrial_accident_calc.html', user_name=session.get('user_name'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

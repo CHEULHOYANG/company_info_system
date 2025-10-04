@@ -87,6 +87,15 @@
         const excelButton = document.getElementById('excel-download-button');
         const loadNextBtn = document.getElementById('load-next-btn');
 
+        // 사용자 권한 체크 - ct0001과 ct0002만 엑셀 저장 가능
+        const userId = '{{ user_id }}';
+        if (userId !== 'ct0001' && userId !== 'ct0002') {
+            excelButton.disabled = true;
+            excelButton.style.opacity = '0.5';
+            excelButton.style.cursor = 'not-allowed';
+            excelButton.title = '권한이 없습니다';
+        }
+
         let currentPage = 1;
         let isFetching = false;
 
@@ -181,6 +190,10 @@
         });
 
         excelButton.addEventListener('click', () => {
+            if (userId !== 'ct0001' && userId !== 'ct0002') {
+                alert('엑셀 저장 권한이 없습니다. ct0001 또는 ct0002 계정만 사용 가능합니다.');
+                return;
+            }
             const formData = new FormData(searchForm);
             const params = new URLSearchParams(formData);
             window.location.href = `/export_excel?${params.toString()}`;
