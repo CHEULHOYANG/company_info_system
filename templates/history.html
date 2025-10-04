@@ -61,15 +61,43 @@
     </div>
 
     <script>
+    // 사용자 권한 체크
+    const userId = '{{ user_id }}';
+    const downloadCsvBtn = document.getElementById('download-csv');
+    const uploadCsvLabel = document.querySelector('label[for="upload-csv"]');
+    const uploadCsvInput = document.getElementById('upload-csv');
+
+    // ct0001과 ct0002가 아니면 비활성화
+    if (userId !== 'ct0001' && userId !== 'ct0002') {
+        downloadCsvBtn.disabled = true;
+        downloadCsvBtn.style.opacity = '0.5';
+        downloadCsvBtn.style.cursor = 'not-allowed';
+        downloadCsvBtn.title = '권한이 없습니다';
+        
+        uploadCsvLabel.style.opacity = '0.5';
+        uploadCsvLabel.style.cursor = 'not-allowed';
+        uploadCsvLabel.title = '권한이 없습니다';
+        uploadCsvInput.disabled = true;
+    }
+
     // CSV 내리기
-    document.getElementById('download-csv').addEventListener('click', function() {
+    downloadCsvBtn.addEventListener('click', function() {
+        if (userId !== 'ct0001' && userId !== 'ct0002') {
+            alert('CSV 내리기 권한이 없습니다. ct0001 또는 ct0002 계정만 사용 가능합니다.');
+            return;
+        }
         const formData = new FormData(document.getElementById('search-form'));
         const params = new URLSearchParams(formData);
         window.location.href = `/api/contact_history_csv?${params.toString()}`;
     });
 
     // CSV 올리기
-    document.getElementById('upload-csv').addEventListener('change', function(e) {
+    uploadCsvInput.addEventListener('change', function(e) {
+        if (userId !== 'ct0001' && userId !== 'ct0002') {
+            alert('CSV 올리기 권한이 없습니다. ct0001 또는 ct0002 계정만 사용 가능합니다.');
+            e.target.value = '';
+            return;
+        }
         if (!confirm('CSV를 업로드하면 기존 이력 데이터가 모두 삭제되고, 새 파일로 대체됩니다. 진행하시겠습니까?')) return;
         const file = e.target.files[0];
         if (!file) return;

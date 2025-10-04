@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>산재보상계산기</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .industrial-container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
+        .industrial-title { font-size: 1.6em; font-weight: bold; margin-bottom: 24px; color: #17506b; text-align:center; }
+        .industrial-form label { font-weight: 500; margin-bottom: 6px; display:block; }
+        .industrial-form input, .industrial-form select { width: 100%; padding: 10px; margin-bottom: 18px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; }
+        .industrial-form button { width: 100%; background: #17506b; color: #fff; border: none; border-radius: 5px; padding: 13px; font-size: 17px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .industrial-form button:hover { background: #003366; }
+        .result-box { background: #f8f9fa; border-radius: 6px; padding: 18px; margin-top: 18px; font-size: 1.1em; color: #0b4e7b; }
+        .top-bar { display:flex; justify-content:flex-end; margin-bottom:18px; }
+        .main-btn { background:#003366; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-size:15px; font-weight:600; cursor:pointer; text-decoration:none; display:inline-block; }
+        .main-btn:hover { background:#17506b; }
+    </style>
+</head>
+<body>
+    <div class="industrial-container">
+        <div class="top-bar">
+            <a href="{{ url_for('main') }}" class="main-btn">메인으로</a>
+        </div>
+        <div class="industrial-title">산재보상계산기</div>
+        <form class="industrial-form" id="industrialForm" onsubmit="return false;">
+            <label>평균임금 (일급, 원)</label>
+            <input type="text" id="avgDailyWage" required pattern="[0-9,]*" placeholder="예: 150,000">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">최근 3개월간 받은 총 급여를 해당 기간의 총일수로 나눈 금액</div>
+
+            <label>요양기간 (일)</label>
+            <input type="number" id="treatmentDays" required min="1" placeholder="예: 30">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">치료 및 요양에 소요된 일수</div>
+
+            <label>장해등급</label>
+            <select id="disabilityGrade">
+                <option value="0">해당없음</option>
+                <option value="1">1급</option>
+                <option value="2">2급</option>
+                <option value="3">3급</option>
+                <option value="4">4급</option>
+                <option value="5">5급</option>
+                <option value="6">6급</option>
+                <option value="7">7급</option>
+                <option value="8">8급</option>
+                <option value="9">9급</option>
+                <option value="10">10급</option>
+                <option value="11">11급</option>
+                <option value="12">12급</option>
+                <option value="13">13급</option>
+                <option value="14">14급</option>
+            </select>
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">장해가 있는 경우 등급을 선택하세요</div>
+
+            <button type="submit">계산</button>
+        </form>
+        <div id="resultBox" class="result-box" style="display:none;"></div>
+        
+        <div style="font-size:0.95em;color:#666;margin-top:18px;">
+            <b>유의 사항</b><br>
+            • 이 계산기는 일반적인 산재보상금 계산을 위한 참고용입니다.<br>
+            • 실제 보상금은 개인의 상황에 따라 달라질 수 있습니다.<br>
+            • 정확한 보상금액은 근로복지공단에 문의하시기 바랍니다.<br>
+            • 요양급여, 휴업급여, 장해급여 등을 포함하여 계산됩니다.
+        </div>
+    </div>
+
+    <script>
+    // 콤마 추가 함수
+    function addComma(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    // 콤마 제거 함수
+    function removeComma(str) {
+        return str.replace(/,/g, '');
+    }
+
+    // 입력 시 자동 콤마 추가
+    document.getElementById('avgDailyWage').addEventListener('input', function(e) {
+        let val = removeComma(e.target.value);
+        if(val) e.target.value = addComma(val);
+    });
+
+    // 장해등급별 보상일수 (1급~14급)
+    const disabilityDays = {
+        '1': 1474, '2': 1309, '3': 1155, '4': 1012,
+        '5': 869, '6': 737, '7': 616, '8': 495,
+        '9': 385, '10': 297, '11': 220, '12': 154,
+        '13': 99, '14': 55
+    };
+
+    document.getElementById('industrialForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const avgWage = parseInt(removeComma(document.getElementById('avgDailyWage').value)) || 0;
+        const treatmentDays = parseInt(document.getElementById('treatmentDays').value) || 0;
+        const disabilityGrade = document.getElementById('disabilityGrade').value;
+
+        if(avgWage <= 0 || treatmentDays <= 0) {
+            alert('평균임금과 요양기간을 올바르게 입력해주세요.');
+            return;
+        }
+
+        // 1. 휴업급여 계산 (평균임금의 70% × 요양기간)
+        const restCompensation = Math.floor(avgWage * 0.7 * treatmentDays);
+
+        // 2. 장해급여 계산
+        let disabilityCompensation = 0;
+        if(disabilityGrade !== '0' && disabilityDays[disabilityGrade]) {
+            disabilityCompensation = Math.floor(avgWage * disabilityDays[disabilityGrade]);
+        }
+
+        // 3. 총 보상금
+        const totalCompensation = restCompensation + disabilityCompensation;
+
+        const resultBox = document.getElementById('resultBox');
+        resultBox.style.display = 'block';
+        
+        let html = `<b>산재보상금 계산 결과</b><br><hr style='margin:10px 0;'>`;
+        html += `평균임금(일급): <b>${addComma(avgWage)}원</b><br>`;
+        html += `요양기간: <b>${treatmentDays}일</b><br>`;
+        html += `<hr style='margin:10px 0;'>`;
+        html += `휴업급여 (평균임금의 70%): <b>${addComma(restCompensation)}원</b><br>`;
+        
+        if(disabilityGrade !== '0') {
+            html += `장해등급: <b>${disabilityGrade}급</b><br>`;
+            html += `장해급여 (평균임금 × ${disabilityDays[disabilityGrade]}일): <b>${addComma(disabilityCompensation)}원</b><br>`;
+        } else {
+            html += `장해급여: <b>해당없음</b><br>`;
+        }
+        
+        html += `<hr style='margin:10px 0;'>`;
+        html += `<b style='font-size:1.2em;'>총 예상 보상금: ${addComma(totalCompensation)}원</b>`;
+        
+        resultBox.innerHTML = html;
+    });
+    </script>
+</body>
+</html>
