@@ -18,7 +18,11 @@
         </header>
 
         <div class="main-actions">
+            {% if session.get('user_id') in ['ct0001','ct0002'] %}
             <button type="button" id="excel-download-button" class="action-button excel-button">엑셀저장</button>
+            {% else %}
+            <button type="button" class="action-button excel-button" disabled style="opacity:0.45;cursor:not-allowed;">엑셀저장</button>
+            {% endif %}
             <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">초기화</button>
             <button type="button" id="search-button" class="action-button search-button">검색</button>
         </div>
@@ -84,7 +88,7 @@
         const searchForm = document.getElementById('search-form');
         const resultsCountSpan = document.getElementById('results-count');
         const resetButton = document.getElementById('reset-button');
-        const excelButton = document.getElementById('excel-download-button');
+    const excelButton = document.getElementById('excel-download-button');
         const loadNextBtn = document.getElementById('load-next-btn');
 
         let currentPage = 1;
@@ -180,11 +184,13 @@
             fetchCompanies(1);
         });
 
-        excelButton.addEventListener('click', () => {
-            const formData = new FormData(searchForm);
-            const params = new URLSearchParams(formData);
-            window.location.href = `/export_excel?${params.toString()}`;
-        });
+        if (excelButton) {
+            excelButton.addEventListener('click', () => {
+                const formData = new FormData(searchForm);
+                const params = new URLSearchParams(formData);
+                window.location.href = `/export_excel?${params.toString()}`;
+            });
+        }
 
         const scrollTopBtn = document.getElementById('scroll-top');
         const scrollBottomBtn = document.getElementById('scroll-bottom');

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>산재보상 계산기</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body{background:#f6f8fa}
+        .wrap{max-width:900px;margin:30px auto;background:#fff;padding:20px;border-radius:8px}
+        .header{display:flex;justify-content:space-between;align-items:center}
+        .title{font-size:1.6em;color:#17506b}
+        .btn-main{background:#17506b;color:#fff;padding:8px 14px;border-radius:6px;text-decoration:none}
+        .calc-area{margin-top:18px}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="header">
+        <div class="title">산재 보상 계산기</div>
+        <div>
+            <a href="/main" class="btn-main">메인으로</a>
+        </div>
+    </div>
+
+    <div class="calc-area">
+        <!-- 간단한 입력 폼: 실제 상세 로직은 이후 추가 가능 -->
+        <form id="accidentForm">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                <label>산재 발생일</label>
+                <select id="accYear"></select>
+                <select id="accMonth"></select>
+                <select id="accDay"></select>
+            </div>
+            <div style="margin-top:12px;">
+                <label>최종 3개월 평균임금(원)</label>
+                <input type="text" id="avg3m" placeholder="예: 2,450,000">
+            </div>
+            <div style="margin-top:12px;">
+                <button type="button" id="calcAccident" style="background:#17506b;color:#fff;padding:8px 18px;border-radius:6px;border:none">계산</button>
+            </div>
+        </form>
+
+        <div id="accResult" style="margin-top:18px;display:none;background:#eefaf0;padding:14px;border-radius:6px"></div>
+    </div>
+</div>
+<script>
+function fillDate(id, start, end, val){const sel=document.getElementById(id);for(let i=start;i<=end;i++){const o=document.createElement('option');o.value=i;o.text=i;if(i===val)o.selected=true;sel.appendChild(o)}}
+const today=new Date();fillDate('accYear',2020,today.getFullYear(),today.getFullYear());fillDate('accMonth',1,12,today.getMonth()+1);fillDate('accDay',1,31,today.getDate());
+document.getElementById('calcAccident').onclick=function(){const avg=parseInt((document.getElementById('avg3m').value||'').replace(/,/g,''))||0;const res=document.getElementById('accResult');res.style.display='block';res.innerHTML=`예상 보상금(간단 추정): <b>${avg?avg*3:0}원</b>`}
+</script>
+</body>
+</html>

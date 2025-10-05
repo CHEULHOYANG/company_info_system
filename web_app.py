@@ -537,6 +537,13 @@ def retirement_pay():
         return redirect(url_for('login'))
     return render_template('retirement_pay.html', user_name=session.get('user_name'))
 
+
+@app.route('/industrial_accident')
+def industrial_accident():
+    if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
+        return redirect(url_for('login'))
+    return render_template('industrial_accident.html', user_name=session.get('user_name'))
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
 

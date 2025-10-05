@@ -20,9 +20,14 @@
         <div class="main-actions">
             <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">초기화</button>
             <button type="button" id="search-button" class="action-button search-button">검색</button>
+            {% if session.get('user_id') in ['ct0001','ct0002'] %}
             <button type="button" id="download-csv" class="action-button csv-button-dark">CSV 내리기</button>
             <label for="upload-csv" class="action-button csv-button-dark" style="display:inline-block;cursor:pointer;">CSV 올리기</label>
             <input type="file" id="upload-csv" accept=".csv" style="display:none;">
+            {% else %}
+            <button type="button" class="action-button csv-button-dark" disabled style="opacity:0.45;cursor:not-allowed;">CSV 내리기</button>
+            <button type="button" class="action-button csv-button-dark" disabled style="opacity:0.45;cursor:not-allowed;margin-left:8px;">CSV 올리기</button>
+            {% endif %}
         </div>
 
         <div class="search-container">
