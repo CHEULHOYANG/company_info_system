@@ -28,6 +28,7 @@ USERS = {
     'dt0005': {'name': '구자균', 'password_rule': lambda: f"gugu{datetime.now().strftime('%m%d')}"},
     'dt0006': {'name': '이영창', 'password_rule': lambda: f"ychang{datetime.now().strftime('%m%d')}"},
     'dt0007': {'name': '정재승', 'password_rule': lambda: f"jsung{datetime.now().strftime('%m%d')}"},
+    'ma0001': {'name': '전재휘', 'password_rule': lambda: f"jj7272{datetime.now().strftime('%m%d')}"},
 }
 
 # --- 비상장 주식 가치 계산 ---
@@ -263,16 +264,11 @@ def api_history_search():
     filters = []
     params = []
 
-
-    search_user = request.args.get('registered_by')
-    # 관리자: ct0001~ct0010은 전체 이력 조회, 그 외는 본인 이력만 조회
-    if user_id.startswith('ct00') and len(user_id) == 6 and user_id[2:].isdigit() and 1 <= int(user_id[2:]) <= 10:
-        # 관리자: 전체 이력(필터 없음), 단 registered_by 파라미터가 있으면 해당 유저만
-        if search_user:
-            filters.append("h.registered_by = ?")
-            params.append(search_user)
+    # ct0001, ct0002는 서로 공유, 그 외는 본인만 조회
+    if user_id in ['ct0001', 'ct0002']:
+        filters.append("h.registered_by IN (?, ?)")
+        params.extend(['ct0001', 'ct0002'])
     else:
-        # 일반 사용자: 본인 등록 이력만
         filters.append("h.registered_by = ?")
         params.append(user_id)
 
@@ -330,6 +326,8 @@ def export_excel():
     try:
         import xlsxwriter  # ensure xlsxwriter is installed
         df = query_companies_data(request.args)
+        if len(df) > 500:
+            return "검색 결과가 500건을 초과합니다. 조건을 조정하여 500건 이하로 조회해주세요.", 400
         df.rename(columns={
             'biz_no': '사업자번호', 'company_name': '기업명', 'representative_name': '대표자명', 'phone_number': '전화번호',
             'company_size': '기업규모', 'address': '주소', 'industry_name': '업종명', 'fiscal_year': '최신결산년도',
@@ -349,6 +347,7 @@ def export_excel():
         print(f"Error in export_excel: {e}")
         return f"엑셀 파일 생성 중 오류가 발생했습니다. 상세: {e}", 500
 
+# ...existing code...
 @app.route('/company/<biz_no>')
 def company_detail(biz_no):
     if not session.get('logged_in'): return redirect(url_for('login'))
@@ -546,5 +545,3 @@ def industrial_accident():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
-
