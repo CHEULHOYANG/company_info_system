@@ -28,6 +28,7 @@ USERS = {
     'dt0005': {'name': '구자균', 'password_rule': lambda: f"gugu{datetime.now().strftime('%m%d')}"},
     'dt0006': {'name': '이영창', 'password_rule': lambda: f"ychang{datetime.now().strftime('%m%d')}"},
     'dt0007': {'name': '정재승', 'password_rule': lambda: f"jsung{datetime.now().strftime('%m%d')}"},
+    'ma0001': {'name': '전재휘', 'password_rule': lambda: f"jj7272{datetime.now().strftime('%m%d')}"},
 }
 
 # --- 비상장 주식 가치 계산 ---
@@ -184,8 +185,39 @@ def login():
 def index():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    return render_template('index.html', user_name=session.get('user_name'))
 
+    user_id = session.get('user_id')
+    user_name = session.get('user_name')
+
+    conn = get_db_connection()
+
+    # 페이지네이션 설정
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    offset = (page - 1) * per_page
+
+    # Company_Basic 테이블로 변경
+    total_companies = conn.execute('SELECT COUNT(*) FROM Company_Basic').fetchone()[0]
+    total_pages = math.ceil(total_companies / per_page)
+
+    companies = conn.execute('SELECT * FROM Company_Basic LIMIT ? OFFSET ?', (per_page, offset)).fetchall()
+
+    # 접촉 이력 조회 권한 처리 로직
+    contact_params = []
+    contact_history_query = "SELECT * FROM Contact_History"
+    if user_id not in ['ct0001', 'ct0002']:
+        contact_history_query += " WHERE registered_by = ?"
+        contact_params.append(user_id)
+    contact_history_query += " ORDER BY contact_datetime DESC"
+    contact_history = conn.execute(contact_history_query, contact_params).fetchall()
+
+    conn.close()
+
+    return render_template('index.html',
+                           user_name=user_name,
+                           companies=companies,
+                           total_pages=total_pages,
+                           current_page=page)
 
 @app.route('/main')
 def main():
@@ -243,16 +275,19 @@ def contact_history_csv():
         return jsonify({'success': True, 'inserted': inserted, 'updated': updated})
 @app.route('/api/history_search')
 def api_history_search():
+    print(">>> /api/history_search 라우트 진입")  # 라우트 진입 확인용 로그
     if not session.get('logged_in'):
         return jsonify({"error": "Unauthorized"}), 401
 
     user_id = session.get('user_id')
+    print(f"접속 user_id: {user_id}")
+
     query = """
         SELECT
             h.history_id,
             h.contact_datetime,
-            b.company_name,
             h.biz_no,
+            b.company_name,
             h.contact_type,
             h.contact_person,
             h.memo,
@@ -263,18 +298,20 @@ def api_history_search():
     filters = []
     params = []
 
-
     search_user = request.args.get('registered_by')
-    # 관리자: ct0001~ct0010은 전체 이력 조회, 그 외는 본인 이력만 조회
-    if user_id.startswith('ct00') and len(user_id) == 6 and user_id[2:].isdigit() and 1 <= int(user_id[2:]) <= 10:
-        # 관리자: 전체 이력(필터 없음), 단 registered_by 파라미터가 있으면 해당 유저만
-        if search_user:
-            filters.append("h.registered_by = ?")
-            params.append(search_user)
-    else:
-        # 일반 사용자: 본인 등록 이력만
+    # 담당자ID가 명확히 입력된 경우만 해당 담당자 등록건만 조회
+    if search_user is not None and search_user.strip() != "":
         filters.append("h.registered_by = ?")
-        params.append(user_id)
+        params.append(search_user.strip())
+    else:
+        # 담당자ID 미입력 시
+        if user_id in ['ct0001', 'ct0002']:
+            # 전체 이력 조회 (필터 없음)
+            pass
+        else:
+            # 그 외 사용자는 본인 등록건만 조회
+            filters.append("h.registered_by = ?")
+            params.append(user_id)
 
     if request.args.get('start_date'):
         filters.append("h.contact_datetime >= ?")
@@ -289,6 +326,7 @@ def api_history_search():
     if filters:
         query += " WHERE " + " AND ".join(filters)
     query += " ORDER BY h.contact_datetime DESC"
+
 
     conn = get_db_connection()
     results = conn.execute(query, params).fetchall()
@@ -330,6 +368,8 @@ def export_excel():
     try:
         import xlsxwriter  # ensure xlsxwriter is installed
         df = query_companies_data(request.args)
+        if len(df) > 500:
+            return "검색 결과가 500건을 초과합니다. 조건을 조정하여 500건 이하로 조회해주세요.", 400
         df.rename(columns={
             'biz_no': '사업자번호', 'company_name': '기업명', 'representative_name': '대표자명', 'phone_number': '전화번호',
             'company_size': '기업규모', 'address': '주소', 'industry_name': '업종명', 'fiscal_year': '최신결산년도',
@@ -349,6 +389,7 @@ def export_excel():
         print(f"Error in export_excel: {e}")
         return f"엑셀 파일 생성 중 오류가 발생했습니다. 상세: {e}", 500
 
+# ...existing code...
 @app.route('/company/<biz_no>')
 def company_detail(biz_no):
     if not session.get('logged_in'): return redirect(url_for('login'))
@@ -546,5 +587,3 @@ def industrial_accident():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
-
