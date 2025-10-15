@@ -51,11 +51,11 @@
                         <th>기업담당자</th>
                         <th style="width: 30%;">내용</th>
                         <th>작성자</th>
-                    <th>삭제</th>
+                        <th>삭제</th>
                     </tr>
                 </thead>
                 <tbody id="history-list">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
@@ -67,14 +67,14 @@
 
     <script>
     // CSV 내리기
-    document.getElementById('download-csv').addEventListener('click', function() {
+    document.getElementById('download-csv')?.addEventListener('click', function() {
         const formData = new FormData(document.getElementById('search-form'));
         const params = new URLSearchParams(formData);
         window.location.href = `/api/contact_history_csv?${params.toString()}`;
     });
 
     // CSV 올리기
-    document.getElementById('upload-csv').addEventListener('change', function(e) {
+    document.getElementById('upload-csv')?.addEventListener('change', function(e) {
         if (!confirm('CSV를 업로드하면 기존 이력 데이터가 모두 삭제되고, 새 파일로 대체됩니다. 진행하시겠습니까?')) return;
         const file = e.target.files[0];
         if (!file) return;
@@ -95,6 +95,7 @@
         })
         .catch(() => alert('업로드 중 오류 발생'));
     });
+
     function openCompanyPopup(bizNo) {
         const url = `/company/${bizNo}?source=history_popup`;
         const features = 'width=1200,height=800,scrollbars=yes,resizable=yes';
@@ -108,8 +109,9 @@
         const historyList = document.getElementById('history-list');
         const resultsCountSpan = document.getElementById('results-count');
 
+        // 검색 실행 함수
         function performSearch() {
-            historyList.innerHTML = '<tr><td colspan="8" class="loading">검색 중...</td></tr>';
+            historyList.innerHTML = '<tr><td colspan="9" class="loading">검색 중...</td></tr>';
             const formData = new FormData(searchForm);
             const params = new URLSearchParams(formData);
 
@@ -120,7 +122,7 @@
                     resultsCountSpan.textContent = `조회건수 : ${data.length.toLocaleString()}건`;
 
                     if (data.length === 0) {
-                        historyList.innerHTML = '<tr><td colspan="8">검색 결과가 없습니다.</td></tr>';
+                        historyList.innerHTML = '<tr><td colspan="9">검색 결과가 없습니다.</td></tr>';
                         return;
                     }
 
@@ -141,44 +143,40 @@
                     });
                 })
                 .catch(error => {
-                    console.error('Error fetching history:', error);
-                    historyList.innerHTML = '<tr><td colspan="8">데이터 조회 중 오류가 발생했습니다.</td></tr>';
+                    historyList.innerHTML = '<tr><td colspan="9">데이터 조회 중 오류가 발생했습니다.</td></tr>';
                 });
         }
 
         searchButton.addEventListener('click', performSearch);
-        
+
         resetButton.addEventListener('click', () => {
             searchForm.reset();
             performSearch();
         });
 
-        const scrollTopBtn = document.getElementById('scroll-top');
-        const scrollBottomBtn = document.getElementById('scroll-bottom');
-        scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-        scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-        
-        performSearch(); // 페이지 로드 시 전체 내역 조회
-    // 삭제 버튼 기능
-    window.deleteHistory = function(btn) {
-        const historyId = btn.getAttribute('data-id');
-        if (!historyId) {
-            alert('삭제할 이력 ID가 없습니다.');
-            return;
+        // 페이지 로드 시 전체 내역 조회
+        performSearch();
+
+        // 삭제 버튼 기능
+        window.deleteHistory = function(btn) {
+            const historyId = btn.getAttribute('data-id');
+            if (!historyId) {
+                alert('삭제할 이력 ID가 없습니다.');
+                return;
+            }
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            fetch(`/api/contact_history/${historyId}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('삭제되었습니다!');
+                        performSearch();
+                    } else {
+                        alert('삭제 실패: ' + (data.message || '오류'));
+                    }
+                })
+                .catch(() => alert('삭제 중 오류가 발생했습니다.'));
         }
-        if (!confirm('정말 삭제하시겠습니까?')) return;
-        fetch(`/api/contact_history/${historyId}`, { method: 'DELETE' })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('삭제되었습니다!');
-                    performSearch();
-                } else {
-                    alert('삭제 실패: ' + (data.message || '오류'));
-                }
-            })
-            .catch(() => alert('삭제 중 오류가 발생했습니다.'));
-    }
     });
     </script>
 </body>
