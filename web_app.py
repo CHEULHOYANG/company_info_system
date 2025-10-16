@@ -1,3 +1,4 @@
+# -*- coding: cp949 -*-
 import os
 import sqlite3
 import io
@@ -7,39 +8,87 @@ import pandas as pd
 import math
 import csv
 from werkzeug.utils import secure_filename
-# --- ê¸°ë³¸ ì„¤ì • ---
+from jinja2 import FileSystemLoader, TemplateNotFound
+
+# --- Ä¿½ºÅÒ ÅÛÇÃ¸´ ·Î´õ (CP949 Áö¿ø) ---
+class CP949FileSystemLoader(FileSystemLoader):
+    def get_source(self, environment, template):
+        # ÆÄÀÏ °æ·Î Ã£±â
+        for searchpath in self.searchpath:
+            filename = os.path.join(searchpath, template)
+            if os.path.exists(filename):
+                # CP949·Î ¸ÕÀú ½Ãµµ, ½ÇÆĞÇÏ¸é UTF-8·Î ½Ãµµ
+                try:
+                    with open(filename, 'r', encoding='cp949') as f:
+                        source = f.read()
+                except UnicodeDecodeError:
+                    with open(filename, 'r', encoding='utf-8') as f:
+                        source = f.read()
+                
+                mtime = os.path.getmtime(filename)
+                def uptodate():
+                    try:
+                        return os.path.getmtime(filename) == mtime
+                    except OSError:
+                        return False
+                return source, filename, uptodate
+        
+        raise TemplateNotFound(template)
+
+# --- ±âº» ¼³Á¤ ---
 app = Flask(__name__)
 app.secret_key = 'your_very_secret_key_12345'
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "company_database.db")
 
-# --- DB ì—°ê²° í•¨ìˆ˜ ë° ì‚¬ìš©ì ê³„ì • ---
+# Ä¿½ºÅÒ ÅÛÇÃ¸´ ·Î´õ ¼³Á¤
+template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+app.jinja_loader = CP949FileSystemLoader(template_dir)
+
+# DB °æ·Î ¼³Á¤ (render.com ¼­¹ö¿Í ·ÎÄÃ È¯°æ ºĞ¸®)
+db_dir = '/var/data'
+db_name = 'company_info.db'
+
+# µğ·ºÅÍ¸® Á¸Àç È®ÀÎ ¹× »ı¼º
+if not os.path.exists(db_dir):
+    try:
+        # render.com ¼­¹ö¿¡¼­ µğ·ºÅÍ¸® »ı¼º ½Ãµµ
+        os.makedirs(db_dir, exist_ok=True)
+        print(f"Created directory: {db_dir}")
+    except PermissionError:
+        # ±ÇÇÑÀÌ ¾øÀ¸¸é ±âÁ¸ °æ·Î »ç¿ë
+        print(f"Permission denied for {db_dir}, using current directory")
+        db_dir = os.path.dirname(os.path.abspath(__file__))
+        db_name = 'company_database.db'  # ±âÁ¸ ÆÄÀÏ¸í À¯Áö
+
+DB_PATH = os.path.join(db_dir, db_name)
+
+# --- DB ¿¬°á ÇÔ¼ö ¹× »ç¿ëÀÚ °èÁ¤ ---
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-# --- ì‚¬ìš©ì ì •ë³´ ë° ë™ì  ë¹„ë°€ë²ˆí˜¸ ê·œì¹™ ---
+# --- »ç¿ëÀÚ Á¤º¸ ¹× µ¿Àû ºñ¹Ğ¹øÈ£ ±ÔÄ¢ ---
 USERS = {
-    'ct0001': {'name': 'ì–‘ì² í˜¸', 'password': 'ych1123!'},
-    'ct0002': {'name': 'ì„œì€ì •', 'password_rule': lambda: f"ctlove{datetime.now().strftime('%m%d')}"},
-    'dt0003': {'name': 'ê¹€ì˜í¬', 'password_rule': lambda: f"lee0202{datetime.now().strftime('%m%d')}"},
-    'dt0004': {'name': 'ì§€ì€ì˜', 'password_rule': lambda: f"eyoung{datetime.now().strftime('%m%d')}"},
-    'dt0005': {'name': 'êµ¬ìê· ', 'password_rule': lambda: f"gugu{datetime.now().strftime('%m%d')}"},
-    'dt0006': {'name': 'ì´ì˜ì°½', 'password_rule': lambda: f"ychang{datetime.now().strftime('%m%d')}"},
-    'dt0007': {'name': 'ì •ì¬ìŠ¹', 'password_rule': lambda: f"jsung{datetime.now().strftime('%m%d')}"},
-    'ma0001': {'name': 'ì „ì¬íœ˜', 'password_rule': lambda: f"jj7272{datetime.now().strftime('%m%d')}"},
+    'ct0001': {'name': '¾çÃ¶È£', 'password': 'ych1123!'},
+    'ct0002': {'name': '¼­ÀºÁ¤', 'password_rule': lambda: f"ctlove{datetime.now().strftime('%m%d')}"},
+    'dt0003': {'name': '±è¿µÈñ', 'password_rule': lambda: f"lee0202{datetime.now().strftime('%m%d')}"},
+    'dt0004': {'name': 'ÁöÀº¿µ', 'password_rule': lambda: f"eyoung{datetime.now().strftime('%m%d')}"},
+    'dt0005': {'name': '±¸ÀÚ±Õ', 'password_rule': lambda: f"gugu{datetime.now().strftime('%m%d')}"},
+    'dt0006': {'name': 'ÀÌ¿µÃ¢', 'password_rule': lambda: f"ychang{datetime.now().strftime('%m%d')}"},
+    'dt0007': {'name': 'Á¤Àç½Â', 'password_rule': lambda: f"jsung{datetime.now().strftime('%m%d')}"},
+    'ma0001': {'name': 'ÀüÀçÈÖ', 'password_rule': lambda: f"jj7272{datetime.now().strftime('%m%d')}"},
 }
 
-# --- ë¹„ìƒì¥ ì£¼ì‹ ê°€ì¹˜ ê³„ì‚° ---
+# --- ºñ»óÀå ÁÖ½Ä °¡Ä¡ °è»ê ---
 def calculate_unlisted_stock_value(financial_data):
     """
-    í•„ìš”í•œ ì¬ë¬´ í•­ëª©:
-    - total_assets: ìì‚°ì´ê³„
-    - total_liabilities: ë¶€ì±„ì´ê³„
-    - net_income: ìˆœì´ìµ(ìµœê·¼ 3ë…„ í‰ê· )
-    - shares_issued_count: ë°œí–‰ì£¼ì‹ìˆ˜(ì—†ìœ¼ë©´ ìë³¸ê¸ˆ/5000)
-    - capital_stock_value: ìë³¸ê¸ˆ
+    ÇÊ¿äÇÑ Àç¹« Ç×¸ñ:
+    - total_assets: ÀÚ»êÃÑ°è
+    - total_liabilities: ºÎÃ¤ÃÑ°è
+    - net_income: ¼øÀÌÀÍ(ÃÖ±Ù 3³â Æò±Õ)
+    - shares_issued_count: ¹ßÇàÁÖ½Ä¼ö(¾øÀ¸¸é ÀÚº»±İ/5000)
+    - capital_stock_value: ÀÚº»±İ
     """
     if not financial_data:
         return {}
@@ -52,7 +101,7 @@ def calculate_unlisted_stock_value(financial_data):
     total_assets = float(latest_data.get('total_assets') or 0)
     total_liabilities = float(latest_data.get('total_liabilities') or 0)
 
-    # ìµœê·¼ 3ë…„ í‰ê·  ìˆœì´ìµ
+    # ÃÖ±Ù 3³â Æò±Õ ¼øÀÌÀÍ
     net_income_3y_avg = pd.to_numeric(df_financial['net_income'], errors='coerce').mean()
     if pd.isna(net_income_3y_avg):
         net_income_3y_avg = 0
@@ -82,7 +131,7 @@ def calculate_unlisted_stock_value(financial_data):
         "estimated_stock_value": stock_value
     }
 
-# --- ê¸°ì—…ì •ë³´ ë°ì´í„° ì¡°íšŒ í•¨ìˆ˜ ì¶”ê°€ ---
+# --- ±â¾÷Á¤º¸ µ¥ÀÌÅÍ Á¶È¸ ÇÔ¼ö Ãß°¡ ---
 def query_companies_data(args):
     conn = get_db_connection()
     query = """
@@ -112,16 +161,16 @@ def query_companies_data(args):
     if args.get('industry_name'):
         filters.append("b.industry_name LIKE ?")
         params.append(f"%{args.get('industry_name')}%")
-    if args.get('company_size') and args.get('company_size') != 'ì „ì²´':
+    if args.get('company_size') and args.get('company_size') != 'ÀüÃ¼':
         filters.append("b.company_size = ?")
         params.append(args.get('company_size'))
-    # ì§€ì—­(ì£¼ì†Œ) ê²€ìƒ‰: ëª¨ë“  í‚¤ì›Œë“œê°€ í¬í•¨ë˜ì–´ì•¼ í•¨
+    # Áö¿ª(ÁÖ¼Ò) °Ë»ö: ¸ğµç Å°¿öµå°¡ Æ÷ÇÔµÇ¾î¾ß ÇÔ
     if args.get('region'):
         region_keywords = [kw.strip() for kw in args.get('region').split() if kw.strip()]
         for kw in region_keywords:
             filters.append("b.address LIKE ?")
             params.append(f"%{kw}%")
-    # ì´ìµì‰ì—¬ê¸ˆ min/max (retained_earnings, ë°±ë§Œë‹¨ìœ„ ì…ë ¥ê°’ì„ ì‹¤ì œ ë‹¨ìœ„ë¡œ ë³€í™˜)
+    # ÀÌÀÍÀ×¿©±İ min/max (retained_earnings, ¹é¸¸´ÜÀ§ ÀÔ·Â°ªÀ» ½ÇÁ¦ ´ÜÀ§·Î º¯È¯)
     if args.get('ret_min'):
         try:
             ret_min_val = int(args.get('ret_min')) * 1000000
@@ -143,21 +192,21 @@ def query_companies_data(args):
     conn.close()
     return df
 
-# --- ë¡œê·¸ì•„ì›ƒ ë¼ìš°íŠ¸ ì¶”ê°€ ---
+# --- ·Î±×¾Æ¿ô ¶ó¿ìÆ® Ãß°¡ ---
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     session.pop('user_id', None)
     return redirect(url_for('login'))
 
-# --- ì ‘ì´‰ì´ë ¥ ì¡°íšŒ ë¼ìš°íŠ¸ ì¶”ê°€ ---
+# --- Á¢ÃËÀÌ·Â Á¶È¸ ¶ó¿ìÆ® Ãß°¡ ---
 @app.route('/history')
 def history_search():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     return render_template('history.html', user_name=session.get('user_name'))
 
-# --- ë¡œê·¸ì¸ ë¼ìš°íŠ¸ ì¶”ê°€ ---
+# --- ·Î±×ÀÎ ¶ó¿ìÆ® Ãß°¡ ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -176,31 +225,62 @@ def login():
                 session['user_id'] = user_id
                 session['user_name'] = user_info['name']
                 return redirect(url_for('main'))
-        error = 'ì•„ì´ë”” ë˜ëŠ” ë¹„ë°€ë²ˆí˜¸ê°€ ì˜¬ë°”ë¥´ì§€ ì•ŠìŠµë‹ˆë‹¤.'
+        error = '¾ÆÀÌµğ ¶Ç´Â ºñ¹Ğ¹øÈ£°¡ ¿Ã¹Ù¸£Áö ¾Ê½À´Ï´Ù.'
     return render_template('login.html', error=error)
 
-# --- index(í™ˆ) í˜ì´ì§€ ë¼ìš°íŠ¸ ì¶”ê°€ ---
+# --- index(È¨) ÆäÀÌÁö ¶ó¿ìÆ® Ãß°¡ ---
 
 @app.route('/')
 def index():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    return render_template('index.html', user_name=session.get('user_name'))
 
+    user_id = session.get('user_id')
+    user_name = session.get('user_name')
+
+    conn = get_db_connection()
+
+    # ÆäÀÌÁö³×ÀÌ¼Ç ¼³Á¤
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    offset = (page - 1) * per_page
+
+    # Company_Basic Å×ÀÌºí·Î º¯°æ
+    total_companies = conn.execute('SELECT COUNT(*) FROM Company_Basic').fetchone()[0]
+    total_pages = math.ceil(total_companies / per_page)
+
+    companies = conn.execute('SELECT * FROM Company_Basic LIMIT ? OFFSET ?', (per_page, offset)).fetchall()
+
+    # Á¢ÃË ÀÌ·Â Á¶È¸ ±ÇÇÑ Ã³¸® ·ÎÁ÷
+    contact_params = []
+    contact_history_query = "SELECT * FROM Contact_History"
+    if user_id not in ['ct0001', 'ct0002']:
+        contact_history_query += " WHERE registered_by = ?"
+        contact_params.append(user_id)
+    contact_history_query += " ORDER BY contact_datetime DESC"
+    contact_history = conn.execute(contact_history_query, contact_params).fetchall()
+
+    conn.close()
+
+    return render_template('index.html',
+                           user_name=user_name,
+                           companies=companies,
+                           total_pages=total_pages,
+                           current_page=page)
 
 @app.route('/main')
 def main():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     return render_template('main.html', user_name=session.get('user_name'))
-# (ë¶ˆí•„ìš”í•œ ì˜ëª»ëœ ë“¤ì—¬ì“°ê¸° ë¼ì¸ ì œê±°)
-# --- ì ‘ì´‰ì´ë ¥ ë°ì´í„° ì¡°íšŒ API ì¶”ê°€ ---
+# (ºÒÇÊ¿äÇÑ Àß¸øµÈ µé¿©¾²±â ¶óÀÎ Á¦°Å)
+# --- Á¢ÃËÀÌ·Â µ¥ÀÌÅÍ Á¶È¸ API Ãß°¡ ---
 @app.route('/api/contact_history_csv', methods=['GET', 'POST'])
 def contact_history_csv():
     if not session.get('logged_in'):
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     if request.method == 'GET':
-        # ì¡°ê±´ ì—†ì´ ì „ì²´ Contact_Historyë¥¼ CSVë¡œ ë°˜í™˜
+        # Á¶°Ç ¾øÀÌ ÀüÃ¼ Contact_History¸¦ CSV·Î ¹İÈ¯
         conn = get_db_connection()
         rows = conn.execute('SELECT history_id, contact_datetime, biz_no, contact_type, contact_person, memo, registered_by FROM Contact_History ORDER BY history_id').fetchall()
         conn.close()
@@ -212,12 +292,12 @@ def contact_history_csv():
         output = si.getvalue().encode('utf-8-sig')
         return Response(output, mimetype='text/csv', headers={"Content-Disposition": "attachment;filename=contact_history.csv"})
     else:
-        # ì—…ë¡œë“œ: ê¸°ì¡´ ë°ì´í„° ì „ì²´ ì‚­ì œ í›„, ì—…ë¡œë“œëœ CSVë¡œ ì „ì²´ ëŒ€ì²´
+        # ¾÷·Îµå: ±âÁ¸ µ¥ÀÌÅÍ ÀüÃ¼ »èÁ¦ ÈÄ, ¾÷·ÎµåµÈ CSV·Î ÀüÃ¼ ´ëÃ¼
         if 'file' not in request.files:
-            return jsonify({'success': False, 'message': 'íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.'}), 400
+            return jsonify({'success': False, 'message': 'ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.'}), 400
         file = request.files['file']
         if not file.filename.endswith('.csv'):
-            return jsonify({'success': False, 'message': 'CSV íŒŒì¼ë§Œ ì—…ë¡œë“œ ê°€ëŠ¥í•©ë‹ˆë‹¤.'}), 400
+            return jsonify({'success': False, 'message': 'CSV ÆÄÀÏ¸¸ ¾÷·Îµå °¡´ÉÇÕ´Ï´Ù.'}), 400
         stream = io.StringIO(file.stream.read().decode('utf-8-sig'))
         reader = csv.DictReader(stream)
         conn = get_db_connection()
@@ -244,11 +324,12 @@ def contact_history_csv():
         return jsonify({'success': True, 'inserted': inserted, 'updated': updated})
 @app.route('/api/history_search')
 def api_history_search():
+    print(">>> /api/history_search ¶ó¿ìÆ® ÁøÀÔ")  # ¶ó¿ìÆ® ÁøÀÔ È®ÀÎ¿ë ·Î±×
     if not session.get('logged_in'):
         return jsonify({"error": "Unauthorized"}), 401
 
     user_id = session.get('user_id')
-    print(f"ì ‘ì† user_id: {user_id}")
+    print(f"Á¢¼Ó user_id: {user_id}")
 
     query = """
         SELECT
@@ -265,21 +346,19 @@ def api_history_search():
     """
     filters = []
     params = []
-    print("ìµœì¢… ì¿¼ë¦¬:", query)
-    print("íŒŒë¼ë¯¸í„°:", params)
-    
+
     search_user = request.args.get('registered_by')
-    # ë‹´ë‹¹ìIDê°€ ëª…í™•íˆ ì…ë ¥ëœ ê²½ìš°ë§Œ í•´ë‹¹ ë‹´ë‹¹ì ë“±ë¡ê±´ë§Œ ì¡°íšŒ
+    # ´ã´çÀÚID°¡ ¸íÈ®È÷ ÀÔ·ÂµÈ °æ¿ì¸¸ ÇØ´ç ´ã´çÀÚ µî·Ï°Ç¸¸ Á¶È¸
     if search_user is not None and search_user.strip() != "":
         filters.append("h.registered_by = ?")
         params.append(search_user.strip())
     else:
-        # ë‹´ë‹¹ìID ë¯¸ì…ë ¥ ì‹œ
+        # ´ã´çÀÚID ¹ÌÀÔ·Â ½Ã
         if user_id in ['ct0001', 'ct0002']:
-            # ì „ì²´ ì´ë ¥ ì¡°íšŒ (í•„í„° ì—†ìŒ)
+            # ÀüÃ¼ ÀÌ·Â Á¶È¸ (ÇÊÅÍ ¾øÀ½)
             pass
         else:
-            # ê·¸ ì™¸ ì‚¬ìš©ìëŠ” ë³¸ì¸ ë“±ë¡ê±´ë§Œ ì¡°íšŒ
+            # ±× ¿Ü »ç¿ëÀÚ´Â º»ÀÎ µî·Ï°Ç¸¸ Á¶È¸
             filters.append("h.registered_by = ?")
             params.append(user_id)
 
@@ -297,8 +376,6 @@ def api_history_search():
         query += " WHERE " + " AND ".join(filters)
     query += " ORDER BY h.contact_datetime DESC"
 
-    print("ìµœì¢… ì¿¼ë¦¬:", query)
-    print("íŒŒë¼ë¯¸í„°:", params)
 
     conn = get_db_connection()
     results = conn.execute(query, params).fetchall()
@@ -306,7 +383,7 @@ def api_history_search():
 
     return jsonify([dict(row) for row in results])
 
-# â–¼â–¼â–¼ [ìˆ˜ì •] get_companies í•¨ìˆ˜ â–¼â–¼â–¼
+# ¡å¡å¡å [¼öÁ¤] get_companies ÇÔ¼ö ¡å¡å¡å
 @app.route('/api/companies')
 def get_companies():
     if not session.get('logged_in'):
@@ -341,25 +418,25 @@ def export_excel():
         import xlsxwriter  # ensure xlsxwriter is installed
         df = query_companies_data(request.args)
         if len(df) > 500:
-            return "ê²€ìƒ‰ ê²°ê³¼ê°€ 500ê±´ì„ ì´ˆê³¼í•©ë‹ˆë‹¤. ì¡°ê±´ì„ ì¡°ì •í•˜ì—¬ 500ê±´ ì´í•˜ë¡œ ì¡°íšŒí•´ì£¼ì„¸ìš”.", 400
+            return "°Ë»ö °á°ú°¡ 500°ÇÀ» ÃÊ°úÇÕ´Ï´Ù. Á¶°ÇÀ» Á¶Á¤ÇÏ¿© 500°Ç ÀÌÇÏ·Î Á¶È¸ÇØÁÖ¼¼¿ä.", 400
         df.rename(columns={
-            'biz_no': 'ì‚¬ì—…ìë²ˆí˜¸', 'company_name': 'ê¸°ì—…ëª…', 'representative_name': 'ëŒ€í‘œìëª…', 'phone_number': 'ì „í™”ë²ˆí˜¸',
-            'company_size': 'ê¸°ì—…ê·œëª¨', 'address': 'ì£¼ì†Œ', 'industry_name': 'ì—…ì¢…ëª…', 'fiscal_year': 'ìµœì‹ ê²°ì‚°ë…„ë„',
-            'total_assets': 'ìì‚°ì´ê³„', 'sales_revenue': 'ë§¤ì¶œì•¡', 'retained_earnings': 'ì´ìµì‰ì—¬ê¸ˆ'
+            'biz_no': '»ç¾÷ÀÚ¹øÈ£', 'company_name': '±â¾÷¸í', 'representative_name': '´ëÇ¥ÀÚ¸í', 'phone_number': 'ÀüÈ­¹øÈ£',
+            'company_size': '±â¾÷±Ô¸ğ', 'address': 'ÁÖ¼Ò', 'industry_name': '¾÷Á¾¸í', 'fiscal_year': 'ÃÖ½Å°á»ê³âµµ',
+            'total_assets': 'ÀÚ»êÃÑ°è', 'sales_revenue': '¸ÅÃâ¾×', 'retained_earnings': 'ÀÌÀÍÀ×¿©±İ'
         }, inplace=True)
-        excel_cols = ['ì‚¬ì—…ìë²ˆí˜¸', 'ê¸°ì—…ëª…', 'ëŒ€í‘œìëª…', 'ì „í™”ë²ˆí˜¸', 'ê¸°ì—…ê·œëª¨', 'ì£¼ì†Œ', 'ì—…ì¢…ëª…', 'ìµœì‹ ê²°ì‚°ë…„ë„', 'ìì‚°ì´ê³„', 'ë§¤ì¶œì•¡', 'ì´ìµì‰ì—¬ê¸ˆ']
+        excel_cols = ['»ç¾÷ÀÚ¹øÈ£', '±â¾÷¸í', '´ëÇ¥ÀÚ¸í', 'ÀüÈ­¹øÈ£', '±â¾÷±Ô¸ğ', 'ÁÖ¼Ò', '¾÷Á¾¸í', 'ÃÖ½Å°á»ê³âµµ', 'ÀÚ»êÃÑ°è', '¸ÅÃâ¾×', 'ÀÌÀÍÀ×¿©±İ']
         df_excel = df[[col for col in excel_cols if col in df.columns]]
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            df_excel.to_excel(writer, index=False, sheet_name='ê¸°ì—…ì •ë³´')
+            df_excel.to_excel(writer, index=False, sheet_name='±â¾÷Á¤º¸')
         output.seek(0)
         return Response(output, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         headers={"Content-Disposition": "attachment;filename=company_data.xlsx"})
     except ImportError:
-        return "ì—‘ì…€ íŒŒì¼ ìƒì„±ì— í•„ìš”í•œ 'xlsxwriter' íŒ¨í‚¤ì§€ê°€ ì„¤ì¹˜ë˜ì–´ ìˆì§€ ì•ŠìŠµë‹ˆë‹¤. ê´€ë¦¬ìì—ê²Œ ë¬¸ì˜í•˜ì„¸ìš”.", 500
+        return "¿¢¼¿ ÆÄÀÏ »ı¼º¿¡ ÇÊ¿äÇÑ 'xlsxwriter' ÆĞÅ°Áö°¡ ¼³Ä¡µÇ¾î ÀÖÁö ¾Ê½À´Ï´Ù. °ü¸®ÀÚ¿¡°Ô ¹®ÀÇÇÏ¼¼¿ä.", 500
     except Exception as e:
         print(f"Error in export_excel: {e}")
-        return f"ì—‘ì…€ íŒŒì¼ ìƒì„± ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤. ìƒì„¸: {e}", 500
+        return f"¿¢¼¿ ÆÄÀÏ »ı¼º Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù. »ó¼¼: {e}", 500
 
 # ...existing code...
 @app.route('/company/<biz_no>')
@@ -452,13 +529,25 @@ def handle_contact_history():
     history_id = data.get('history_id')
 
     if not contact_datetime_str:
-        return jsonify({"success": False, "message": "ì ‘ì´‰ì¼ì‹œë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”."}), 400
+        return jsonify({"success": False, "message": "Á¢ÃËÀÏ½Ã¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä."}), 400
     try:
-        submitted_dt = datetime.fromisoformat(contact_datetime_str)
-        if submitted_dt > datetime.now():
-            return jsonify({"success": False, "message": "ë¯¸ë˜ ë‚ ì§œ ë° ì‹œê°„ìœ¼ë¡œ ë“±ë¡/ìˆ˜ì •í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 400
+        # ISO Çü½ÄÀÇ ³¯Â¥ ¹®ÀÚ¿­À» ÆÄ½Ì (timezone Á¤º¸ Á¦°Å)
+        if contact_datetime_str.endswith('Z'):
+            contact_datetime_str = contact_datetime_str[:-1]
+        elif '+' in contact_datetime_str:
+            contact_datetime_str = contact_datetime_str.split('+')[0]
+        elif contact_datetime_str.count(':') == 3:  # timezone offset ÇüÅÂ Ã³¸®
+            contact_datetime_str = ':'.join(contact_datetime_str.split(':')[:3])
+        
+        submitted_dt = datetime.fromisoformat(contact_datetime_str.replace('Z', ''))
+        now_dt = datetime.now()
+        
+        # 1ºĞÀÇ ¿©À¯½Ã°£À» µÎ¾î ³×Æ®¿öÅ© Áö¿¬ÀÌ³ª ½Ã°£ µ¿±âÈ­ ¿ÀÂ÷¸¦ Çã¿ë
+        from datetime import timedelta
+        if submitted_dt > (now_dt + timedelta(minutes=1)):
+            return jsonify({"success": False, "message": "¹Ì·¡ ³¯Â¥ ¹× ½Ã°£À¸·Î µî·Ï/¼öÁ¤ÇÒ ¼ö ¾ø½À´Ï´Ù."}), 400
     except ValueError:
-        return jsonify({"success": False, "message": "ì˜ëª»ëœ ë‚ ì§œ í˜•ì‹ì…ë‹ˆë‹¤."}), 400
+        return jsonify({"success": False, "message": "Àß¸øµÈ ³¯Â¥ Çü½ÄÀÔ´Ï´Ù."}), 400
 
     formatted_datetime = contact_datetime_str.replace('T', ' ')
     conn = get_db_connection()
@@ -475,17 +564,17 @@ def handle_contact_history():
             )
             new_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
             conn.commit()
-            return jsonify({"success": True, "message": "ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤.", "new_history_id": new_id})
+            return jsonify({"success": True, "message": "Ãß°¡µÇ¾ú½À´Ï´Ù.", "new_history_id": new_id})
         
         elif request.method == 'PUT':
             if not history_id:
-                return jsonify({"success": False, "message": "ìˆ˜ì •í•  ì´ë ¥ IDê°€ ì—†ìŠµë‹ˆë‹¤."}), 400
+                return jsonify({"success": False, "message": "¼öÁ¤ÇÒ ÀÌ·Â ID°¡ ¾ø½À´Ï´Ù."}), 400
             conn.execute(
                 "UPDATE Contact_History SET contact_datetime=?, contact_type=?, contact_person=?, memo=?, registered_by=? WHERE history_id = ?", 
                 (formatted_datetime, contact_type, contact_person, memo, user_id, history_id)
             )
             conn.commit()
-            return jsonify({"success": True, "message": "ìˆ˜ì •ë˜ì—ˆìŠµë‹ˆë‹¤."})
+            return jsonify({"success": True, "message": "¼öÁ¤µÇ¾ú½À´Ï´Ù."})
 
     except Exception as e:
         conn.rollback()
@@ -507,28 +596,28 @@ def delete_contact_history(history_id):
     finally:
         conn.close()
 
-# --- ì¦ì—¬ì„¸ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
+# --- Áõ¿©¼¼ °è»ê±â ¶ó¿ìÆ® ---
 @app.route('/gift_tax')
 def gift_tax():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('gift_tax.html', user_name=session.get('user_name'))
 
-# --- ì–‘ë„ì†Œë“ì„¸ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
+# --- ¾çµµ¼Òµæ¼¼ °è»ê±â ¶ó¿ìÆ® ---
 @app.route('/transfer_tax')
 def transfer_tax():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('transfer_tax.html', user_name=session.get('user_name'))
 
-# --- ì¢…í•©ì†Œë“ì„¸ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
+# --- Á¾ÇÕ¼Òµæ¼¼ °è»ê±â ¶ó¿ìÆ® ---
 @app.route('/income_tax')
 def income_tax():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('income_tax.html', user_name=session.get('user_name'))
 
-# --- 4ëŒ€ë³´í—˜ë£Œ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
+# --- 4´ëº¸Çè·á °è»ê±â ¶ó¿ìÆ® ---
 @app.route('/social_ins_tax')
 def social_ins_tax():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
@@ -536,14 +625,14 @@ def social_ins_tax():
     return render_template('social_ins_tax.html', user_name=session.get('user_name'))
 
 
-# --- ì·¨ë“ì„¸ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
+# --- Ãëµæ¼¼ °è»ê±â ¶ó¿ìÆ® ---
 @app.route('/acquisition_tax')
 def acquisition_tax():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('acquisition_tax.html', user_name=session.get('user_name'))
 
-# --- í‡´ì§ê¸ˆ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
+# --- ÅğÁ÷±İ °è»ê±â ¶ó¿ìÆ® ---
 @app.route('/retirement_pay')
 def retirement_pay():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
