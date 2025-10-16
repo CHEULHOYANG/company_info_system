@@ -43,23 +43,28 @@ app.secret_key = 'your_very_secret_key_12345'
 template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app.jinja_loader = CP949FileSystemLoader(template_dir)
 
-# DB 경로 설정 (render.com 서버와 로컬 환경 분리)
-db_dir = '/var/data'
-db_name = 'company_info.db'
+# DB 경로 설정 (기존 데이터 보존하면서 GitHub 업데이트 시 DB 보존)
+app_dir = os.path.dirname(os.path.abspath(__file__))
 
-# 디렉터리 존재 확인 및 생성
-if not os.path.exists(db_dir):
-    try:
-        # render.com 서버에서 디렉터리 생성 시도
+# render.com에서는 환경변수 RENDER가 설정됨
+if os.environ.get('RENDER'):
+    # render.com 서버 환경
+    
+    # 1순위: 기존 DB 파일이 있으면 계속 사용 (데이터 보존)
+    existing_db = os.path.join(app_dir, 'company_database.db')
+    if os.path.exists(existing_db):
+        DB_PATH = existing_db
+        print(f"Using existing DB: {DB_PATH}")
+    else:
+        # 2순위: 기존 DB가 없으면 data 폴더에 새로 생성
+        db_dir = os.path.join(app_dir, 'data')
         os.makedirs(db_dir, exist_ok=True)
-        print(f"Created directory: {db_dir}")
-    except PermissionError:
-        # 권한이 없으면 기존 경로 사용
-        print(f"Permission denied for {db_dir}, using current directory")
-        db_dir = os.path.dirname(os.path.abspath(__file__))
-        db_name = 'company_database.db'  # 기존 파일명 유지
-
-DB_PATH = os.path.join(db_dir, db_name)
+        DB_PATH = os.path.join(db_dir, 'company_info.db')
+        print(f"Creating new DB: {DB_PATH}")
+else:
+    # 로컬 개발 환경 - 기존 파일 사용
+    DB_PATH = os.path.join(app_dir, 'company_database.db')
+    print(f"Local DB: {DB_PATH}")
 
 # --- DB 연결 함수 및 사용자 계정 ---
 def get_db_connection():
