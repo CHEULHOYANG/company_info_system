@@ -185,39 +185,8 @@ def login():
 def index():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+    return render_template('index.html', user_name=session.get('user_name'))
 
-    user_id = session.get('user_id')
-    user_name = session.get('user_name')
-
-    conn = get_db_connection()
-
-    # 페이지네이션 설정
-    page = request.args.get('page', 1, type=int)
-    per_page = 20
-    offset = (page - 1) * per_page
-
-    # Company_Basic 테이블로 변경
-    total_companies = conn.execute('SELECT COUNT(*) FROM Company_Basic').fetchone()[0]
-    total_pages = math.ceil(total_companies / per_page)
-
-    companies = conn.execute('SELECT * FROM Company_Basic LIMIT ? OFFSET ?', (per_page, offset)).fetchall()
-
-    # 접촉 이력 조회 권한 처리 로직
-    contact_params = []
-    contact_history_query = "SELECT * FROM Contact_History"
-    if user_id not in ['ct0001', 'ct0002']:
-        contact_history_query += " WHERE registered_by = ?"
-        contact_params.append(user_id)
-    contact_history_query += " ORDER BY contact_datetime DESC"
-    contact_history = conn.execute(contact_history_query, contact_params).fetchall()
-
-    conn.close()
-
-    return render_template('index.html',
-                           user_name=user_name,
-                           companies=companies,
-                           total_pages=total_pages,
-                           current_page=page)
 
 @app.route('/main')
 def main():
@@ -275,7 +244,6 @@ def contact_history_csv():
         return jsonify({'success': True, 'inserted': inserted, 'updated': updated})
 @app.route('/api/history_search')
 def api_history_search():
-    print(">>> /api/history_search 라우트 진입")  # 라우트 진입 확인용 로그
     if not session.get('logged_in'):
         return jsonify({"error": "Unauthorized"}), 401
 
@@ -297,7 +265,9 @@ def api_history_search():
     """
     filters = []
     params = []
-
+    print("최종 쿼리:", query)
+    print("파라미터:", params)
+    
     search_user = request.args.get('registered_by')
     # 담당자ID가 명확히 입력된 경우만 해당 담당자 등록건만 조회
     if search_user is not None and search_user.strip() != "":
@@ -327,6 +297,8 @@ def api_history_search():
         query += " WHERE " + " AND ".join(filters)
     query += " ORDER BY h.contact_datetime DESC"
 
+    print("최종 쿼리:", query)
+    print("파라미터:", params)
 
     conn = get_db_connection()
     results = conn.execute(query, params).fetchall()
