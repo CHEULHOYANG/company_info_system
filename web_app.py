@@ -5,11 +5,21 @@ import sqlite3
 import io
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, Response
 from datetime import datetime
+import pytz
 import pandas as pd
 import math
 import csv
 from werkzeug.utils import secure_filename
 from jinja2 import FileSystemLoader, TemplateNotFound
+
+# 한국 시간대 설정
+KST = pytz.timezone('Asia/Seoul')
+
+def get_kst_now():
+    """한국 시간 현재 시각을 반환합니다."""
+    return datetime.now(KST)
+import pytz
+from datetime import timezone, timedelta
 
 # --- 커스텀 템플릿 로더 (CP949 지원) ---
 class CP949FileSystemLoader(FileSystemLoader):
@@ -39,6 +49,37 @@ class CP949FileSystemLoader(FileSystemLoader):
 # --- 기본 설정 ---
 app = Flask(__name__)
 app.secret_key = 'your_very_secret_key_12345'
+
+# 한국 시간대 설정
+KST = pytz.timezone('Asia/Seoul')
+
+# 현재 한국 시간을 반환하는 함수
+def get_kst_now():
+    """현재 한국 시간을 반환합니다."""
+    return datetime.now(KST)
+
+def format_kst_datetime(dt_str=None):
+    """한국 시간대로 포맷팅된 현재 시간 문자열을 반환합니다."""
+    if dt_str:
+        # 입력된 시간이 있으면 한국 시간대로 변환
+        try:
+            if isinstance(dt_str, str):
+                # ISO 형식 문자열 파싱
+                if 'T' in dt_str:
+                    dt = datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
+                else:
+                    dt = datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S')
+                    dt = dt.replace(tzinfo=pytz.UTC)
+                
+                # UTC에서 KST로 변환
+                kst_dt = dt.astimezone(KST)
+                return kst_dt.strftime('%Y-%m-%d %H:%M:%S')
+            return dt_str
+        except:
+            return dt_str
+    else:
+        # 현재 한국 시간 반환
+        return get_kst_now().strftime('%Y-%m-%d %H:%M:%S')
 
 # 커스텀 템플릿 로더 설정
 template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -612,7 +653,7 @@ def company_detail(biz_no):
 
     additional_info = dict(additional_info_row) if additional_info_row else {}
     if additional_info:
-        today_str = datetime.now().strftime('%Y-%m-%d')
+        today_str = get_kst_now().strftime('%Y-%m-%d')
         if additional_info.get('is_innobiz') == '1' and additional_info.get('innobiz_expiry_date') and additional_info['innobiz_expiry_date'] < today_str:
             additional_info['is_innobiz'] = '0'
         if additional_info.get('is_mainbiz') == '1' and additional_info.get('mainbiz_expiry_date') and additional_info['mainbiz_expiry_date'] < today_str:
@@ -644,28 +685,49 @@ def handle_contact_history():
     contact_datetime_str = data.get('contact_datetime')
     history_id = data.get('history_id')
 
+    # 접촉일시가 없으면 현재 한국 시간으로 설정
     if not contact_datetime_str:
-        return jsonify({"success": False, "message": "접촉일시를 입력해주세요."}), 400
+        contact_datetime_str = format_kst_datetime()
+    
     try:
-        # ISO 형식의 날짜 문자열을 파싱 (timezone 정보 제거)
-        if contact_datetime_str.endswith('Z'):
-            contact_datetime_str = contact_datetime_str[:-1]
-        elif '+' in contact_datetime_str:
-            contact_datetime_str = contact_datetime_str.split('+')[0]
-        elif contact_datetime_str.count(':') == 3:  # timezone offset 형태 처리
-            contact_datetime_str = ':'.join(contact_datetime_str.split(':')[:3])
+        # 시간대 정보가 있는 경우 한국 시간으로 변환
+        if contact_datetime_str:
+            if 'T' in contact_datetime_str:
+                # ISO 형식인 경우
+                if contact_datetime_str.endswith('Z'):
+                    # UTC 시간인 경우
+                    dt_utc = datetime.fromisoformat(contact_datetime_str[:-1]).replace(tzinfo=pytz.UTC)
+                    dt_kst = dt_utc.astimezone(KST)
+                    formatted_datetime = dt_kst.strftime('%Y-%m-%d %H:%M:%S')
+                elif '+' in contact_datetime_str or '-' in contact_datetime_str.split('T')[1]:
+                    # 시간대 정보가 있는 경우
+                    dt_with_tz = datetime.fromisoformat(contact_datetime_str)
+                    dt_kst = dt_with_tz.astimezone(KST)
+                    formatted_datetime = dt_kst.strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    # 시간대 정보가 없는 경우 한국 시간으로 간주
+                    dt_naive = datetime.fromisoformat(contact_datetime_str.replace('T', ' '))
+                    dt_kst = KST.localize(dt_naive)
+                    formatted_datetime = dt_kst.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                # 일반 문자열 형식인 경우 한국 시간으로 간주
+                formatted_datetime = contact_datetime_str
+        else:
+            # 시간이 없으면 현재 한국 시간 사용
+            formatted_datetime = format_kst_datetime()
         
-        submitted_dt = datetime.fromisoformat(contact_datetime_str.replace('Z', ''))
-        now_dt = datetime.now()
+        # 미래 시간 체크 (한국 시간 기준)
+        submitted_dt = datetime.strptime(formatted_datetime, '%Y-%m-%d %H:%M:%S')
+        now_kst = get_kst_now().replace(tzinfo=None)
         
         # 1분의 여유시간을 두어 네트워크 지연이나 시간 동기화 오차를 허용
         from datetime import timedelta
-        if submitted_dt > (now_dt + timedelta(minutes=1)):
+        if submitted_dt > (now_kst + timedelta(minutes=1)):
             return jsonify({"success": False, "message": "미래 날짜 및 시간으로 등록/수정할 수 없습니다."}), 400
-    except ValueError:
-        return jsonify({"success": False, "message": "잘못된 날짜 형식입니다."}), 400
+            
+    except ValueError as e:
+        return jsonify({"success": False, "message": f"잘못된 날짜 형식입니다: {str(e)}"}), 400
 
-    formatted_datetime = contact_datetime_str.replace('T', ' ')
     conn = get_db_connection()
     try:
         biz_no = data.get('biz_no')
