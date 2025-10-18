@@ -127,6 +127,7 @@ def init_user_tables():
     finally:
         conn.close()
 
+<<<<<<< HEAD
 # 사용자 인증 함수
 def authenticate_user(user_id, password):
     """사용자 인증을 수행합니다."""
@@ -177,6 +178,20 @@ def check_permission(user_level, required_level):
 # 앱 시작 시 사용자 테이블 초기화
 init_user_tables()
 
+=======
+# --- 사용자 정보 및 동적 비밀번호 규칙 ---
+USERS = {
+    'ct0001': {'name': '양철호', 'password': 'ych1123!'},
+    'ct0002': {'name': '서은정', 'password_rule': lambda: f"ctlove{datetime.now().strftime('%m%d')}"},
+    'dt0003': {'name': '김영희', 'password_rule': lambda: f"lee0202{datetime.now().strftime('%m%d')}"},
+    'dt0004': {'name': '지은영', 'password_rule': lambda: f"eyoung{datetime.now().strftime('%m%d')}"},
+    'dt0005': {'name': '구자균', 'password_rule': lambda: f"gugu{datetime.now().strftime('%m%d')}"},
+    'dt0006': {'name': '이영창', 'password_rule': lambda: f"ychang{datetime.now().strftime('%m%d')}"},
+    'dt0007': {'name': '정재승', 'password_rule': lambda: f"jsung{datetime.now().strftime('%m%d')}"},
+    'ma0001': {'name': '전재휘', 'password_rule': lambda: f"jj7272{datetime.now().strftime('%m%d')}"},
+}
+
+>>>>>>> 4c41e4df1173c067f42158c54ca0def21b23b612
 # --- 비상장 주식 가치 계산 ---
 def calculate_unlisted_stock_value(financial_data):
     """
@@ -314,6 +329,7 @@ def login():
         # DB 기반 사용자 인증
         user_info = authenticate_user(user_id, password)
         if user_info:
+<<<<<<< HEAD
             session['logged_in'] = True
             session['user_id'] = user_id
             session['user_name'] = user_info['name']
@@ -325,6 +341,19 @@ def login():
             return redirect(url_for('main'))
         else:
             error = '아이디 또는 비밀번호가 올바르지 않습니다.'
+=======
+            if user_id == 'ct0001' and user_info['password'] == password:
+                session['logged_in'] = True
+                session['user_id'] = user_id
+                session['user_name'] = user_info['name']
+                return redirect(url_for('main'))
+            elif 'password_rule' in user_info and password == user_info['password_rule']():
+                session['logged_in'] = True
+                session['user_id'] = user_id
+                session['user_name'] = user_info['name']
+                return redirect(url_for('main'))
+        error = '아이디 또는 비밀번호가 올바르지 않습니다.'
+>>>>>>> 4c41e4df1173c067f42158c54ca0def21b23b612
     return render_template('login.html', error=error)
 
 # --- index(홈) 페이지 라우트 추가 ---
@@ -351,7 +380,10 @@ def index():
     companies = conn.execute('SELECT * FROM Company_Basic LIMIT ? OFFSET ?', (per_page, offset)).fetchall()
 
     # 접촉 이력 조회 권한 처리 로직
+<<<<<<< HEAD
     user_level = session.get('user_level', 'N')
+=======
+>>>>>>> 4c41e4df1173c067f42158c54ca0def21b23b612
     contact_params = []
     contact_history_query = "SELECT * FROM Contact_History"
     
@@ -374,6 +406,7 @@ def index():
 def main():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+<<<<<<< HEAD
     
     # 사용자 권한 정보를 템플릿에 전달
     user_data = {
@@ -385,6 +418,9 @@ def main():
     }
     
     return render_template('main.html', **user_data)
+=======
+    return render_template('main.html', user_name=session.get('user_name'))
+>>>>>>> 4c41e4df1173c067f42158c54ca0def21b23b612
 # (불필요한 잘못된 들여쓰기 라인 제거)
 # --- 접촉이력 데이터 조회 API 추가 ---
 @app.route('/api/contact_history_csv', methods=['GET', 'POST'])
@@ -460,19 +496,31 @@ def api_history_search():
     params = []
 
     search_user = request.args.get('registered_by')
+<<<<<<< HEAD
     user_level = session.get('user_level', 'N')
     
+=======
+>>>>>>> 4c41e4df1173c067f42158c54ca0def21b23b612
     # 담당자ID가 명확히 입력된 경우만 해당 담당자 등록건만 조회
     if search_user is not None and search_user.strip() != "":
         filters.append("h.registered_by = ?")
         params.append(search_user.strip())
     else:
+<<<<<<< HEAD
         # 담당자ID 미입력 시 권한에 따라 조회 범위 결정
         if check_permission(user_level, 'S'):  # V(메인관리자), S(서브관리자)
             # 전체 이력 조회 (필터 없음)
             pass
         else:
             # M(매니저), N(일반담당자)는 본인 등록건만 조회
+=======
+        # 담당자ID 미입력 시
+        if user_id in ['ct0001', 'ct0002']:
+            # 전체 이력 조회 (필터 없음)
+            pass
+        else:
+            # 그 외 사용자는 본인 등록건만 조회
+>>>>>>> 4c41e4df1173c067f42158c54ca0def21b23b612
             filters.append("h.registered_by = ?")
             params.append(user_id)
 
