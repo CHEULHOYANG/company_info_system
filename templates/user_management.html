@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용자 관리 - 기업정보시스템</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .user-management {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .user-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .user-table th, .user-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .user-table th {
+            background-color: #f4f4f4;
+        }
+        .btn {
+            padding: 8px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        .status-active { color: green; font-weight: bold; }
+        .status-inactive { color: red; font-weight: bold; }
+        .level-v { background: #dc3545; color: white; padding: 2px 6px; border-radius: 3px; }
+        .level-s { background: #fd7e14; color: white; padding: 2px 6px; border-radius: 3px; }
+        .level-m { background: #20c997; color: white; padding: 2px 6px; border-radius: 3px; }
+        .level-n { background: #6c757d; color: white; padding: 2px 6px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="user-management">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>사용자 관리</h2>
+            <div>
+                <span>환영합니다, {{ user_name }}님</span>
+                <a href="{{ url_for('main') }}" class="btn btn-primary">메인으로</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger">로그아웃</a>
+            </div>
+        </div>
+
+        <!-- 사용자 추가/수정 폼 -->
+        <div class="user-form">
+            <h3 id="form-title">사용자 추가</h3>
+            <form id="user-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user_id">사용자 ID</label>
+                        <input type="text" id="user_id" name="user_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="name">이름</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">비밀번호</label>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="text" id="password" name="password" required>
+                            <button type="button" class="btn btn-warning" onclick="togglePasswordVisibility()" style="padding: 5px 10px;">??</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user_level">권한등급</label>
+                        <select id="user_level" name="user_level" required>
+                            <option value="V">V - 메인관리자</option>
+                            <option value="S">S - 서브관리자</option>
+                            <option value="M">M - 매니저</option>
+                            <option value="N" selected>N - 일반담당자</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="branch_code">지점</label>
+                        <select id="branch_code" name="branch_code" required>
+                            <option value="EA3000">EA3000 - 중앙지점</option>
+                            <option value="EA3100">EA3100 - 선진지점</option>
+                            <option value="EA3200">EA3200 - 명중지점</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">연락처</label>
+                        <input type="tel" id="phone" name="phone" placeholder="010-1234-5678" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="gender">성별</label>
+                        <select id="gender" name="gender">
+                            <option value="">선택안함</option>
+                            <option value="M">남성</option>
+                            <option value="F">여성</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="birth_date">생년월일</label>
+                        <input type="date" id="birth_date" name="birth_date">
+                    </div>
+                    <div class="form-group">
+                        <label for="position">직급/직책</label>
+                        <input type="text" id="position" name="position" placeholder="예: 대리, 과장, 차장">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">이메일</label>
+                        <input type="email" id="email" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="status">상태</label>
+                        <select id="status" name="status">
+                            <option value="ACTIVE">활성</option>
+                            <option value="INACTIVE">비활성</option>
+                            <option value="SUSPENDED">정지</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <button type="submit" class="btn btn-success">저장</button>
+                    <button type="button" class="btn btn-warning" onclick="resetForm()">초기화</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 사용자 목록 -->
+        <div>
+            <h3>사용자 목록</h3>
+            <table class="user-table" id="user-table">
+                <thead>
+                    <tr>
+                        <th>사용자ID</th>
+                        <th>이름</th>
+                        <th>비밀번호</th>
+                        <th>권한</th>
+                        <th>지점</th>
+                        <th>연락처</th>
+                        <th>성별</th>
+                        <th>생년월일</th>
+                        <th>상태</th>
+                        <th>마지막로그인</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 동적으로 데이터 로드 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 비밀번호 변경 모달 -->
+    <div id="passwordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; width: 400px;">
+            <h3 style="margin-top: 0;">비밀번호 변경</h3>
+            <form id="passwordChangeForm">
+                <input type="hidden" id="changeUserId" name="user_id">
+                <div class="form-group">
+                    <label for="currentPassword">현재 비밀번호</label>
+                    <input type="password" id="currentPassword" name="current_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">새 비밀번호</label>
+                    <input type="password" id="newPassword" name="new_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">새 비밀번호 확인</label>
+                    <input type="password" id="confirmPassword" name="confirm_password" required>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-warning" onclick="closePasswordModal()">취소</button>
+                    <button type="submit" class="btn btn-success">변경</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let isEditMode = false;
+        let currentUserId = null;
+
+        // 페이지 로드 시 사용자 목록 로드
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers();
+            
+            // 폼 제출 이벤트
+            document.getElementById('user-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveUser();
+            });
+            
+            // 권한등급 변경 시 권한등급명 자동 설정
+            document.getElementById('user_level').addEventListener('change', function() {
+                updateUserLevelName();
+            });
+            
+            // 지점코드 변경 시 지점명 자동 설정
+            document.getElementById('branch_code').addEventListener('change', function() {
+                updateBranchName();
+            });
+            
+            // 비밀번호 변경 폼 제출 이벤트
+            document.getElementById('passwordChangeForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const userId = document.getElementById('changeUserId').value;
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (newPassword !== confirmPassword) {
+                    alert('새 비밀번호가 일치하지 않습니다.');
+                    return;
+                }
+                
+                fetch(`/api/users/${userId}/password`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        closePasswordModal();
+                        loadUsers(); // 사용자 목록 새로고침
+                    } else {
+                        alert('오류: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error changing password:', error);
+                    alert('비밀번호 변경 중 오류가 발생했습니다.');
+                });
+            });
+        });
+
+        function loadUsers() {
+            fetch('/api/users')
+                .then(response => response.json())
+                .then(users => {
+                    const tbody = document.querySelector('#user-table tbody');
+                    tbody.innerHTML = '';
+                    
+                    users.forEach(user => {
+                        const row = document.createElement('tr');
+                        const maskedPassword = '*'.repeat(Math.min(user.password ? user.password.length : 8, 12));
+                        row.innerHTML = `
+                            <td>${user.user_id}</td>
+                            <td>${user.name}</td>
+                            <td>
+                                <span id="pwd_${user.user_id}" style="font-family: monospace;">${maskedPassword}</span>
+                                <button class="btn" onclick="togglePassword('${user.user_id}', '${user.password || ''}')" 
+                                        style="padding: 2px 6px; font-size: 12px; margin-left: 5px;">??</button>
+                            </td>
+                            <td><span class="level-${user.user_level.toLowerCase()}">${user.user_level_name}</span></td>
+                            <td>${user.branch_name}</td>
+                            <td>${user.phone}</td>
+                            <td>${user.gender === 'M' ? '남성' : user.gender === 'F' ? '여성' : ''}</td>
+                            <td>${user.birth_date || ''}</td>
+                            <td><span class="status-${user.status.toLowerCase()}">${user.status}</span></td>
+                            <td>${user.last_login ? new Date(user.last_login).toLocaleString() : ''}</td>
+                            <td>
+                                <button class="btn btn-primary" onclick="editUser('${user.user_id}')">수정</button>
+                                <button class="btn btn-warning" onclick="openPasswordModal('${user.user_id}')">비밀번호</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading users:', error);
+                    alert('사용자 목록을 불러오는 중 오류가 발생했습니다.');
+                });
+        }
+
+        function saveUser() {
+            const formData = new FormData(document.getElementById('user-form'));
+            const userData = {};
+            formData.forEach((value, key) => {
+                userData[key] = value;
+            });
+            
+            // 권한등급명과 지점명 설정
+            userData.user_level_name = getUserLevelName(userData.user_level);
+            userData.branch_name = getBranchName(userData.branch_code);
+            
+            const method = isEditMode ? 'PUT' : 'POST';
+            const url = '/api/users';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    resetForm();
+                    loadUsers();
+                } else {
+                    alert('오류: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error saving user:', error);
+                alert('저장 중 오류가 발생했습니다.');
+            });
+        }
+
+        function editUser(userId) {
+            fetch('/api/users')
+                .then(response => response.json())
+                .then(users => {
+                    const user = users.find(u => u.user_id === userId);
+                    if (user) {
+                        isEditMode = true;
+                        currentUserId = userId;
+                        document.getElementById('form-title').textContent = '사용자 수정';
+                        
+                        // 폼에 데이터 채우기
+                        document.getElementById('user_id').value = user.user_id;
+                        document.getElementById('user_id').readOnly = true;
+                        document.getElementById('name').value = user.name;
+                        document.getElementById('password').required = false;
+                        document.getElementById('user_level').value = user.user_level;
+                        document.getElementById('branch_code').value = user.branch_code;
+                        document.getElementById('phone').value = user.phone;
+                        document.getElementById('gender').value = user.gender || '';
+                        document.getElementById('birth_date').value = user.birth_date || '';
+                        document.getElementById('position').value = user.position || '';
+                        document.getElementById('email').value = user.email || '';
+                        document.getElementById('status').value = user.status;
+                    }
+                });
+        }
+
+        function resetForm() {
+            document.getElementById('user-form').reset();
+            document.getElementById('form-title').textContent = '사용자 추가';
+            document.getElementById('user_id').readOnly = false;
+            document.getElementById('password').required = true;
+            isEditMode = false;
+            currentUserId = null;
+        }
+
+        function openPasswordModal(userId) {
+            document.getElementById('changeUserId').value = userId;
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('passwordModal').style.display = 'block';
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+        }
+
+
+
+        function togglePassword(userId, actualPassword) {
+            const pwdElement = document.getElementById(`pwd_${userId}`);
+            const currentText = pwdElement.textContent;
+            
+            if (currentText.includes('*')) {
+                // 실제 비밀번호 표시
+                pwdElement.textContent = actualPassword;
+                pwdElement.style.color = 'red';
+                pwdElement.style.fontWeight = 'bold';
+            } else {
+                // 마스킹된 비밀번호 표시
+                const maskedPassword = '*'.repeat(Math.min(actualPassword.length, 12));
+                pwdElement.textContent = maskedPassword;
+                pwdElement.style.color = 'black';
+                pwdElement.style.fontWeight = 'normal';
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const passwordField = document.getElementById('password');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+            } else {
+                passwordField.type = 'password';
+            }
+        }
+
+        function updateUserLevelName() {
+            const userLevel = document.getElementById('user_level').value;
+            // 자동으로 권한등급명이 설정됨 (저장 시)
+        }
+
+        function updateBranchName() {
+            const branchCode = document.getElementById('branch_code').value;
+            // 자동으로 지점명이 설정됨 (저장 시)
+        }
+
+        function getUserLevelName(level) {
+            const levelNames = {
+                'V': '메인관리자',
+                'S': '서브관리자', 
+                'M': '매니저',
+                'N': '일반담당자'
+            };
+            return levelNames[level] || '';
+        }
+
+        function getBranchName(code) {
+            const branchNames = {
+                'EA3000': '중앙지점',
+                'EA3100': '선진지점',
+                'EA3200': '명중지점'
+            };
+            return branchNames[code] || '';
+        }
+    </script>
+</body>
+</html>

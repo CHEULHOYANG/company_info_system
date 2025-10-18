@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ì¢…í•©ì†Œë“ì„¸ ê³„ì‚°ê¸°</title>
+    <title>Á¾ÇÕ¼Òµæ¼¼ °è»ê±â</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .income-tax-container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
@@ -23,54 +23,54 @@
 <body>
     <div class="income-tax-container">
         <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">ë©”ì¸ìœ¼ë¡œ</a>
+            <a href="{{ url_for('main') }}" class="main-btn">¸ŞÀÎÀ¸·Î</a>
         </div>
-        <div class="income-tax-title">ì¢…í•©ì†Œë“ì„¸ ê³„ì‚°ê¸°</div>
+        <div class="income-tax-title">Á¾ÇÕ¼Òµæ¼¼ °è»ê±â</div>
         <div class="tax-rate-btns">
-            <button type="button" class="tax-rate-btn" onclick="showIncomeTaxRate()">ì¢…í•©ì†Œë“ì„¸ìœ¨ ë³´ê¸°</button>
+            <button type="button" class="tax-rate-btn" onclick="showIncomeTaxRate()">Á¾ÇÕ¼Òµæ¼¼À² º¸±â</button>
         </div>
         <form class="income-tax-form" id="incomeTaxForm" onsubmit="return false;">
-            <label>ì¢…í•©ì†Œë“í•©ê³„(ì›)</label>
-            <input type="text" id="totalIncome" required pattern="[0-9,]*" placeholder="ì˜ˆ: 50,000,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ì‚¬ì—…ì†Œë“, ì„ëŒ€ì†Œë“ ë“± ì¢…í•©ì†Œë“ í•©ê³„<br>ê·¼ë¡œ, ì´ì, ë°°ë‹¹ ì†Œë“ í•©ì‚°ì€ ì„¸ë¬´ì „ë¬¸ê°€ì™€ ìƒë‹´</div>
-            <label>í•„ìš”ê²½ë¹„ ë¹„ìœ¨(%)</label>
-            <input type="number" id="expenseRate" min="0" max="100" value="0" required placeholder="ì˜ˆ: 10">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ì£¼ìš”ê²½ë¹„: ìƒí’ˆ êµ¬ì…ë¹„ìš©, ì„ì°¨ë£Œ, ì¸ê±´ë¹„ ë“±</div>
-            <label>ì¸ì ê³µì œ í•©ê³„(ì›)</label>
-            <input type="text" id="personalDeduction" value="1,500,000" required pattern="[0-9,]*" placeholder="ì˜ˆ: 1,500,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ë³¸ì¸/ë¶€ì–‘ê°€ì¡± ë“± ì¸ì ê³µì œ ì´ì•¡</div>
-            <label>êµ­ë¯¼ì—°ê¸ˆ ë“± í•©ê³„(ì›)</label>
-            <input type="text" id="pensionDeduction" value="0" required pattern="[0-9,]*" placeholder="ì˜ˆ: 2,000,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">êµ­ë¯¼ì—°ê¸ˆ, ë…¸ë€ìš°ì‚°ê³µì œ ë“± í•´ë‹¹ì—°ë„ì— ë¶ˆì…í•œ ê¸ˆì•¡</div>
-            <label>ê°œì¸ì—°ê¸ˆì €ì¶•(2000.12.31 ì´ì „ ê°€ì…ë¶„, ì›)</label>
-            <input type="text" id="oldPension" value="0" required pattern="[0-9,]*" placeholder="ì˜ˆ: 1,000,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">Min(ê°œì¸ì—°ê¸ˆì €ì¶•ë¶ˆì…ì•¡Ã—40%, 72ë§Œì›)</div>
-            <label>ìë…€ì„¸ì•¡ê³µì œ ëŒ€ìƒ ì¸ì›(ëª…)</label>
-            <input type="number" id="childCount" min="0" value="0" required placeholder="ì˜ˆ: 2">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">*ì†Œë“ê¸ˆì•¡ì´ 100ë§Œì› ì´í•˜ì¸ ë§Œ 6ì„¸ ì´ìƒ ë§Œ 20ì„¸ ì´í•˜ ìë…€</div>
-            <label>ì—°ê¸ˆì €ì¶• ë¶ˆì…ê¸ˆì•¡(2001.1.1 ì´í›„ ê°€ì…ë¶„, ì›)</label>
-            <input type="text" id="newPension" value="0" required pattern="[0-9,]*" placeholder="ì˜ˆ: 2,000,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ì„¸ì•¡ê³µì œëŒ€ìƒ ì—°ê¸ˆì €ì¶•(ì—°ê°„ìµœëŒ€ 600,000ì›), í‡´ì§ì—°ê¸ˆ IRP(ì—°ê°„ìµœëŒ€ 300,000ì›)</div>
-            <button type="submit">ê³„ì‚°í•˜ê¸°</button>
+            <label>Á¾ÇÕ¼ÒµæÇÕ°è(¿ø)</label>
+            <input type="text" id="totalIncome" required pattern="[0-9,]*" placeholder="¿¹: 50,000,000">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">»ç¾÷¼Òµæ, ÀÓ´ë¼Òµæ µî Á¾ÇÕ¼Òµæ ÇÕ°è<br>±Ù·Î, ÀÌÀÚ, ¹è´ç ¼Òµæ ÇÕ»êÀº ¼¼¹«Àü¹®°¡¿Í »ó´ã</div>
+            <label>ÇÊ¿ä°æºñ ºñÀ²(%)</label>
+            <input type="number" id="expenseRate" min="0" max="100" value="0" required placeholder="¿¹: 10">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ÁÖ¿ä°æºñ: »óÇ° ±¸ÀÔºñ¿ë, ÀÓÂ÷·á, ÀÎ°Çºñ µî</div>
+            <label>ÀÎÀû°øÁ¦ ÇÕ°è(¿ø)</label>
+            <input type="text" id="personalDeduction" value="1,500,000" required pattern="[0-9,]*" placeholder="¿¹: 1,500,000">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">º»ÀÎ/ºÎ¾ç°¡Á· µî ÀÎÀû°øÁ¦ ÃÑ¾×</div>
+            <label>±¹¹Î¿¬±İ µî ÇÕ°è(¿ø)</label>
+            <input type="text" id="pensionDeduction" value="0" required pattern="[0-9,]*" placeholder="¿¹: 2,000,000">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">±¹¹Î¿¬±İ, ³ë¶õ¿ì»ê°øÁ¦ µî ÇØ´ç¿¬µµ¿¡ ºÒÀÔÇÑ ±İ¾×</div>
+            <label>°³ÀÎ¿¬±İÀúÃà(2000.12.31 ÀÌÀü °¡ÀÔºĞ, ¿ø)</label>
+            <input type="text" id="oldPension" value="0" required pattern="[0-9,]*" placeholder="¿¹: 1,000,000">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">Min(°³ÀÎ¿¬±İÀúÃàºÒÀÔ¾×¡¿40%, 72¸¸¿ø)</div>
+            <label>ÀÚ³à¼¼¾×°øÁ¦ ´ë»ó ÀÎ¿ø(¸í)</label>
+            <input type="number" id="childCount" min="0" value="0" required placeholder="¿¹: 2">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">*¼Òµæ±İ¾×ÀÌ 100¸¸¿ø ÀÌÇÏÀÎ ¸¸ 6¼¼ ÀÌ»ó ¸¸ 20¼¼ ÀÌÇÏ ÀÚ³à</div>
+            <label>¿¬±İÀúÃà ºÒÀÔ±İ¾×(2001.1.1 ÀÌÈÄ °¡ÀÔºĞ, ¿ø)</label>
+            <input type="text" id="newPension" value="0" required pattern="[0-9,]*" placeholder="¿¹: 2,000,000">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">¼¼¾×°øÁ¦´ë»ó ¿¬±İÀúÃà(¿¬°£ÃÖ´ë 600,000¿ø), ÅğÁ÷¿¬±İ IRP(¿¬°£ÃÖ´ë 300,000¿ø)</div>
+            <button type="submit">°è»êÇÏ±â</button>
         </form>
         <div class="result-box" id="resultBox" style="display:none;"></div>
     </div>
-    <!-- ì¢…í•©ì†Œë“ì„¸ìœ¨ ëª¨ë‹¬ -->
+    <!-- Á¾ÇÕ¼Òµæ¼¼À² ¸ğ´Ş -->
     <div id="incomeTaxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);">
         <div style="background:#fff;max-width:700px;margin:60px auto;padding:32px 28px;border-radius:10px;position:relative;">
-            <button id="closeIncomeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">Ã—</button>
+            <button id="closeIncomeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">¡¿</button>
             <div id="incomeTaxRateContent"></div>
         </div>
     </div>
     <script>
-    // 3ìë¦¬ ì½¤ë§ˆ
+    // 3ÀÚ¸® ÄŞ¸¶
     function addComma(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
     function removeComma(str) {
         return str.replace(/,/g, '');
     }
-    // ì…ë ¥ë€ ì½¤ë§ˆ ìë™
+    // ÀÔ·Â¶õ ÄŞ¸¶ ÀÚµ¿
     ['totalIncome','personalDeduction','pensionDeduction','oldPension','newPension'].forEach(id => {
         const el = document.getElementById(id);
         el.addEventListener('input', function(e) {
@@ -78,17 +78,17 @@
             if (val) this.value = addComma(Number(val));
         });
     });
-    // ì„¸ìœ¨ ì•ˆë‚´ ëª¨ë‹¬
+    // ¼¼À² ¾È³» ¸ğ´Ş
     function showIncomeTaxRate() {
         const modal = document.getElementById('incomeTaxRateModal');
         const content = document.getElementById('incomeTaxRateContent');
-        content.innerHTML = `<h3 style='color:#17506b;'>ì¢…í•©ì†Œë“ì„¸ìœ¨</h3><table style='width:100%;border-collapse:collapse;text-align:center;'><thead><tr style='background:#2980b9;color:#fff;'><th>ê³¼ì„¸í‘œì¤€</th><th>ì„¸ìœ¨</th><th>ëˆ„ì§„ê³µì œ</th></tr></thead><tbody><tr><td>1,400ë§Œì› ì´í•˜</td><td>6%</td><td></td></tr><tr><td>5,000ë§Œì› ì´í•˜</td><td>15%</td><td>1,260,000ì›</td></tr><tr><td>8,800ë§Œì› ì´í•˜</td><td>24%</td><td>5,760,000ì›</td></tr><tr><td>1ì–µ5ì²œë§Œì› ì´í•˜</td><td>35%</td><td>14,460,000ì›</td></tr><tr><td>3ì–µì› ì´í•˜</td><td>38%</td><td>19,460,000ì›</td></tr><tr><td>5ì–µì› ì´í•˜</td><td>40%</td><td>25,460,000ì›</td></tr><tr><td>10ì–µì› ì´í•˜</td><td>42%</td><td>35,460,000ì›</td></tr><tr><td>10ì–µì› ì´ˆê³¼</td><td>45%</td><td>65,460,000ì›</td></tr></tbody></table>`;
+        content.innerHTML = `<h3 style='color:#17506b;'>Á¾ÇÕ¼Òµæ¼¼À²</h3><table style='width:100%;border-collapse:collapse;text-align:center;'><thead><tr style='background:#2980b9;color:#fff;'><th>°ú¼¼Ç¥ÁØ</th><th>¼¼À²</th><th>´©Áø°øÁ¦</th></tr></thead><tbody><tr><td>1,400¸¸¿ø ÀÌÇÏ</td><td>6%</td><td></td></tr><tr><td>5,000¸¸¿ø ÀÌÇÏ</td><td>15%</td><td>1,260,000¿ø</td></tr><tr><td>8,800¸¸¿ø ÀÌÇÏ</td><td>24%</td><td>5,760,000¿ø</td></tr><tr><td>1¾ï5Ãµ¸¸¿ø ÀÌÇÏ</td><td>35%</td><td>14,460,000¿ø</td></tr><tr><td>3¾ï¿ø ÀÌÇÏ</td><td>38%</td><td>19,460,000¿ø</td></tr><tr><td>5¾ï¿ø ÀÌÇÏ</td><td>40%</td><td>25,460,000¿ø</td></tr><tr><td>10¾ï¿ø ÀÌÇÏ</td><td>42%</td><td>35,460,000¿ø</td></tr><tr><td>10¾ï¿ø ÃÊ°ú</td><td>45%</td><td>65,460,000¿ø</td></tr></tbody></table>`;
         modal.style.display = 'block';
     }
     document.getElementById('closeIncomeTaxRateModal').onclick = function() {
         document.getElementById('incomeTaxRateModal').style.display = 'none';
     };
-    // ê³„ì‚°
+    // °è»ê
     document.getElementById('incomeTaxForm').addEventListener('submit', function() {
         const totalIncome = parseInt(removeComma(document.getElementById('totalIncome').value)) || 0;
         const expenseRate = parseFloat(document.getElementById('expenseRate').value) || 0;
@@ -98,16 +98,16 @@
         const childCount = parseInt(document.getElementById('childCount').value) || 0;
         const newPension = parseInt(removeComma(document.getElementById('newPension').value)) || 0;
 
-        // í•„ìš”ê²½ë¹„
+        // ÇÊ¿ä°æºñ
         const expense = Math.floor(totalIncome * expenseRate / 100);
-        // ì†Œë“ê¸ˆì•¡
+        // ¼Òµæ±İ¾×
         const incomeAmount = totalIncome - expense;
-        // ê°œì¸ì—°ê¸ˆì €ì¶•ê³µì œ(2000.12.31 ì´ì „): ë¶ˆì…ì•¡Ã—0.4, ìµœëŒ€ 720,000ì›
+        // °³ÀÎ¿¬±İÀúÃà°øÁ¦(2000.12.31 ÀÌÀü): ºÒÀÔ¾×¡¿0.4, ÃÖ´ë 720,000¿ø
         const oldPensionDeduct = Math.min(Math.floor(oldPension * 0.4), 720000);
-        // ê³¼ì„¸í‘œì¤€
+        // °ú¼¼Ç¥ÁØ
         const taxBase = Math.max(incomeAmount - personalDeduction - pensionDeduction - oldPensionDeduct, 0);
 
-        // ëˆ„ì§„ê³µì œí‘œ
+        // ´©Áø°øÁ¦Ç¥
         const brackets = [
             { limit: 14000000, rate: 0.06, minus: 0 },
             { limit: 50000000, rate: 0.15, minus: 1260000 },
@@ -129,25 +129,25 @@
         let calcTax = Math.floor(taxBase * rate - minus);
         if (calcTax < 0) calcTax = 0;
 
-        // ìë…€ì„¸ì•¡ê³µì œ(1ì¸ë‹¹ 150,000ì›)
+        // ÀÚ³à¼¼¾×°øÁ¦(1ÀÎ´ç 150,000¿ø)
         const childCredit = childCount * 150000;
-        // ì—°ê¸ˆì €ì¶•ë¶ˆì…ì•¡ ì„¸ì•¡ê³µì œ(ìµœëŒ€ 600,000ì›)
+        // ¿¬±İÀúÃàºÒÀÔ¾× ¼¼¾×°øÁ¦(ÃÖ´ë 600,000¿ø)
         const newPensionCredit = Math.min(Math.floor(newPension * 0.15), 600000);
 
-        // ìµœì¢… ì‚°ì¶œì„¸ì•¡
+        // ÃÖÁ¾ »êÃâ¼¼¾×
         const finalTax = Math.max(calcTax - childCredit - newPensionCredit, 0);
 
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
         resultBox.innerHTML =
-            `í•„ìš”ê²½ë¹„: <b>${addComma(expense)}ì›</b><br>`+
-            `ì†Œë“ê¸ˆì•¡: <b>${addComma(incomeAmount)}ì›</b><br>`+
-            `ê°œì¸ì—°ê¸ˆì €ì¶•ê³µì œ: <b>${addComma(oldPensionDeduct)}ì›</b><br>`+
-            `ê³¼ì„¸í‘œì¤€: <b>${addComma(taxBase)}ì›</b><br>`+
-            `ì‚°ì¶œì„¸ì•¡: <b>${addComma(calcTax)}ì›</b><br>`+
-            `ìë…€ì„¸ì•¡ê³µì œ: <b>${addComma(childCredit)}ì›</b><br>`+
-            `ì—°ê¸ˆì €ì¶•ë¶ˆì…ê³µì œ: <b>${addComma(newPensionCredit)}ì›</b><br>`+
-            `<hr style='margin:10px 0;'>ìµœì¢… ì¢…í•©ì†Œë“ì„¸(ì˜ˆìƒ): <b style='color:#17506b;font-size:1.2em;'>${addComma(finalTax)}ì›</b>`;
+            `ÇÊ¿ä°æºñ: <b>${addComma(expense)}¿ø</b><br>`+
+            `¼Òµæ±İ¾×: <b>${addComma(incomeAmount)}¿ø</b><br>`+
+            `°³ÀÎ¿¬±İÀúÃà°øÁ¦: <b>${addComma(oldPensionDeduct)}¿ø</b><br>`+
+            `°ú¼¼Ç¥ÁØ: <b>${addComma(taxBase)}¿ø</b><br>`+
+            `»êÃâ¼¼¾×: <b>${addComma(calcTax)}¿ø</b><br>`+
+            `ÀÚ³à¼¼¾×°øÁ¦: <b>${addComma(childCredit)}¿ø</b><br>`+
+            `¿¬±İÀúÃàºÒÀÔ°øÁ¦: <b>${addComma(newPensionCredit)}¿ø</b><br>`+
+            `<hr style='margin:10px 0;'>ÃÖÁ¾ Á¾ÇÕ¼Òµæ¼¼(¿¹»ó): <b style='color:#17506b;font-size:1.2em;'>${addComma(finalTax)}¿ø</b>`;
     });
     </script>
 </body>

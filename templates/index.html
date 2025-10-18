@@ -2,50 +2,50 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ê¸°ì—… ì •ë³´ ì¡°íšŒ ì‹œìŠ¤í…œ</title>
+    <title>±â¾÷ Á¤º¸ Á¶È¸ ½Ã½ºÅÛ</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>ê¸°ì—… ì •ë³´ ì¡°íšŒ <span id="results-count" class="header-subtext"></span></h1>
+            <h1>±â¾÷ Á¤º¸ Á¶È¸ <span id="results-count" class="header-subtext"></span></h1>
             <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
-                <a href="{{ url_for('history_search') }}" class="back-button">ì ‘ì´‰ì´ë ¥ ì¡°íšŒ</a>
-                <a href="{{ url_for('main') }}" class="back-button">ë©”ì¸ìœ¼ë¡œ</a>
-                <span style="font-weight:bold; color:#333;">{{ user_name }}ë‹˜</span>
-                <a href="{{ url_for('logout') }}" class="logout-button-new">ë¡œê·¸ì•„ì›ƒ</a>
+                <a href="{{ url_for('history_search') }}" class="back-button">Á¢ÃËÀÌ·Â Á¶È¸</a>
+                <a href="{{ url_for('main') }}" class="back-button">¸ŞÀÎÀ¸·Î</a>
+                <span style="font-weight:bold; color:#333;">{{ user_name }}´Ô</span>
+                <a href="{{ url_for('logout') }}" class="logout-button-new">·Î±×¾Æ¿ô</a>
             </div>
         </header>
 
         <div class="main-actions">
             {% if session.get('user_id') in ['ct0001','ct0002'] %}
-            <button type="button" id="excel-download-button" class="action-button excel-button">ì—‘ì…€ì €ì¥</button>
+            <button type="button" id="excel-download-button" class="action-button excel-button">¿¢¼¿ÀúÀå</button>
             {% else %}
-            <button type="button" class="action-button excel-button" disabled style="opacity:0.45;cursor:not-allowed;">ì—‘ì…€ì €ì¥</button>
+            <button type="button" class="action-button excel-button" disabled style="opacity:0.45;cursor:not-allowed;">¿¢¼¿ÀúÀå</button>
             {% endif %}
-            <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">ì´ˆê¸°í™”</button>
-            <button type="button" id="search-button" class="action-button search-button">ê²€ìƒ‰</button>
+            <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">ÃÊ±âÈ­</button>
+            <button type="button" id="search-button" class="action-button search-button">°Ë»ö</button>
         </div>
 
         <div class="search-container">
             <form id="search-form" class="search-grid" onsubmit="return false;">
-                <input type="text" name="company_name" placeholder="ê¸°ì—…ëª…">
-                <input type="text" name="biz_no" placeholder="ì‚¬ì—…ìë²ˆí˜¸">
-                <input type="text" name="industry_name" placeholder="ì—…ì¢…ëª…">
+                <input type="text" name="company_name" placeholder="±â¾÷¸í">
+                <input type="text" name="biz_no" placeholder="»ç¾÷ÀÚ¹øÈ£">
+                <input type="text" name="industry_name" placeholder="¾÷Á¾¸í">
                 <select name="company_size">
-                    <option value="ì „ì²´">ê¸°ì—…ê·œëª¨ (ì „ì²´)</option>
-                    <option value="ëŒ€ê¸°ì—…">ëŒ€ê¸°ì—…</option>
-                    <option value="ì¤‘ê²¬ê¸°ì—…">ì¤‘ê²¬ê¸°ì—…</option>
-                    <option value="ì¤‘ì†Œê¸°ì—…">ì¤‘ì†Œê¸°ì—…</option>
-                    <option value="ì†Œê¸°ì—…">ì†Œê¸°ì—…</option>
-                    <option value="í•œì‹œì¤‘ì†Œê¸°ì—…">í•œì‹œì¤‘ì†Œê¸°ì—…</option>
-                    <option value="ê¸°íƒ€">ê¸°íƒ€</option>
+                    <option value="ÀüÃ¼">±â¾÷±Ô¸ğ (ÀüÃ¼)</option>
+                    <option value="´ë±â¾÷">´ë±â¾÷</option>
+                    <option value="Áß°ß±â¾÷">Áß°ß±â¾÷</option>
+                    <option value="Áß¼Ò±â¾÷">Áß¼Ò±â¾÷</option>
+                    <option value="¼Ò±â¾÷">¼Ò±â¾÷</option>
+                    <option value="ÇÑ½ÃÁß¼Ò±â¾÷">ÇÑ½ÃÁß¼Ò±â¾÷</option>
+                    <option value="±âÅ¸">±âÅ¸</option>
                 </select>
-                <input type="text" name="region" placeholder="ì§€ì—­ (ì˜ˆ: ì„œìš¸ ê°•ë‚¨)">
+                <input type="text" name="region" placeholder="Áö¿ª (¿¹: ¼­¿ï °­³²)">
                 <div class="range-input">
-                    <input type="number" name="ret_min" placeholder="ì´ìµì‰ì—¬ê¸ˆ Min (ë°±ë§Œ)">
+                    <input type="number" name="ret_min" placeholder="ÀÌÀÍÀ×¿©±İ Min (¹é¸¸)">
                     <span>~</span>
-                    <input type="number" name="ret_max" placeholder="ì´ìµì‰ì—¬ê¸ˆ Max (ë°±ë§Œ)">
+                    <input type="number" name="ret_max" placeholder="ÀÌÀÍÀ×¿©±İ Max (¹é¸¸)">
                 </div>
             </form>
         </div>
@@ -54,16 +54,16 @@
             <table class="results-table">
                 <thead>
                     <tr>
-                        <th style="width: 5%;">ìˆœë²ˆ</th>
-                        <th>ì‚¬ì—…ìë²ˆí˜¸</th>
-                        <th>ê¸°ì—…ëª…</th>
-                        <th>ëŒ€í‘œìëª…</th>
-                        <th>ì—…ì¢…</th>
-                        <th style="width: 25%;">ì£¼ì†Œ</th>
-                        <th>ìµœì‹ ë…„ë„</th>
-                        <th>ìì‚°ì´ê³„(ë°±ë§Œ)</th>
-                        <th>ë§¤ì¶œì•¡(ë°±ë§Œ)</th>
-                        <th>ì´ìµì‰ì—¬ê¸ˆ(ë°±ë§Œ)</th>
+                        <th style="width: 5%;">¼ø¹ø</th>
+                        <th>»ç¾÷ÀÚ¹øÈ£</th>
+                        <th>±â¾÷¸í</th>
+                        <th>´ëÇ¥ÀÚ¸í</th>
+                        <th>¾÷Á¾</th>
+                        <th style="width: 25%;">ÁÖ¼Ò</th>
+                        <th>ÃÖ½Å³âµµ</th>
+                        <th>ÀÚ»êÃÑ°è(¹é¸¸)</th>
+                        <th>¸ÅÃâ¾×(¹é¸¸)</th>
+                        <th>ÀÌÀÍÀ×¿©±İ(¹é¸¸)</th>
                     </tr>
                 </thead>
                 <tbody id="company-list">
@@ -72,13 +72,13 @@
         </div>
         
         <div class="footer-actions">
-             <button id="load-next-btn" style="display:none;">ë‹¤ìŒ</button>
+             <button id="load-next-btn" style="display:none;">´ÙÀ½</button>
         </div>
     </div>
 
     <div class="scroll-buttons">
-        <button id="scroll-top">â–²</button>
-        <button id="scroll-bottom">â–¼</button>
+        <button id="scroll-top">¡ã</button>
+        <button id="scroll-bottom">¡å</button>
     </div>
 
     <script>
@@ -98,9 +98,9 @@
             if (isFetching) return;
             isFetching = true;
             
-            // 'ë‹¤ìŒ' ë²„íŠ¼ í´ë¦­ ì‹œì—ëŠ” ê¸°ì¡´ ëª©ë¡ì„ ìœ ì§€í•˜ê³  ë¡œë”© í‘œì‹œë¥¼ í•˜ì§€ ì•ŠìŒ
+            // '´ÙÀ½' ¹öÆ° Å¬¸¯ ½Ã¿¡´Â ±âÁ¸ ¸ñ·ÏÀ» À¯ÁöÇÏ°í ·Îµù Ç¥½Ã¸¦ ÇÏÁö ¾ÊÀ½
             if (page === 1) {
-                companyList.innerHTML = '<tr><td colspan="10" class="loading">ê²€ìƒ‰ ì¤‘...</td></tr>';
+                companyList.innerHTML = '<tr><td colspan="10" class="loading">°Ë»ö Áß...</td></tr>';
             }
             
             const formData = new FormData(searchForm);
@@ -111,12 +111,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (page === 1) {
-                        companyList.innerHTML = ''; // ìƒˆ ê²€ìƒ‰ ì‹œ ê¸°ì¡´ ëª©ë¡ ì´ˆê¸°í™”
+                        companyList.innerHTML = ''; // »õ °Ë»ö ½Ã ±âÁ¸ ¸ñ·Ï ÃÊ±âÈ­
                     }
-                    resultsCountSpan.textContent = `ì¡°íšŒê±´ìˆ˜ : ${data.totalRows.toLocaleString()}ê±´`;
+                    resultsCountSpan.textContent = `Á¶È¸°Ç¼ö : ${data.totalRows.toLocaleString()}°Ç`;
 
                     if (data.companies.length === 0 && page === 1) {
-                        companyList.innerHTML = '<tr><td colspan="10">ê²€ìƒ‰ ê²°ê³¼ê°€ ì—†ìŠµë‹ˆë‹¤.</td></tr>';
+                        companyList.innerHTML = '<tr><td colspan="10">°Ë»ö °á°ú°¡ ¾ø½À´Ï´Ù.</td></tr>';
                         loadNextBtn.style.display = 'none';
                         return;
                     }
@@ -126,7 +126,7 @@
                         const row = document.createElement('tr');
                         const rowNum = baseIndex + index + 1;
                         
-                        // ë°±ë§Œ ë‹¨ìœ„ë¡œ ë³€í™˜í•˜ëŠ” í•¨ìˆ˜
+                        // ¹é¸¸ ´ÜÀ§·Î º¯È¯ÇÏ´Â ÇÔ¼ö
                         const formatToMillion = (value) => {
                             if (value === null || value === undefined) return '';
                             return Math.round(value / 1000000).toLocaleString();
@@ -156,7 +156,7 @@
                 })
                 .catch(error => {
                     console.error('Failed to fetch companies:', error);
-                    companyList.innerHTML = '<tr><td colspan="10">ë°ì´í„° ì¡°íšŒ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.</td></tr>';
+                    companyList.innerHTML = '<tr><td colspan="10">µ¥ÀÌÅÍ Á¶È¸ Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.</td></tr>';
                 })
                 .finally(() => {
                     isFetching = false;
@@ -164,7 +164,7 @@
         }
 
         searchButton.addEventListener('click', () => {
-             currentPage = 1; // ê²€ìƒ‰ ë²„íŠ¼ í´ë¦­ ì‹œ í•­ìƒ 1í˜ì´ì§€ë¶€í„°
+             currentPage = 1; // °Ë»ö ¹öÆ° Å¬¸¯ ½Ã Ç×»ó 1ÆäÀÌÁöºÎÅÍ
              fetchCompanies(currentPage);
         });
         

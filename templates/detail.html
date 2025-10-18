@@ -2,15 +2,15 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>{{ company.basic.company_name }} - ìƒì„¸ ì •ë³´</title>
+    <title>{{ company.basic.company_name }} - »ó¼¼ Á¤º¸</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <header style="display:flex; align-items:center; justify-content:space-between;">
     <div>
-        <h1 style="display:inline-block;">{{ company.basic.company_name }} <span class="header-subtext">ìƒì„¸ ì •ë³´</span></h1>
+        <h1 style="display:inline-block;">{{ company.basic.company_name }} <span class="header-subtext">»ó¼¼ Á¤º¸</span></h1>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
-    <a href="javascript:window.close();" class="back-button">ë‹«ê¸°</a>
-    <span id="user-name-header" style="font-weight:bold; color:#333; margin-left:10px;">{{ user_name }}ë‹˜</span>
+    <a href="javascript:window.close();" class="back-button">´İ±â</a>
+    <span id="user-name-header" style="font-weight:bold; color:#333; margin-left:10px;">{{ user_name }}´Ô</span>
     </div>
 </header>
 <script>
@@ -27,8 +27,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </header>
 
         <div class="tab-nav">
-            <button class="tab-link active" data-tab="tab1">ê¸°ì—… ìƒì„¸ ì¡°íšŒ</button>
-            <button class="tab-link" data-tab="tab2">ì ‘ì´‰ì´ë ¥ ì •ë³´</button>
+            <button class="tab-link active" data-tab="tab1">±â¾÷ »ó¼¼ Á¶È¸</button>
+            <button class="tab-link" data-tab="tab2">Á¢ÃËÀÌ·Â Á¤º¸</button>
         </div>
 
         <div class="tab-content">
@@ -36,69 +36,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="detail-main-grid">
                     <div class="detail-left-column">
                         <div class="detail-card">
-                            <h3>ê¸°ë³¸ ì •ë³´</h3>
+                            <h3>±âº» Á¤º¸</h3>
                             <div class="info-grid">
-                                <div><strong>ì‚¬ì—…ìë²ˆí˜¸</strong></div>
+                                <div><strong>»ç¾÷ÀÚ¹øÈ£</strong></div>
                                 <div>{{ company.basic.biz_no }}</div>
-                                <div><strong>ëŒ€í‘œì</strong></div>
+                                <div><strong>´ëÇ¥ÀÚ</strong></div>
                                 <div>{{ company.basic.representative_name }}</div>
-                                <div><strong>ì„¤ë¦½ì¼</strong></div>
+                                <div><strong>¼³¸³ÀÏ</strong></div>
                                 <div>{{ company.basic.establish_date }}</div>
-                                <div><strong>ê¸°ì—…ê·œëª¨</strong></div>
+                                <div><strong>±â¾÷±Ô¸ğ</strong></div>
                                 <div>{{ company.basic.company_size }}</div>
-                                <div><strong>ì‹ ìš©ë“±ê¸‰</strong></div>
+                                <div><strong>½Å¿ëµî±Ş</strong></div>
                                 <div>{{ company.basic.rating1 or 'N/A' }}</div>
-                                <div><strong>ì§ì›ìˆ˜</strong></div>
+                                <div><strong>Á÷¿ø¼ö</strong></div>
                                 <div>{{ company.basic.pension_count or 'N/A' }}</div>
-                                <div><strong>ì—…ì¢…</strong></div>
+                                <div><strong>¾÷Á¾</strong></div>
                                 <div>{{ company.basic.industry_name }}</div>
-                                <div><strong>ì£¼ì†Œ</strong></div>
+                                <div><strong>ÁÖ¼Ò</strong></div>
                                 <div>{{ company.basic.address }}</div>
-                                <div><strong>ë‹¨ì²´ê³„ì•½ì—¬ë¶€</strong></div>
-                                <div><span class="status-{{ 'yes' if company.basic.group_transaction_yn == 'Y' else 'no' }}">{{ 'ìœ ' if company.basic.group_transaction_yn == 'Y' else 'ë¬´' }}</span></div>
-                                <div><strong>GFCê±°ë˜ìœ ë¬´</strong></div>
-                                <div><span class="status-{{ 'yes' if company.basic.gfc_transaction_yn == 'Y' else 'no' }}">{{ 'ìœ ' if company.basic.gfc_transaction_yn == 'Y' else 'ë¬´' }}</span></div>
+                                <div><strong>´ÜÃ¼°è¾à¿©ºÎ</strong></div>
+                                <div><span class="status-{{ 'yes' if company.basic.group_transaction_yn == 'Y' else 'no' }}">{{ 'À¯' if company.basic.group_transaction_yn == 'Y' else '¹«' }}</span></div>
+                                <div><strong>GFC°Å·¡À¯¹«</strong></div>
+                                <div><span class="status-{{ 'yes' if company.basic.gfc_transaction_yn == 'Y' else 'no' }}">{{ 'À¯' if company.basic.gfc_transaction_yn == 'Y' else '¹«' }}</span></div>
                             </div>
                         </div>
 
                         <div class="detail-card">
-                            <h3>ì¸ì¦ ë° íŠ¹í—ˆ ì •ë³´</h3>
+                            <h3>ÀÎÁõ ¹× Æ¯Çã Á¤º¸</h3>
                             <table class="certs-grid">
                                 <thead>
                                     <tr>
-                                        <th>êµ¬ë¶„</th><th>ì¸ì¦/ë³´ìœ  ì—¬ë¶€</th><th>ì¸ì •/ì¶œì›ì¼</th><th>ë§Œë£Œì¼</th>
+                                        <th>±¸ºĞ</th><th>ÀÎÁõ/º¸À¯ ¿©ºÎ</th><th>ÀÎÁ¤/Ãâ¿øÀÏ</th><th>¸¸·áÀÏ</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>ê¸°ì—…ë¶€ì„¤ì—°êµ¬ì†Œ</td>
-                                        <td><span class="status-{{ 'yes' if company.additional.has_research_institute == '1' else 'no' }}">{{ 'ë³´ìœ ' if company.additional.has_research_institute == '1' else 'ë¯¸ë³´ìœ ' }}</span></td>
+                                        <td>±â¾÷ºÎ¼³¿¬±¸¼Ò</td>
+                                        <td><span class="status-{{ 'yes' if company.additional.has_research_institute == '1' else 'no' }}">{{ 'º¸À¯' if company.additional.has_research_institute == '1' else '¹Ìº¸À¯' }}</span></td>
                                         <td>{{ company.additional.research_institute_date or '-' }}</td>
                                         <td>-</td>
                                     </tr>
                                     <tr>
-                                        <td>ì´ë…¸ë¹„ì¦ˆ</td>
-                                        <td><span class="status-{{ 'yes' if company.additional.is_innobiz == '1' else 'no' }}">{{ 'ì¸ì¦' if company.additional.is_innobiz == '1' else 'ë¯¸ì¸ì¦' }}</span></td>
+                                        <td>ÀÌ³ëºñÁî</td>
+                                        <td><span class="status-{{ 'yes' if company.additional.is_innobiz == '1' else 'no' }}">{{ 'ÀÎÁõ' if company.additional.is_innobiz == '1' else '¹ÌÀÎÁõ' }}</span></td>
                                         <td>{{ company.additional.innobiz_cert_date or '-' }}</td>
                                         <td>{{ company.additional.innobiz_expiry_date or '-' }}</td>
                                     </tr>
                                     <tr>
-                                        <td>ë©”ì¸ë¹„ì¦ˆ</td>
-                                        <td><span class="status-{{ 'yes' if company.additional.is_mainbiz == '1' else 'no' }}">{{ 'ì¸ì¦' if company.additional.is_mainbiz == '1' else 'ë¯¸ì¸ì¦' }}</span></td>
+                                        <td>¸ŞÀÎºñÁî</td>
+                                        <td><span class="status-{{ 'yes' if company.additional.is_mainbiz == '1' else 'no' }}">{{ 'ÀÎÁõ' if company.additional.is_mainbiz == '1' else '¹ÌÀÎÁõ' }}</span></td>
                                         <td>{{ company.additional.mainbiz_cert_date or '-' }}</td>
                                         <td>{{ company.additional.mainbiz_expiry_date or '-' }}</td>
                                     </tr>
                                     <tr>
-                                        <td>ë²¤ì²˜ì¸ì¦</td>
-                                        <td><span class="status-{{ 'yes' if company.additional.is_venture == '1' else 'no' }}">{{ 'ì¸ì¦' if company.additional.is_venture == '1' else 'ë¯¸ì¸ì¦' }}</span></td>
+                                        <td>º¥Ã³ÀÎÁõ</td>
+                                        <td><span class="status-{{ 'yes' if company.additional.is_venture == '1' else 'no' }}">{{ 'ÀÎÁõ' if company.additional.is_venture == '1' else '¹ÌÀÎÁõ' }}</span></td>
                                         <td>{{ company.additional.venture_cert_date or '-' }}</td>
                                         <td>{{ company.additional.venture_expiry_date or '-' }}</td>
                                     </tr>
                                     <tr>
-                                        <td>íŠ¹í—ˆ</td>
+                                        <td>Æ¯Çã</td>
                                         <td colspan="3">
-                                            ì¶œì›: <strong>{{ company.additional.patent_applications_count or 0 }}</strong>ê±´ / 
-                                            ë“±ë¡: <strong>{{ company.additional.registered_patents_count or 0 }}</strong>ê±´
+                                            Ãâ¿ø: <strong>{{ company.additional.patent_applications_count or 0 }}</strong>°Ç / 
+                                            µî·Ï: <strong>{{ company.additional.registered_patents_count or 0 }}</strong>°Ç
                                         </td>
                                     </tr>
                                 </tbody>
@@ -106,55 +106,55 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
 
                         <div class="detail-card">
-                            <h3>ë¹„ìƒì¥ì£¼ì‹ê°€ì¹˜ í‰ê°€ (ì°¸ê³ ìš©)</h3>
+                            <h3>ºñ»óÀåÁÖ½Ä°¡Ä¡ Æò°¡ (Âü°í¿ë)</h3>
                             {% if company.stock_valuation and company.stock_valuation.total_shares_issued is defined %}
                             <div class="info-grid">
-                                <div><strong>ìì‚°ê°€ì¹˜</strong></div>
-                                <div>{{ "{:,.0f}".format(company.stock_valuation.asset_value) if company.stock_valuation.asset_value else 'N/A' }} ì›</div>
-                                <div><strong>ìˆ˜ìµê°€ì¹˜</strong></div>
-                                <div>{{ "{:,.0f}".format(company.stock_valuation.profit_value) if company.stock_valuation.profit_value else 'N/A' }} ì›</div>
-                                <div><strong>1ì£¼ë‹¹ í‰ê°€ì•¡</strong></div>
-                                <div><strong class="text-danger">{{ "{:,.0f}".format(company.stock_valuation.estimated_stock_value) if company.stock_valuation.estimated_stock_value else 'N/A' }} ì›</strong></div>
+                                <div><strong>ÀÚ»ê°¡Ä¡</strong></div>
+                                <div>{{ "{:,.0f}".format(company.stock_valuation.asset_value) if company.stock_valuation.asset_value else 'N/A' }} ¿ø</div>
+                                <div><strong>¼öÀÍ°¡Ä¡</strong></div>
+                                <div>{{ "{:,.0f}".format(company.stock_valuation.profit_value) if company.stock_valuation.profit_value else 'N/A' }} ¿ø</div>
+                                <div><strong>1ÁÖ´ç Æò°¡¾×</strong></div>
+                                <div><strong class="text-danger">{{ "{:,.0f}".format(company.stock_valuation.estimated_stock_value) if company.stock_valuation.estimated_stock_value else 'N/A' }} ¿ø</strong></div>
                                 <div></div>
-                                <div><span class="text-primary-large">(ë°œí–‰ì£¼ì‹ìˆ˜: {{ "{:,.0f}".format(company.stock_valuation.total_shares_issued) if company.stock_valuation.total_shares_issued else 'N/A' }} ì£¼)</span></div>
+                                <div><span class="text-primary-large">(¹ßÇàÁÖ½Ä¼ö: {{ "{:,.0f}".format(company.stock_valuation.total_shares_issued) if company.stock_valuation.total_shares_issued else 'N/A' }} ÁÖ)</span></div>
                             </div>
                             {% else %}
-                                <p>ì¬ë¬´ ë°ì´í„°ê°€ ë¶€ì¡±í•˜ì—¬ ê°€ì¹˜ í‰ê°€ ì •ë³´ë¥¼ ì‚°ì¶œí•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.</p>
+                                <p>Àç¹« µ¥ÀÌÅÍ°¡ ºÎÁ·ÇÏ¿© °¡Ä¡ Æò°¡ Á¤º¸¸¦ »êÃâÇÒ ¼ö ¾ø½À´Ï´Ù.</p>
                             {% endif %}
                         </div>
                     </div>
 
                     <div class="detail-right-column">
                         <div class="detail-card">
-                            <h3>ì¬ë¬´ ì •ë³´ (ìµœê·¼ 3ê°œë…„, ë‹¨ìœ„: ì›)</h3>
+                            <h3>Àç¹« Á¤º¸ (ÃÖ±Ù 3°³³â, ´ÜÀ§: ¿ø)</h3>
                             {% if company.financials %}
                             <table class="results-table">
                                 <thead>
                                     <tr>
-                                        <th>í•­ëª©</th>
-                                        {% for fin in company.financials %}<th class="text-right">{{ fin.fiscal_year }}ë…„</th>{% endfor %}
+                                        <th>Ç×¸ñ</th>
+                                        {% for fin in company.financials %}<th class="text-right">{{ fin.fiscal_year }}³â</th>{% endfor %}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td>ë§¤ì¶œì•¡</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.sales_revenue) if fin.sales_revenue is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>ë‹¹ê¸°ìˆœì´ìµ</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.net_income) if fin.net_income is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>ìì‚°ì´ê³„</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.total_assets) if fin.total_assets is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>ìë³¸ì´ê³„</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.total_equity) if fin.total_equity is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>ì´ìµì‰ì—¬ê¸ˆ</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.retained_earnings) if fin.retained_earnings is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>ë¯¸ì²˜ë¶„ì´ìµì‰ì—¬ê¸ˆ</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.undistributed_retained_earnings) if fin.undistributed_retained_earnings is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>ë²•ì¸ì„¸ë¹„ìš©</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.corporate_tax) if fin.corporate_tax is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>ê°€ì§€ê¸‰ê¸ˆ</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.advances_paid) if fin.advances_paid is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>ê°€ìˆ˜ê¸ˆ</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.advances_received) if fin.advances_received is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>¸ÅÃâ¾×</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.sales_revenue) if fin.sales_revenue is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>´ç±â¼øÀÌÀÍ</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.net_income) if fin.net_income is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>ÀÚ»êÃÑ°è</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.total_assets) if fin.total_assets is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>ÀÚº»ÃÑ°è</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.total_equity) if fin.total_equity is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>ÀÌÀÍÀ×¿©±İ</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.retained_earnings) if fin.retained_earnings is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>¹ÌÃ³ºĞÀÌÀÍÀ×¿©±İ</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.undistributed_retained_earnings) if fin.undistributed_retained_earnings is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>¹ıÀÎ¼¼ºñ¿ë</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.corporate_tax) if fin.corporate_tax is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>°¡Áö±Ş±İ</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.advances_paid) if fin.advances_paid is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>°¡¼ö±İ</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.advances_received) if fin.advances_received is not none else '' }}</td> {% endfor %}</tr>
                                 </tbody>
                             </table>
-                            {% else %}<p>ì¬ë¬´ ì •ë³´ê°€ ì—†ìŠµë‹ˆë‹¤.</p>{% endif %}
+                            {% else %}<p>Àç¹« Á¤º¸°¡ ¾ø½À´Ï´Ù.</p>{% endif %}
                         </div>
                         <div class="detail-card">
-                            <h3>ëŒ€í‘œì ë° ì£¼ì£¼ ì •ë³´</h3>
-                            <h4>ëŒ€í‘œì</h4>
+                            <h3>´ëÇ¥ÀÚ ¹× ÁÖÁÖ Á¤º¸</h3>
+                            <h4>´ëÇ¥ÀÚ</h4>
                             {% if company.representatives %}
                             <table class="results-table">
-                                <thead><tr><th>ì„±ëª…</th><th>ìƒë…„ì›”ì¼</th><th>ì„±ë³„</th><th>GFCì—¬ë¶€</th></tr></thead>
+                                <thead><tr><th>¼º¸í</th><th>»ı³â¿ùÀÏ</th><th>¼ºº°</th><th>GFC¿©ºÎ</th></tr></thead>
                                 <tbody>
                                 {% for rep in company.representatives %}
                                 <tr>
@@ -164,11 +164,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 {% endfor %}
                                 </tbody>
                             </table>
-                            {% else %}<p>ëŒ€í‘œì ì •ë³´ê°€ ì—†ìŠµë‹ˆë‹¤.</p>{% endif %}
-                            <h4>ì£¼ì£¼ êµ¬ì„±</h4>
+                            {% else %}<p>´ëÇ¥ÀÚ Á¤º¸°¡ ¾ø½À´Ï´Ù.</p>{% endif %}
+                            <h4>ÁÖÁÖ ±¸¼º</h4>
                             {% if company.shareholders %}
                             <table class="results-table">
-                                <thead><tr><th>ì£¼ì£¼ëª…</th><th style="width: 40%;">ì§€ë¶„ìœ¨</th><th>ê´€ê³„</th></tr></thead>
+                                <thead><tr><th>ÁÖÁÖ¸í</th><th style="width: 40%;">ÁöºĞÀ²</th><th>°ü°è</th></tr></thead>
                                 <tbody>
                                 {% for holder in company.shareholders %}
                                 <tr>
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 {% endfor %}
                                 </tbody>
                             </table>
-                            {% else %}<p>ì£¼ì£¼ ì •ë³´ê°€ ì—†ìŠµë‹ˆë‹¤.</p>{% endif %}
+                            {% else %}<p>ÁÖÁÖ Á¤º¸°¡ ¾ø½À´Ï´Ù.</p>{% endif %}
                         </div>
                     </div>
                 </div>
@@ -191,34 +191,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div id="tab2" class="tab-pane">
                 <div class="detail-card">
-                    <h3>ì ‘ì´‰ ì´ë ¥</h3>
+                    <h3>Á¢ÃË ÀÌ·Â</h3>
                     <form id="contact-history-form">
                         <input type="hidden" name="history_id">
                         <input type="hidden" name="biz_no" value="{{ company.basic.biz_no }}">
                         <div class="form-row">
                             <input type="datetime-local" name="contact_datetime" required>
                             <select name="contact_type" required>
-                                <option value="" disabled selected>ìœ í˜• ì„ íƒ</option>
-                                <option value="DMë°œì†¡">DMë°œì†¡</option>
-                                <option value="ì „í™”ìƒë‹´">ì „í™”ìƒë‹´</option>
-                                <option value="ëŒ€ë©´ìƒë‹´">ëŒ€ë©´ìƒë‹´</option>
-                                <option value="ì„¸ë¯¸ë‚˜ì°¸ì„">ì„¸ë¯¸ë‚˜ì°¸ì„</option>
-                                <option value="ë¬¸ìë°œì†¡">ë¬¸ìë°œì†¡</option>
-                                <option value="ì„ ë¬¼ë°œì†¡">ì„ ë¬¼ë°œì†¡</option>
+                                <option value="" disabled selected>À¯Çü ¼±ÅÃ</option>
+                                <option value="DM¹ß¼Û">DM¹ß¼Û</option>
+                                <option value="ÀüÈ­»ó´ã">ÀüÈ­»ó´ã</option>
+                                <option value="´ë¸é»ó´ã">´ë¸é»ó´ã</option>
+                                <option value="¼¼¹Ì³ªÂü¼®">¼¼¹Ì³ªÂü¼®</option>
+                                <option value="¹®ÀÚ¹ß¼Û">¹®ÀÚ¹ß¼Û</option>
+                                <option value="¼±¹°¹ß¼Û">¼±¹°¹ß¼Û</option>
                             </select>
-                            <input type="text" name="contact_person" placeholder="ë‹´ë‹¹ì" required>
+                            <input type="text" name="contact_person" placeholder="´ã´çÀÚ" required>
                         </div>
                         <div class="form-row">
-                             <textarea name="memo" placeholder="ë©”ëª¨ ë‚´ìš©" required></textarea>
+                             <textarea name="memo" placeholder="¸Ş¸ğ ³»¿ë" required></textarea>
                         </div>
                         <div class="form-row form-buttons">
-                            <button type="submit" id="submit-btn">ì‹ ê·œë“±ë¡</button>
-                            <button type="button" id="cancel-btn" style="display:none;">ì·¨ì†Œ</button>
+                            <button type="submit" id="submit-btn">½Å±Ôµî·Ï</button>
+                            <button type="button" id="cancel-btn" style="display:none;">Ãë¼Ò</button>
                         </div>
                     </form>
                     <div class="table-container">
                         <table class="results-table">
-                            <thead><tr><th>ì¼ì‹œ</th><th>ìœ í˜•</th><th>ë‹´ë‹¹ì</th><th>ë‚´ìš©</th><th>ì‘ì„±ì</th><th>ì‘ì—…</th></tr></thead>
+                            <thead><tr><th>ÀÏ½Ã</th><th>À¯Çü</th><th>´ã´çÀÚ</th><th>³»¿ë</th><th>ÀÛ¼ºÀÚ</th><th>ÀÛ¾÷</th></tr></thead>
                             <tbody id="history-tbody">
                                 {% for item in company.history %}
                                 <tr data-id="{{ item.history_id }}">
@@ -228,8 +228,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <td class="memo">{{ item.memo }}</td>
                                     <td>{{ item.registered_by }}</td>
                                     <td>
-                                        <button class="edit-btn">ìˆ˜ì •</button>
-                                        <button class="delete-btn">ì‚­ì œ</button>
+                                        <button class="edit-btn">¼öÁ¤</button>
+                                        <button class="delete-btn">»èÁ¦</button>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function resetForm() {
             form.reset();
             historyIdInput.value = '';
-            submitBtn.textContent = 'ì‹ ê·œë“±ë¡';
+            submitBtn.textContent = '½Å±Ôµî·Ï';
             cancelBtn.style.display = 'none';
         }
 
@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert(result.message);
                     location.reload();
                 } else {
-                    alert('ì˜¤ë¥˜: ' + result.message);
+                    alert('¿À·ù: ' + result.message);
                 }
             });
         });
@@ -310,21 +310,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.contact_person.value = row.querySelector('.person').textContent;
                 form.memo.value = row.querySelector('.memo').textContent;
                 
-                submitBtn.textContent = 'ìˆ˜ì •ì™„ë£Œ';
+                submitBtn.textContent = '¼öÁ¤¿Ï·á';
                 cancelBtn.style.display = 'inline-block';
                 form.scrollIntoView({ behavior: 'smooth' });
             }
 
             if (e.target.classList.contains('delete-btn')) {
-                if (!confirm('ì •ë§ë¡œ ì´ ì´ë ¥ì„ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?')) return;
+                if (!confirm('Á¤¸»·Î ÀÌ ÀÌ·ÂÀ» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?')) return;
                 fetch(`/api/contact_history/${historyId}`, { method: 'DELETE' })
                     .then(response => response.json())
                     .then(result => {
                          if(result.success) {
-                            alert('ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤.');
+                            alert('»èÁ¦µÇ¾ú½À´Ï´Ù.');
                             row.remove();
                          } else {
-                            alert('ì‚­ì œ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.');
+                            alert('»èÁ¦ Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.');
                          }
                     });
             }

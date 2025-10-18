@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Л╥╗К⌠²Л└╦ ЙЁ└Л┌╟Й╦╟</title>
+    <title>цК╣Ф╪╪ ╟Х╩Й╠Б</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .acq-tax-container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
@@ -20,80 +20,80 @@
 <body>
     <div class="acq-tax-container">
         <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">К╘■Л²╦Л°╪К║°</a>
+            <a href="{{ url_for('main') }}" class="main-btn">╦чюню╦╥н</a>
         </div>
-        <div class="acq-tax-title">Л╥╗К⌠²Л└╦ ЙЁ└Л┌╟Й╦╟</div>
+        <div class="acq-tax-title">цК╣Ф╪╪ ╟Х╩Й╠Б</div>
         <form class="acq-tax-form" id="acqTaxForm" onsubmit="return false;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                <label style="margin-bottom:0;">Л╥╗К⌠²К╛╪Й╠╢Л╒┘К╔≤</label>
-                <button type="button" id="showTaxRateBtn" style="background:#208e4c;color:#fff;font-weight:600;padding:6px 18px;border-radius:6px;border:none;">Л╥╗К⌠²Л└╦Л°╗ КЁ╢Й╦╟</button>
+                <label style="margin-bottom:0;">цК╣Ф╧╟╟га╬╥Ы</label>
+                <button type="button" id="showTaxRateBtn" style="background:#208e4c;color:#fff;font-weight:600;padding:6px 18px;border-radius:6px;border:none;">цК╣Ф╪╪ю╡ ╨╦╠Б</button>
             </div>
             <div style="display:flex;gap:30px;align-items:center;justify-content:center;margin-bottom:18px;">
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="itemType" value="Лё╪М┐²" checked style="margin-right:6px;"> Лё╪М┐²</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="itemType" value="Й╠╢Л╤∙К╛╪" style="margin-right:6px;"> Й╠╢Л╤∙К╛╪</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="itemType" value="М├═Л╖─" style="margin-right:6px;"> М├═Л╖─</label>
+                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="itemType" value="ажец" checked style="margin-right:6px;"> ажец</label>
+                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="itemType" value="╟гцЮ╧╟" style="margin-right:6px;"> ╟гцЮ╧╟</label>
+                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="itemType" value="еДаЖ" style="margin-right:6px;"> еДаЖ</label>
             </div>
             <div style="display:flex;align-items:center;gap:30px;margin-bottom:10px;">
-                <label style="margin-bottom:0;">Л╥╗К⌠²Й╣╛К╤└</label>
+                <label style="margin-bottom:0;">цК╣Ф╠╦╨п</label>
             </div>
             <div style="display:flex;gap:30px;align-items:center;justify-content:center;margin-bottom:18px;">
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="К╖╓К╖╓" checked style="margin-right:6px;"> К╖╓К╖╓</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="Л▀═Л╤∙" style="margin-right:6px;"> Л▀═Л╤∙</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="Л╕²Л≈╛" style="margin-right:6px;"> Л╕²Л≈╛</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="Л┐│Л├█" style="margin-right:6px;"> Л┐│Л├█</label>
+                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="╦е╦е" checked style="margin-right:6px;"> ╦е╦е</label>
+                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="╫ецЮ" style="margin-right:6px;"> ╫ецЮ</label>
+                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="аУ©╘" style="margin-right:6px;"> аУ©╘</label>
+                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="╩С╪с" style="margin-right:6px;"> ╩С╪с</label>
             </div>
             <div style="display:flex;align-items:center;gap:30px;margin-bottom:10px;">
-                <label style="margin-bottom:0;">Лё╪М┐²КЁ╢Л°═Л┬≤</label>
+                <label style="margin-bottom:0;">ажец╨╦ю╞╪Ж</label>
             </div>
             <div style="display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
                 <select id="houseCount" style="width:auto;min-width:320px;">
-                    <option value="1">Л║╟Л═∙ 1Лё╪М┐² / К╧└Л║╟Л═∙ 2Лё╪М┐² / К╧└Л║╟Л═∙ 1Лё╪М┐²</option>
-                    <option value="2">Л║╟Л═∙ 2Лё╪М┐² / К╧└Л║╟Л═∙ 3Лё╪М┐²</option>
-                    <option value="3">Л║╟Л═∙ 3Лё╪М┐² Л²╢Л┐│ / К╧└Л║╟Л═∙ 4Лё╪М┐² Л²╢Л┐│</option>
+                    <option value="1">а╤а╓ 1ажец / ╨Яа╤а╓ 2ажец / ╨Яа╤а╓ 1ажец</option>
+                    <option value="2">а╤а╓ 2ажец / ╨Яа╤а╓ 3ажец</option>
+                    <option value="3">а╤а╓ 3ажец юл╩С / ╨Яа╤а╓ 4ажец юл╩С</option>
                 </select>
             </div>
             <div style="display:flex;align-items:center;gap:30px;margin-bottom:10px;">
-                <label style="margin-bottom:0;">85Л═°ЙЁ╠ Л╢┬ЙЁ╪ Л≈╛К╤─</label>
+                <label style="margin-bottom:0;">85а╕╟Ж цй╟З ©╘╨н</label>
             </div>
             <div style="display:flex;gap:30px;align-items:center;justify-content:center;margin-bottom:18px;">
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="over85" value="yes" style="margin-right:6px;"> Л≤┬</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="over85" value="no" checked style="margin-right:6px;"> Л∙└К▀┬Л≤╓</label>
+                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="over85" value="yes" style="margin-right:6px;"> ©╧</label>
+                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="over85" value="no" checked style="margin-right:6px;"> ╬ф╢о©ю</label>
             </div>
-            <label>Л╥╗К⌠²Й╟─Л∙║(Л⌡░)</label>
-            <input type="text" id="acqPrice" required pattern="[0-9,]*" placeholder="Л≤┬: 300,000,000">
-            <label>ЙЁ╣Л▀°Л╖─Й╟─(Л⌡░)</label>
-            <input type="text" id="officialPrice" required pattern="[0-9,]*" placeholder="Л≤┬: 250,000,000">
-            <button type="submit">ЙЁ└Л┌╟</button>
+            <label>цК╣Ф╟║╬в(©Ь)</label>
+            <input type="text" id="acqPrice" required pattern="[0-9,]*" placeholder="©╧: 300,000,000">
+            <label>╟Ь╫цаЖ╟║(©Ь)</label>
+            <input type="text" id="officialPrice" required pattern="[0-9,]*" placeholder="©╧: 250,000,000">
+            <button type="submit">╟Х╩Й</button>
         </form>
 
-        <!-- Л╥╗К⌠²Л└╦Л°╗ Л∙┬К┌╢ К╙╗К▀╛ -->
+        <!-- цК╣Ф╪╪ю╡ ╬хЁ╩ ╦П╢ч -->
         <div id="taxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);">
             <div style="background:#fff;max-width:700px;margin:60px auto;padding:32px 28px;border-radius:10px;position:relative;">
-                <button id="closeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">ц≈</button>
-                <h3 style="color:#17506b;">Л╥╗К⌠²Л└╦Л°╗/К├█М┼╧Л└╦/Й╣░Л°║Л└╦ Л∙┬К┌╢</h3>
+                <button id="closeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">║©</button>
+                <h3 style="color:#17506b;">цК╣Ф╪╪ю╡/ЁСф╞╪╪/╠Ёю╟╪╪ ╬хЁ╩</h3>
                 <table style="width:100%;border-collapse:collapse;text-align:center;">
-                    <thead><tr style="background:#2980b9;color:#fff;"><th>Й╣╛К╤└</th><th>Л╥╗К⌠²Л└╦</th><th>К├█М┼╧Л└╦</th><th>Й╣░Л°║Л└╦</th></tr></thead>
+                    <thead><tr style="background:#2980b9;color:#fff;"><th>╠╦╨п</th><th>цК╣Ф╪╪</th><th>ЁСф╞╪╪</th><th>╠Ёю╟╪╪</th></tr></thead>
                     <tbody>
-                        <tr><td>Лё╪М┐²(1Лё╪М┐²)</td><td>1%</td><td>-</td><td>-</td></tr>
-                        <tr><td>Лё╪М┐²(2Лё╪М┐²)</td><td>2%</td><td>-</td><td>-</td></tr>
-                        <tr><td>Лё╪М┐²(3Лё╪М┐² Л²╢Л┐│)</td><td>3%</td><td>0.2%</td><td>-</td></tr>
-                        <tr><td>Й╠╢Л╤∙К╛╪/М├═Л╖─</td><td>4%</td><td>0.2%</td><td>0.4%</td></tr>
+                        <tr><td>ажец(1ажец)</td><td>1%</td><td>-</td><td>-</td></tr>
+                        <tr><td>ажец(2ажец)</td><td>2%</td><td>-</td><td>-</td></tr>
+                        <tr><td>ажец(3ажец юл╩С)</td><td>3%</td><td>0.2%</td><td>-</td></tr>
+                        <tr><td>╟гцЮ╧╟/еДаЖ</td><td>4%</td><td>0.2%</td><td>0.4%</td></tr>
                     </tbody>
                 </table>
-                <div style="font-size:0.95em;color:#888;margin-top:10px;">Л▀╓Л═° Л└╦Л°╗Л²─ Л╖─Л≈╜, Й╦┬Л∙║, Л║╟Й╠╢Л≈░ К■╟К²╪ К▀╓К╔╪ Л┬≤ Л·┬Л┼╣К▀┬К▀╓.</div>
+                <div style="font-size:0.95em;color:#888;margin-top:10px;">╫га╕ ╪╪ю╡ю╨ аЖ©╙, ╠щ╬в, а╤╟г©║ ╣Ш╤С ╢ы╦╕ ╪Ж юж╫ю╢о╢ы.</div>
             </div>
         </div>
         <div class="result-box" id="resultBox" style="display:none;"></div>
     </div>
     <script>
-    // 3Л·░К╕╛ Л╫╓К╖┬
+    // 3юз╦╝ дч╦╤
     function addComma(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
     function removeComma(str) {
         return str.replace(/,/g, '');
     }
-    // Л·┘К═╔К·─ Л╫╓К╖┬ Л·░К▐≥
+    // ют╥б╤У дч╦╤ юз╣©
     ['acqPrice','officialPrice'].forEach(id => {
         const el = document.getElementById(id);
         el.addEventListener('input', function(e) {
@@ -101,10 +101,10 @@
             if (val) this.value = addComma(Number(val));
         });
     });
-    // К▀╗Л┬° Л≤┬Л▀°: Лё╪М┐²/Й╠╢Л╤∙К╛╪/М├═Л╖─КЁ└ Й╦╟КЁ╦ Л╥╗К⌠²Л└╦Л°╗/К├█М┼╧Л└╦/Й╣░Л°║Л└╦Л°╗ Л═│Л ╘
+    // ╢э╪Ь ©╧╫ц: ажец/╟гцЮ╧╟/еДаЖ╨╟ ╠Б╨╩ цК╣Ф╪╪ю╡/ЁСф╞╪╪/╠Ёю╟╪╪ю╡ юШ©К
     function getTaxRates(itemType, acqType, houseCount, over85) {
-        // Л▀╓Л═° Л└╦Л°╗Л²─ КЁ╣Л·║М∙≤К╞─К║° Л≤┬Л▀°(Лё╪М┐²: 1~3%, Й╠╢Л╤∙К╛╪/М├═Л╖─: 4%)
-        if(itemType==='Лё╪М┐²') {
+        // ╫га╕ ╪╪ю╡ю╨ ╨╧юБго╧г╥н ©╧╫ц(ажец: 1~3%, ╟гцЮ╧╟/еДаЖ: 4%)
+        if(itemType==='ажец') {
             if(houseCount==='1') return {tax:0.01, nt:0, edu:0};
             if(houseCount==='2') return {tax:0.02, nt:0, edu:0};
             if(houseCount==='3') return {tax:0.03, nt:0.002, edu:0};
@@ -125,18 +125,18 @@
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
         resultBox.innerHTML =
-            `Л╥╗К⌠²К╛╪Й╠╢Л╒┘К╔≤: <b>${itemType}</b><br>`+
-            `Л╥╗К⌠²Й╣╛К╤└: <b>${acqType}</b><br>`+
-            `Лё╪М┐²КЁ╢Л°═Л┬≤: <b>${houseCount}</b><br>`+
-            `85Л═°ЙЁ╠ Л╢┬ЙЁ╪: <b>${over85==='yes'?'Л≤┬':'Л∙└К▀┬Л≤╓'}</b><br>`+
-            `Л╥╗К⌠²Й╟─Л∙║: <b>${addComma(acqPrice)}Л⌡░</b><br>`+
-            `ЙЁ╣Л▀°Л╖─Й╟─: <b>${addComma(officialPrice)}Л⌡░</b><br>`+
-            `<hr style='margin:10px 0;'>Л╥╗К⌠²Л└╦(Л≤┬Л┐│): <b style='color:#17506b;font-size:1.2em;'>${addComma(tax)}Л⌡░</b><br>`+
-            `К├█Л√╢Л╢▄М┼╧КЁ└Л└╦(Л≤┬Л┐│): <b>${addComma(ntax)}Л⌡░</b><br>`+
-            `Й╣░Л°║Л└╦(Л≤┬Л┐│): <b>${addComma(edutax)}Л⌡░</b>`;
+            `цК╣Ф╧╟╟га╬╥Ы: <b>${itemType}</b><br>`+
+            `цК╣Ф╠╦╨п: <b>${acqType}</b><br>`+
+            `ажец╨╦ю╞╪Ж: <b>${houseCount}</b><br>`+
+            `85а╕╟Ж цй╟З: <b>${over85==='yes'?'©╧':'╬ф╢о©ю'}</b><br>`+
+            `цК╣Ф╟║╬в: <b>${addComma(acqPrice)}©Ь</b><br>`+
+            `╟Ь╫цаЖ╟║: <b>${addComma(officialPrice)}©Ь</b><br>`+
+            `<hr style='margin:10px 0;'>цК╣Ф╪╪(©╧╩С): <b style='color:#17506b;font-size:1.2em;'>${addComma(tax)}©Ь</b><br>`+
+            `ЁС╬Нцлф╞╨╟╪╪(©╧╩С): <b>${addComma(ntax)}©Ь</b><br>`+
+            `╠Ёю╟╪╪(©╧╩С): <b>${addComma(edutax)}©Ь</b>`;
     });
 
-    // Л╥╗К⌠²Л└╦Л°╗ Л∙┬К┌╢ К╙╗К▀╛
+    // цК╣Ф╪╪ю╡ ╬хЁ╩ ╦П╢ч
     document.getElementById('showTaxRateBtn').onclick = function() {
         document.getElementById('taxRateModal').style.display = 'block';
     };

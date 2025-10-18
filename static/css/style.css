@@ -31,7 +31,7 @@ header h1 { color: #2c3e50; margin: 0; font-size: 1.7em; font-weight: 600; }
 .logout-button-new, .back-button { display: inline-block; padding: 8px 15px; background-color: #6c757d; color: white; text-align: center; text-decoration: none; border-radius: 4px; font-size: 14px; border: none; cursor: pointer; transition: background-color 0.2s; }
 .logout-button-new:hover, .back-button:hover { background-color: #5a6268; }
 
-/* ë©”ì¸ìœ¼ë¡œ ë²„íŠ¼ë§Œ CSV ë‚´ë¦¬ê¸° ë²„íŠ¼ ìƒ‰ìƒ ì ìš© */
+/* ¸ŞÀÎÀ¸·Î ¹öÆ°¸¸ CSV ³»¸®±â ¹öÆ° »ö»ó Àû¿ë */
 a.back-button[href$="/main"] {
     background-color: #003366 !important;
     color: #fff !important;
@@ -121,7 +121,7 @@ a.back-button[href$="/main"]:hover {
 .memo-cell { white-space: pre-wrap; word-break: break-all; text-align: left; }
 
 /* ==============================================
-    'ë‹¤ìŒ' ë²„íŠ¼ ìŠ¤íƒ€ì¼ ìˆ˜ì •
+    '´ÙÀ½' ¹öÆ° ½ºÅ¸ÀÏ ¼öÁ¤
    ==============================================
 */
 .footer-actions {
@@ -129,12 +129,12 @@ a.back-button[href$="/main"]:hover {
 }
 #load-next-btn {
     display: block;
-    width: 100%; /* ë„ˆë¹„ë¥¼ 100%ë¡œ ì„¤ì •í•˜ì—¬ ê¸¸ê²Œ ë§Œë“¦ */
+    width: 100%; /* ³Êºñ¸¦ 100%·Î ¼³Á¤ÇÏ¿© ±æ°Ô ¸¸µê */
     padding: 12px 20px;
     font-size: 16px;
     font-weight: bold;
     color: white;
-    background-color: #0b4e7b; /* ê²€ìƒ‰ ë²„íŠ¼ê³¼ ë™ì¼í•œ ìƒ‰ìƒ */
+    background-color: #0b4e7b; /* °Ë»ö ¹öÆ°°ú µ¿ÀÏÇÑ »ö»ó */
     border: none;
     border-radius: 5px;
     cursor: pointer;

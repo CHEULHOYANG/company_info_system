@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>4ëŒ€ë³´í—˜ë£Œ ê³„ì‚°ê¸°</title>
+    <title>4´ëº¸Çè·á °è»ê±â</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .ins-tax-container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
@@ -23,53 +23,53 @@
 <body>
     <div class="ins-tax-container">
         <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">ë©”ì¸ìœ¼ë¡œ</a>
+            <a href="{{ url_for('main') }}" class="main-btn">¸ŞÀÎÀ¸·Î</a>
         </div>
-        <div class="ins-tax-title">4ëŒ€ë³´í—˜ë£Œ ê³„ì‚°ê¸°</div>
+        <div class="ins-tax-title">4´ëº¸Çè·á °è»ê±â</div>
         <form class="ins-tax-form" id="insTaxForm" onsubmit="return false;">
-            <label>ê¸‰ì—¬ì•¡</label>
+            <label>±Ş¿©¾×</label>
             <div style="display:flex;gap:10px;margin-bottom:10px;">
-                <label style="font-weight:400;"><input type="radio" name="salaryType" value="month" checked> ì›”ê¸‰</label>
-                <label style="font-weight:400;"><input type="radio" name="salaryType" value="year"> ì—°ë´‰</label>
+                <label style="font-weight:400;"><input type="radio" name="salaryType" value="month" checked> ¿ù±Ş</label>
+                <label style="font-weight:400;"><input type="radio" name="salaryType" value="year"> ¿¬ºÀ</label>
             </div>
-            <input type="text" id="salary" required pattern="[0-9,]*" placeholder="ì˜ˆ: 3,000,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ë¹„ê³¼ì„¸ ê¸‰ì—¬ í¬í•¨í•œ ì´ì•¡ì„ ì…ë ¥í•©ë‹ˆë‹¤.</div>
-            <label>ë¹„ê³¼ì„¸ ê¸‰ì—¬(ì›)</label>
-            <input type="text" id="taxFree" value="0" required pattern="[0-9,]*" placeholder="ì˜ˆ: 200,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ë¹„ê³¼ì„¸ì—ëŠ” ì‹ëŒ€, ìê°€ìš´ì „ ë³´ì¡°ê¸ˆ ë“±ì´ í¬í•¨ë©ë‹ˆë‹¤.</div>
-            <label>ë¶€ì–‘ê°€ì¡±ìˆ˜ ì„ íƒ</label>
+            <input type="text" id="salary" required pattern="[0-9,]*" placeholder="¿¹: 3,000,000">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ºñ°ú¼¼ ±Ş¿© Æ÷ÇÔÇÑ ÃÑ¾×À» ÀÔ·ÂÇÕ´Ï´Ù.</div>
+            <label>ºñ°ú¼¼ ±Ş¿©(¿ø)</label>
+            <input type="text" id="taxFree" value="0" required pattern="[0-9,]*" placeholder="¿¹: 200,000">
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ºñ°ú¼¼¿¡´Â ½Ä´ë, ÀÚ°¡¿îÀü º¸Á¶±İ µîÀÌ Æ÷ÇÔµË´Ï´Ù.</div>
+            <label>ºÎ¾ç°¡Á·¼ö ¼±ÅÃ</label>
             <select id="familyCount">
-                <option value="1">1ëª…</option>
-                <option value="2">2ëª…</option>
-                <option value="3">3ëª…</option>
-                <option value="4">4ëª…</option>
-                <option value="5">5ëª…</option>
-                <option value="6">6ëª…</option>
+                <option value="1">1¸í</option>
+                <option value="2">2¸í</option>
+                <option value="3">3¸í</option>
+                <option value="4">4¸í</option>
+                <option value="5">5¸í</option>
+                <option value="6">6¸í</option>
             </select>
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ë³¸ì¸ì„ í¬í•¨í•œ ë¶€ì–‘ê°€ì¡±ìˆ˜</div>
-            <label>ë¶€ì–‘ ëŒ€ìƒ ê°€ì¡± ì¤‘ 8ì„¸ ì´ìƒ 20ì„¸ ì´í•˜ ìë…€ìˆ˜</label>
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">º»ÀÎÀ» Æ÷ÇÔÇÑ ºÎ¾ç°¡Á·¼ö</div>
+            <label>ºÎ¾ç ´ë»ó °¡Á· Áß 8¼¼ ÀÌ»ó 20¼¼ ÀÌÇÏ ÀÚ³à¼ö</label>
             <select id="childCount">
-                <option value="0">0ëª…</option>
-                <option value="1">1ëª…</option>
-                <option value="2">2ëª…</option>
-                <option value="3">3ëª…</option>
-                <option value="4">4ëª…</option>
-                <option value="5">5ëª…</option>
+                <option value="0">0¸í</option>
+                <option value="1">1¸í</option>
+                <option value="2">2¸í</option>
+                <option value="3">3¸í</option>
+                <option value="4">4¸í</option>
+                <option value="5">5¸í</option>
             </select>
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ì „ì²´ ë¶€ì–‘ ëŒ€ìƒ ê°€ì¡± ì¤‘ 8ì„¸~20ì„¸ ì´í•˜ ìë…€ìˆ˜(ì—°ê°„ ì†Œë“ 100ë§Œì› ì´ˆê³¼ì‹œ ì œì™¸)</div>
-            <button type="submit">ê³„ì‚°</button>
+            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">ÀüÃ¼ ºÎ¾ç ´ë»ó °¡Á· Áß 8¼¼~20¼¼ ÀÌÇÏ ÀÚ³à¼ö(¿¬°£ ¼Òµæ 100¸¸¿ø ÃÊ°ú½Ã Á¦¿Ü)</div>
+            <button type="submit">°è»ê</button>
         </form>
         <div class="result-box" id="resultBox" style="display:none;"></div>
     </div>
     <script>
-    // 3ìë¦¬ ì½¤ë§ˆ
+    // 3ÀÚ¸® ÄŞ¸¶
     function addComma(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
     function removeComma(str) {
         return str.replace(/,/g, '');
     }
-    // ì…ë ¥ë€ ì½¤ë§ˆ ìë™
+    // ÀÔ·Â¶õ ÄŞ¸¶ ÀÚµ¿
     ['salary','taxFree'].forEach(id => {
         const el = document.getElementById(id);
         el.addEventListener('input', function(e) {
@@ -77,51 +77,51 @@
             if (val) this.value = addComma(Number(val));
         });
     });
-    // 2025ë…„ 4ëŒ€ë³´í—˜ ìš”ìœ¨(ì˜ˆì‹œ)
+    // 2025³â 4´ëº¸Çè ¿äÀ²(¿¹½Ã)
     const RATES = {
-        health: 0.0709, // ê±´ê°•ë³´í—˜
-        longterm: 0.1295, // ì¥ê¸°ìš”ì–‘ë³´í—˜(ê±´ê°•ë³´í—˜ë£Œì˜ 12.95%)
+        health: 0.0709, // °Ç°­º¸Çè
+        longterm: 0.1295, // Àå±â¿ä¾çº¸Çè(°Ç°­º¸Çè·áÀÇ 12.95%)
         pension: 0.090,
         employment: 0.009,
         employment_worker: 0.008,
         employment_employer: 0.009,
-        industrial: 0.0065 // ì‚°ì¬ë³´í—˜(ì‚¬ì—…ì£¼ ì „ì•¡)
+        industrial: 0.0065 // »êÀçº¸Çè(»ç¾÷ÁÖ Àü¾×)
     };
     document.getElementById('insTaxForm').addEventListener('submit', function() {
         let salary = parseInt(removeComma(document.getElementById('salary').value)) || 0;
         const salaryType = document.querySelector('input[name="salaryType"]:checked').value;
         const taxFree = parseInt(removeComma(document.getElementById('taxFree').value)) || 0;
-        // ì—°ë´‰ ì…ë ¥ ì‹œ ì›”í™˜ì‚°
+        // ¿¬ºÀ ÀÔ·Â ½Ã ¿ùÈ¯»ê
         if(salaryType==='year') salary = Math.floor(salary/12);
-        // 4ëŒ€ë³´í—˜ ê³„ì‚°(ë¹„ê³¼ì„¸ 20ë§Œì› ì´ˆê³¼ë¶„ë§Œ í¬í•¨)
+        // 4´ëº¸Çè °è»ê(ºñ°ú¼¼ 20¸¸¿ø ÃÊ°úºĞ¸¸ Æ÷ÇÔ)
         const salaryForIns = salary - Math.max(taxFree-200000,0);
-        // ê±´ê°•ë³´í—˜
+        // °Ç°­º¸Çè
         const health = Math.floor(salaryForIns * RATES.health);
-        // ì¥ê¸°ìš”ì–‘ë³´í—˜
+        // Àå±â¿ä¾çº¸Çè
         const longterm = Math.floor(health * RATES.longterm);
-        // êµ­ë¯¼ì—°ê¸ˆ
+        // ±¹¹Î¿¬±İ
         const pension = Math.floor(salaryForIns * RATES.pension);
-        // ê³ ìš©ë³´í—˜(ê·¼ë¡œì)
+        // °í¿ëº¸Çè(±Ù·ÎÀÚ)
         const employment = Math.floor(salaryForIns * RATES.employment_worker);
-        // ê³ ìš©ë³´í—˜(ì‚¬ì—…ì£¼)
+        // °í¿ëº¸Çè(»ç¾÷ÁÖ)
         const employmentEmp = Math.floor(salaryForIns * RATES.employment_employer);
-        // ì‚°ì¬ë³´í—˜(ì‚¬ì—…ì£¼)
+        // »êÀçº¸Çè(»ç¾÷ÁÖ)
         const industrial = Math.floor(salaryForIns * RATES.industrial);
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
         resultBox.innerHTML =
-            `<b>ì›” 4ëŒ€ë³´í—˜ë£Œ(ê·¼ë¡œì ë¶€ë‹´)</b><br>`+
-            `ê±´ê°•ë³´í—˜: <b>${addComma(health)}ì›</b><br>`+
-            `ì¥ê¸°ìš”ì–‘ë³´í—˜: <b>${addComma(longterm)}ì›</b><br>`+
-            `êµ­ë¯¼ì—°ê¸ˆ: <b>${addComma(pension)}ì›</b><br>`+
-            `ê³ ìš©ë³´í—˜: <b>${addComma(employment)}ì›</b><br>`+
+            `<b>¿ù 4´ëº¸Çè·á(±Ù·ÎÀÚ ºÎ´ã)</b><br>`+
+            `°Ç°­º¸Çè: <b>${addComma(health)}¿ø</b><br>`+
+            `Àå±â¿ä¾çº¸Çè: <b>${addComma(longterm)}¿ø</b><br>`+
+            `±¹¹Î¿¬±İ: <b>${addComma(pension)}¿ø</b><br>`+
+            `°í¿ëº¸Çè: <b>${addComma(employment)}¿ø</b><br>`+
             `<hr style='margin:10px 0;'>`+
-            `<b>ì›” 4ëŒ€ë³´í—˜ë£Œ(ì‚¬ì—…ì£¼ ë¶€ë‹´)</b><br>`+
-            `ê±´ê°•ë³´í—˜: <b>${addComma(health)}ì›</b><br>`+
-            `ì¥ê¸°ìš”ì–‘ë³´í—˜: <b>${addComma(longterm)}ì›</b><br>`+
-            `êµ­ë¯¼ì—°ê¸ˆ: <b>${addComma(pension)}ì›</b><br>`+
-            `ê³ ìš©ë³´í—˜: <b>${addComma(employmentEmp)}ì›</b><br>`+
-            `ì‚°ì¬ë³´í—˜: <b>${addComma(industrial)}ì›</b><br>`;
+            `<b>¿ù 4´ëº¸Çè·á(»ç¾÷ÁÖ ºÎ´ã)</b><br>`+
+            `°Ç°­º¸Çè: <b>${addComma(health)}¿ø</b><br>`+
+            `Àå±â¿ä¾çº¸Çè: <b>${addComma(longterm)}¿ø</b><br>`+
+            `±¹¹Î¿¬±İ: <b>${addComma(pension)}¿ø</b><br>`+
+            `°í¿ëº¸Çè: <b>${addComma(employmentEmp)}¿ø</b><br>`+
+            `»êÀçº¸Çè: <b>${addComma(industrial)}¿ø</b><br>`;
     });
     </script>
 </body>

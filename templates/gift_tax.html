@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ì¦ì—¬ì„¸ ê³„ì‚°ê¸°</title>
+    <title>Áõ¿©¼¼ °è»ê±â</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .gift-tax-container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
@@ -20,58 +20,58 @@
 <body>
     <div class="gift-tax-container">
         <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">ë©”ì¸ìœ¼ë¡œ</a>
+            <a href="{{ url_for('main') }}" class="main-btn">¸ÞÀÎÀ¸·Î</a>
         </div>
-        <div class="gift-tax-title">ì¦ì—¬ì„¸ ê³„ì‚°ê¸°</div>
-        <button id="show-info-btn" type="button" style="width:100%;background:#208e4c;color:#fff;font-weight:600;padding:10px 0;border-radius:6px;margin-bottom:18px;">ì¦ì—¬ì„¸ìœ¨Â·ì¦ì—¬ê³µì œ ë³´ê¸°</button>
+        <div class="gift-tax-title">Áõ¿©¼¼ °è»ê±â</div>
+        <button id="show-info-btn" type="button" style="width:100%;background:#208e4c;color:#fff;font-weight:600;padding:10px 0;border-radius:6px;margin-bottom:18px;">Áõ¿©¼¼À²¡¤Áõ¿©°øÁ¦ º¸±â</button>
         <div id="tax-info-modal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);">
             <div style="background:#fff;max-width:700px;margin:60px auto;padding:32px 28px;border-radius:10px;position:relative;">
-                <button id="close-info-modal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">Ã—</button>
-                <h3 style="margin-top:0;color:#17506b;">ì¦ì—¬ì„¸ ì„¸ìœ¨ ë° ì¦ì—¬ ìž¬ì‚° ê³µì œì•¡ <span style="font-size:0.7em;color:#888;">*2025ë…„ ê¸°ì¤€</span></h3>
+                <button id="close-info-modal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">¡¿</button>
+                <h3 style="margin-top:0;color:#17506b;">Áõ¿©¼¼ ¼¼À² ¹× Áõ¿© Àç»ê °øÁ¦¾× <span style="font-size:0.7em;color:#888;">*2025³â ±âÁØ</span></h3>
                 <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
-                    <thead><tr style="background:#2980b9;color:#fff;"><th>ê³¼ì„¸í‘œì¤€</th><th>ì„¸ìœ¨</th><th>ëˆ„ì§„ê³µì œ</th></tr></thead>
+                    <thead><tr style="background:#2980b9;color:#fff;"><th>°ú¼¼Ç¥ÁØ</th><th>¼¼À²</th><th>´©Áø°øÁ¦</th></tr></thead>
                     <tbody style="text-align:center;">
-                        <tr><td>1ì–µ ì´í•˜</td><td>10%</td><td></td></tr>
-                        <tr><td>1ì–µ ì´ˆê³¼~5ì–µ ì´í•˜</td><td>20%</td><td>10,000,000ì›</td></tr>
-                        <tr><td>5ì–µ ì´ˆê³¼~10ì–µ ì´í•˜</td><td>30%</td><td>60,000,000ì›</td></tr>
-                        <tr><td>10ì–µ ì´ˆê³¼~30ì–µ ì´í•˜</td><td>40%</td><td>160,000,000ì›</td></tr>
-                        <tr><td>30ì–µ ì´ˆê³¼</td><td>50%</td><td>460,000,000ì›</td></tr>
+                        <tr><td>1¾ï ÀÌÇÏ</td><td>10%</td><td></td></tr>
+                        <tr><td>1¾ï ÃÊ°ú~5¾ï ÀÌÇÏ</td><td>20%</td><td>10,000,000¿ø</td></tr>
+                        <tr><td>5¾ï ÃÊ°ú~10¾ï ÀÌÇÏ</td><td>30%</td><td>60,000,000¿ø</td></tr>
+                        <tr><td>10¾ï ÃÊ°ú~30¾ï ÀÌÇÏ</td><td>40%</td><td>160,000,000¿ø</td></tr>
+                        <tr><td>30¾ï ÃÊ°ú</td><td>50%</td><td>460,000,000¿ø</td></tr>
                     </tbody>
                 </table>
-                <h4 style="margin-bottom:6px;">ì¦ì—¬ìž¬ì‚°ê³µì œì•¡</h4>
+                <h4 style="margin-bottom:6px;">Áõ¿©Àç»ê°øÁ¦¾×</h4>
                 <table style="width:100%;border-collapse:collapse;">
-                    <thead><tr style="background:#2980b9;color:#fff;"><th>ì¦ì—¬ìžì™€ì˜ ê´€ê³„</th><th>ì¦ì—¬ìž¬ì‚°ê³µì œì•¡(10ë…„ê°„)</th></tr></thead>
+                    <thead><tr style="background:#2980b9;color:#fff;"><th>Áõ¿©ÀÚ¿ÍÀÇ °ü°è</th><th>Áõ¿©Àç»ê°øÁ¦¾×(10³â°£)</th></tr></thead>
                     <tbody style="text-align:center;">
-                        <tr><td>ë°°ìš°ìž</td><td>6ì–µì›</td></tr>
-                        <tr><td>ì§ê³„ì¡´ì†(ê³„ë¶€,ê³„ëª¨ í¬í•¨)</td><td>5ì²œë§Œì›(ë¯¸ì„±ë…„ìž 2ì²œë§Œì›)</td></tr>
-                        <tr><td>ì§ê³„ë¹„ì†</td><td>5ì²œë§Œì›</td></tr>
-                        <tr><td>ê¸°íƒ€ì¹œì¡±(6ì´Œ ì´ë‚´ í˜ˆì¡±, 4ì´Œ ì´ë‚´ ì¸ì²™)</td><td>1ì²œë§Œì›</td></tr>
-                        <tr><td>ê·¸ ì™¸ì˜ ìž</td><td>0ì›</td></tr>
+                        <tr><td>¹è¿ìÀÚ</td><td>6¾ï¿ø</td></tr>
+                        <tr><td>Á÷°èÁ¸¼Ó(°èºÎ,°è¸ð Æ÷ÇÔ)</td><td>5Ãµ¸¸¿ø(¹Ì¼º³âÀÚ 2Ãµ¸¸¿ø)</td></tr>
+                        <tr><td>Á÷°èºñ¼Ó</td><td>5Ãµ¸¸¿ø</td></tr>
+                        <tr><td>±âÅ¸Ä£Á·(6ÃÌ ÀÌ³» Ç÷Á·, 4ÃÌ ÀÌ³» ÀÎÃ´)</td><td>1Ãµ¸¸¿ø</td></tr>
+                        <tr><td>±× ¿ÜÀÇ ÀÚ</td><td>0¿ø</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
         <form class="gift-tax-form" id="giftTaxForm" onsubmit="return false;">
-            <label>í‰ê°€ì•¡(ì›)</label>
-            <input type="text" id="appraisedValue" required pattern="[0-9,]*" placeholder="ì˜ˆ: 100,000,000">
-            <label>ì±„ë¬´ì•¡(ì›)</label>
-            <input type="text" id="debtValue" required pattern="[0-9,]*" placeholder="ì˜ˆ: 20,000,000">
-            <label>ì¦ì—¬ìžì™€ì˜ ê´€ê³„</label>
+            <label>Æò°¡¾×(¿ø)</label>
+            <input type="text" id="appraisedValue" required pattern="[0-9,]*" placeholder="¿¹: 100,000,000">
+            <label>Ã¤¹«¾×(¿ø)</label>
+            <input type="text" id="debtValue" required pattern="[0-9,]*" placeholder="¿¹: 20,000,000">
+            <label>Áõ¿©ÀÚ¿ÍÀÇ °ü°è</label>
             <select id="relation">
-                <option value="spouse">ë°°ìš°ìž</option>
-                <option value="parent">ì§ê³„ì¡´ì†(ê³„ë¶€,ê³„ëª¨ í¬í•¨)</option>
-                <option value="descendant">ì§ê³„ë¹„ì†</option>
-                <option value="relative">ê¸°íƒ€ì¹œì¡±(6ì´Œ ì´ë‚´ í˜ˆì¡±, 4ì´Œ ì´ë‚´ ì¸ì²™)</option>
-                <option value="other">ê·¸ ì™¸ì˜ ìž</option>
+                <option value="spouse">¹è¿ìÀÚ</option>
+                <option value="parent">Á÷°èÁ¸¼Ó(°èºÎ,°è¸ð Æ÷ÇÔ)</option>
+                <option value="descendant">Á÷°èºñ¼Ó</option>
+                <option value="relative">±âÅ¸Ä£Á·(6ÃÌ ÀÌ³» Ç÷Á·, 4ÃÌ ÀÌ³» ÀÎÃ´)</option>
+                <option value="other">±× ¿ÜÀÇ ÀÚ</option>
             </select>
-            <label>ê³µì œì•¡(ì›, ìžë™ë°˜ì˜)</label>
-            <input type="text" id="deduction" required pattern="[0-9,]*" placeholder="ê³µì œì•¡ ìžë™ìž…ë ¥" readonly style="background:#f2f2f2;">
-            <button type="submit">ê³„ì‚°í•˜ê¸°</button>
+            <label>°øÁ¦¾×(¿ø, ÀÚµ¿¹Ý¿µ)</label>
+            <input type="text" id="deduction" required pattern="[0-9,]*" placeholder="°øÁ¦¾× ÀÚµ¿ÀÔ·Â" readonly style="background:#f2f2f2;">
+            <button type="submit">°è»êÇÏ±â</button>
         </form>
         <div class="result-box" id="resultBox" style="display:none;"></div>
     </div>
     <script>
-    // ì¦ì—¬ì„¸ìœ¨/ê³µì œì•¡ ì•ˆë‚´ ëª¨ë‹¬
+    // Áõ¿©¼¼À²/°øÁ¦¾× ¾È³» ¸ð´Þ
     document.getElementById('show-info-btn').onclick = function() {
         document.getElementById('tax-info-modal').style.display = 'block';
     };
@@ -79,7 +79,7 @@
         document.getElementById('tax-info-modal').style.display = 'none';
     };
 
-    // 3ìžë¦¬ë§ˆë‹¤ ì½¤ë§ˆ ìžë™ ìž…ë ¥
+    // 3ÀÚ¸®¸¶´Ù ÄÞ¸¶ ÀÚµ¿ ÀÔ·Â
     function addComma(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
@@ -89,7 +89,7 @@
     function setDeductionByRelation() {
         const deductionMap = {
             spouse: 600000000,
-            parent: 50000000, // ë¯¸ì„±ë…„ìž 20000000ì€ ë³„ë„ ì²˜ë¦¬ í•„ìš”
+            parent: 50000000, // ¹Ì¼º³âÀÚ 20000000Àº º°µµ Ã³¸® ÇÊ¿ä
             descendant: 50000000,
             relative: 10000000,
             other: 0
@@ -100,7 +100,7 @@
     document.getElementById('relation').addEventListener('change', setDeductionByRelation);
     setDeductionByRelation();
 
-    // ìž…ë ¥ëž€ì— 3ìžë¦¬ë§ˆë‹¤ ì½¤ë§ˆ ìžë™
+    // ÀÔ·Â¶õ¿¡ 3ÀÚ¸®¸¶´Ù ÄÞ¸¶ ÀÚµ¿
     ['appraisedValue','debtValue'].forEach(id => {
         const el = document.getElementById(id);
         el.addEventListener('input', function(e) {
@@ -115,7 +115,7 @@
         const deduction = parseInt(removeComma(document.getElementById('deduction').value)) || 0;
         const taxable = Math.max(appraisedValue - debtValue - deduction, 0);
 
-        // ëˆ„ì§„ê³µì œí‘œ (ì› ë‹¨ìœ„)
+        // ´©Áø°øÁ¦Ç¥ (¿ø ´ÜÀ§)
         const brackets = [
             { limit: 100000000, rate: 0.1, minus: 0 },
             { limit: 500000000, rate: 0.2, minus: 10000000 },
@@ -136,7 +136,7 @@
 
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
-        resultBox.innerHTML = `ê³¼ì„¸í‘œì¤€: <b>${addComma(taxable)}ì›</b><br>ì¦ì—¬ì„¸: <b>${addComma(tax)}ì›</b>`;
+        resultBox.innerHTML = `°ú¼¼Ç¥ÁØ: <b>${addComma(taxable)}¿ø</b><br>Áõ¿©¼¼: <b>${addComma(tax)}¿ø</b>`;
     });
     </script>
 </body>

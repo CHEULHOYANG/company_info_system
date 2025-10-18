@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ì–‘ë„ì†Œë“ì„¸ ê³„ì‚°ê¸°</title>
+    <title>¾çµµ¼Òµæ¼¼ °è»ê±â</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .transfer-tax-container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
@@ -23,56 +23,56 @@
 <body>
     <div class="transfer-tax-container">
         <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">ë©”ì¸ìœ¼ë¡œ</a>
+            <a href="{{ url_for('main') }}" class="main-btn">¸ŞÀÎÀ¸·Î</a>
         </div>
-        <div class="transfer-tax-title">ì–‘ë„ì†Œë“ì„¸ ê³„ì‚°ê¸°</div>
+        <div class="transfer-tax-title">¾çµµ¼Òµæ¼¼ °è»ê±â</div>
         <div class="tax-type-btns">
-            <button type="button" class="tax-type-btn" onclick="showTaxRate('land')">í† ì§€ ì–‘ë„ì„¸ìœ¨</button>
-            <button type="button" class="tax-type-btn" onclick="showTaxRate('house')">ì£¼íƒ ì–‘ë„ì„¸ìœ¨</button>
+            <button type="button" class="tax-type-btn" onclick="showTaxRate('land')">ÅäÁö ¾çµµ¼¼À²</button>
+            <button type="button" class="tax-type-btn" onclick="showTaxRate('house')">ÁÖÅÃ ¾çµµ¼¼À²</button>
         </div>
         <form class="transfer-tax-form" id="transferTaxForm" onsubmit="return false;">
-            <label>ì–‘ë„ì¼ì</label>
+            <label>¾çµµÀÏÀÚ</label>
             <input type="date" id="transferDate" required>
-            <label>ì·¨ë“ì¼ì</label>
+            <label>ÃëµæÀÏÀÚ</label>
             <input type="date" id="acquireDate" required>
-            <label>ì‹¤ì œì–‘ë„ê°€ì•¡(ì›)</label>
-            <input type="text" id="transferPrice" required pattern="[0-9,]*" placeholder="ì˜ˆ: 500,000,000">
-            <label>ì‹¤ì œì·¨ë“ê°€ì•¡(ì›)</label>
-            <input type="text" id="acquirePrice" required pattern="[0-9,]*" placeholder="ì˜ˆ: 120,000,000">
-            <label>í•„ìš”ê²½ë¹„(ì›)</label>
-            <input type="text" id="expense" required pattern="[0-9,]*" placeholder="ì˜ˆ: 2,000,000">
-            <label>ë¹„ì‚¬ì—…ìš©í† ì§€ í•´ë‹¹ì—¬ë¶€</label>
+            <label>½ÇÁ¦¾çµµ°¡¾×(¿ø)</label>
+            <input type="text" id="transferPrice" required pattern="[0-9,]*" placeholder="¿¹: 500,000,000">
+            <label>½ÇÁ¦Ãëµæ°¡¾×(¿ø)</label>
+            <input type="text" id="acquirePrice" required pattern="[0-9,]*" placeholder="¿¹: 120,000,000">
+            <label>ÇÊ¿ä°æºñ(¿ø)</label>
+            <input type="text" id="expense" required pattern="[0-9,]*" placeholder="¿¹: 2,000,000">
+            <label>ºñ»ç¾÷¿ëÅäÁö ÇØ´ç¿©ºÎ</label>
             <select id="nonBusinessLand">
-                <option value="no">ì•„ë‹ˆì˜¤</option>
-                <option value="yes">ì˜ˆ</option>
+                <option value="no">¾Æ´Ï¿À</option>
+                <option value="yes">¿¹</option>
             </select>
-            <label>ì–‘ë„í•˜ëŠ” í† ì§€ ì§€ì •ì§€ì—­ í•´ë‹¹ì—¬ë¶€</label>
+            <label>¾çµµÇÏ´Â ÅäÁö ÁöÁ¤Áö¿ª ÇØ´ç¿©ºÎ</label>
             <select id="designatedArea">
-                <option value="no">ì•„ë‹ˆì˜¤</option>
-                <option value="yes">ì˜ˆ</option>
+                <option value="no">¾Æ´Ï¿À</option>
+                <option value="yes">¿¹</option>
             </select>
-            <label>ì–‘ë„ì†Œë“ê¸°ë³¸ê³µì œ(ì›)</label>
+            <label>¾çµµ¼Òµæ±âº»°øÁ¦(¿ø)</label>
             <input type="text" id="basicDeduction" value="2,500,000" readonly style="background:#f2f2f2;">
-            <button type="submit">ê³„ì‚°í•˜ê¸°</button>
+            <button type="submit">°è»êÇÏ±â</button>
         </form>
         <div class="result-box" id="resultBox" style="display:none;"></div>
     </div>
-    <!-- í† ì§€/ì£¼íƒ ì–‘ë„ì„¸ìœ¨ ëª¨ë‹¬ -->
+    <!-- ÅäÁö/ÁÖÅÃ ¾çµµ¼¼À² ¸ğ´Ş -->
     <div id="taxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);">
         <div style="background:#fff;max-width:700px;margin:60px auto;padding:32px 28px;border-radius:10px;position:relative;">
-            <button id="closeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">Ã—</button>
+            <button id="closeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">¡¿</button>
             <div id="taxRateContent"></div>
         </div>
     </div>
     <script>
-    // 3ìë¦¬ ì½¤ë§ˆ
+    // 3ÀÚ¸® ÄŞ¸¶
     function addComma(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
     function removeComma(str) {
         return str.replace(/,/g, '');
     }
-    // ì…ë ¥ë€ ì½¤ë§ˆ ìë™
+    // ÀÔ·Â¶õ ÄŞ¸¶ ÀÚµ¿
     ['transferPrice','acquirePrice','expense','basicDeduction'].forEach(id => {
         const el = document.getElementById(id);
         el.addEventListener('input', function(e) {
@@ -80,28 +80,28 @@
             if (val) this.value = addComma(Number(val));
         });
     });
-    // ì„¸ìœ¨ ì•ˆë‚´ ëª¨ë‹¬
+    // ¼¼À² ¾È³» ¸ğ´Ş
     function showTaxRate(type) {
         const modal = document.getElementById('taxRateModal');
         const content = document.getElementById('taxRateContent');
         if(type==='land') {
-            content.innerHTML = `<h3 style='color:#17506b;'>í† ì§€ ì–‘ë„ì„¸ìœ¨</h3><table style='width:100%;border-collapse:collapse;text-align:center;'><thead><tr style='background:#2980b9;color:#fff;'><th>ê³¼ì„¸í‘œì¤€</th><th>ì„¸ìœ¨</th><th>ëˆ„ì§„ê³µì œ</th></tr></thead><tbody><tr><td>1,200ë§Œì› ì´í•˜</td><td>6%</td><td></td></tr><tr><td>4,600ë§Œì› ì´í•˜</td><td>15%</td><td>1,080,000ì›</td></tr><tr><td>8,800ë§Œì› ì´í•˜</td><td>24%</td><td>5,220,000ì›</td></tr><tr><td>1ì–µ5ì²œë§Œì› ì´í•˜</td><td>35%</td><td>14,900,000ì›</td></tr><tr><td>3ì–µì› ì´í•˜</td><td>38%</td><td>19,400,000ì›</td></tr><tr><td>5ì–µì› ì´í•˜</td><td>40%</td><td>25,400,000ì›</td></tr><tr><td>10ì–µì› ì´í•˜</td><td>42%</td><td>45,400,000ì›</td></tr><tr><td>10ì–µì› ì´ˆê³¼</td><td>45%</td><td>75,400,000ì›</td></tr></tbody></table>`;
+            content.innerHTML = `<h3 style='color:#17506b;'>ÅäÁö ¾çµµ¼¼À²</h3><table style='width:100%;border-collapse:collapse;text-align:center;'><thead><tr style='background:#2980b9;color:#fff;'><th>°ú¼¼Ç¥ÁØ</th><th>¼¼À²</th><th>´©Áø°øÁ¦</th></tr></thead><tbody><tr><td>1,200¸¸¿ø ÀÌÇÏ</td><td>6%</td><td></td></tr><tr><td>4,600¸¸¿ø ÀÌÇÏ</td><td>15%</td><td>1,080,000¿ø</td></tr><tr><td>8,800¸¸¿ø ÀÌÇÏ</td><td>24%</td><td>5,220,000¿ø</td></tr><tr><td>1¾ï5Ãµ¸¸¿ø ÀÌÇÏ</td><td>35%</td><td>14,900,000¿ø</td></tr><tr><td>3¾ï¿ø ÀÌÇÏ</td><td>38%</td><td>19,400,000¿ø</td></tr><tr><td>5¾ï¿ø ÀÌÇÏ</td><td>40%</td><td>25,400,000¿ø</td></tr><tr><td>10¾ï¿ø ÀÌÇÏ</td><td>42%</td><td>45,400,000¿ø</td></tr><tr><td>10¾ï¿ø ÃÊ°ú</td><td>45%</td><td>75,400,000¿ø</td></tr></tbody></table>`;
         } else {
-            content.innerHTML = `<h3 style='color:#17506b;'>ì£¼íƒ ì–‘ë„ì„¸ìœ¨</h3><table style='width:100%;border-collapse:collapse;text-align:center;'><thead><tr style='background:#2980b9;color:#fff;'><th>ê³¼ì„¸í‘œì¤€</th><th>ì„¸ìœ¨</th><th>ëˆ„ì§„ê³µì œ</th></tr></thead><tbody><tr><td>1,200ë§Œì› ì´í•˜</td><td>6%</td><td></td></tr><tr><td>4,600ë§Œì› ì´í•˜</td><td>15%</td><td>1,080,000ì›</td></tr><tr><td>8,800ë§Œì› ì´í•˜</td><td>24%</td><td>5,220,000ì›</td></tr><tr><td>1ì–µ5ì²œë§Œì› ì´í•˜</td><td>35%</td><td>14,900,000ì›</td></tr><tr><td>3ì–µì› ì´í•˜</td><td>38%</td><td>19,400,000ì›</td></tr><tr><td>5ì–µì› ì´í•˜</td><td>40%</td><td>25,400,000ì›</td></tr><tr><td>10ì–µì› ì´í•˜</td><td>42%</td><td>45,400,000ì›</td></tr><tr><td>10ì–µì› ì´ˆê³¼</td><td>45%</td><td>75,400,000ì›</td></tr></tbody></table>`;
+            content.innerHTML = `<h3 style='color:#17506b;'>ÁÖÅÃ ¾çµµ¼¼À²</h3><table style='width:100%;border-collapse:collapse;text-align:center;'><thead><tr style='background:#2980b9;color:#fff;'><th>°ú¼¼Ç¥ÁØ</th><th>¼¼À²</th><th>´©Áø°øÁ¦</th></tr></thead><tbody><tr><td>1,200¸¸¿ø ÀÌÇÏ</td><td>6%</td><td></td></tr><tr><td>4,600¸¸¿ø ÀÌÇÏ</td><td>15%</td><td>1,080,000¿ø</td></tr><tr><td>8,800¸¸¿ø ÀÌÇÏ</td><td>24%</td><td>5,220,000¿ø</td></tr><tr><td>1¾ï5Ãµ¸¸¿ø ÀÌÇÏ</td><td>35%</td><td>14,900,000¿ø</td></tr><tr><td>3¾ï¿ø ÀÌÇÏ</td><td>38%</td><td>19,400,000¿ø</td></tr><tr><td>5¾ï¿ø ÀÌÇÏ</td><td>40%</td><td>25,400,000¿ø</td></tr><tr><td>10¾ï¿ø ÀÌÇÏ</td><td>42%</td><td>45,400,000¿ø</td></tr><tr><td>10¾ï¿ø ÃÊ°ú</td><td>45%</td><td>75,400,000¿ø</td></tr></tbody></table>`;
         }
         modal.style.display = 'block';
     }
     document.getElementById('closeTaxRateModal').onclick = function() {
         document.getElementById('taxRateModal').style.display = 'none';
     };
-    // ê³„ì‚°
+    // °è»ê
     document.getElementById('transferTaxForm').addEventListener('submit', function() {
         const transferPrice = parseInt(removeComma(document.getElementById('transferPrice').value)) || 0;
         const acquirePrice = parseInt(removeComma(document.getElementById('acquirePrice').value)) || 0;
         const expense = parseInt(removeComma(document.getElementById('expense').value)) || 0;
         const basicDeduction = parseInt(removeComma(document.getElementById('basicDeduction').value)) || 0;
         const gain = transferPrice - acquirePrice - expense - basicDeduction;
-        // ë‹¨ìˆœ ì˜ˆì‹œ: í† ì§€/ì£¼íƒ ë™ì¼ ëˆ„ì§„ê³µì œí‘œ ì ìš©
+        // ´Ü¼ø ¿¹½Ã: ÅäÁö/ÁÖÅÃ µ¿ÀÏ ´©Áø°øÁ¦Ç¥ Àû¿ë
         const brackets = [
             { limit: 12000000, rate: 0.06, minus: 0 },
             { limit: 46000000, rate: 0.15, minus: 1080000 },
@@ -124,7 +124,7 @@
         if (tax < 0) tax = 0;
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
-        resultBox.innerHTML = `ì–‘ë„ì°¨ìµ: <b>${addComma(gain)}ì›</b><br>ì–‘ë„ì†Œë“ì„¸(ì˜ˆìƒ): <b>${addComma(tax)}ì›</b>`;
+        resultBox.innerHTML = `¾çµµÂ÷ÀÍ: <b>${addComma(gain)}¿ø</b><br>¾çµµ¼Òµæ¼¼(¿¹»ó): <b>${addComma(tax)}¿ø</b>`;
     });
     </script>
 </body>
