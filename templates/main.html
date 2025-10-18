@@ -5,62 +5,296 @@
     <title>메인 대시보드</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a1f3b 0%, #1e3a5f 25%, #2d5a87 50%, #3b7eb0 75%, #4a9fd9 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255,255,255,0.05) 0%, transparent 50%);
+            z-index: 1;
+            pointer-events: none;
+        }
+        
         .dashboard-container {
             text-align: center;
-            padding-top: 100px;
+            padding: 80px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 2;
         }
+        
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #ffffff, #e0f2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            font-weight: 300;
+            margin-bottom: 60px;
+            opacity: 0.9;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
         .dashboard-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 900px;
+            width: 100%;
             margin-top: 40px;
         }
+        
         .dashboard-button {
-            display: inline-block;
-            background-color: #007bff;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            padding: 20px 40px;
-            margin: 0 20px;
-            border-radius: 8px;
+            padding: 25px 30px;
+            border-radius: 15px;
             text-decoration: none;
             font-size: 18px;
-            font-weight: bold;
-            transition: background-color 0.3s;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
+        
+        .dashboard-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
         .dashboard-button:hover {
-            background-color: #0056b3;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .dashboard-button:hover:before {
+            left: 100%;
+        }
+        
+        .dashboard-button.admin-button {
+            background: rgba(220, 53, 69, 0.2);
+            border-color: rgba(220, 53, 69, 0.4);
+        }
+        
+        .dashboard-button.admin-button:hover {
+            background: rgba(220, 53, 69, 0.3);
+            border-color: rgba(220, 53, 69, 0.6);
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .user-details {
+            text-align: right;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 3px;
+        }
+        
+        .user-role {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 3px;
+        }
+        
+        .subscription-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-top: 3px;
+            display: inline-block;
+        }
+        
+        .logout-button-new {
+            background: rgba(220, 53, 69, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(220, 53, 69, 0.5);
+        }
+        
+        .logout-button-new:hover {
+            background: rgba(220, 53, 69, 1);
+            transform: translateY(-1px);
+        }
+        
+        .category-buttons {
+            margin-top: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            max-width: 800px;
+        }
+        
+        .category-btn {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .category-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.5rem;
+            }
+            .dashboard-buttons {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .user-info {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 30px;
+                align-self: flex-end;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container dashboard-container">
-        <header>
-            <h1 style="margin-bottom:24px;">CT 파트너스 업무 시스템</h1>
-        </header>
-        <div class="dashboard-buttons">
-            <a href="{{ url_for('index') }}" class="dashboard-button">기업정보 조회</a>
-            <a href="{{ url_for('history_search') }}" class="dashboard-button">접촉이력 조회</a>
-            {% if can_manage_users %}
-            <a href="{{ url_for('user_management') }}" class="dashboard-button" style="background-color: #dc3545;">사용자 관리</a>
-            {% endif %}
-        </div>
-        <div style="position: absolute; top: 20px; right: 20px; text-align: right; display:flex; align-items:center; gap:10px;">
-            <div style="text-align: right;">
-                <div style="font-weight:bold; color:#333;">{{ user_name }}님 ({{ user_level_name }})</div>
-                <div style="font-size:12px; color:#666;">{{ branch_name }}</div>
+    <div class="dashboard-container">
+        <!-- 사용자 정보 섹션 -->
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name">{{ user_name }}님 ({{ user_level_name }})</div>
+                <div class="user-role">{{ branch_name }}</div>
+                {% if subscription_info %}
+                    {% if subscription_info.days_remaining > 0 %}
+                        <div class="subscription-status" style="color:#28a745; background:rgba(40,167,69,0.2);">
+                            {% if subscription_info.subscription_type == 'ANNUAL' %}
+                                연간 구독 ({{ subscription_info.days_remaining }}일 남음)
+                            {% elif subscription_info.subscription_type == 'MONTHLY' %}
+                                월간 구독 ({{ subscription_info.days_remaining }}일 남음)
+                            {% else %}
+                                무료 구독 ({{ subscription_info.days_remaining }}일 남음)
+                            {% endif %}
+                        </div>
+                    {% elif subscription_info.days_remaining == 0 %}
+                        <div class="subscription-status" style="color:#dc3545; background:rgba(220,53,69,0.2);">
+                            오늘 만료
+                        </div>
+                    {% else %}
+                        <div class="subscription-status" style="color:#dc3545; background:rgba(220,53,69,0.2);">
+                            구독 만료 ({{ subscription_info.days_remaining|abs }}일 지남)
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="subscription-status" style="color:#007bff; background:rgba(0,123,255,0.2);">
+                        첫달 무료 체험
+                    </div>
+                {% endif %}
             </div>
             <a href="{{ url_for('logout') }}" class="logout-button-new">로그아웃</a>
         </div>
 
+        <!-- 메인 타이틀 -->
+        <h1 class="main-title">CMS</h1>
+        <p class="subtitle">Company Management System</p>
+        
+        <!-- 대시보드 버튼들 -->
+        <div class="dashboard-buttons">
+            <a href="{{ url_for('index') }}" class="dashboard-button">
+                <div style="font-size: 20px; margin-bottom: 8px;">?</div>
+                기업정보 조회
+                <div style="font-size: 14px; opacity: 0.8; margin-top: 5px;">Company Database Search</div>
+            </a>
+            <a href="{{ url_for('history_search') }}" class="dashboard-button">
+                <div style="font-size: 20px; margin-bottom: 8px;">?</div>
+                접촉이력 조회
+                <div style="font-size: 14px; opacity: 0.8; margin-top: 5px;">Contact History Management</div>
+            </a>
+            {% if can_manage_users %}
+            <a href="{{ url_for('user_management') }}" class="dashboard-button admin-button">
+                <div style="font-size: 20px; margin-bottom: 8px;">??</div>
+                사용자 관리
+                <div style="font-size: 14px; opacity: 0.8; margin-top: 5px;">User & Subscription Management</div>
+            </a>
+            {% endif %}
+        </div>
+
         {% block content %}{% endblock %}
 
-        <!-- 하단 세금/보험/퇴직금 카테고리 버튼 영역 -->
-        <div style="margin-top:120px; display:flex; justify-content:center; gap:10px;">
-            <a href="{{ url_for('gift_tax') }}" class="category-btn" style="text-decoration:none;">증여세</a>
-            <a href="{{ url_for('transfer_tax') }}" class="category-btn" style="text-decoration:none;">양도세</a>
-            <a href="{{ url_for('income_tax') }}" class="category-btn" style="text-decoration:none;">종합소득세</a>
-            <a href="{{ url_for('social_ins_tax') }}" class="category-btn" style="text-decoration:none;">4대보험</a>
-            <a href="{{ url_for('acquisition_tax') }}" class="category-btn" style="text-decoration:none;">취득세</a>
-            <a href="{{ url_for('retirement_pay') }}" class="category-btn" style="text-decoration:none;">퇴직금</a>
-            <a href="{{ url_for('industrial_accident') }}" class="category-btn" style="text-decoration:none;margin-left:8px;">산재보상</a>
+        <!-- 카테고리 버튼 영역 -->
+        <div class="category-buttons">
+            <a href="{{ url_for('gift_tax') }}" class="category-btn">증여세</a>
+            <a href="{{ url_for('transfer_tax') }}" class="category-btn">양도세</a>
+            <a href="{{ url_for('income_tax') }}" class="category-btn">종합소득세</a>
+            <a href="{{ url_for('social_ins_tax') }}" class="category-btn">4대보험</a>
+            <a href="{{ url_for('acquisition_tax') }}" class="category-btn">취득세</a>
+            <a href="{{ url_for('retirement_pay') }}" class="category-btn">퇴직금</a>
+            <a href="{{ url_for('industrial_accident') }}" class="category-btn">산재보상</a>
         </div>
+    </div>
     </div>
     <style>
         .category-btn {

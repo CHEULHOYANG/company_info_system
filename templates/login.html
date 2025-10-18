@@ -2,26 +2,579 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Î°úÍ∑∏Ïù∏</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS - Company Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a1f3b 0%, #1e3a5f 25%, #2d5a87 50%, #3b7eb0 75%, #4a9fd9 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .login-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            width: 400px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .login-title {
+            text-align: center;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .login-subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            color: rgba(255, 255, 255, 0.9);
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+        
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 123, 255, 0.3);
+        }
+        
+        .error-message {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.4);
+            color: #ff6b8a;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .signup-section {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .signup-button {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid rgba(40, 167, 69, 0.4);
+            color: #4ade80;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .signup-button:hover {
+            background: rgba(40, 167, 69, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .pricing-info {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 123, 255, 0.1);
+            border: 1px solid rgba(0, 123, 255, 0.3);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+        }
+        
+        .pricing-highlight {
+            color: #4dabf7;
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .btn-link {
+            color: #4dabf7;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .btn-link:hover {
+            color: #74c0fc;
+            text-decoration: underline;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            color: white;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: white;
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                width: 90%;
+                padding: 30px 20px;
+            }
+            
+            .login-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
-<body class="login-body">
+<body>
     <div class="login-container">
-        <h2>Í∏∞ÏóÖ Ï†ïÎ≥¥ ÏãúÏä§ÌÖú Î°úÍ∑∏Ïù∏</h2>
+        <h1 class="login-title">CMS</h1>
+        <p class="login-subtitle">Company Management System</p>
+        
         {% if error %}
-            <p class="error">{{ error }}</p>
+            <div class="error-message">{{ error }}</div>
         {% endif %}
-        <form method="post">
+        
+        <form method="POST">
             <div class="form-group">
-                <label for="user_id">ÏïÑÏù¥Îîî</label>
-                <input type="text" id="user_id" name="user_id" required>
+                <label for="user_id">ªÁøÎ¿⁄ ID</label>
+                <input type="text" id="user_id" name="user_id" placeholder="ªÁøÎ¿⁄ ID∏¶ ¿‘∑¬«œººø‰" required>
             </div>
+            
             <div class="form-group">
-                <label for="password">ÎπÑÎ∞ÄÎ≤àÌò∏</label>
-                <input type="password" id="password" name="password" required>
+                <label for="password">∫Òπ–π¯»£</label>
+                <input type="password" id="password" name="password" placeholder="∫Òπ–π¯»£∏¶ ¿‘∑¬«œººø‰" required>
             </div>
-            <button type="submit">Î°úÍ∑∏Ïù∏</button>
+            
+            <button type="submit" class="login-button">∑Œ±◊¿Œ</button>
         </form>
+        
+        <div class="signup-section">
+            <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 10px;">∞Ë¡§¿Ã æ¯¿∏Ω≈∞°ø‰?</p>
+            <button type="button" class="signup-button" onclick="openSignupModal()">»∏ø¯∞°¿‘ Ω≈√ª</button>
+            <button type="button" class="signup-button" onclick="openResultModal()" style="margin-top: 10px; background: rgba(255, 193, 7, 0.2); border-color: rgba(255, 193, 7, 0.4); color: #ffc107;">Ω≈√ª ∞·∞˙ ¡∂»∏</button>
+        </div>
+        
+        <div class="pricing-info">
+            <span class="pricing-highlight">√π¥ﬁ π´∑· ¿ÃøÎ!</span>
+            <div>ø˘ ¿ÃøÎ∑·: 3,000ø¯ | ≥‚ ¿ÃøÎ∑·: 30,000ø¯</div>
+        </div>
     </div>
+
+    <!-- »∏ø¯∞°¿‘ ∏¥ﬁ -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSignupModal()">&times;</span>
+            <h2>»∏ø¯∞°¿‘ Ω≈√ª</h2>
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="signup_user_id">»Ò∏¡ ªÁøÎ¿⁄ ID</label>
+                    <input type="text" id="signup_user_id" name="user_id" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup_name">¿Ã∏ß</label>
+                    <input type="text" id="signup_name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup_phone">ø¨∂Ù√≥</label>
+                    <input type="tel" id="signup_phone" name="phone" required>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="signup_email_local">¿Ã∏ﬁ¿œ</label>
+                        <input type="text" id="signup_email_local" name="email_local" placeholder="¿Ã∏ﬁ¿œ æ∆¿Ãµ" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>&nbsp;</label>
+                        <select id="signup_email_domain" name="email_domain" style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                            <option value="gmail.com">@gmail.com</option>
+                            <option value="naver.com">@naver.com</option>
+                            <option value="daum.net">@daum.net</option>
+                            <option value="yahoo.com">@yahoo.com</option>
+                            <option value="hotmail.com">@hotmail.com</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="signup_birth_year">ª˝≥‚ø˘¿œ</label>
+                        <select id="signup_birth_year" name="birth_year" style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                            <option value="1990">1990≥‚</option>
+                            <option value="1991">1991≥‚</option>
+                            <option value="1992">1992≥‚</option>
+                            <option value="1993">1993≥‚</option>
+                            <option value="1994">1994≥‚</option>
+                            <option value="1995">1995≥‚</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>&nbsp;</label>
+                        <select id="signup_birth_month" name="birth_month" style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                            <option value="01">1ø˘</option>
+                            <option value="02">2ø˘</option>
+                            <option value="03">3ø˘</option>
+                            <option value="04">4ø˘</option>
+                            <option value="05">5ø˘</option>
+                            <option value="06">6ø˘</option>
+                            <option value="07">7ø˘</option>
+                            <option value="08">8ø˘</option>
+                            <option value="09">9ø˘</option>
+                            <option value="10">10ø˘</option>
+                            <option value="11">11ø˘</option>
+                            <option value="12">12ø˘</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>&nbsp;</label>
+                        <select id="signup_birth_day" name="birth_day" style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                            <option value="01">1¿œ</option>
+                            <option value="02">2¿œ</option>
+                            <option value="03">3¿œ</option>
+                            <option value="04">4¿œ</option>
+                            <option value="05">5¿œ</option>
+                            <option value="06">6¿œ</option>
+                            <option value="07">7¿œ</option>
+                            <option value="08">8¿œ</option>
+                            <option value="09">9¿œ</option>
+                            <option value="10">10¿œ</option>
+                            <option value="11">11¿œ</option>
+                            <option value="12">12¿œ</option>
+                            <option value="13">13¿œ</option>
+                            <option value="14">14¿œ</option>
+                            <option value="15">15¿œ</option>
+                            <option value="16">16¿œ</option>
+                            <option value="17">17¿œ</option>
+                            <option value="18">18¿œ</option>
+                            <option value="19">19¿œ</option>
+                            <option value="20">20¿œ</option>
+                            <option value="21">21¿œ</option>
+                            <option value="22">22¿œ</option>
+                            <option value="23">23¿œ</option>
+                            <option value="24">24¿œ</option>
+                            <option value="25">25¿œ</option>
+                            <option value="26">26¿œ</option>
+                            <option value="27">27¿œ</option>
+                            <option value="28">28¿œ</option>
+                            <option value="29">29¿œ</option>
+                            <option value="30">30¿œ</option>
+                            <option value="31">31¿œ</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup_gender">º∫∫∞</label>
+                    <select id="signup_gender" name="gender" style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; width: 100%;">
+                        <option value="M">≥≤º∫</option>
+                        <option value="F">ø©º∫</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup_position">¡˜√•</label>
+                    <input type="text" id="signup_position" name="position" placeholder="øπ: ∞˙¿Â, ¥Î∏Æ, ∆¿¿Â µÓ">
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup_branch">º“º” ¡ˆ¡°</label>
+                    <select id="signup_branch" name="branch" style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; width: 100%;">
+                        <option value="∫ªªÁ">∫ªªÁ</option>
+                        <option value="∞≠≥≤¡ˆ¡°">∞≠≥≤¡ˆ¡°</option>
+                        <option value="º≠√ ¡ˆ¡°">º≠√ ¡ˆ¡°</option>
+                        <option value="±‚≈∏">±‚≈∏ (¡˜¡¢¿‘∑¬)</option>
+                    </select>
+                    <input type="text" id="signup_branch_other" name="branch_other" placeholder="¡ˆ¡°∏Ì¿ª ¿‘∑¬«œººø‰" style="margin-top: 10px; display: none;">
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup_purpose">¿ÃøÎ∏Ò¿˚</label>
+                    <textarea id="signup_purpose" name="purpose" rows="3" style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; resize: vertical;" placeholder="Ω√Ω∫≈€ ¿ÃøÎ ∏Ò¿˚¿ª ∞£¥‹»˜ º≥∏Ì«ÿ¡÷ººø‰"></textarea>
+                </div>
+                
+                <button type="submit" class="login-button">Ω≈√ª«œ±‚</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ω≈√ª ∞·∞˙ ¡∂»∏ ∏¥ﬁ -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeResultModal()">&times;</span>
+            <h2>Ω≈√ª ∞·∞˙ ¡∂»∏</h2>
+            <form id="resultForm">
+                <div class="form-group">
+                    <label for="result_user_id">Ω≈√ª«— ªÁøÎ¿⁄ ID</label>
+                    <input type="text" id="result_user_id" name="user_id" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="result_name">¿Ã∏ß</label>
+                    <input type="text" id="result_name" name="name" required>
+                </div>
+                
+                <button type="submit" class="login-button">¡∂»∏«œ±‚</button>
+            </form>
+            
+            <div id="resultDisplay" style="display: none; margin-top: 20px;">
+                <!-- ¡∂»∏ ∞·∞˙∞° ø©±‚ø° «•Ω√µÀ¥œ¥Ÿ -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // »∏ø¯∞°¿‘ ∏¥ﬁ ø≠±‚/¥›±‚
+        function openSignupModal() {
+            document.getElementById('signupModal').style.display = 'block';
+        }
+        
+        function closeSignupModal() {
+            document.getElementById('signupModal').style.display = 'none';
+        }
+        
+        // Ω≈√ª ∞·∞˙ ¡∂»∏ ∏¥ﬁ ø≠±‚/¥›±‚
+        function openResultModal() {
+            document.getElementById('resultModal').style.display = 'block';
+        }
+        
+        function closeResultModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+        
+        // ¡ˆ¡° º±≈√ √≥∏Æ
+        document.getElementById('signup_branch').addEventListener('change', function() {
+            const otherInput = document.getElementById('signup_branch_other');
+            if (this.value === '±‚≈∏') {
+                otherInput.style.display = 'block';
+                otherInput.required = true;
+            } else {
+                otherInput.style.display = 'none';
+                otherInput.required = false;
+            }
+        });
+        
+        // »∏ø¯∞°¿‘ ∆˚ ¡¶√‚
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            
+            // ¿Ã∏ﬁ¿œ «’ƒ°±‚
+            data.email = data.email_local + '@' + data.email_domain;
+            
+            // ª˝≥‚ø˘¿œ «’ƒ°±‚
+            data.birth_date = data.birth_year + '-' + data.birth_month + '-' + data.birth_day;
+            
+            // ¡ˆ¡°∏Ì √≥∏Æ
+            if (data.branch === '±‚≈∏') {
+                data.branch_name = data.branch_other;
+            } else {
+                data.branch_name = data.branch;
+            }
+            
+            fetch('/api/signup-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('»∏ø¯∞°¿‘ Ω≈√ª¿Ã øœ∑·µ«æ˙Ω¿¥œ¥Ÿ. ∞¸∏Æ¿⁄ Ω¬¿Œ »ƒ ¿ÃøÎ ∞°¥…«’¥œ¥Ÿ.');
+                    closeSignupModal();
+                    this.reset();
+                } else {
+                    alert('ø¿∑˘: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ω≈√ª √≥∏Æ ¡ﬂ ø¿∑˘∞° πﬂª˝«ﬂΩ¿¥œ¥Ÿ.');
+            });
+        });
+        
+        // Ω≈√ª ∞·∞˙ ¡∂»∏ ∆˚ ¡¶√‚
+        document.getElementById('resultForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const userId = formData.get('user_id');
+            const name = formData.get('name');
+            
+            fetch(`/api/signup-request-result?user_id=${userId}&name=${name}`)
+            .then(response => response.json())
+            .then(result => {
+                const resultDisplay = document.getElementById('resultDisplay');
+                
+                if (result.success) {
+                    const request = result.data;
+                    let statusText = '';
+                    let statusColor = '';
+                    
+                    if (request.status === 'PENDING') {
+                        statusText = 'Ω…ªÁ¡ﬂ';
+                        statusColor = '#ffc107';
+                    } else if (request.status === 'APPROVED') {
+                        statusText = 'Ω¬¿Œµ ';
+                        statusColor = '#28a745';
+                    } else {
+                        statusText = '∞≈¿˝µ ';
+                        statusColor = '#dc3545';
+                    }
+                    
+                    resultDisplay.innerHTML = `
+                        <div style="padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                            <h3>Ω≈√ª ∞·∞˙</h3>
+                            <p><strong>ªÛ≈¬:</strong> <span style="color: ${statusColor};">${statusText}</span></p>
+                            <p><strong>Ω≈√ª¿œ:</strong> ${new Date(request.requested_date).toLocaleDateString()}</p>
+                            ${request.admin_notes ? `<p><strong>∞¸∏Æ¿⁄ ∏ﬁ∏:</strong> ${request.admin_notes}</p>` : ''}
+                            
+                            ${request.status === 'PENDING' ? `
+                                <div style="margin-top: 20px;">
+                                    <h4>Ω≈√ª ¡§∫∏ ºˆ¡§</h4>
+                                    <button onclick="editRequest('${request.id}')" class="signup-button">ºˆ¡§«œ±‚</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    resultDisplay.style.display = 'block';
+                } else {
+                    resultDisplay.innerHTML = `
+                        <div style="padding: 20px; background: rgba(220,53,69,0.2); border-radius: 10px; color: #ff6b8a;">
+                            ${result.message}
+                        </div>
+                    `;
+                    resultDisplay.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('¡∂»∏ ¡ﬂ ø¿∑˘∞° πﬂª˝«ﬂΩ¿¥œ¥Ÿ.');
+            });
+        });
+        
+        // ∏¥ﬁ ø‹∫Œ ≈¨∏Ø Ω√ ¥›±‚
+        window.onclick = function(event) {
+            const signupModal = document.getElementById('signupModal');
+            const resultModal = document.getElementById('resultModal');
+            
+            if (event.target === signupModal) {
+                closeSignupModal();
+            }
+            if (event.target === resultModal) {
+                closeResultModal();
+            }
+        }
+    </script>
 </body>
 </html>
