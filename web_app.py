@@ -3,6 +3,7 @@
 import os
 import sqlite3
 import io
+import time
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, Response, send_file
 from datetime import datetime
 import pytz
@@ -2713,7 +2714,6 @@ def add_sales_expense():
                 # 파일명 보안을 위해 secure_filename 사용
                 filename = secure_filename(file.filename)
                 # 중복 방지를 위해 타임스탬프 추가
-                import time
                 timestamp = str(int(time.time()))
                 filename = f"{timestamp}_{filename}"
                 
