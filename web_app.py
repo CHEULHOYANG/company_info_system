@@ -3,7 +3,7 @@
 import os
 import sqlite3
 import io
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for, Response
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for, Response, send_file
 from datetime import datetime
 import pytz
 import pandas as pd
@@ -49,6 +49,11 @@ class CP949FileSystemLoader(FileSystemLoader):
 # --- 기본 설정 ---
 app = Flask(__name__)
 app.secret_key = 'your_very_secret_key_12345'
+
+# 업로드 폴더 설정
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
 # 한국 시간대 설정
 KST = pytz.timezone('Asia/Seoul')
@@ -203,7 +208,7 @@ def init_user_tables():
                         user_id TEXT NOT NULL,
                         subscription_start_date DATE,
                         subscription_end_date DATE,
-                        subscription_type TEXT DEFAULT 'MONTHLY' CHECK (subscription_type IN ('MONTHLY', 'YEARLY')),
+                        subscription_type TEXT DEFAULT 'MONTHLY' CHECK (subscription_type IN ('MONTHLY', 'YEARLY', 'FREE')),
                         total_paid_amount INTEGER DEFAULT 0,
                         is_first_month_free BOOLEAN DEFAULT 1,
                         created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -747,10 +752,73 @@ def login():
             session['branch_code'] = user_info['branch_code']
             session['branch_name'] = user_info['branch_name']
             session['phone'] = user_info['phone']
+            
+            # 임시 비밀번호(password1!) 체크
+            if password == 'password1!':
+                return redirect(url_for('change_password_first_time'))
+            
             return redirect(url_for('main'))
         else:
             error = '아이디 또는 비밀번호가 올바르지 않습니다.'
     return render_template('login.html', error=error)
+
+@app.route('/change-password-first-time', methods=['GET', 'POST'])
+def change_password_first_time():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # 현재 비밀번호가 임시 비밀번호인지 확인
+        if current_password != 'password1!':
+            return render_template('change_password_first.html', 
+                                 error='현재 비밀번호가 올바르지 않습니다.')
+        
+        # 새 비밀번호 확인
+        if new_password != confirm_password:
+            return render_template('change_password_first.html', 
+                                 error='새 비밀번호가 일치하지 않습니다.')
+        
+        # 비밀번호 복잡성 검증
+        if not validate_password(new_password):
+            return render_template('change_password_first.html', 
+                                 error='비밀번호는 8-20자리이며, 대문자, 소문자, 숫자, 특수문자를 각각 하나 이상 포함해야 합니다.')
+        
+        # 임시 비밀번호와 같으면 안됨
+        if new_password == 'password1!':
+            return render_template('change_password_first.html', 
+                                 error='임시 비밀번호와 같은 비밀번호는 사용할 수 없습니다.')
+        
+        user_id = session.get('user_id')
+        
+        # 비밀번호 변경
+        conn = get_db_connection()
+        try:
+            # 패스워드 이력 저장
+            save_password_history(user_id, new_password)
+            
+            # 비밀번호 업데이트
+            conn.execute('''
+                UPDATE Users SET 
+                    password=?, 
+                    password_changed_date=date('now'),
+                    updated_date=CURRENT_TIMESTAMP
+                WHERE user_id=?
+            ''', (new_password, user_id))
+            conn.commit()
+            
+            return redirect(url_for('main'))
+        except Exception as e:
+            conn.rollback()
+            return render_template('change_password_first.html', 
+                                 error=f'비밀번호 변경 중 오류가 발생했습니다: {str(e)}')
+        finally:
+            conn.close()
+    
+    return render_template('change_password_first.html')
 
 # --- index(홈) 페이지 라우트 추가 ---
 
@@ -858,9 +926,16 @@ def contact_history_csv():
     if not session.get('logged_in'):
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     if request.method == 'GET':
-        # 조건 없이 전체 Contact_History를 CSV로 반환
+        # 본인이 등록한 Contact_History만 CSV로 반환 (관리자는 전체 조회 가능)
         conn = get_db_connection()
-        rows = conn.execute('SELECT history_id, contact_datetime, biz_no, contact_type, contact_person, memo, registered_by FROM Contact_History ORDER BY history_id').fetchall()
+        user_level = session.get('user_level', 'N')
+        user_id = session.get('user_id')
+        
+        if user_level in ['V', 'S']:  # 최고관리자, 시스템관리자는 전체 조회
+            rows = conn.execute('SELECT history_id, contact_datetime, biz_no, contact_type, contact_person, memo, registered_by FROM Contact_History ORDER BY history_id').fetchall()
+        else:  # 일반 사용자는 본인 등록 건만 조회
+            rows = conn.execute('SELECT history_id, contact_datetime, biz_no, contact_type, contact_person, memo, registered_by FROM Contact_History WHERE registered_by = ? ORDER BY history_id', (user_id,)).fetchall()
+        
         conn.close()
         si = io.StringIO()
         cw = csv.writer(si)
@@ -1112,7 +1187,12 @@ def company_detail(biz_no):
         'additional': additional_info,
         'stock_valuation': stock_valuation
     }
-    return render_template('detail.html', company=company_data, is_popup=is_popup)
+    return render_template('detail.html', 
+                         company=company_data, 
+                         is_popup=is_popup,
+                         user_id=user_id,
+                         user_name=session.get('user_name'),
+                         user_level=session.get('user_level'))
 
 @app.route('/api/contact_history', methods=['POST', 'PUT'])
 def handle_contact_history():
@@ -1279,6 +1359,158 @@ def expense_management():
     return render_template('expense_management.html', **user_data)
 
 # --- 영업관리 통합 라우트 ---
+@app.route('/view_receipt/<int:expense_id>')
+def view_receipt(expense_id):
+    """영수증 파일 보기 (여러 파일 지원)"""
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+        
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 사용자가 등록한 영수증만 또는 승인자는 모든 영수증 조회
+        if session.get('user_level') in ['V', 'S', 'M']:
+            cursor.execute('''
+                SELECT COALESCE(receipt_filename, receipt_image) as receipt_file
+                FROM Sales_Expenses 
+                WHERE id = ?
+            ''', (expense_id,))
+        else:
+            cursor.execute('''
+                SELECT COALESCE(receipt_filename, receipt_image) as receipt_file
+                FROM Sales_Expenses 
+                WHERE id = ? AND registered_by = ?
+            ''', (expense_id, session.get('user_id')))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if not result or not result[0]:
+            return "영수증 파일을 찾을 수 없습니다.", 404
+            
+        receipt_files = result[0]
+        
+        # 여러 파일인 경우 콤마로 구분된 파일명들을 처리
+        if ',' in receipt_files:
+            file_list = receipt_files.split(',')
+            # 첫 번째 파일만 보여주거나, 여러 파일 목록 페이지로 리다이렉트
+            return f"""
+            <html>
+            <head><title>영수증 파일 목록</title></head>
+            <body>
+                <h3>영수증 파일 목록</h3>
+                <ul>
+                    {''.join([f'<li><a href="/view_single_receipt/{expense_id}/{i}" target="_blank">{filename}</a></li>' for i, filename in enumerate(file_list)])}
+                </ul>
+            </body>
+            </html>
+            """
+        else:
+            # 단일 파일인 경우
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], receipt_files)
+            
+            if not os.path.exists(file_path):
+                return "영수증 파일이 존재하지 않습니다.", 404
+                
+            return send_file(file_path)
+        
+    except Exception as e:
+        print(f"[RECEIPT_VIEW_ERROR] {str(e)}")
+        return f"영수증 보기 오류: {str(e)}", 500
+
+
+@app.route('/view_single_receipt/<int:expense_id>/<int:file_index>')
+def view_single_receipt(expense_id, file_index):
+    """개별 영수증 파일 보기"""
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+        
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        if session.get('user_level') in ['V', 'S', 'M']:
+            cursor.execute('''
+                SELECT COALESCE(receipt_filename, receipt_image) as receipt_file
+                FROM Sales_Expenses 
+                WHERE id = ?
+            ''', (expense_id,))
+        else:
+            cursor.execute('''
+                SELECT COALESCE(receipt_filename, receipt_image) as receipt_file
+                FROM Sales_Expenses 
+                WHERE id = ? AND registered_by = ?
+            ''', (expense_id, session.get('user_id')))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if not result or not result[0]:
+            return "영수증 파일을 찾을 수 없습니다.", 404
+            
+        receipt_files = result[0].split(',')
+        
+        if file_index >= len(receipt_files):
+            return "파일 인덱스가 잘못되었습니다.", 404
+            
+        filename = receipt_files[file_index]
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        if not os.path.exists(file_path):
+            return "영수증 파일이 존재하지 않습니다.", 404
+            
+        return send_file(file_path)
+        
+    except Exception as e:
+        print(f"[SINGLE_RECEIPT_VIEW_ERROR] {str(e)}")
+        return f"영수증 보기 오류: {str(e)}", 500
+        print(f"[RECEIPT_VIEW_ERROR] {str(e)}")
+        return f"영수증 보기 오류: {str(e)}", 500
+
+
+@app.route('/download_receipt/<int:expense_id>')
+def download_receipt(expense_id):
+    """영수증 파일 다운로드"""
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+        
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        if session.get('user_level') in ['V', 'S', 'M']:
+            cursor.execute('''
+                SELECT COALESCE(receipt_filename, receipt_image) as receipt_file
+                FROM Sales_Expenses 
+                WHERE id = ?
+            ''', (expense_id,))
+        else:
+            cursor.execute('''
+                SELECT COALESCE(receipt_filename, receipt_image) as receipt_file
+                FROM Sales_Expenses 
+                WHERE id = ? AND registered_by = ?
+            ''', (expense_id, session.get('user_id')))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if not result or not result[0]:
+            return "영수증 파일을 찾을 수 없습니다.", 404
+            
+        receipt_filename = result[0]
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], receipt_filename)
+        
+        if not os.path.exists(file_path):
+            return "영수증 파일이 존재하지 않습니다.", 404
+            
+        return send_file(file_path, as_attachment=True)
+        
+    except Exception as e:
+        print(f"[RECEIPT_DOWNLOAD_ERROR] {str(e)}")
+        return f"영수증 다운로드 오류: {str(e)}", 500
+
+
 @app.route('/sales_management')
 def sales_management():
     if not session.get('logged_in'):
@@ -1472,7 +1704,7 @@ def reset_password(user_id):
         return jsonify({"error": "Permission denied"}), 403
     
     data = request.json
-    new_password = data.get('new_password', 'password!')
+    new_password = data.get('new_password', 'password1!')
     
     conn = get_db_connection()
     try:
@@ -1503,16 +1735,75 @@ def reset_password(user_id):
     finally:
         conn.close()
 
+@app.route('/api/users/<user_id>/delete', methods=['DELETE'])
+def delete_user(user_id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_level = session.get('user_level', 'N')
+    current_user_id = session.get('user_id')
+    
+    # 최고관리자 권한 필요 (V)
+    if not check_permission(user_level, 'V'):
+        return jsonify({"error": "Permission denied"}), 403
+    
+    # 자기 자신은 삭제할 수 없음
+    if current_user_id == user_id:
+        return jsonify({"success": False, "message": "자기 자신은 삭제할 수 없습니다."}), 400
+    
+    conn = get_db_connection()
+    try:
+        # 사용자가 존재하는지 확인
+        user_info = conn.execute(
+            "SELECT user_id, name FROM Users WHERE user_id = ?", (user_id,)
+        ).fetchone()
+        
+        if not user_info:
+            return jsonify({"success": False, "message": "사용자를 찾을 수 없습니다."}), 404
+        
+        # 관련 테이블에서 데이터 삭제 (외래키 제약사항에 따라 순서대로)
+        # 1. 연락 이력 삭제
+        conn.execute("DELETE FROM Contact_History WHERE registered_by = ?", (user_id,))
+        
+        # 2. 패스워드 이력 삭제
+        conn.execute("DELETE FROM Password_History WHERE user_id = ?", (user_id,))
+        
+        # 3. 사용자 구독 정보 삭제
+        conn.execute("DELETE FROM User_Subscriptions WHERE user_id = ?", (user_id,))
+        
+        # 4. 사용자 삭제
+        conn.execute("DELETE FROM Users WHERE user_id = ?", (user_id,))
+        
+        conn.commit()
+        return jsonify({"success": True, "message": f"사용자 '{user_id} ({user_info['name']})'가 성공적으로 삭제되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": f"사용자 삭제 중 오류가 발생했습니다: {str(e)}"}), 500
+    finally:
+        conn.close()
+
 # --- 회원 가입 요청 API ---
 @app.route('/api/signup-request', methods=['POST'])
 def signup_request():
     data = request.json
     
+    # 디버그: 수신된 데이터 확인
+    print(f"회원가입 신청 데이터: {data}")
+    
     # 필수 필드 검증
-    required_fields = ['user_id', 'name', 'phone', 'email', 'branch_code', 'branch_name', 'birth_date', 'gender', 'position']
+    required_fields = ['user_id', 'name', 'phone', 'email', 'birth_date', 'gender', 'position']
     for field in required_fields:
         if not data.get(field):
+            print(f"누락된 필드: {field}")
             return jsonify({"success": False, "message": f"{field}는 필수 항목입니다."}), 400
+    
+    # branch_name이 없으면 기본값 설정
+    if not data.get('branch_name'):
+        data['branch_name'] = '미지정'
+    
+    # branch_code가 없으면 branch_name과 동일하게 설정
+    if not data.get('branch_code'):
+        data['branch_code'] = data['branch_name']
     
     conn = get_db_connection()
     try:
@@ -1631,12 +1922,13 @@ def process_signup_request(request_id):
             conn.execute('''
                 INSERT INTO Users 
                 (user_id, password, name, user_level, user_level_name, branch_code, branch_name, 
-                 phone, email, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 phone, email, birth_date, gender, position, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 signup_request['user_id'], default_password, signup_request['name'], 
                 'N', '일반담당자', signup_request['branch_code'], signup_request['branch_name'],
-                signup_request['phone'], signup_request['email'], 'ACTIVE'
+                signup_request['phone'], signup_request['email'], signup_request['birth_date'],
+                signup_request['gender'], signup_request['position'], 'ACTIVE'
             ))
             
             # 신청 상태 업데이트
@@ -1832,7 +2124,7 @@ def create_subscription():
         if subscription_type == 'monthly':
             db_subscription_type = 'MONTHLY'
         elif subscription_type == 'annual':
-            db_subscription_type = 'ANNUAL'
+            db_subscription_type = 'YEARLY'  # ANNUAL -> YEARLY로 변경
         elif subscription_type == 'free':
             db_subscription_type = 'FREE'
         else:
@@ -1859,7 +2151,7 @@ def create_subscription():
             
             # payment_type 설정
             payment_type = 'MONTHLY' if db_subscription_type == 'MONTHLY' else \
-                          'YEARLY' if db_subscription_type == 'ANNUAL' else 'SIGNUP'
+                          'YEARLY' if db_subscription_type == 'YEARLY' else 'SIGNUP'
             
             conn.execute('''
                 INSERT INTO Payment_History (user_id, payment_date, amount, payment_type, payment_method, notes)
@@ -1889,6 +2181,36 @@ def delete_subscription(user_id):
         conn.commit()
         return jsonify({"success": True, "message": "구독이 삭제되었습니다."})
     except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/payment_history/<int:payment_id>', methods=['DELETE'])
+def delete_payment_history(payment_id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_level = session.get('user_level', 'N')
+    if user_level not in ['V', 'S']:
+        return jsonify({"error": "Forbidden"}), 403
+    
+    conn = get_db_connection()
+    try:
+        # 삭제하기 전에 해당 결제 이력이 존재하는지 확인
+        payment = conn.execute(
+            "SELECT * FROM Payment_History WHERE id = ?", (payment_id,)
+        ).fetchone()
+        
+        if not payment:
+            return jsonify({"success": False, "message": "결제 이력을 찾을 수 없습니다."}), 404
+        
+        # 결제 이력 삭제
+        conn.execute("DELETE FROM Payment_History WHERE id = ?", (payment_id,))
+        conn.commit()
+        
+        return jsonify({"success": True, "message": "결제 이력이 삭제되었습니다."})
+    except Exception as e:
+        conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
@@ -2160,7 +2482,7 @@ def get_pioneering_targets():
                 SELECT p.*, u.name as visitor_name, c.company_name
                 FROM Pioneering_Targets p
                 LEFT JOIN Users u ON p.visitor_id = u.user_id
-                LEFT JOIN Company_Basic c ON p.biz_no = c.biz_no
+                LEFT JOIN Company_Basic c ON REPLACE(p.biz_no, '-', '') = c.biz_no
                 ORDER BY p.visit_date DESC, p.created_date DESC
             ''').fetchall()
         else:  # 일반 사용자는 본인 등록 타겟만 조회
@@ -2168,7 +2490,7 @@ def get_pioneering_targets():
                 SELECT p.*, u.name as visitor_name, c.company_name
                 FROM Pioneering_Targets p
                 LEFT JOIN Users u ON p.visitor_id = u.user_id
-                LEFT JOIN Company_Basic c ON p.biz_no = c.biz_no
+                LEFT JOIN Company_Basic c ON REPLACE(p.biz_no, '-', '') = c.biz_no
                 WHERE p.registered_by = ?
                 ORDER BY p.visit_date DESC, p.created_date DESC
             ''', (user_id,)).fetchall()
@@ -2180,26 +2502,54 @@ def get_pioneering_targets():
 @app.route('/api/pioneering_targets', methods=['POST'])
 def add_pioneering_target():
     if not session.get('logged_in'):
-        return jsonify({"error": "Unauthorized"}), 401
+        return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
     
-    data = request.json
+    try:
+        data = request.json
+    except Exception as e:
+        return jsonify({"success": False, "message": "잘못된 JSON 형식입니다."}), 400
+    
+    if not data:
+        return jsonify({"success": False, "message": "데이터가 전송되지 않았습니다."}), 400
+    
     user_id = session.get('user_id')
+    biz_no = data.get('biz_no')
+    visit_date = data.get('visit_date')
+    notes = data.get('notes', '')
+    visitor_id = data.get('visitor_id', user_id)
+    
+    if not biz_no or not visit_date:
+        return jsonify({"success": False, "message": "사업자번호와 방문일자는 필수입니다."}), 400
     
     conn = get_db_connection()
     try:
-        conn.execute('''
+        # 중복 확인
+        existing = conn.execute('''
+            SELECT id FROM Pioneering_Targets 
+            WHERE biz_no = ? AND visit_date = ? AND registered_by = ?
+        ''', (biz_no, visit_date, user_id)).fetchone()
+        
+        if existing:
+            return jsonify({"success": False, "message": "이미 해당 날짜에 등록한 기업입니다."})
+        
+        # 삽입
+        result = conn.execute('''
             INSERT INTO Pioneering_Targets 
             (biz_no, visit_date, visitor_id, notes, registered_by)
             VALUES (?, ?, ?, ?, ?)
-        ''', (
-            data.get('biz_no'), data.get('visit_date'), 
-            data.get('visitor_id', user_id), data.get('notes', ''), user_id
-        ))
+        ''', (biz_no, visit_date, visitor_id, notes, user_id))
+        
         conn.commit()
-        return jsonify({"success": True, "message": "개척 대상이 등록되었습니다."})
+        
+        return jsonify({
+            "success": True, 
+            "message": "개척 대상이 정상적으로 등록되었습니다.", 
+            "id": result.lastrowid
+        })
+        
     except Exception as e:
         conn.rollback()
-        return jsonify({"success": False, "message": str(e)}), 500
+        return jsonify({"success": False, "message": f"등록 중 오류가 발생했습니다: {str(e)}"}), 500
     finally:
         conn.close()
 
@@ -2309,14 +2659,22 @@ def get_sales_expenses():
         # 권한에 따른 조회 범위 설정
         if check_permission(user_level, 'S'):  # 관리자는 모든 비용 조회
             expenses = conn.execute('''
-                SELECT e.*, u.name as registered_by_name
+                SELECT e.id, e.expense_date, 
+                       COALESCE(e.expense_type, e.category) as expense_type, 
+                       e.amount, e.payment_method,
+                       e.description, e.receipt_image as receipt_file, e.registered_by,
+                       u.name as registered_by_name, e.created_date
                 FROM Sales_Expenses e
                 LEFT JOIN Users u ON e.registered_by = u.user_id
                 ORDER BY e.expense_date DESC
             ''').fetchall()
         else:  # 일반 사용자는 본인 등록 비용만 조회
             expenses = conn.execute('''
-                SELECT e.*, u.name as registered_by_name
+                SELECT e.id, e.expense_date, 
+                       COALESCE(e.expense_type, e.category) as expense_type, 
+                       e.amount, e.payment_method,
+                       e.description, e.receipt_image as receipt_file, e.registered_by,
+                       u.name as registered_by_name, e.created_date
                 FROM Sales_Expenses e
                 LEFT JOIN Users u ON e.registered_by = u.user_id
                 WHERE e.registered_by = ?
@@ -2334,26 +2692,54 @@ def add_sales_expense():
     
     user_id = session.get('user_id')
     
-    # 파일 업로드 처리
-    receipt_filename = None
-    if 'receipt_file' in request.files:
-        file = request.files['receipt_file']
-        if file and file.filename:
-            # 파일명 보안을 위해 secure_filename 사용
-            filename = secure_filename(file.filename)
-            # 실제 파일 저장 로직은 구현에 따라 달라질 수 있음
-            receipt_filename = filename
+    # 여러 파일 업로드 처리
+    receipt_filenames = []
+    if 'receipt_files' in request.files:
+        files = request.files.getlist('receipt_files')
+        
+        # 최대 3개 파일 제한
+        if len(files) > 3:
+            return jsonify({"error": "최대 3개의 파일만 업로드 가능합니다."}), 400
+        
+        for file in files:
+            if file and file.filename:
+                # 이미지 파일 형식 체크
+                allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'}
+                file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+                
+                if file_ext not in allowed_extensions:
+                    return jsonify({"error": "이미지 파일만 업로드 가능합니다."}), 400
+                
+                # 파일명 보안을 위해 secure_filename 사용
+                filename = secure_filename(file.filename)
+                # 중복 방지를 위해 타임스탬프 추가
+                import time
+                timestamp = str(int(time.time()))
+                filename = f"{timestamp}_{filename}"
+                
+                # 파일 저장
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                receipt_filenames.append(filename)
+    
+    # 파일명들을 JSON 형태로 저장 (여러 파일 지원)
+    receipt_data = ','.join(receipt_filenames) if receipt_filenames else None
     
     conn = get_db_connection()
     try:
         conn.execute('''
             INSERT INTO Sales_Expenses 
-            (expense_date, expense_type, amount, payment_method, description, receipt_file, registered_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (expense_date, category, expense_type, amount, payment_method, description, receipt_image, registered_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            request.form.get('expense_date'), request.form.get('expense_type'),
-            request.form.get('amount'), request.form.get('payment_method'),
-            request.form.get('description'), receipt_filename, user_id
+            request.form.get('expense_date'), 
+            request.form.get('expense_type'),  # category 필드
+            request.form.get('expense_type'),  # expense_type 필드 
+            request.form.get('amount'), 
+            request.form.get('payment_method', '개인카드'),  # 기본값 설정
+            request.form.get('description'), 
+            receipt_data, 
+            user_id
         ))
         conn.commit()
         return jsonify({"success": True, "message": "영업비용이 등록되었습니다."})
@@ -2393,24 +2779,33 @@ def update_sales_expense(expense_id):
         if receipt_filename:
             conn.execute('''
                 UPDATE Sales_Expenses SET 
-                    expense_date=?, expense_type=?, amount=?, payment_method=?, 
-                    description=?, receipt_file=?, updated_date=CURRENT_TIMESTAMP
+                    expense_date=?, category=?, expense_type=?, amount=?, payment_method=?, 
+                    description=?, receipt_image=?, updated_date=CURRENT_TIMESTAMP
                 WHERE id=?
             ''', (
-                request.form.get('expense_date'), request.form.get('expense_type'),
-                request.form.get('amount'), request.form.get('payment_method'),
-                request.form.get('description'), receipt_filename, expense_id
+                request.form.get('expense_date'), 
+                request.form.get('expense_type'),  # category
+                request.form.get('expense_type'),  # expense_type
+                request.form.get('amount'), 
+                request.form.get('payment_method'),
+                request.form.get('description'), 
+                receipt_filename, 
+                expense_id
             ))
         else:
             conn.execute('''
                 UPDATE Sales_Expenses SET 
-                    expense_date=?, expense_type=?, amount=?, payment_method=?, 
+                    expense_date=?, category=?, expense_type=?, amount=?, payment_method=?, 
                     description=?, updated_date=CURRENT_TIMESTAMP
                 WHERE id=?
             ''', (
-                request.form.get('expense_date'), request.form.get('expense_type'),
-                request.form.get('amount'), request.form.get('payment_method'),
-                request.form.get('description'), expense_id
+                request.form.get('expense_date'), 
+                request.form.get('expense_type'),  # category
+                request.form.get('expense_type'),  # expense_type
+                request.form.get('amount'), 
+                request.form.get('payment_method'),
+                request.form.get('description'), 
+                expense_id
             ))
         
         conn.commit()
@@ -2459,9 +2854,10 @@ def pioneering_targets_csv():
         conn = get_db_connection()
         rows = conn.execute('''
             SELECT p.id, p.biz_no, b.company_name, p.visit_date, p.visitor_id, 
-                   p.visit_status, p.memo, p.registered_by, p.created_date
+                   CASE WHEN p.is_visited = 1 THEN '완료' ELSE '예정' END as visit_status,
+                   p.notes, p.registered_by, p.created_date
             FROM Pioneering_Targets p
-            LEFT JOIN Company_Basic b ON p.biz_no = b.biz_no
+            LEFT JOIN Company_Basic b ON REPLACE(p.biz_no, '-', '') = b.biz_no
             ORDER BY p.id
         ''').fetchall()
         conn.close()
@@ -2470,8 +2866,12 @@ def pioneering_targets_csv():
         cw = csv.writer(si)
         cw.writerow(['번호', '사업자번호', '회사명', '방문일자', '방문자ID', '방문상태', '메모', '등록자', '등록일'])
         for row in rows:
-            cw.writerow([row['id'], row['biz_no'], row['company_name'], row['visit_date'], 
-                        row['visitor_id'], row['visit_status'], row['memo'], row['registered_by'], row['created_date']])
+            # 사업자번호와 방문일자에서 하이픈 제거
+            biz_no = row['biz_no'].replace('-', '') if row['biz_no'] else ''
+            visit_date = row['visit_date'].replace('-', '') if row['visit_date'] else ''
+            
+            cw.writerow([row['id'], biz_no, row['company_name'], visit_date, 
+                        row['visitor_id'], row['visit_status'], row['notes'], row['registered_by'], row['created_date']])
         
         output = si.getvalue().encode('utf-8-sig')
         return Response(output, mimetype='text/csv', 
@@ -2480,9 +2880,11 @@ def pioneering_targets_csv():
     else:
         # CSV 업로드
         if 'file' not in request.files:
-            return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
+            return jsonify({'success': False, 'message': '파일이 선택되지 않았습니다.'}), 400
         
         file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'message': '파일이 선택되지 않았습니다.'}), 400
         if not file.filename.endswith('.csv'):
             return jsonify({'success': False, 'message': 'CSV 파일만 업로드 가능합니다.'}), 400
         
@@ -2509,17 +2911,32 @@ def pioneering_targets_csv():
                 if not all([row.get('사업자번호'), row.get('방문일자'), row.get('방문자ID')]):
                     continue
                 
+                # 사업자번호와 방문일자 형식 정리 (하이픈 추가)
+                biz_no = row.get('사업자번호', '').replace('-', '')
+                if len(biz_no) == 10:  # 일반 사업자번호
+                    biz_no = f"{biz_no[:3]}-{biz_no[3:5]}-{biz_no[5:]}"
+                elif len(biz_no) == 13:  # 법인등록번호
+                    biz_no = f"{biz_no[:6]}-{biz_no[6:]}"
+                
+                visit_date = row.get('방문일자', '').replace('-', '')
+                if len(visit_date) == 8:  # YYYYMMDD 형식
+                    visit_date = f"{visit_date[:4]}-{visit_date[4:6]}-{visit_date[6:]}"
+                
+                # 방문상태를 is_visited로 변환
+                visit_status = row.get('방문상태', '예정')
+                is_visited = 1 if visit_status == '완료' else 0
+                
                 conn.execute('''
-                    INSERT INTO Pioneering_Targets (biz_no, visit_date, visitor_id, visit_status, memo, registered_by)
+                    INSERT INTO Pioneering_Targets (biz_no, visit_date, visitor_id, is_visited, notes, registered_by)
                     VALUES (?, ?, ?, ?, ?, ?)
                 ''', (
-                    row.get('사업자번호'), row.get('방문일자'), row.get('방문자ID'),
-                    row.get('방문상태', '예정'), row.get('메모', ''), user_id
+                    biz_no, visit_date, row.get('방문자ID'),
+                    is_visited, row.get('메모', ''), user_id
                 ))
                 inserted += 1
             
             conn.commit()
-            return jsonify({'success': True, 'message': f'{inserted}건의 개척대상이 등록되었습니다.'})
+            return jsonify({'success': True, 'message': f'{inserted}건의 개척대상이 등록되었습니다.', 'inserted': inserted})
         except Exception as e:
             conn.rollback()
             return jsonify({'success': False, 'message': str(e)}), 500
@@ -2610,12 +3027,64 @@ def sales_expenses_csv():
                 inserted += 1
             
             conn.commit()
-            return jsonify({'success': True, 'message': f'{inserted}건의 영업비용이 등록되었습니다.'})
+            return jsonify({'success': True, 'message': f'{inserted}건의 영업비용이 등록되었습니다.', 'inserted': inserted})
         except Exception as e:
             conn.rollback()
             return jsonify({'success': False, 'message': str(e)}), 500
         finally:
             conn.close()
+
+@app.route('/api/change-password', methods=['POST'])
+def api_change_password():
+    """비밀번호 변경 API"""
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
+    
+    data = request.get_json()
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+    
+    if not current_password or not new_password:
+        return jsonify({"success": False, "message": "현재 비밀번호와 새 비밀번호를 입력해주세요."}), 400
+    
+    # 비밀번호 복잡성 검사
+    import re
+    password_pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$'
+    if not re.match(password_pattern, new_password):
+        return jsonify({"success": False, "message": "비밀번호는 8-20자리로 대문자, 소문자, 숫자, 특수문자를 모두 포함해야 합니다."}), 400
+    
+    user_id = session.get('user_id')
+    
+    conn = get_db_connection()
+    try:
+        # 현재 비밀번호 확인
+        user = conn.execute("SELECT password FROM Users WHERE user_id = ?", (user_id,)).fetchone()
+        if not user:
+            return jsonify({"success": False, "message": "사용자를 찾을 수 없습니다."}), 404
+        
+        # 현재 비밀번호 검증 (단순 문자열 비교 또는 해시 비교)
+        if user['password'] != current_password:
+            return jsonify({"success": False, "message": "현재 비밀번호가 올바르지 않습니다."}), 400
+        
+        # 새 비밀번호로 업데이트
+        conn.execute("""
+            UPDATE Users 
+            SET password = ?, password_changed_date = CURRENT_TIMESTAMP, updated_date = CURRENT_TIMESTAMP
+            WHERE user_id = ?
+        """, (new_password, user_id))
+        
+        conn.commit()
+        
+        # 세션 초기화 (다시 로그인하도록)
+        session.clear()
+        
+        return jsonify({"success": True, "message": "비밀번호가 성공적으로 변경되었습니다."})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
 
 if __name__ == '__main__':
     # 앱 시작 시 테이블 초기화

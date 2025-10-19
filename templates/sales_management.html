@@ -329,10 +329,6 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3>영업비용/소득 관리</h3>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-secondary" onclick="downloadCSVTemplate()">CSV 템플릿</button>
-                    <button class="btn btn-success" onclick="downloadCSV()">CSV 다운로드</button>
-                    <input type="file" id="csvFileInputExpenses" accept=".csv" style="display: none;" onchange="uploadCSV()">
-                    <button class="btn btn-info" onclick="document.getElementById('csvFileInputExpenses').click()">CSV 업로드</button>
                     <button class="btn btn-primary" onclick="openExpenseModal()">+ 비용 등록</button>
                 </div>
             </div>
@@ -483,8 +479,10 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="receiptFile">영수증첨부</label>
-                    <input type="file" id="receiptFile" accept="image/*,.pdf">
+                    <label for="receiptFiles">영수증첨부 (최대 3개, 이미지 파일만)</label>
+                    <input type="file" id="receiptFiles" accept="image/*" multiple>
+                    <small style="color: #666; font-size: 12px;">지원 형식: JPG, PNG, GIF, BMP, WEBP (최대 3개 파일)</small>
+                    <div id="filePreview" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px;"></div>
                 </div>
                 
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
@@ -526,6 +524,24 @@
             evt.currentTarget.classList.add("active");
         }
         
+        // 기업 상세조회 팝업
+        function showCompanyDetail(bizNo) {
+            if (!bizNo || bizNo === '-') {
+                alert('사업자번호가 없어 상세조회를 할 수 없습니다.');
+                return;
+            }
+            
+            // 새 창으로 기업 상세조회 열기
+            const detailUrl = `/company/${bizNo.replace(/-/g, '')}`;
+            const popup = window.open(detailUrl, 'companyDetail', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+            
+            if (popup) {
+                popup.focus();
+            } else {
+                alert('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.');
+            }
+        }
+        
         // 개척대상 기업 관련 함수들
         async function loadPioneeringTargets() {
             try {
@@ -549,14 +565,14 @@
             }
             
             tableBody.innerHTML = dataToRender.map(target => `
-                <tr class="${target.is_visited ? 'visited-row' : ''}">
+                <tr class="${target.is_visited ? 'visited-row' : ''}" onclick="showCompanyDetail('${target.biz_no}')" style="cursor: pointer;">
                     <td>${target.visit_date}</td>
                     <td>${target.biz_no}</td>
                     <td>${target.company_name || '-'}</td>
                     <td>${target.visitor_name || target.visitor_id}</td>
                     <td>${target.is_visited ? '방문완료' : '방문예정'}</td>
                     <td>${target.created_date ? target.created_date.split('T')[0] : '-'}</td>
-                    <td>
+                    <td onclick="event.stopPropagation();">
                         ${!target.is_visited ? `<button class="btn btn-success" style="padding: 5px 10px; font-size: 12px;" onclick="markAsVisited(${target.id})">완료</button>` : ''}
                         <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deletePioneeringTarget(${target.id})">삭제</button>
                     </td>
@@ -680,7 +696,8 @@
                 });
                 const result = await response.json();
                 if (result.success) {
-                    alert(`${result.inserted}건이 등록되었습니다.`);
+                    const count = result.inserted || '알 수 없는';
+                    alert(`${count}건이 등록되었습니다.`);
                     loadPioneeringTargets();
                 } else {
                     alert(result.message);
@@ -761,7 +778,7 @@
                     <td class="amount-cell">${Number(expense.amount).toLocaleString()}원</td>
                     <td>${expense.payment_method}</td>
                     <td>${expense.description || '-'}</td>
-                    <td>${expense.receipt_file ? '<a href="#" onclick="viewReceipt(\'' + expense.receipt_file + '\')">보기</a>' : '-'}</td>
+                    <td>${expense.receipt_file ? (expense.receipt_file.includes(',') ? `<a href="#" onclick="viewReceipt(${expense.id})">파일 ${expense.receipt_file.split(',').length}개</a>` : `<a href="#" onclick="viewReceipt(${expense.id})">보기</a>`) : '-'}</td>
                     <td>${expense.registered_by_name || expense.registered_by}</td>
                     <td>
                         <button class="btn btn-success" style="padding: 5px 10px; font-size: 12px;" onclick="editExpense(${expense.id})">수정</button>
@@ -808,6 +825,9 @@
         
         function closeExpenseModal() {
             document.getElementById('expenseModal').style.display = 'none';
+            document.getElementById('expenseForm').reset();
+            document.getElementById('filePreview').innerHTML = '';
+            document.getElementById('expenseId').value = '';
         }
         
         function editExpense(id) {
@@ -854,9 +874,11 @@
             formData.append('payment_method', document.getElementById('paymentMethod').value);
             formData.append('description', document.getElementById('expenseDescription').value);
             
-            const receiptFile = document.getElementById('receiptFile').files[0];
-            if (receiptFile) {
-                formData.append('receipt_file', receiptFile);
+            const receiptFiles = document.getElementById('receiptFiles').files;
+            if (receiptFiles.length > 0) {
+                for (let i = 0; i < receiptFiles.length; i++) {
+                    formData.append('receipt_files', receiptFiles[i]);
+                }
             }
             
             try {
@@ -948,6 +970,64 @@
             
             renderContactHistoryTable(filtered);
         }
+        
+        // 영수증 보기 함수
+        function viewReceipt(expenseId) {
+            const url = `/view_receipt/${expenseId}`;
+            window.open(url, '_blank');
+        }
+        
+        // 파일 선택 처리 함수
+        document.getElementById('receiptFiles').addEventListener('change', function(e) {
+            const files = e.target.files;
+            
+            // 파일 개수 제한 체크
+            if (files.length > 3) {
+                alert('최대 3개의 파일만 선택할 수 있습니다.');
+                e.target.value = '';
+                document.getElementById('filePreview').innerHTML = '';
+                return;
+            }
+            
+            // 이미지 파일 형식 체크
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+            for (let i = 0; i < files.length; i++) {
+                if (!allowedTypes.includes(files[i].type)) {
+                    alert('이미지 파일만 업로드 가능합니다.');
+                    e.target.value = '';
+                    document.getElementById('filePreview').innerHTML = '';
+                    return;
+                }
+            }
+            
+            // 파일 미리보기 생성
+            const previewContainer = document.getElementById('filePreview');
+            previewContainer.innerHTML = '';
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.style.cssText = 'position: relative; display: inline-block; margin: 5px;';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px;';
+                    
+                    const fileName = document.createElement('div');
+                    fileName.textContent = file.name;
+                    fileName.style.cssText = 'font-size: 10px; text-align: center; margin-top: 2px; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+                    
+                    fileDiv.appendChild(img);
+                    fileDiv.appendChild(fileName);
+                    previewContainer.appendChild(fileDiv);
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        });
         
         // 모달 외부 클릭 시 닫기
         window.onclick = function(event) {

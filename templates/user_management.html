@@ -62,6 +62,7 @@
         .btn-success { background: #28a745; color: white; }
         .btn-warning { background: #ffc107; color: black; }
         .btn-danger { background: #dc3545; color: white; }
+        .btn-sm { padding: 4px 8px; font-size: 12px; }
         .status-active { color: green; font-weight: bold; }
         .status-inactive { color: red; font-weight: bold; }
         .level-v { background: #dc3545; color: white; padding: 2px 6px; border-radius: 3px; }
@@ -323,6 +324,7 @@
                         <th>금액</th>
                         <th>결제방법</th>
                         <th>메모</th>
+                        <th>관리</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -498,6 +500,8 @@
                             <td>
                                 <button class="btn btn-primary" onclick="editUser('${user.user_id}')">수정</button>
                                 <button class="btn btn-warning" onclick="openPasswordModal('${user.user_id}')">비밀번호</button>
+                                <button class="btn btn-danger" onclick="deleteUser('${user.user_id}', '${user.name}')" 
+                                        style="margin-left: 5px;">삭제</button>
                             </td>
                         `;
                         tbody.appendChild(row);
@@ -653,20 +657,20 @@
         }
 
         function resetPassword(userId) {
-            if (confirm(`사용자 "${userId}"의 비밀번호를 "password!"로 초기화하시겠습니까?`)) {
+            if (confirm(`사용자 "${userId}"의 비밀번호를 "password1!"로 초기화하시겠습니까?`)) {
                 fetch(`/api/users/${userId}/reset-password`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        new_password: 'password!'
+                        new_password: 'password1!'
                     })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('비밀번호가 "password!"로 초기화되었습니다.');
+                        alert('비밀번호가 "password1!"로 초기화되었습니다.');
                         loadUsers(); // 사용자 목록 새로고침
                     } else {
                         alert('오류: ' + data.message);
@@ -676,6 +680,33 @@
                     console.error('Error resetting password:', error);
                     alert('비밀번호 초기화 중 오류가 발생했습니다.');
                 });
+            }
+        }
+
+        function deleteUser(userId, userName) {
+            if (confirm(`정말로 사용자 "${userId} (${userName})"를 완전히 삭제하시겠습니까?\n\n삭제된 사용자는 복구할 수 없으며, 연락 이력 등 모든 관련 데이터가 함께 삭제됩니다.`)) {
+                // 두 번째 확인
+                if (confirm(`최종 확인: 사용자 "${userId}"를 삭제하시겠습니까?`)) {
+                    fetch(`/api/users/${userId}/delete`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('사용자가 성공적으로 삭제되었습니다.');
+                            loadUsers(); // 사용자 목록 새로고침
+                        } else {
+                            alert('오류: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting user:', error);
+                        alert('사용자 삭제 중 오류가 발생했습니다.');
+                    });
+                }
             }
         }
 
@@ -844,7 +875,7 @@
                         const status = daysRemaining > 0 ? '활성' : '만료';
                         const statusClass = daysRemaining > 0 ? 'status-active' : 'status-inactive';
                         
-                        const subscriptionTypeText = sub.subscription_type === 'ANNUAL' ? '연간' : 
+                        const subscriptionTypeText = sub.subscription_type === 'YEARLY' ? '연간' : 
                                                     sub.subscription_type === 'MONTHLY' ? '월간' : '무료';
                         
                         row.innerHTML = `
@@ -877,6 +908,9 @@
                             <td>${payment.amount.toLocaleString()}원</td>
                             <td>${getPaymentMethodText(payment.payment_method)}</td>
                             <td>${payment.notes || ''}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deletePayment(${payment.id}, '${payment.user_name}', '${payment.payment_date}')">삭제</button>
+                            </td>
                         `;
                         paymentsTable.appendChild(row);
                     });
@@ -932,7 +966,7 @@
                     if (subscription) {
                         document.getElementById('sub_user_id').value = subscription.user_id;
                         // DB 형식을 UI 형식으로 변환
-                        const uiSubscriptionType = subscription.subscription_type === 'ANNUAL' ? 'annual' : 
+                        const uiSubscriptionType = subscription.subscription_type === 'YEARLY' ? 'annual' : 
                                                  subscription.subscription_type === 'MONTHLY' ? 'monthly' : 'free';
                         document.getElementById('subscription_type').value = uiSubscriptionType;
                         document.getElementById('start_date').value = subscription.subscription_start_date;
@@ -961,6 +995,32 @@
                 .catch(error => {
                     console.error('Error deleting subscription:', error);
                     alert('구독 삭제 중 오류가 발생했습니다.');
+                });
+            }
+        }
+
+        // 결제 이력 삭제 함수
+        function deletePayment(paymentId, userName, paymentDate) {
+            if (confirm(`${userName}님의 ${paymentDate} 결제 이력을 삭제하시겠습니까?`)) {
+                fetch(`/api/payment_history/${paymentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('결제 이력이 삭제되었습니다.');
+                        // 사용자 목록과 결제 이력을 다시 로드
+                        loadUsers();
+                    } else {
+                        alert('오류: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting payment:', error);
+                    alert('결제 이력 삭제 중 오류가 발생했습니다.');
                 });
             }
         }

@@ -10,6 +10,7 @@
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
     <button onclick="openPioneeringModal()" class="pioneering-button" style="background:#28a745; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">개척등록</button>
+    <button onclick="goToSalesManagement()" class="sales-button" style="background:#007bff; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">영업관리</button>
     <a href="javascript:window.close();" class="back-button">닫기</a>
     <span id="user-name-header" style="font-weight:bold; color:#333; margin-left:10px;">{{ user_name }}님</span>
     </div>
@@ -29,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <div class="tab-nav">
             <button class="tab-link active" data-tab="tab1">기업 상세 조회</button>
-            <button class="tab-link" data-tab="tab2">접촉이력 정보</button>
+            <button class="tab-link" data-tab="tab2" onclick="goToSalesManagement()">영업관리</button>
         </div>
 
         <div class="tab-content">
@@ -347,14 +348,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 개척등록 폼 제출
-    document.getElementById('pioneeringForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
+    async function submitPioneeringForm() {
+        const visitDate = document.getElementById('visitDate').value;
+        const notes = document.getElementById('pioneeringNotes').value;
+        
+        if (!visitDate) {
+            alert('방문일자를 입력해주세요.');
+            return;
+        }
+        
+        // 날짜 검증: 과거일자 체크
+        const selectedDate = new Date(visitDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // 시간을 00:00:00으로 설정하여 날짜만 비교
+        
+        if (selectedDate < today) {
+            alert('과거 날짜는 등록할 수 없습니다. 오늘 이후의 날짜를 선택해주세요.');
+            return;
+        }
+        
+        // 주말 체크 (토요일: 6, 일요일: 0)
+        const dayOfWeek = selectedDate.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            if (!confirm('휴일입니다. 그래도 등록하시겠습니까?')) {
+                return;
+            }
+        }
         
         const formData = {
             biz_no: '{{ company.basic.biz_no }}',
-            visit_date: document.getElementById('visitDate').value,
-            notes: document.getElementById('pioneeringNotes').value
+            visit_date: visitDate,
+            notes: notes,
+            visitor_id: '{{ user_id }}'
         };
+        
+        // 등록 버튼 비활성화
+        const submitBtn = document.querySelector('#pioneeringModal button[onclick="submitPioneeringForm()"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = '등록 중...';
         
         try {
             const response = await fetch('/api/pioneering_targets', {
@@ -368,16 +400,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             
             if (result.success) {
-                alert('개척 대상으로 등록되었습니다.');
+                alert('개척 대상이 정상적으로 등록되었습니다.');
                 closePioneeringModal();
+                // 페이지 새로고침으로 최신 데이터 반영
+                location.reload();
             } else {
                 alert(result.message || '등록에 실패했습니다.');
             }
         } catch (error) {
-            console.error('Error:', error);
-            alert('등록 중 오류가 발생했습니다.');
+            alert('등록 중 오류가 발생했습니다. 다시 시도해주세요.');
+        } finally {
+            // 등록 버튼 복원
+            const submitBtn = document.querySelector('#pioneeringModal button[onclick="submitPioneeringForm()"]');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '등록';
+            }
         }
-    });
+    }
 
     // 모달 외부 클릭 시 닫기
     window.onclick = function(event) {
@@ -415,10 +455,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 <div style="display:flex; gap:10px; justify-content:flex-end;">
                     <button type="button" onclick="closePioneeringModal()" style="padding:10px 20px; border:none; border-radius:5px; background:#6c757d; color:white; cursor:pointer;">취소</button>
-                    <button type="submit" style="padding:10px 20px; border:none; border-radius:5px; background:#28a745; color:white; cursor:pointer;">등록</button>
+                    <button type="button" onclick="submitPioneeringForm()" style="padding:10px 20px; border:none; border-radius:5px; background:#28a745; color:white; cursor:pointer;">등록</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <script>
+    // 영업관리로 이동하는 함수
+    function goToSalesManagement() {
+        window.open('/sales_management', '_blank');
+    }
+    </script>
 </body>
 </html>

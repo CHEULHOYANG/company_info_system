@@ -231,7 +231,7 @@
                 {% if subscription_info %}
                     {% if subscription_info.days_remaining > 0 %}
                         <div class="subscription-status" style="color:#28a745; background:rgba(40,167,69,0.2);">
-                            {% if subscription_info.subscription_type == 'ANNUAL' %}
+                            {% if subscription_info.subscription_type == 'YEARLY' %}
                                 연간 구독 ({{ subscription_info.days_remaining }}일 남음)
                             {% elif subscription_info.subscription_type == 'MONTHLY' %}
                                 월간 구독 ({{ subscription_info.days_remaining }}일 남음)
