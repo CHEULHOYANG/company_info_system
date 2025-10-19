@@ -9,6 +9,7 @@
         <h1 style="display:inline-block;">{{ company.basic.company_name }} <span class="header-subtext">상세 정보</span></h1>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
+    <button onclick="openPioneeringModal()" class="pioneering-button" style="background:#28a745; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">개척등록</button>
     <a href="javascript:window.close();" class="back-button">닫기</a>
     <span id="user-name-header" style="font-weight:bold; color:#333; margin-left:10px;">{{ user_name }}님</span>
     </div>
@@ -331,6 +332,93 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         cancelBtn.addEventListener('click', resetForm);
     });
+
+    // 개척등록 모달 함수들
+    function openPioneeringModal() {
+        document.getElementById('pioneeringModal').style.display = 'block';
+        // 오늘 날짜를 기본값으로 설정
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('visitDate').value = today;
+    }
+
+    function closePioneeringModal() {
+        document.getElementById('pioneeringModal').style.display = 'none';
+        document.getElementById('pioneeringForm').reset();
+    }
+
+    // 개척등록 폼 제출
+    document.getElementById('pioneeringForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            biz_no: '{{ company.basic.biz_no }}',
+            visit_date: document.getElementById('visitDate').value,
+            notes: document.getElementById('pioneeringNotes').value
+        };
+        
+        try {
+            const response = await fetch('/api/pioneering_targets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('개척 대상으로 등록되었습니다.');
+                closePioneeringModal();
+            } else {
+                alert(result.message || '등록에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('등록 중 오류가 발생했습니다.');
+        }
+    });
+
+    // 모달 외부 클릭 시 닫기
+    window.onclick = function(event) {
+        const modal = document.getElementById('pioneeringModal');
+        if (event.target === modal) {
+            closePioneeringModal();
+        }
+    }
     </script>
+
+    <!-- 개척등록 모달 -->
+    <div id="pioneeringModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);">
+        <div style="background-color:white; margin:15% auto; padding:30px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+            <h2 style="margin-top:0; color:#28a745;">개척 대상 등록</h2>
+            <form id="pioneeringForm">
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:500;">기업명:</label>
+                    <input type="text" value="{{ company.basic.company_name }}" readonly style="width:100%; padding:10px; border:1px solid #ced4da; border-radius:5px; background:#f8f9fa; box-sizing:border-box;">
+                </div>
+                
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:500;">사업자번호:</label>
+                    <input type="text" value="{{ company.basic.biz_no }}" readonly style="width:100%; padding:10px; border:1px solid #ced4da; border-radius:5px; background:#f8f9fa; box-sizing:border-box;">
+                </div>
+                
+                <div style="margin-bottom:20px;">
+                    <label for="visitDate" style="display:block; margin-bottom:5px; font-weight:500;">방문일자 *:</label>
+                    <input type="date" id="visitDate" required style="width:100%; padding:10px; border:1px solid #ced4da; border-radius:5px; box-sizing:border-box;">
+                </div>
+                
+                <div style="margin-bottom:30px;">
+                    <label for="pioneeringNotes" style="display:block; margin-bottom:5px; font-weight:500;">메모:</label>
+                    <textarea id="pioneeringNotes" placeholder="개척 관련 메모사항..." style="width:100%; padding:10px; border:1px solid #ced4da; border-radius:5px; min-height:80px; resize:vertical; box-sizing:border-box;"></textarea>
+                </div>
+                
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button type="button" onclick="closePioneeringModal()" style="padding:10px 20px; border:none; border-radius:5px; background:#6c757d; color:white; cursor:pointer;">취소</button>
+                    <button type="submit" style="padding:10px 20px; border:none; border-radius:5px; background:#28a745; color:white; cursor:pointer;">등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

@@ -374,6 +374,77 @@ def init_business_tables():
             )
         ''')
         
+        # 비용등록 테이블 생성
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS Expenses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                expense_date DATE NOT NULL,
+                biz_no TEXT,
+                expense_type TEXT NOT NULL,
+                amount DECIMAL(15,2) NOT NULL,
+                description TEXT,
+                receipt_file TEXT,
+                registered_by TEXT NOT NULL,
+                created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (registered_by) REFERENCES Users(user_id)
+            )
+        ''')
+        
+        # C-Level 개척관리 테이블 생성
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS CLevel_Targets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                biz_no TEXT,
+                target_name TEXT NOT NULL,
+                target_position TEXT,
+                contact_info TEXT,
+                target_date DATE,
+                approach_method TEXT,
+                status TEXT DEFAULT 'PLANNED' CHECK (status IN ('PLANNED', 'IN_PROGRESS', 'CONTACTED', 'COMPLETED', 'CANCELLED')),
+                notes TEXT,
+                registered_by TEXT NOT NULL,
+                created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (registered_by) REFERENCES Users(user_id)
+            )
+        ''')
+        
+        # 개척대상 기업 테이블 생성
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS Pioneering_Targets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                biz_no TEXT NOT NULL,
+                visit_date DATE NOT NULL,
+                visitor_id TEXT NOT NULL,
+                is_visited BOOLEAN DEFAULT 0,
+                visited_date DATETIME,
+                notes TEXT,
+                registered_by TEXT NOT NULL,
+                created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (visitor_id) REFERENCES Users(user_id),
+                FOREIGN KEY (registered_by) REFERENCES Users(user_id)
+            )
+        ''')
+        
+        # 영업비용 테이블 생성
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS Sales_Expenses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                expense_date DATE NOT NULL,
+                expense_type TEXT NOT NULL CHECK (expense_type IN ('식대', '교통비', '주차비', '경조사', '우편료', '기타')),
+                amount INTEGER NOT NULL,
+                payment_method TEXT NOT NULL CHECK (payment_method IN ('법인카드', '개인카드', '현금')),
+                description TEXT,
+                receipt_file TEXT,
+                registered_by TEXT NOT NULL,
+                created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (registered_by) REFERENCES Users(user_id)
+            )
+        ''')
+        
         conn.commit()
         print("Business tables initialized successfully")
         
@@ -805,7 +876,21 @@ def contact_history_csv():
         file = request.files['file']
         if not file.filename.endswith('.csv'):
             return jsonify({'success': False, 'message': 'CSV 파일만 업로드 가능합니다.'}), 400
-        stream = io.StringIO(file.stream.read().decode('utf-8-sig'))
+        
+        # 인코딩 감지 및 처리
+        content = file.stream.read()
+        try:
+            # UTF-8 BOM 우선 시도
+            decoded_content = content.decode('utf-8-sig')
+        except UnicodeDecodeError:
+            try:
+                # CP949 (EUC-KR) 시도
+                decoded_content = content.decode('cp949')
+            except UnicodeDecodeError:
+                # UTF-8 시도
+                decoded_content = content.decode('utf-8', errors='ignore')
+        
+        stream = io.StringIO(decoded_content)
         reader = csv.DictReader(stream)
         conn = get_db_connection()
         try:
@@ -1176,6 +1261,43 @@ def industrial_accident():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('industrial_accident.html', user_name=session.get('user_name'))
+
+# --- 비용등록 관리 라우트 ---
+@app.route('/expense_management')
+def expense_management():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
+    user_data = {
+        'user_name': session.get('user_name'),
+        'user_level': session.get('user_level', 'N'),
+        'user_level_name': session.get('user_level_name', '일반담당자'),
+        'branch_name': session.get('branch_name', ''),
+        'user_id': session.get('user_id')
+    }
+    
+    return render_template('expense_management.html', **user_data)
+
+# --- 영업관리 통합 라우트 ---
+@app.route('/sales_management')
+def sales_management():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
+    user_data = {
+        'user_name': session.get('user_name'),
+        'user_level': session.get('user_level', 'N'),
+        'user_level_name': session.get('user_level_name', '일반담당자'),
+        'branch_name': session.get('branch_name', ''),
+        'user_id': session.get('user_id')
+    }
+    
+    return render_template('sales_management.html', **user_data)
+
+# --- C-Level 개척관리 라우트 (하위 호환용) ---
+@app.route('/clevel_management')
+def clevel_management():
+    return redirect(url_for('sales_management'))
 
 # --- 사용자 관리 라우트 (메인관리자, 서브관리자만 접근 가능) ---
 @app.route('/user_management')
@@ -1770,6 +1892,730 @@ def delete_subscription(user_id):
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
+
+# --- 비용등록 관리 API ---
+@app.route('/api/expenses', methods=['GET'])
+def get_expenses():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 권한에 따른 조회 범위 설정
+        if check_permission(user_level, 'S'):  # 관리자는 모든 비용 조회
+            expenses = conn.execute('''
+                SELECT e.*, u.name as registered_by_name, c.company_name
+                FROM Expenses e
+                LEFT JOIN Users u ON e.registered_by = u.user_id
+                LEFT JOIN Company_Basic c ON e.biz_no = c.biz_no
+                ORDER BY e.expense_date DESC
+            ''').fetchall()
+        else:  # 일반 사용자는 본인 등록 비용만 조회
+            expenses = conn.execute('''
+                SELECT e.*, u.name as registered_by_name, c.company_name
+                FROM Expenses e
+                LEFT JOIN Users u ON e.registered_by = u.user_id
+                LEFT JOIN Company_Basic c ON e.biz_no = c.biz_no
+                WHERE e.registered_by = ?
+                ORDER BY e.expense_date DESC
+            ''', (user_id,)).fetchall()
+        
+        return jsonify([dict(expense) for expense in expenses])
+    finally:
+        conn.close()
+
+@app.route('/api/expenses', methods=['POST'])
+def add_expense():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.json
+    user_id = session.get('user_id')
+    
+    conn = get_db_connection()
+    try:
+        conn.execute('''
+            INSERT INTO Expenses 
+            (expense_date, biz_no, expense_type, amount, description, receipt_file, registered_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            data.get('expense_date'), data.get('biz_no'), data.get('expense_type'),
+            data.get('amount'), data.get('description'), data.get('receipt_file'), user_id
+        ))
+        conn.commit()
+        return jsonify({"success": True, "message": "비용이 등록되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/expenses/<int:expense_id>', methods=['PUT'])
+def update_expense(expense_id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.json
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 권한 확인: 본인이 등록한 비용이거나 관리자인 경우만 수정 가능
+        if not check_permission(user_level, 'S'):
+            existing = conn.execute(
+                "SELECT registered_by FROM Expenses WHERE id = ?", (expense_id,)
+            ).fetchone()
+            if not existing or existing['registered_by'] != user_id:
+                return jsonify({"error": "Permission denied"}), 403
+        
+        conn.execute('''
+            UPDATE Expenses SET 
+                expense_date=?, biz_no=?, expense_type=?, amount=?, 
+                description=?, receipt_file=?, updated_date=CURRENT_TIMESTAMP
+            WHERE id=?
+        ''', (
+            data.get('expense_date'), data.get('biz_no'), data.get('expense_type'),
+            data.get('amount'), data.get('description'), data.get('receipt_file'), expense_id
+        ))
+        conn.commit()
+        return jsonify({"success": True, "message": "비용 정보가 수정되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/expenses/<int:expense_id>', methods=['DELETE'])
+def delete_expense(expense_id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 권한 확인: 본인이 등록한 비용이거나 관리자인 경우만 삭제 가능
+        if not check_permission(user_level, 'S'):
+            existing = conn.execute(
+                "SELECT registered_by FROM Expenses WHERE id = ?", (expense_id,)
+            ).fetchone()
+            if not existing or existing['registered_by'] != user_id:
+                return jsonify({"error": "Permission denied"}), 403
+        
+        conn.execute("DELETE FROM Expenses WHERE id = ?", (expense_id,))
+        conn.commit()
+        return jsonify({"success": True, "message": "비용이 삭제되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+# --- C-Level 개척관리 API ---
+@app.route('/api/clevel_targets', methods=['GET'])
+def get_clevel_targets():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 권한에 따른 조회 범위 설정
+        if check_permission(user_level, 'S'):  # 관리자는 모든 타겟 조회
+            targets = conn.execute('''
+                SELECT t.*, u.name as registered_by_name, c.company_name
+                FROM CLevel_Targets t
+                LEFT JOIN Users u ON t.registered_by = u.user_id
+                LEFT JOIN Company_Basic c ON t.biz_no = c.biz_no
+                ORDER BY t.created_date DESC
+            ''').fetchall()
+        else:  # 일반 사용자는 본인 등록 타겟만 조회
+            targets = conn.execute('''
+                SELECT t.*, u.name as registered_by_name, c.company_name
+                FROM CLevel_Targets t
+                LEFT JOIN Users u ON t.registered_by = u.user_id
+                LEFT JOIN Company_Basic c ON t.biz_no = c.biz_no
+                WHERE t.registered_by = ?
+                ORDER BY t.created_date DESC
+            ''', (user_id,)).fetchall()
+        
+        return jsonify([dict(target) for target in targets])
+    finally:
+        conn.close()
+
+@app.route('/api/clevel_targets', methods=['POST'])
+def add_clevel_target():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.json
+    user_id = session.get('user_id')
+    
+    conn = get_db_connection()
+    try:
+        conn.execute('''
+            INSERT INTO CLevel_Targets 
+            (biz_no, target_name, target_position, contact_info, target_date, 
+             approach_method, status, notes, registered_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            data.get('biz_no'), data.get('target_name'), data.get('target_position'),
+            data.get('contact_info'), data.get('target_date'), data.get('approach_method'),
+            data.get('status', 'PLANNED'), data.get('notes'), user_id
+        ))
+        conn.commit()
+        return jsonify({"success": True, "message": "C-Level 타겟이 등록되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/clevel_targets/<int:target_id>', methods=['PUT'])
+def update_clevel_target(target_id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.json
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 권한 확인: 본인이 등록한 타겟이거나 관리자인 경우만 수정 가능
+        if not check_permission(user_level, 'S'):
+            existing = conn.execute(
+                "SELECT registered_by FROM CLevel_Targets WHERE id = ?", (target_id,)
+            ).fetchone()
+            if not existing or existing['registered_by'] != user_id:
+                return jsonify({"error": "Permission denied"}), 403
+        
+        conn.execute('''
+            UPDATE CLevel_Targets SET 
+                biz_no=?, target_name=?, target_position=?, contact_info=?, 
+                target_date=?, approach_method=?, status=?, notes=?, 
+                updated_date=CURRENT_TIMESTAMP
+            WHERE id=?
+        ''', (
+            data.get('biz_no'), data.get('target_name'), data.get('target_position'),
+            data.get('contact_info'), data.get('target_date'), data.get('approach_method'),
+            data.get('status'), data.get('notes'), target_id
+        ))
+        conn.commit()
+        return jsonify({"success": True, "message": "C-Level 타겟 정보가 수정되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/clevel_targets/<int:target_id>', methods=['DELETE'])
+def delete_clevel_target(target_id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 권한 확인: 본인이 등록한 타겟이거나 관리자인 경우만 삭제 가능
+        if not check_permission(user_level, 'S'):
+            existing = conn.execute(
+                "SELECT registered_by FROM CLevel_Targets WHERE id = ?", (target_id,)
+            ).fetchone()
+            if not existing or existing['registered_by'] != user_id:
+                return jsonify({"error": "Permission denied"}), 403
+        
+        conn.execute("DELETE FROM CLevel_Targets WHERE id = ?", (target_id,))
+        conn.commit()
+        return jsonify({"success": True, "message": "C-Level 타겟이 삭제되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+# --- 개척대상 기업 관리 API ---
+@app.route('/api/pioneering_targets', methods=['GET'])
+def get_pioneering_targets():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 권한에 따른 조회 범위 설정
+        if check_permission(user_level, 'S'):  # 관리자는 모든 타겟 조회
+            targets = conn.execute('''
+                SELECT p.*, u.name as visitor_name, c.company_name
+                FROM Pioneering_Targets p
+                LEFT JOIN Users u ON p.visitor_id = u.user_id
+                LEFT JOIN Company_Basic c ON p.biz_no = c.biz_no
+                ORDER BY p.visit_date DESC, p.created_date DESC
+            ''').fetchall()
+        else:  # 일반 사용자는 본인 등록 타겟만 조회
+            targets = conn.execute('''
+                SELECT p.*, u.name as visitor_name, c.company_name
+                FROM Pioneering_Targets p
+                LEFT JOIN Users u ON p.visitor_id = u.user_id
+                LEFT JOIN Company_Basic c ON p.biz_no = c.biz_no
+                WHERE p.registered_by = ?
+                ORDER BY p.visit_date DESC, p.created_date DESC
+            ''', (user_id,)).fetchall()
+        
+        return jsonify([dict(target) for target in targets])
+    finally:
+        conn.close()
+
+@app.route('/api/pioneering_targets', methods=['POST'])
+def add_pioneering_target():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.json
+    user_id = session.get('user_id')
+    
+    conn = get_db_connection()
+    try:
+        conn.execute('''
+            INSERT INTO Pioneering_Targets 
+            (biz_no, visit_date, visitor_id, notes, registered_by)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (
+            data.get('biz_no'), data.get('visit_date'), 
+            data.get('visitor_id', user_id), data.get('notes', ''), user_id
+        ))
+        conn.commit()
+        return jsonify({"success": True, "message": "개척 대상이 등록되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/pioneering_targets/<int:target_id>', methods=['DELETE'])
+def delete_pioneering_target(target_id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 권한 확인: 본인이 등록한 타겟이거나 관리자인 경우만 삭제 가능
+        if not check_permission(user_level, 'S'):
+            existing = conn.execute(
+                "SELECT registered_by FROM Pioneering_Targets WHERE id = ?", (target_id,)
+            ).fetchone()
+            if not existing or existing['registered_by'] != user_id:
+                return jsonify({"error": "Permission denied"}), 403
+        
+        conn.execute("DELETE FROM Pioneering_Targets WHERE id = ?", (target_id,))
+        conn.commit()
+        return jsonify({"success": True, "message": "개척 대상이 삭제되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/pioneering_targets/<int:target_id>/visit', methods=['PUT'])
+def mark_target_visited(target_id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    conn = get_db_connection()
+    try:
+        conn.execute('''
+            UPDATE Pioneering_Targets SET 
+                is_visited = 1, 
+                visited_date = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (target_id,))
+        conn.commit()
+        return jsonify({"success": True, "message": "방문 완료 처리되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/pioneering_targets/upload', methods=['POST'])
+def upload_pioneering_csv():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
+    
+    file = request.files['file']
+    if not file.filename.endswith('.csv'):
+        return jsonify({'success': False, 'message': 'CSV 파일만 업로드 가능합니다.'}), 400
+    
+    user_id = session.get('user_id')
+    
+    try:
+        stream = io.StringIO(file.stream.read().decode('utf-8-sig'))
+        reader = csv.DictReader(stream)
+        
+        conn = get_db_connection()
+        inserted = 0
+        
+        for row in reader:
+            if row.get('사업자번호') and row.get('방문일자'):
+                try:
+                    conn.execute('''
+                        INSERT INTO Pioneering_Targets 
+                        (biz_no, visit_date, visitor_id, registered_by)
+                        VALUES (?, ?, ?, ?)
+                    ''', (
+                        row['사업자번호'], row['방문일자'], 
+                        row.get('방문자ID', user_id), user_id
+                    ))
+                    inserted += 1
+                except Exception as e:
+                    continue  # 중복 등의 오류는 무시하고 계속
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'inserted': inserted, 'message': f'{inserted}건이 등록되었습니다.'})
+    
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'CSV 처리 중 오류: {str(e)}'}), 500
+
+# --- 영업비용 관리 API ---
+@app.route('/api/sales_expenses', methods=['GET'])
+def get_sales_expenses():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 권한에 따른 조회 범위 설정
+        if check_permission(user_level, 'S'):  # 관리자는 모든 비용 조회
+            expenses = conn.execute('''
+                SELECT e.*, u.name as registered_by_name
+                FROM Sales_Expenses e
+                LEFT JOIN Users u ON e.registered_by = u.user_id
+                ORDER BY e.expense_date DESC
+            ''').fetchall()
+        else:  # 일반 사용자는 본인 등록 비용만 조회
+            expenses = conn.execute('''
+                SELECT e.*, u.name as registered_by_name
+                FROM Sales_Expenses e
+                LEFT JOIN Users u ON e.registered_by = u.user_id
+                WHERE e.registered_by = ?
+                ORDER BY e.expense_date DESC
+            ''', (user_id,)).fetchall()
+        
+        return jsonify([dict(expense) for expense in expenses])
+    finally:
+        conn.close()
+
+@app.route('/api/sales_expenses', methods=['POST'])
+def add_sales_expense():
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_id = session.get('user_id')
+    
+    # 파일 업로드 처리
+    receipt_filename = None
+    if 'receipt_file' in request.files:
+        file = request.files['receipt_file']
+        if file and file.filename:
+            # 파일명 보안을 위해 secure_filename 사용
+            filename = secure_filename(file.filename)
+            # 실제 파일 저장 로직은 구현에 따라 달라질 수 있음
+            receipt_filename = filename
+    
+    conn = get_db_connection()
+    try:
+        conn.execute('''
+            INSERT INTO Sales_Expenses 
+            (expense_date, expense_type, amount, payment_method, description, receipt_file, registered_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            request.form.get('expense_date'), request.form.get('expense_type'),
+            request.form.get('amount'), request.form.get('payment_method'),
+            request.form.get('description'), receipt_filename, user_id
+        ))
+        conn.commit()
+        return jsonify({"success": True, "message": "영업비용이 등록되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/sales_expenses/<int:expense_id>', methods=['PUT'])
+def update_sales_expense(expense_id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 권한 확인: 본인이 등록한 비용이거나 관리자인 경우만 수정 가능
+        if not check_permission(user_level, 'S'):
+            existing = conn.execute(
+                "SELECT registered_by FROM Sales_Expenses WHERE id = ?", (expense_id,)
+            ).fetchone()
+            if not existing or existing['registered_by'] != user_id:
+                return jsonify({"error": "Permission denied"}), 403
+        
+        # 파일 업로드 처리
+        receipt_filename = None
+        if 'receipt_file' in request.files:
+            file = request.files['receipt_file']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                receipt_filename = filename
+        
+        # 파일이 새로 업로드되지 않은 경우 기존 파일명 유지
+        if receipt_filename:
+            conn.execute('''
+                UPDATE Sales_Expenses SET 
+                    expense_date=?, expense_type=?, amount=?, payment_method=?, 
+                    description=?, receipt_file=?, updated_date=CURRENT_TIMESTAMP
+                WHERE id=?
+            ''', (
+                request.form.get('expense_date'), request.form.get('expense_type'),
+                request.form.get('amount'), request.form.get('payment_method'),
+                request.form.get('description'), receipt_filename, expense_id
+            ))
+        else:
+            conn.execute('''
+                UPDATE Sales_Expenses SET 
+                    expense_date=?, expense_type=?, amount=?, payment_method=?, 
+                    description=?, updated_date=CURRENT_TIMESTAMP
+                WHERE id=?
+            ''', (
+                request.form.get('expense_date'), request.form.get('expense_type'),
+                request.form.get('amount'), request.form.get('payment_method'),
+                request.form.get('description'), expense_id
+            ))
+        
+        conn.commit()
+        return jsonify({"success": True, "message": "영업비용 정보가 수정되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/sales_expenses/<int:expense_id>', methods=['DELETE'])
+def delete_sales_expense(expense_id):
+    if not session.get('logged_in'):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 권한 확인: 본인이 등록한 비용이거나 관리자인 경우만 삭제 가능
+        if not check_permission(user_level, 'S'):
+            existing = conn.execute(
+                "SELECT registered_by FROM Sales_Expenses WHERE id = ?", (expense_id,)
+            ).fetchone()
+            if not existing or existing['registered_by'] != user_id:
+                return jsonify({"error": "Permission denied"}), 403
+        
+        conn.execute("DELETE FROM Sales_Expenses WHERE id = ?", (expense_id,))
+        conn.commit()
+        return jsonify({"success": True, "message": "영업비용이 삭제되었습니다."})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+# --- 개척대상 기업 CSV 처리 API ---
+@app.route('/api/pioneering_targets_csv', methods=['GET', 'POST'])
+def pioneering_targets_csv():
+    if not session.get('logged_in'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    if request.method == 'GET':
+        # CSV 다운로드
+        conn = get_db_connection()
+        rows = conn.execute('''
+            SELECT p.id, p.biz_no, b.company_name, p.visit_date, p.visitor_id, 
+                   p.visit_status, p.memo, p.registered_by, p.created_date
+            FROM Pioneering_Targets p
+            LEFT JOIN Company_Basic b ON p.biz_no = b.biz_no
+            ORDER BY p.id
+        ''').fetchall()
+        conn.close()
+        
+        si = io.StringIO()
+        cw = csv.writer(si)
+        cw.writerow(['번호', '사업자번호', '회사명', '방문일자', '방문자ID', '방문상태', '메모', '등록자', '등록일'])
+        for row in rows:
+            cw.writerow([row['id'], row['biz_no'], row['company_name'], row['visit_date'], 
+                        row['visitor_id'], row['visit_status'], row['memo'], row['registered_by'], row['created_date']])
+        
+        output = si.getvalue().encode('utf-8-sig')
+        return Response(output, mimetype='text/csv', 
+                       headers={"Content-Disposition": "attachment;filename=pioneering_targets.csv"})
+    
+    else:
+        # CSV 업로드
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
+        
+        file = request.files['file']
+        if not file.filename.endswith('.csv'):
+            return jsonify({'success': False, 'message': 'CSV 파일만 업로드 가능합니다.'}), 400
+        
+        # 인코딩 감지 및 처리
+        content = file.stream.read()
+        try:
+            decoded_content = content.decode('utf-8-sig')
+        except UnicodeDecodeError:
+            try:
+                decoded_content = content.decode('cp949')
+            except UnicodeDecodeError:
+                decoded_content = content.decode('utf-8', errors='ignore')
+        
+        stream = io.StringIO(decoded_content)
+        reader = csv.DictReader(stream)
+        
+        conn = get_db_connection()
+        user_id = session.get('user_id')
+        
+        try:
+            inserted = 0
+            for row in reader:
+                # 필수 필드 확인
+                if not all([row.get('사업자번호'), row.get('방문일자'), row.get('방문자ID')]):
+                    continue
+                
+                conn.execute('''
+                    INSERT INTO Pioneering_Targets (biz_no, visit_date, visitor_id, visit_status, memo, registered_by)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (
+                    row.get('사업자번호'), row.get('방문일자'), row.get('방문자ID'),
+                    row.get('방문상태', '예정'), row.get('메모', ''), user_id
+                ))
+                inserted += 1
+            
+            conn.commit()
+            return jsonify({'success': True, 'message': f'{inserted}건의 개척대상이 등록되었습니다.'})
+        except Exception as e:
+            conn.rollback()
+            return jsonify({'success': False, 'message': str(e)}), 500
+        finally:
+            conn.close()
+
+# --- 영업비용 CSV 처리 API ---
+@app.route('/api/sales_expenses_csv', methods=['GET', 'POST'])
+def sales_expenses_csv():
+    if not session.get('logged_in'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    if request.method == 'GET':
+        # CSV 다운로드
+        conn = get_db_connection()
+        user_id = session.get('user_id')
+        user_level = session.get('user_level', 'N')
+        
+        # 권한에 따른 조회 범위 설정
+        if check_permission(user_level, 'S'):
+            # 관리자는 전체 조회
+            rows = conn.execute('''
+                SELECT id, expense_date, expense_type, amount, payment_method, 
+                       description, receipt_filename, registered_by, created_date
+                FROM Sales_Expenses ORDER BY expense_date DESC
+            ''').fetchall()
+        else:
+            # 일반 사용자는 본인 등록건만 조회
+            rows = conn.execute('''
+                SELECT id, expense_date, expense_type, amount, payment_method, 
+                       description, receipt_filename, registered_by, created_date
+                FROM Sales_Expenses WHERE registered_by = ? ORDER BY expense_date DESC
+            ''', (user_id,)).fetchall()
+        
+        conn.close()
+        
+        si = io.StringIO()
+        cw = csv.writer(si)
+        cw.writerow(['번호', '날짜', '항목', '금액', '결제방법', '설명', '영수증파일', '등록자', '등록일'])
+        for row in rows:
+            cw.writerow([row['id'], row['expense_date'], row['expense_type'], row['amount'], 
+                        row['payment_method'], row['description'], row['receipt_filename'], 
+                        row['registered_by'], row['created_date']])
+        
+        output = si.getvalue().encode('utf-8-sig')
+        return Response(output, mimetype='text/csv', 
+                       headers={"Content-Disposition": "attachment;filename=sales_expenses.csv"})
+    
+    else:
+        # CSV 업로드
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
+        
+        file = request.files['file']
+        if not file.filename.endswith('.csv'):
+            return jsonify({'success': False, 'message': 'CSV 파일만 업로드 가능합니다.'}), 400
+        
+        # 인코딩 감지 및 처리
+        content = file.stream.read()
+        try:
+            decoded_content = content.decode('utf-8-sig')
+        except UnicodeDecodeError:
+            try:
+                decoded_content = content.decode('cp949')
+            except UnicodeDecodeError:
+                decoded_content = content.decode('utf-8', errors='ignore')
+        
+        stream = io.StringIO(decoded_content)
+        reader = csv.DictReader(stream)
+        
+        conn = get_db_connection()
+        user_id = session.get('user_id')
+        
+        try:
+            inserted = 0
+            for row in reader:
+                # 필수 필드 확인
+                if not all([row.get('날짜'), row.get('항목'), row.get('금액')]):
+                    continue
+                
+                conn.execute('''
+                    INSERT INTO Sales_Expenses (expense_date, expense_type, amount, payment_method, description, registered_by)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (
+                    row.get('날짜'), row.get('항목'), row.get('금액'),
+                    row.get('결제방법', '현금'), row.get('설명', ''), user_id
+                ))
+                inserted += 1
+            
+            conn.commit()
+            return jsonify({'success': True, 'message': f'{inserted}건의 영업비용이 등록되었습니다.'})
+        except Exception as e:
+            conn.rollback()
+            return jsonify({'success': False, 'message': str(e)}), 500
+        finally:
+            conn.close()
 
 if __name__ == '__main__':
     # 앱 시작 시 테이블 초기화
