@@ -1,5 +1,5 @@
 # -*- coding: cp949 -*-
-# Company Management System m
+# Company Management System
 import os
 import sqlite3
 import io
