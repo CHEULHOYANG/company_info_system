@@ -33,20 +33,11 @@ class CP949FileSystemLoader(FileSystemLoader):
                 try:
                     with open(filename, 'r', encoding='cp949') as f:
                         source = f.read()
-                except (UnicodeDecodeError, Exception):
-                    try:
-                        with open(filename, 'r', encoding='utf-8') as f:
-                            source = f.read()
-                    except Exception:
-                        # 마지막 수단으로 기본 인코딩 시도
-                        with open(filename, 'r') as f:
-                            source = f.read()
+                except UnicodeDecodeError:
+                    with open(filename, 'r', encoding='utf-8') as f:
+                        source = f.read()
                 
-                try:
-                    mtime = os.path.getmtime(filename)
-                except OSError:
-                    mtime = 0
-                    
+                mtime = os.path.getmtime(filename)
                 def uptodate():
                     try:
                         return os.path.getmtime(filename) == mtime
@@ -98,15 +89,7 @@ def format_kst_datetime(dt_str=None):
 
 # 커스텀 템플릿 로더 설정
 template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
-try:
-    if os.path.exists(template_dir):
-        app.jinja_loader = CP949FileSystemLoader(template_dir)
-        print(f"? 템플릿 로더 설정 완료: {template_dir}")
-    else:
-        print(f"? 템플릿 디렉터리 없음: {template_dir}")
-except Exception as e:
-    print(f"? 템플릿 로더 설정 실패: {e}")
-    # 기본 템플릿 로더 사용
+app.jinja_loader = CP949FileSystemLoader(template_dir)
 
 # DB 경로 설정 (Render Persistent Disk 사용)
 app_dir = os.path.dirname(os.path.abspath(__file__))
@@ -1107,6 +1090,23 @@ def get_user_subscription_info(user_id):
     
     conn = get_db_connection()
     try:
+        # 먼저 User_Subscriptions 테이블이 존재하는지 확인
+        table_exists = conn.execute('''
+            SELECT name FROM sqlite_master 
+            WHERE type='table' AND name='User_Subscriptions'
+        ''').fetchone()
+        
+        if not table_exists:
+            # 테이블이 없으면 기본값 반환
+            print(f"User_Subscriptions 테이블이 없습니다. 기본 구독 정보를 반환합니다.")
+            return {
+                'subscription_type': 'Basic',
+                'start_date': None,
+                'end_date': None,
+                'days_remaining': 365,  # 기본 1년
+                'status': 'Active'
+            }
+        
         # 사용자 구독 정보 조회 (실제 테이블 스키마 사용)
         subscription_info = conn.execute('''
             SELECT subscription_type, subscription_start_date, subscription_end_date, created_date
@@ -1127,19 +1127,37 @@ def get_user_subscription_info(user_id):
                     'subscription_type': subscription_info['subscription_type'],
                     'start_date': subscription_info['subscription_start_date'],
                     'end_date': subscription_info['subscription_end_date'],
-                    'days_remaining': days_remaining
+                    'days_remaining': days_remaining,
+                    'status': 'Active' if days_remaining > 0 else 'Expired'
                 }
         
-        return None
+        # 구독 정보가 없으면 기본값 반환
+        return {
+            'subscription_type': 'Basic',
+            'start_date': None,
+            'end_date': None,
+            'days_remaining': 365,  # 기본 1년
+            'status': 'Active'
+        }
+        
+    except Exception as e:
+        print(f"구독 정보 조회 오류: {e}")
+        # 오류 발생 시 기본값 반환
+        return {
+            'subscription_type': 'Basic',
+            'start_date': None,
+            'end_date': None,
+            'days_remaining': 365,
+            'status': 'Active'
+        }
     finally:
         conn.close()
 
-# --- 헬스체크 및 기본 라우트 ---
+# --- 헬스체크 및 DB 정보 라우트 ---
 @app.route('/health')
 def health_check():
     """서버 상태 확인용 헬스체크 엔드포인트"""
     try:
-        # 간단한 데이터베이스 연결 테스트
         conn = get_db_connection()
         conn.execute("SELECT 1").fetchone()
         conn.close()
@@ -1157,10 +1175,34 @@ def health_check():
             "timestamp": datetime.now().isoformat()
         }), 500
 
-@app.route('/test')
-def test_route():
-    """간단한 테스트 라우트"""
-    return f"Server is working! Time: {datetime.now()}"
+@app.route('/db_info')
+def db_info():
+    """데이터베이스 정보 확인"""
+    try:
+        conn = get_db_connection()
+        
+        # 테이블 목록 확인
+        tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").fetchall()
+        table_names = [table[0] for table in tables]
+        
+        # DB 파일 정보
+        import os
+        db_path = DB_PATH
+        db_exists = os.path.exists(db_path)
+        db_size = os.path.getsize(db_path) if db_exists else 0
+        
+        conn.close()
+        
+        return jsonify({
+            "database_path": db_path,
+            "database_exists": db_exists,
+            "database_size_mb": round(db_size / (1024*1024), 2),
+            "tables": table_names,
+            "render_environment": os.environ.get('RENDER', 'false'),
+            "persistent_disk": os.path.exists('/var/data') if os.environ.get('RENDER') else 'N/A'
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/')
 def index():
@@ -1170,45 +1212,40 @@ def index():
     user_id = session.get('user_id')
     user_name = session.get('user_name')
     
-    try:
-        conn = get_db_connection()
+    conn = get_db_connection()
 
-        # 구독 정보 조회 (새로운 함수 사용)
-        subscription_info = get_user_subscription_info(user_id)    # 페이지네이션 설정
-        page = request.args.get('page', 1, type=int)
-        per_page = 20
-        offset = (page - 1) * per_page
+    # 구독 정보 조회 (새로운 함수 사용)
+    subscription_info = get_user_subscription_info(user_id)    # 페이지네이션 설정
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    offset = (page - 1) * per_page
 
-        # Company_Basic 테이블로 변경
-        total_companies = conn.execute('SELECT COUNT(*) FROM Company_Basic').fetchone()[0]
-        total_pages = math.ceil(total_companies / per_page)
+    # Company_Basic 테이블로 변경
+    total_companies = conn.execute('SELECT COUNT(*) FROM Company_Basic').fetchone()[0]
+    total_pages = math.ceil(total_companies / per_page)
 
-        companies = conn.execute('SELECT * FROM Company_Basic LIMIT ? OFFSET ?', (per_page, offset)).fetchall()
+    companies = conn.execute('SELECT * FROM Company_Basic LIMIT ? OFFSET ?', (per_page, offset)).fetchall()
 
-        # 접촉 이력 조회 권한 처리 로직
-        user_level = session.get('user_level', 'N')
-        contact_params = []
-        contact_history_query = "SELECT * FROM Contact_History"
-        
-        # V(메인관리자), S(서브관리자)는 전체 이력 조회 가능
-        if not check_permission(user_level, 'S'):
-            contact_history_query += " WHERE registered_by = ?"
-            contact_params.append(user_id)
-        contact_history_query += " ORDER BY contact_datetime DESC"
-        contact_history = conn.execute(contact_history_query, contact_params).fetchall()
+    # 접촉 이력 조회 권한 처리 로직
+    user_level = session.get('user_level', 'N')
+    contact_params = []
+    contact_history_query = "SELECT * FROM Contact_History"
+    
+    # V(메인관리자), S(서브관리자)는 전체 이력 조회 가능
+    if not check_permission(user_level, 'S'):
+        contact_history_query += " WHERE registered_by = ?"
+        contact_params.append(user_id)
+    contact_history_query += " ORDER BY contact_datetime DESC"
+    contact_history = conn.execute(contact_history_query, contact_params).fetchall()
 
-        conn.close()
+    conn.close()
 
-        return render_template('index.html',
-                               user_name=user_name,
-                               companies=companies,
-                               total_pages=total_pages,
-                               current_page=page,
-                               subscription_info=subscription_info)
-    except Exception as e:
-        print(f"Index route error: {e}")
-        # 오류 발생 시 기본 페이지 반환
-        return f"<h1>서버 오류</h1><p>일시적인 오류가 발생했습니다: {str(e)}</p><a href='/login'>로그인으로 돌아가기</a>"
+    return render_template('index.html',
+                           user_name=user_name,
+                           companies=companies,
+                           total_pages=total_pages,
+                           current_page=page,
+                           subscription_info=subscription_info)
 
 @app.route('/main')
 def main():
@@ -3469,71 +3506,42 @@ def api_change_password():
         conn.close()
 
 if __name__ == '__main__':
+    print("=== 애플리케이션 시작 ===")
+    print(f"Flask 앱 디렉터리: {app_dir}")
+    print(f"데이터베이스 경로: {DB_PATH}")
+    print(f"RENDER 환경변수: {os.environ.get('RENDER', 'N/A')}")
+    print(f"PORT 환경변수: {os.environ.get('PORT', 'N/A')}")
+    
+    # 데이터베이스 파일 상태 확인
+    if os.path.exists(DB_PATH):
+        file_size = os.path.getsize(DB_PATH)
+        print(f"? 데이터베이스 파일 존재: {DB_PATH} (크기: {file_size} bytes)")
+    else:
+        print(f"? 데이터베이스 파일 없음: {DB_PATH}")
+    
+    # 앱 시작 시 테이블 초기화
+    print("\n=== 데이터베이스 테이블 초기화 ===")
     try:
-        print("=== 애플리케이션 시작 ===")
-        print(f"Flask 앱 디렉터리: {app_dir}")
-        print(f"데이터베이스 경로: {DB_PATH}")
-        print(f"RENDER 환경변수: {os.environ.get('RENDER', 'N/A')}")
-        print(f"PORT 환경변수: {os.environ.get('PORT', 'N/A')}")
-        
-        # 데이터베이스 파일 상태 확인
-        if os.path.exists(DB_PATH):
-            file_size = os.path.getsize(DB_PATH)
-            print(f"? 데이터베이스 파일 존재: {DB_PATH} (크기: {file_size} bytes)")
-        else:
-            print(f"? 데이터베이스 파일 없음: {DB_PATH}")
-        
-        # 앱 시작 시 테이블 초기화 (안전 모드)
-        print("\n=== 데이터베이스 테이블 초기화 ===")
-        try:
-            init_user_tables()
-            print("? 사용자 테이블 초기화 완료")
-        except Exception as e:
-            print(f"? 사용자 테이블 초기화 실패: {e}")
-            # 테이블 초기화 실패해도 계속 진행
-        
-        try:
-            init_business_tables()
-            print("? 비즈니스 테이블 초기화 완료")
-        except Exception as e:
-            print(f"? 비즈니스 테이블 초기화 실패: {e}")
-            # 테이블 초기화 실패해도 계속 진행
-        
-        # 서버 시작
-        port = int(os.environ.get('PORT', 5000))
-        print(f"\n=== Flask 서버 시작 ===")
-        print(f"Host: 0.0.0.0")
-        print(f"Port: {port}")
-        print(f"Debug: {not os.environ.get('RENDER')}")  # Render에서는 debug=False
-        
-        # Render 환경에서는 더 안전한 설정으로 실행
-        if os.environ.get('RENDER'):
-            print("Render 환경에서 실행 중...")
-            app.run(
-                host='0.0.0.0', 
-                port=port, 
-                debug=False,  # Render에서는 무조건 debug=False
-                use_reloader=False,  # Render에서는 reloader 비활성화
-                threaded=True  # 멀티스레딩 활성화
-            )
-        else:
-            print("로컬 환경에서 실행 중...")
-            app.run(
-                host='0.0.0.0', 
-                port=port, 
-                debug=True
-            )
-            
+        init_user_tables()
+        print("? 사용자 테이블 초기화 완료")
     except Exception as e:
-        print(f"애플리케이션 시작 중 오류 발생: {e}")
-        import traceback
-        traceback.print_exc()
-        
-        # 최소한의 서버라도 시작
-        try:
-            port = int(os.environ.get('PORT', 5000))
-            print(f"최소 서버 모드로 시작... 포트: {port}")
-            app.run(host='0.0.0.0', port=port, debug=False)
-        except Exception as final_error:
-            print(f"최소 서버 시작도 실패: {final_error}")
-            raise
+        print(f"? 사용자 테이블 초기화 실패: {e}")
+    
+    try:
+        init_business_tables()
+        print("? 비즈니스 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? 비즈니스 테이블 초기화 실패: {e}")
+    
+    # 서버 시작
+    port = int(os.environ.get('PORT', 5000))
+    print(f"\n=== Flask 서버 시작 ===")
+    print(f"Host: 0.0.0.0")
+    print(f"Port: {port}")
+    print(f"Debug: {not os.environ.get('RENDER')}")  # Render에서는 debug=False
+    
+    app.run(
+        host='0.0.0.0', 
+        port=port, 
+        debug=not os.environ.get('RENDER')  # Render에서는 debug=False
+    )
