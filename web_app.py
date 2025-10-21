@@ -1598,6 +1598,322 @@ def upload_database():
     except Exception as e:
         return jsonify({"success": False, "message": f"업로드 실패: {str(e)}"})
 
+@app.route('/download_database')
+def download_database():
+    """데이터베이스 파일 다운로드"""
+    try:
+        db_path = DB_PATH
+        
+        if not os.path.exists(db_path):
+            return jsonify({
+                "success": False, 
+                "message": "데이터베이스 파일이 존재하지 않습니다."
+            }), 404
+        
+        # 데이터베이스 정보 확인
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = cursor.fetchall()
+        
+        # 주요 테이블의 레코드 수 확인
+        table_info = {}
+        for table in tables:
+            try:
+                cursor.execute(f"SELECT COUNT(*) FROM {table[0]}")
+                count = cursor.fetchone()[0]
+                table_info[table[0]] = count
+            except:
+                table_info[table[0]] = 0
+        
+        conn.close()
+        
+        # 파일 크기 정보
+        file_size = os.path.getsize(db_path)
+        file_size_mb = round(file_size / (1024 * 1024), 2)
+        
+        # 현재 시간으로 파일명 생성
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        download_filename = f"company_database_{timestamp}.db"
+        
+        return send_file(
+            db_path,
+            as_attachment=True,
+            download_name=download_filename,
+            mimetype='application/octet-stream'
+        )
+        
+    except Exception as e:
+        return jsonify({
+            "success": False, 
+            "message": f"다운로드 실패: {str(e)}"
+        }), 500
+
+@app.route('/download_database_info')
+def download_database_info():
+    """다운로드 전 데이터베이스 정보 확인"""
+    try:
+        db_path = DB_PATH
+        
+        if not os.path.exists(db_path):
+            return jsonify({
+                "success": False, 
+                "message": "데이터베이스 파일이 존재하지 않습니다.",
+                "file_exists": False
+            })
+        
+        # 파일 정보
+        file_size = os.path.getsize(db_path)
+        file_size_mb = round(file_size / (1024 * 1024), 2)
+        file_modified = datetime.fromtimestamp(os.path.getmtime(db_path)).strftime("%Y-%m-%d %H:%M:%S")
+        
+        # 데이터베이스 테이블 정보
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = cursor.fetchall()
+        
+        table_info = {}
+        total_records = 0
+        
+        for table in tables:
+            try:
+                cursor.execute(f"SELECT COUNT(*) FROM {table[0]}")
+                count = cursor.fetchone()[0]
+                table_info[table[0]] = count
+                total_records += count
+            except:
+                table_info[table[0]] = 0
+        
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "file_exists": True,
+            "file_info": {
+                "size_bytes": file_size,
+                "size_mb": file_size_mb,
+                "modified_date": file_modified,
+                "total_tables": len(tables),
+                "total_records": total_records
+            },
+            "table_info": table_info
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False, 
+            "message": f"정보 조회 실패: {str(e)}"
+        }), 500
+
+@app.route('/download_database_page')
+def download_database_page():
+    """데이터베이스 다운로드 페이지"""
+    return '''
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>데이터베이스 다운로드</title>
+        <style>
+            body { 
+                font-family: 'Malgun Gothic', sans-serif; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                margin: 0; padding: 20px; min-height: 100vh;
+            }
+            .container { 
+                max-width: 700px; margin: 50px auto; 
+                background: rgba(255,255,255,0.95);
+                border-radius: 15px; padding: 30px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            }
+            h2 { color: #333; text-align: center; margin-bottom: 30px; }
+            .info-card {
+                background: #f8f9fa; padding: 20px; border-radius: 10px;
+                margin: 20px 0; border-left: 4px solid #667eea;
+            }
+            .table-grid {
+                display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 10px; margin: 15px 0;
+            }
+            .table-item {
+                background: white; padding: 10px; border-radius: 5px;
+                border: 1px solid #e0e0e0; font-size: 14px;
+            }
+            .download-area {
+                text-align: center; padding: 30px; margin: 20px 0;
+                background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
+                border-radius: 10px; border: 2px dashed #667eea;
+            }
+            .btn {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                color: white; border: none; padding: 15px 30px;
+                border-radius: 25px; cursor: pointer; font-size: 16px;
+                transition: all 0.3s ease; text-decoration: none;
+                display: inline-block; margin: 10px;
+            }
+            .btn:hover { 
+                transform: translateY(-2px); 
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
+                color: white; text-decoration: none;
+            }
+            .btn-secondary {
+                background: linear-gradient(45deg, #78909c, #546e7a);
+            }
+            .loading { display: none; margin: 20px 0; text-align: center; }
+            .status { margin: 20px 0; padding: 15px; border-radius: 8px; }
+            .status.success { background: #e8f5e8; color: #2e7d32; }
+            .status.error { background: #ffebee; color: #c62828; }
+            .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+            .stat-item { 
+                text-align: center; padding: 15px; background: white; 
+                border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .stat-number { font-size: 24px; font-weight: bold; color: #667eea; }
+            .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>? 데이터베이스 다운로드</h2>
+            
+            <div class="info-card">
+                <h3>? 다운로드 안내</h3>
+                <ul>
+                    <li>현재 서버의 데이터베이스 파일을 로컬로 다운로드합니다</li>
+                    <li>다운로드된 파일은 타임스탬프가 포함된 이름으로 저장됩니다</li>
+                    <li>파일 형식: <code>company_database_YYYYMMDD_HHMMSS.db</code></li>
+                    <li>다운로드 전에 현재 데이터베이스 상태를 확인하세요</li>
+                </ul>
+            </div>
+            
+            <div id="loading" class="loading">
+                <p>데이터베이스 정보를 조회 중...</p>
+            </div>
+            
+            <div id="dbInfo" style="display: none;">
+                <div class="stats" id="stats"></div>
+                
+                <div class="info-card">
+                    <h4>? 테이블별 레코드 수</h4>
+                    <div class="table-grid" id="tableGrid"></div>
+                </div>
+                
+                <div class="download-area">
+                    <h3>? 다운로드 실행</h3>
+                    <p>위 정보를 확인한 후 다운로드를 진행하세요</p>
+                    <button class="btn" onclick="downloadDatabase()">
+                        ? 데이터베이스 다운로드
+                    </button>
+                    <a href="/upload_database" class="btn btn-secondary">
+                        ? 업로드 페이지로
+                    </a>
+                </div>
+            </div>
+            
+            <div id="status" class="status" style="display: none;"></div>
+        </div>
+        
+        <script>
+            // 페이지 로드 시 데이터베이스 정보 조회
+            window.addEventListener('load', async () => {
+                await loadDatabaseInfo();
+            });
+            
+            async function loadDatabaseInfo() {
+                const loading = document.getElementById('loading');
+                const dbInfo = document.getElementById('dbInfo');
+                const status = document.getElementById('status');
+                
+                loading.style.display = 'block';
+                dbInfo.style.display = 'none';
+                status.style.display = 'none';
+                
+                try {
+                    const response = await fetch('/download_database_info');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        displayDatabaseInfo(data);
+                        dbInfo.style.display = 'block';
+                    } else {
+                        showStatus('error', `? ${data.message}`);
+                    }
+                } catch (error) {
+                    showStatus('error', `? 정보 조회 실패: ${error.message}`);
+                } finally {
+                    loading.style.display = 'none';
+                }
+            }
+            
+            function displayDatabaseInfo(data) {
+                const stats = document.getElementById('stats');
+                const tableGrid = document.getElementById('tableGrid');
+                
+                // 통계 정보 표시
+                stats.innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-number">${data.file_info.size_mb}</div>
+                        <div class="stat-label">MB</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${data.file_info.total_tables}</div>
+                        <div class="stat-label">테이블</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${data.file_info.total_records.toLocaleString()}</div>
+                        <div class="stat-label">레코드</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="font-size: 14px;">${data.file_info.modified_date}</div>
+                        <div class="stat-label">최종 수정</div>
+                    </div>
+                `;
+                
+                // 테이블 정보 표시
+                tableGrid.innerHTML = '';
+                for (const [tableName, recordCount] of Object.entries(data.table_info)) {
+                    const tableItem = document.createElement('div');
+                    tableItem.className = 'table-item';
+                    tableItem.innerHTML = `
+                        <strong>${tableName}</strong><br>
+                        <span style="color: #666;">${recordCount.toLocaleString()}개 레코드</span>
+                    `;
+                    tableGrid.appendChild(tableItem);
+                }
+            }
+            
+            async function downloadDatabase() {
+                showStatus('success', '? 다운로드를 시작합니다...');
+                
+                try {
+                    // 다운로드 링크 생성 및 클릭
+                    const link = document.createElement('a');
+                    link.href = '/download_database';
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showStatus('success', '? 다운로드가 시작되었습니다. 브라우저의 다운로드 폴더를 확인하세요.');
+                } catch (error) {
+                    showStatus('error', `? 다운로드 실패: ${error.message}`);
+                }
+            }
+            
+            function showStatus(type, message) {
+                const status = document.getElementById('status');
+                status.className = `status ${type}`;
+                status.innerHTML = message;
+                status.style.display = 'block';
+            }
+        </script>
+    </body>
+    </html>
+    '''
+
 @app.route('/copy_local_data')
 def copy_local_data():
     """로컬 DB 구조와 샘플 데이터를 Render 서버에 복사"""
