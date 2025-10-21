@@ -808,27 +808,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 접촉이력 수정 폼 열기
     async function editContactHistory(historyId) {
+        console.log(`>>> editContactHistory 호출 - historyId: ${historyId}`);
         try {
-            const response = await fetch(`/api/contact_history/${historyId}`);
+            const url = `/api/contact_history/${historyId}`;
+            console.log(`>>> API 호출 URL: ${url}`);
+            
+            const response = await fetch(url);
+            console.log(`>>> Response status: ${response.status}`);
+            console.log(`>>> Response headers:`, response.headers);
+            
             const data = await response.json();
+            console.log(`>>> Response data:`, data);
             
             if (data.success && data.data) {
                 const history = data.data;
                 contactEditingId = historyId;
                 
+                console.log(`>>> 폼에 데이터 설정 중...`);
                 document.getElementById('editHistoryId').value = historyId;
                 document.getElementById('editContactDate').value = formatDateTimeForInput(history.contact_datetime);
                 document.getElementById('editContactType').value = history.contact_type;
                 document.getElementById('editContactPerson').value = history.contact_person || '';
                 document.getElementById('editContactMemo').value = history.memo || '';
                 
+                console.log(`>>> 모달 표시`);
                 document.getElementById('editContactModal').style.display = 'block';
             } else {
-                alert('접촉이력 정보를 불러올 수 없습니다.');
+                console.error(`>>> API 응답 실패:`, data);
+                alert('접촉이력 정보를 불러올 수 없습니다. 서버 응답: ' + (data.message || '알 수 없는 오류'));
             }
         } catch (error) {
-            console.error('접촉이력 불러오기 실패:', error);
-            alert('접촉이력을 불러오는 중 오류가 발생했습니다.');
+            console.error('>>> 접촉이력 불러오기 실패:', error);
+            alert('접촉이력을 불러오는 중 네트워크 오류가 발생했습니다: ' + error.message);
         }
     }
 
