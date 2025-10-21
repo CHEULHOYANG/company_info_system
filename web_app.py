@@ -737,20 +737,6 @@ def save_password_history(user_id, password):
 # 사용자 인증 함수
 def authenticate_user(user_id, password):
     """사용자 인증을 수행합니다."""
-    # 하드코딩된 관리자 계정 (긴급 접속용)
-    if user_id == 'yangch' and password == 'yang1123!':
-        return {
-            'user_id': 'yangch',
-            'password': 'yang1123!',
-            'name': '양철호(관리자)',
-            'user_level': 'V',
-            'user_level_name': '메인관리자',
-            'branch_code': 'ADMIN',
-            'branch_name': '시스템관리',
-            'phone': '010-0000-0000',
-            'status': 'ACTIVE'
-        }
-    
     conn = get_db_connection()
     try:
         user = conn.execute(
@@ -1356,17 +1342,6 @@ def fix_db():
                 results.append(f"? {table_name} 테이블 생성 완료")
             except Exception as e:
                 results.append(f"? {table_name} 테이블 생성 실패: {str(e)}")
-        
-        # 하드코딩된 관리자 계정 추가
-        try:
-            conn.execute('''
-                INSERT OR IGNORE INTO Users 
-                (user_id, password, name, user_level, user_level_name, branch_code, branch_name, phone)
-                VALUES ('yangch', 'yang1123!', '시스템관리자', 'V', '메인관리자', 'SYSTEM', '시스템', '010-0000-0000')
-            ''')
-            results.append("? 하드코딩된 관리자 계정 추가 완료")
-        except Exception as e:
-            results.append(f"? 관리자 계정 추가 실패: {str(e)}")
         
         conn.commit()
         conn.close()
@@ -2144,11 +2119,10 @@ def copy_local_data():
             except Exception as e:
                 results.append(f"? {table_name} 테이블 생성 실패: {str(e)}")
         
-        # 하드코딩된 관리자 계정과 샘플 데이터 추가
+        # 샘플 사용자 계정과 데이터 추가
         try:
-            # 기본 사용자들 추가
+            # 기본 사용자들 추가 (yangch 계정 제거됨)
             users_data = [
-                ('yangch', 'yang1123!', '시스템관리자', 'V', '메인관리자', 'SYSTEM', '시스템', '010-0000-0000'),
                 ('admin', 'admin123!', '관리자', 'S', '서브관리자', 'ADMIN', '관리부', '010-1111-1111'),
                 ('manager1', 'manager123!', '매니저1', 'M', '매니저', 'SALES', '영업부', '010-2222-2222'),
                 ('user1', 'user123!', '일반사용자1', 'N', '일반담당자', 'SALES', '영업부', '010-3333-3333')
