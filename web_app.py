@@ -96,15 +96,80 @@ app_dir = os.path.dirname(os.path.abspath(__file__))
 
 # render.com에서는 환경변수 RENDER가 설정됨
 if os.environ.get('RENDER'):
-    # render.com 서버 환경 - Persistent Disk 사용
-    persistent_disk_path = '/var/data'
+    # render.com 서버 환경 - 다양한 경로 확인
+    print("=== RENDER 서버 환경 감지 ===")
+    print(f"현재 작업 디렉터리: {os.getcwd()}")
+    print(f"앱 디렉터리: {app_dir}")
+    print(f"HOME 환경변수: {os.environ.get('HOME', 'N/A')}")
+    print(f"USER 환경변수: {os.environ.get('USER', 'N/A')}")
+    
+    # 루트 디렉터리 확인
+    print("\n=== 루트 디렉터리 구조 확인 ===")
+    try:
+        root_items = os.listdir('/')
+        print(f"/ 디렉터리 내용: {root_items}")
+    except Exception as e:
+        print(f"루트 디렉터리 확인 실패: {e}")
+    
+    # 가능한 경로들 확인
+    possible_paths = [
+        '/var/data',
+        '/opt/render/project/data', 
+        '/opt/render/data',
+        '/data',
+        '/tmp/data',
+        '/app/data',
+        os.path.join(app_dir, 'data')
+    ]
+    
+    print(f"\n=== 가능한 데이터 경로들 확인 ===")
+    persistent_disk_path = None
+    for path in possible_paths:
+        print(f"경로 확인 중: {path}")
+        if os.path.exists(path):
+            print(f"? 발견: {path}")
+            
+            # 디렉터리 내용 확인
+            try:
+                contents = os.listdir(path)
+                print(f"  내용: {contents}")
+            except Exception as e:
+                print(f"  내용 확인 실패: {e}")
+            
+            # 디렉터리에 쓰기 권한이 있는지 확인
+            try:
+                test_file = os.path.join(path, 'test_write.tmp')
+                with open(test_file, 'w') as f:
+                    f.write('test')
+                os.remove(test_file)
+                persistent_disk_path = path
+                print(f"? 쓰기 권한 확인: {path}")
+                break
+            except Exception as e:
+                print(f"? 쓰기 권한 없음: {path} - {e}")
+        else:
+            print(f"? 없음: {path}")
     
     # Persistent Disk 디렉터리 확인 및 생성
-    if os.path.exists(persistent_disk_path):
+    if persistent_disk_path:
         # Persistent Disk가 마운트된 경우
         DB_PATH = os.path.join(persistent_disk_path, 'company_database.db')
-        print(f"Using Persistent Disk DB: {DB_PATH}")
+        print(f"\n? 사용할 DB 경로: {DB_PATH}")
+        
+        # 기존 DB 파일 확인
+        if os.path.exists(DB_PATH):
+            print(f"? 기존 DB 파일 발견: {DB_PATH}")
+        else:
+            print(f"새 DB 파일 생성 예정: {DB_PATH}")
+        
+        # 디렉터리 생성 시도
+        try:
+            os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+            print(f"? DB 디렉터리 준비 완료: {os.path.dirname(DB_PATH)}")
+        except Exception as e:
+            print(f"? DB 디렉터리 생성 실패: {e}")
     else:
+        print("\n? 사용 가능한 Persistent Disk 경로를 찾을 수 없음")
         # Persistent Disk가 없는 경우 (기존 로직 유지)
         # 1순위: 기존 DB 파일이 있으면 계속 사용 (데이터 보존)
         existing_db = os.path.join(app_dir, 'company_database.db')
@@ -134,14 +199,102 @@ def get_db_connection():
         
         conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         conn.row_factory = sqlite3.Row
-        return conn
+        
+        # 연결 테스트 및 기본 테이블 확인
+        try:
+            conn.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1").fetchone()
+            return conn
+        except Exception as table_error:
+            print(f"Database table check failed: {table_error}")
+            conn.close()
+            raise table_error
+            
     except Exception as e:
         print(f"Database connection error: {e}")
-        # 연결 실패 시 메모리 DB로 폴백 (임시 조치)
-        print("Falling back to in-memory database")
-        conn = sqlite3.connect(':memory:', check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        return conn
+        print(f"DB_PATH was: {DB_PATH}")
+        
+        # 연결 실패 시 강제로 새 DB 생성 시도
+        try:
+            # 임시 DB 경로로 재시도
+            temp_db_path = os.path.join(app_dir, 'emergency_database.db')
+            print(f"Attempting emergency DB creation at: {temp_db_path}")
+            
+            conn = sqlite3.connect(temp_db_path, check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            
+            # 기본 테이블들 생성
+            init_emergency_database(conn)
+            
+            return conn
+            
+        except Exception as emergency_error:
+            print(f"Emergency DB creation failed: {emergency_error}")
+            # 최후의 수단: 메모리 DB + 기본 테이블 생성
+            print("Using in-memory database with basic tables")
+            conn = sqlite3.connect(':memory:', check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            init_emergency_database(conn)
+            return conn
+
+def init_emergency_database(conn):
+    """응급 상황용 기본 데이터베이스 테이블들을 생성합니다."""
+    try:
+        # Users 테이블 생성
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS Users (
+                user_id TEXT PRIMARY KEY,
+                password TEXT NOT NULL,
+                name TEXT NOT NULL,
+                user_level TEXT NOT NULL DEFAULT 'N',
+                user_level_name TEXT NOT NULL DEFAULT '일반담당자',
+                branch_code TEXT NOT NULL DEFAULT 'DEFAULT',
+                branch_name TEXT NOT NULL DEFAULT '기본지점',
+                phone TEXT,
+                email TEXT,
+                status TEXT NOT NULL DEFAULT 'ACTIVE',
+                created_date TEXT DEFAULT CURRENT_TIMESTAMP,
+                last_login TEXT
+            )
+        ''')
+        
+        # 기본 관리자 계정 삽입 (하드코딩된 것과 별도로)
+        conn.execute('''
+            INSERT OR IGNORE INTO Users 
+            (user_id, password, name, user_level, user_level_name, branch_code, branch_name, phone)
+            VALUES ('admin', 'admin123!', '시스템관리자', 'V', '메인관리자', 'SYSTEM', '시스템', '010-0000-0000')
+        ''')
+        
+        # 기본적인 다른 테이블들도 생성
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS Company_Basic (
+                biz_no TEXT PRIMARY KEY,
+                company_name TEXT,
+                representative_name TEXT,
+                establish_date TEXT,
+                company_size TEXT,
+                industry_name TEXT,
+                region TEXT
+            )
+        ''')
+        
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS Contact_History (
+                history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                biz_no TEXT,
+                contact_datetime TEXT,
+                contact_type TEXT,
+                contact_person TEXT,
+                memo TEXT,
+                registered_by TEXT,
+                registered_date TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        conn.commit()
+        print("Emergency database tables created successfully")
+        
+    except Exception as e:
+        print(f"Error creating emergency database: {e}")
 
 # 구독 정보 조회 함수
 def get_user_subscription_info(user_id):
@@ -584,6 +737,20 @@ def save_password_history(user_id, password):
 # 사용자 인증 함수
 def authenticate_user(user_id, password):
     """사용자 인증을 수행합니다."""
+    # 하드코딩된 관리자 계정 (긴급 접속용)
+    if user_id == 'yangch' and password == 'yang1123!':
+        return {
+            'user_id': 'yangch',
+            'password': 'yang1123!',
+            'name': '양철호(관리자)',
+            'user_level': 'V',
+            'user_level_name': '메인관리자',
+            'branch_code': 'ADMIN',
+            'branch_name': '시스템관리',
+            'phone': '010-0000-0000',
+            'status': 'ACTIVE'
+        }
+    
     conn = get_db_connection()
     try:
         user = conn.execute(
@@ -923,6 +1090,23 @@ def get_user_subscription_info(user_id):
     
     conn = get_db_connection()
     try:
+        # 먼저 User_Subscriptions 테이블이 존재하는지 확인
+        table_exists = conn.execute('''
+            SELECT name FROM sqlite_master 
+            WHERE type='table' AND name='User_Subscriptions'
+        ''').fetchone()
+        
+        if not table_exists:
+            # 테이블이 없으면 기본값 반환
+            print(f"User_Subscriptions 테이블이 없습니다. 기본 구독 정보를 반환합니다.")
+            return {
+                'subscription_type': 'Basic',
+                'start_date': None,
+                'end_date': None,
+                'days_remaining': 365,  # 기본 1년
+                'status': 'Active'
+            }
+        
         # 사용자 구독 정보 조회 (실제 테이블 스키마 사용)
         subscription_info = conn.execute('''
             SELECT subscription_type, subscription_start_date, subscription_end_date, created_date
@@ -943,12 +1127,282 @@ def get_user_subscription_info(user_id):
                     'subscription_type': subscription_info['subscription_type'],
                     'start_date': subscription_info['subscription_start_date'],
                     'end_date': subscription_info['subscription_end_date'],
-                    'days_remaining': days_remaining
+                    'days_remaining': days_remaining,
+                    'status': 'Active' if days_remaining > 0 else 'Expired'
                 }
         
-        return None
+        # 구독 정보가 없으면 기본값 반환
+        return {
+            'subscription_type': 'Basic',
+            'start_date': None,
+            'end_date': None,
+            'days_remaining': 365,  # 기본 1년
+            'status': 'Active'
+        }
+        
+    except Exception as e:
+        print(f"구독 정보 조회 오류: {e}")
+        # 오류 발생 시 기본값 반환
+        return {
+            'subscription_type': 'Basic',
+            'start_date': None,
+            'end_date': None,
+            'days_remaining': 365,
+            'status': 'Active'
+        }
     finally:
         conn.close()
+
+# --- 헬스체크 및 DB 정보 라우트 ---
+@app.route('/health')
+def health_check():
+    """서버 상태 확인용 헬스체크 엔드포인트"""
+    try:
+        conn = get_db_connection()
+        conn.execute("SELECT 1").fetchone()
+        conn.close()
+        return jsonify({
+            "status": "healthy", 
+            "message": "Server is running",
+            "database": "connected",
+            "timestamp": datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "unhealthy", 
+            "message": "Database connection failed",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }), 500
+
+@app.route('/db_info')
+def db_info():
+    """데이터베이스 정보 확인"""
+    try:
+        conn = get_db_connection()
+        
+        # 테이블 목록 확인
+        tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").fetchall()
+        table_names = [table[0] for table in tables]
+        
+        # DB 파일 정보
+        import os
+        db_path = DB_PATH
+        db_exists = os.path.exists(db_path)
+        db_size = os.path.getsize(db_path) if db_exists else 0
+        
+        conn.close()
+        
+        return jsonify({
+            "database_path": db_path,
+            "database_exists": db_exists,
+            "database_size_mb": round(db_size / (1024*1024), 2),
+            "tables": table_names,
+            "render_environment": os.environ.get('RENDER', 'false'),
+            "persistent_disk": os.path.exists('/var/data') if os.environ.get('RENDER') else 'N/A'
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/fix_db')
+def fix_db():
+    """Render 서버에서 누락된 테이블들을 생성"""
+    if not os.environ.get('RENDER'):
+        return jsonify({"error": "이 기능은 Render 서버에서만 사용 가능합니다."}), 403
+    
+    try:
+        conn = get_db_connection()
+        results = []
+        
+        # 누락된 테이블들 생성
+        tables_to_create = [
+            ("Users", '''
+                CREATE TABLE IF NOT EXISTS Users (
+                    user_id TEXT PRIMARY KEY,
+                    password TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    user_level TEXT NOT NULL DEFAULT 'N',
+                    user_level_name TEXT NOT NULL DEFAULT '일반담당자',
+                    branch_code TEXT NOT NULL DEFAULT 'DEFAULT',
+                    branch_name TEXT NOT NULL DEFAULT '기본지점',
+                    phone TEXT,
+                    gender TEXT,
+                    birth_date TEXT,
+                    email TEXT,
+                    status TEXT NOT NULL DEFAULT 'ACTIVE',
+                    created_date TEXT DEFAULT CURRENT_TIMESTAMP,
+                    last_login TEXT
+                )
+            '''),
+            ("User_Subscriptions", '''
+                CREATE TABLE IF NOT EXISTS User_Subscriptions (
+                    subscription_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    subscription_start_date DATE,
+                    subscription_end_date DATE,
+                    subscription_type TEXT DEFAULT 'Basic',
+                    total_paid_amount INTEGER DEFAULT 0,
+                    is_first_month_free BOOLEAN DEFAULT 0,
+                    created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_date DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("Company_Basic", '''
+                CREATE TABLE IF NOT EXISTS Company_Basic (
+                    biz_no TEXT PRIMARY KEY,
+                    company_name TEXT,
+                    representative_name TEXT,
+                    establish_date TEXT,
+                    company_size TEXT,
+                    industry_name TEXT,
+                    region TEXT,
+                    address TEXT,
+                    phone TEXT,
+                    status TEXT DEFAULT 'ACTIVE'
+                )
+            '''),
+            ("Contact_History", '''
+                CREATE TABLE IF NOT EXISTS Contact_History (
+                    history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    biz_no TEXT,
+                    contact_datetime TEXT,
+                    contact_type TEXT,
+                    contact_person TEXT,
+                    memo TEXT,
+                    registered_by TEXT,
+                    registered_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("Signup_Requests", '''
+                CREATE TABLE IF NOT EXISTS Signup_Requests (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    phone TEXT,
+                    email TEXT,
+                    branch_code TEXT,
+                    branch_name TEXT,
+                    purpose TEXT,
+                    status TEXT DEFAULT 'PENDING',
+                    requested_date TEXT DEFAULT CURRENT_TIMESTAMP,
+                    processed_date TEXT,
+                    processed_by TEXT
+                )
+            '''),
+            ("Pioneering_Targets", '''
+                CREATE TABLE IF NOT EXISTS Pioneering_Targets (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    biz_no TEXT,
+                    visit_date TEXT,
+                    visitor_id TEXT,
+                    purpose TEXT,
+                    result TEXT,
+                    memo TEXT,
+                    created_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("Sales_Expenses", '''
+                CREATE TABLE IF NOT EXISTS Sales_Expenses (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    expense_date TEXT,
+                    user_id TEXT,
+                    expense_type TEXT,
+                    amount INTEGER,
+                    description TEXT,
+                    receipt_url TEXT,
+                    created_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+        ]
+        
+        for table_name, create_sql in tables_to_create:
+            try:
+                conn.execute(create_sql)
+                results.append(f"? {table_name} 테이블 생성 완료")
+            except Exception as e:
+                results.append(f"? {table_name} 테이블 생성 실패: {str(e)}")
+        
+        # 하드코딩된 관리자 계정 추가
+        try:
+            conn.execute('''
+                INSERT OR IGNORE INTO Users 
+                (user_id, password, name, user_level, user_level_name, branch_code, branch_name, phone)
+                VALUES ('yangch', 'yang1123!', '시스템관리자', 'V', '메인관리자', 'SYSTEM', '시스템', '010-0000-0000')
+            ''')
+            results.append("? 하드코딩된 관리자 계정 추가 완료")
+        except Exception as e:
+            results.append(f"? 관리자 계정 추가 실패: {str(e)}")
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "status": "success",
+            "message": "데이터베이스 수정 완료",
+            "results": results
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "status": "error", 
+            "message": f"데이터베이스 수정 실패: {str(e)}"
+        }), 500
+
+@app.route('/check_tables')
+def check_tables():
+    """Render 서버에서 각 테이블의 존재 여부와 데이터 개수 확인"""
+    try:
+        conn = get_db_connection()
+        results = {}
+        
+        # 확인할 테이블 목록
+        tables_to_check = [
+            'Users', 'User_Subscriptions', 'Company_Basic', 
+            'Contact_History', 'Signup_Requests', 'Pioneering_Targets', 
+            'Sales_Expenses', 'Company_Financial', 'Company_Shareholder'
+        ]
+        
+        for table_name in tables_to_check:
+            try:
+                # 테이블 존재 여부 확인
+                table_exists = conn.execute('''
+                    SELECT name FROM sqlite_master 
+                    WHERE type='table' AND name=?
+                ''', (table_name,)).fetchone()
+                
+                if table_exists:
+                    # 데이터 개수 확인
+                    count = conn.execute(f'SELECT COUNT(*) FROM {table_name}').fetchone()[0]
+                    results[table_name] = {
+                        "exists": True,
+                        "row_count": count,
+                        "status": "?" if count > 0 else "Empty"
+                    }
+                else:
+                    results[table_name] = {
+                        "exists": False,
+                        "row_count": 0,
+                        "status": "? Missing"
+                    }
+            except Exception as e:
+                results[table_name] = {
+                    "exists": False,
+                    "row_count": 0,
+                    "status": f"Error: {str(e)}"
+                }
+        
+        conn.close()
+        
+        return jsonify({
+            "database_path": DB_PATH,
+            "render_environment": os.environ.get('RENDER', 'false'),
+            "tables": results
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "error": f"테이블 확인 실패: {str(e)}"
+        }), 500
 
 @app.route('/')
 def index():
@@ -3252,7 +3706,42 @@ def api_change_password():
         conn.close()
 
 if __name__ == '__main__':
+    print("=== 애플리케이션 시작 ===")
+    print(f"Flask 앱 디렉터리: {app_dir}")
+    print(f"데이터베이스 경로: {DB_PATH}")
+    print(f"RENDER 환경변수: {os.environ.get('RENDER', 'N/A')}")
+    print(f"PORT 환경변수: {os.environ.get('PORT', 'N/A')}")
+    
+    # 데이터베이스 파일 상태 확인
+    if os.path.exists(DB_PATH):
+        file_size = os.path.getsize(DB_PATH)
+        print(f"? 데이터베이스 파일 존재: {DB_PATH} (크기: {file_size} bytes)")
+    else:
+        print(f"? 데이터베이스 파일 없음: {DB_PATH}")
+    
     # 앱 시작 시 테이블 초기화
-    init_user_tables()
-    init_business_tables()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print("\n=== 데이터베이스 테이블 초기화 ===")
+    try:
+        init_user_tables()
+        print("? 사용자 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? 사용자 테이블 초기화 실패: {e}")
+    
+    try:
+        init_business_tables()
+        print("? 비즈니스 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? 비즈니스 테이블 초기화 실패: {e}")
+    
+    # 서버 시작
+    port = int(os.environ.get('PORT', 5000))
+    print(f"\n=== Flask 서버 시작 ===")
+    print(f"Host: 0.0.0.0")
+    print(f"Port: {port}")
+    print(f"Debug: {not os.environ.get('RENDER')}")  # Render에서는 debug=False
+    
+    app.run(
+        host='0.0.0.0', 
+        port=port, 
+        debug=not os.environ.get('RENDER')  # Render에서는 debug=False
+    )
