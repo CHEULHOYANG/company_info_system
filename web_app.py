@@ -1153,6 +1153,236 @@ def get_user_subscription_info(user_id):
     finally:
         conn.close()
 
+# --- DB 관리 및 진단 라우트 ---
+@app.route('/db_info')
+def db_info():
+    """데이터베이스 정보 확인"""
+    try:
+        conn = get_db_connection()
+        
+        # 테이블 목록 확인
+        tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").fetchall()
+        table_names = [table[0] for table in tables]
+        
+        # DB 파일 정보
+        import os
+        db_path = DB_PATH
+        db_exists = os.path.exists(db_path)
+        db_size = os.path.getsize(db_path) if db_exists else 0
+        
+        conn.close()
+        
+        return jsonify({
+            "database_path": db_path,
+            "database_exists": db_exists,
+            "database_size_mb": round(db_size / (1024*1024), 2),
+            "tables": table_names,
+            "render_environment": os.environ.get('RENDER', 'false'),
+            "persistent_disk": os.path.exists('/var/data') if os.environ.get('RENDER') else 'N/A'
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/check_tables')
+def check_tables():
+    """각 테이블의 존재 여부와 데이터 개수 확인"""
+    try:
+        conn = get_db_connection()
+        results = {}
+        
+        # 확인할 테이블 목록
+        tables_to_check = [
+            'Users', 'User_Subscriptions', 'Company_Basic', 
+            'Contact_History', 'Signup_Requests', 'Pioneering_Targets', 
+            'Sales_Expenses', 'Company_Financial', 'Company_Shareholder'
+        ]
+        
+        for table_name in tables_to_check:
+            try:
+                # 테이블 존재 여부 확인
+                table_exists = conn.execute('''
+                    SELECT name FROM sqlite_master 
+                    WHERE type='table' AND name=?
+                ''', (table_name,)).fetchone()
+                
+                if table_exists:
+                    # 데이터 개수 확인
+                    count = conn.execute(f'SELECT COUNT(*) FROM {table_name}').fetchone()[0]
+                    results[table_name] = {
+                        "exists": True,
+                        "row_count": count,
+                        "status": "?" if count > 0 else "Empty"
+                    }
+                else:
+                    results[table_name] = {
+                        "exists": False,
+                        "row_count": 0,
+                        "status": "? Missing"
+                    }
+            except Exception as e:
+                results[table_name] = {
+                    "exists": False,
+                    "row_count": 0,
+                    "status": f"Error: {str(e)}"
+                }
+        
+        conn.close()
+        
+        return jsonify({
+            "database_path": DB_PATH,
+            "render_environment": os.environ.get('RENDER', 'false'),
+            "tables": results
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "error": f"테이블 확인 실패: {str(e)}"
+        }), 500
+
+@app.route('/fix_db')
+def fix_db():
+    """Render 서버에서 누락된 테이블들을 생성"""
+    if not os.environ.get('RENDER'):
+        return jsonify({"error": "이 기능은 Render 서버에서만 사용 가능합니다."}), 403
+    
+    try:
+        conn = get_db_connection()
+        results = []
+        
+        # 누락된 테이블들 생성
+        tables_to_create = [
+            ("Users", '''
+                CREATE TABLE IF NOT EXISTS Users (
+                    user_id TEXT PRIMARY KEY,
+                    password TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    user_level TEXT NOT NULL DEFAULT 'N',
+                    user_level_name TEXT NOT NULL DEFAULT '일반담당자',
+                    branch_code TEXT NOT NULL DEFAULT 'DEFAULT',
+                    branch_name TEXT NOT NULL DEFAULT '기본지점',
+                    phone TEXT,
+                    gender TEXT,
+                    birth_date TEXT,
+                    email TEXT,
+                    status TEXT NOT NULL DEFAULT 'ACTIVE',
+                    created_date TEXT DEFAULT CURRENT_TIMESTAMP,
+                    last_login TEXT
+                )
+            '''),
+            ("User_Subscriptions", '''
+                CREATE TABLE IF NOT EXISTS User_Subscriptions (
+                    subscription_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    subscription_start_date DATE,
+                    subscription_end_date DATE,
+                    subscription_type TEXT DEFAULT 'Basic',
+                    total_paid_amount INTEGER DEFAULT 0,
+                    is_first_month_free BOOLEAN DEFAULT 0,
+                    created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_date DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("Company_Basic", '''
+                CREATE TABLE IF NOT EXISTS Company_Basic (
+                    biz_no TEXT PRIMARY KEY,
+                    company_name TEXT,
+                    representative_name TEXT,
+                    establish_date TEXT,
+                    company_size TEXT,
+                    industry_name TEXT,
+                    region TEXT,
+                    address TEXT,
+                    phone TEXT,
+                    status TEXT DEFAULT 'ACTIVE'
+                )
+            '''),
+            ("Contact_History", '''
+                CREATE TABLE IF NOT EXISTS Contact_History (
+                    history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    biz_no TEXT,
+                    contact_datetime TEXT,
+                    contact_type TEXT,
+                    contact_person TEXT,
+                    memo TEXT,
+                    registered_by TEXT,
+                    registered_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("Signup_Requests", '''
+                CREATE TABLE IF NOT EXISTS Signup_Requests (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    phone TEXT,
+                    email TEXT,
+                    branch_code TEXT,
+                    branch_name TEXT,
+                    purpose TEXT,
+                    status TEXT DEFAULT 'PENDING',
+                    requested_date TEXT DEFAULT CURRENT_TIMESTAMP,
+                    processed_date TEXT,
+                    processed_by TEXT
+                )
+            '''),
+            ("Pioneering_Targets", '''
+                CREATE TABLE IF NOT EXISTS Pioneering_Targets (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    biz_no TEXT,
+                    visit_date TEXT,
+                    visitor_id TEXT,
+                    purpose TEXT,
+                    result TEXT,
+                    memo TEXT,
+                    created_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("Sales_Expenses", '''
+                CREATE TABLE IF NOT EXISTS Sales_Expenses (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    expense_date TEXT,
+                    user_id TEXT,
+                    expense_type TEXT,
+                    amount INTEGER,
+                    description TEXT,
+                    receipt_url TEXT,
+                    created_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+        ]
+        
+        for table_name, create_sql in tables_to_create:
+            try:
+                conn.execute(create_sql)
+                results.append(f"? {table_name} 테이블 생성 완료")
+            except Exception as e:
+                results.append(f"? {table_name} 테이블 생성 실패: {str(e)}")
+        
+        # 하드코딩된 관리자 계정 추가
+        try:
+            conn.execute('''
+                INSERT OR IGNORE INTO Users 
+                (user_id, password, name, user_level, user_level_name, branch_code, branch_name, phone)
+                VALUES ('yangch', 'yang1123!', '시스템관리자', 'V', '메인관리자', 'SYSTEM', '시스템', '010-0000-0000')
+            ''')
+            results.append("? 하드코딩된 관리자 계정 추가 완료")
+        except Exception as e:
+            results.append(f"? 관리자 계정 추가 실패: {str(e)}")
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "status": "success",
+            "message": "데이터베이스 수정 완료",
+            "results": results
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "status": "error", 
+            "message": f"데이터베이스 수정 실패: {str(e)}"
+        }), 500
+
 @app.route('/')
 def index():
     if not session.get('logged_in'):
