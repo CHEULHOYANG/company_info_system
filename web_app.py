@@ -1383,6 +1383,165 @@ def fix_db():
             "message": f"데이터베이스 수정 실패: {str(e)}"
         }), 500
 
+@app.route('/copy_local_data')
+def copy_local_data():
+    """로컬 DB 구조와 샘플 데이터를 Render 서버에 복사"""
+    if not os.environ.get('RENDER'):
+        return jsonify({"error": "이 기능은 Render 서버에서만 사용 가능합니다."}), 403
+    
+    try:
+        conn = get_db_connection()
+        results = []
+        
+        # 먼저 기본 테이블들 생성
+        init_user_tables()
+        init_business_tables()
+        results.append("? 기본 테이블 구조 생성 완료")
+        
+        # 추가 테이블들 생성
+        additional_tables = [
+            ("User_Subscriptions", '''
+                CREATE TABLE IF NOT EXISTS User_Subscriptions (
+                    subscription_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    subscription_start_date DATE,
+                    subscription_end_date DATE,
+                    subscription_type TEXT DEFAULT 'Basic',
+                    total_paid_amount INTEGER DEFAULT 0,
+                    is_first_month_free BOOLEAN DEFAULT 0,
+                    created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_date DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("Pioneering_Targets", '''
+                CREATE TABLE IF NOT EXISTS Pioneering_Targets (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    biz_no TEXT,
+                    visit_date TEXT,
+                    visitor_id TEXT,
+                    purpose TEXT,
+                    result TEXT,
+                    memo TEXT,
+                    created_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("Sales_Expenses", '''
+                CREATE TABLE IF NOT EXISTS Sales_Expenses (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    expense_date TEXT,
+                    user_id TEXT,
+                    expense_type TEXT,
+                    amount INTEGER,
+                    description TEXT,
+                    receipt_url TEXT,
+                    created_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("Signup_Requests", '''
+                CREATE TABLE IF NOT EXISTS Signup_Requests (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    phone TEXT,
+                    email TEXT,
+                    branch_code TEXT,
+                    branch_name TEXT,
+                    purpose TEXT,
+                    status TEXT DEFAULT 'PENDING',
+                    requested_date TEXT DEFAULT CURRENT_TIMESTAMP,
+                    processed_date TEXT,
+                    processed_by TEXT
+                )
+            '''),
+            ("Company_Financial", '''
+                CREATE TABLE IF NOT EXISTS Company_Financial (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    biz_no TEXT,
+                    fiscal_year TEXT,
+                    total_assets INTEGER,
+                    total_liabilities INTEGER,
+                    total_equity INTEGER,
+                    revenue INTEGER,
+                    operating_profit INTEGER,
+                    net_profit INTEGER,
+                    retained_earnings INTEGER,
+                    undistributed_retained_earnings INTEGER,
+                    created_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("Company_Shareholder", '''
+                CREATE TABLE IF NOT EXISTS Company_Shareholder (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    biz_no TEXT,
+                    shareholder_name TEXT,
+                    ownership_percent REAL,
+                    total_shares_owned INTEGER,
+                    relationship TEXT,
+                    created_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+        ]
+        
+        for table_name, create_sql in additional_tables:
+            try:
+                conn.execute(create_sql)
+                results.append(f"? {table_name} 테이블 생성 완료")
+            except Exception as e:
+                results.append(f"? {table_name} 테이블 생성 실패: {str(e)}")
+        
+        # 하드코딩된 관리자 계정과 샘플 데이터 추가
+        try:
+            # 기본 사용자들 추가
+            users_data = [
+                ('yangch', 'yang1123!', '시스템관리자', 'V', '메인관리자', 'SYSTEM', '시스템', '010-0000-0000'),
+                ('admin', 'admin123!', '관리자', 'S', '서브관리자', 'ADMIN', '관리부', '010-1111-1111'),
+                ('manager1', 'manager123!', '매니저1', 'M', '매니저', 'SALES', '영업부', '010-2222-2222'),
+                ('user1', 'user123!', '일반사용자1', 'N', '일반담당자', 'SALES', '영업부', '010-3333-3333')
+            ]
+            
+            for user_data in users_data:
+                conn.execute('''
+                    INSERT OR IGNORE INTO Users 
+                    (user_id, password, name, user_level, user_level_name, branch_code, branch_name, phone)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', user_data)
+            
+            results.append("? 기본 사용자 계정들 추가 완료")
+            
+            # 샘플 기업 데이터 추가
+            sample_companies = [
+                ('1234567890', '샘플기업1', '홍길동', '2020-01-01', '중소기업', 'IT서비스업', '서울특별시'),
+                ('0987654321', '샘플기업2', '김철수', '2019-05-15', '중견기업', '제조업', '경기도'),
+                ('5555555555', '테스트회사', '이영희', '2021-03-10', '소기업', '서비스업', '부산광역시')
+            ]
+            
+            for company_data in sample_companies:
+                conn.execute('''
+                    INSERT OR IGNORE INTO Company_Basic 
+                    (biz_no, company_name, representative_name, establish_date, company_size, industry_name, region)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', company_data)
+            
+            results.append("? 샘플 기업 데이터 추가 완료")
+            
+        except Exception as e:
+            results.append(f"? 샘플 데이터 추가 실패: {str(e)}")
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "status": "success",
+            "message": "로컬 데이터 복사 완료",
+            "results": results
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "status": "error", 
+            "message": f"데이터 복사 실패: {str(e)}"
+        }), 500
+
 @app.route('/')
 def index():
     if not session.get('logged_in'):
