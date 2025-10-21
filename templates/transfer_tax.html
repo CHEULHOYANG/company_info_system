@@ -1,131 +1,311 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>¾çµµ¼Òµæ¼¼ °è»ê±â</title>
+    <title>ì–‘ë„ì†Œë“ì„¸ ê°„í¸ê³„ì‚° ì…ë ¥</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        .transfer-tax-container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
-        .transfer-tax-title { font-size: 1.6em; font-weight: bold; margin-bottom: 24px; color: #17506b; text-align:center; }
-        .transfer-tax-form label { font-weight: 500; margin-bottom: 6px; display:block; }
-        .transfer-tax-form input, .transfer-tax-form select { width: 100%; padding: 10px; margin-bottom: 18px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; }
-        .transfer-tax-form button { width: 100%; background: #17506b; color: #fff; border: none; border-radius: 5px; padding: 13px; font-size: 17px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .transfer-tax-form button:hover { background: #003366; }
-        .result-box { background: #f8f9fa; border-radius: 6px; padding: 18px; margin-top: 18px; font-size: 1.1em; color: #0b4e7b; text-align:center; }
-        .top-bar { display:flex; justify-content:flex-end; margin-bottom:18px; }
-        .main-btn { background:#003366; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-size:15px; font-weight:600; cursor:pointer; }
-        .main-btn:hover { background:#17506b; }
-        .tax-type-btns { display:flex; gap:10px; justify-content:center; margin-bottom:18px; }
-        .tax-type-btn { background:#208e4c; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-size:15px; font-weight:600; cursor:pointer; }
-        .tax-type-btn:hover { background:#003366; }
+        /* main.html ìœ ì‚¬ ë°°ê²½ / glass-morphism */
+        body{
+            font-family: "Noto Sans KR", "Segoe UI", Tahoma, sans-serif;
+            background: linear-gradient(135deg,#f3f7fb 0%, #eaf0f6 50%, #e6eef6 100%);
+            margin:0;
+            padding:20px 16px;
+            -webkit-font-smoothing:antialiased;
+        }
+        .page-wrap{
+            max-width:1200px;
+            margin:18px auto;
+            background: rgba(255,255,255,0.85);
+            border-radius:12px;
+            box-shadow: 0 8px 30px rgba(30,60,80,0.08);
+            padding:24px;
+            border:1px solid rgba(200,210,220,0.6);
+        }
+        .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+        .title{font-size:1.6rem;font-weight:700;color:#11324d;}
+        .btn-main{background:#0b66a3;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:600;}
+        .section{border:1px solid #e6f0f6;background:linear-gradient(180deg,rgba(255,255,255,0.7),rgba(250,255,255,0.9));border-radius:8px;padding:18px;margin-bottom:14px;}
+        .section h3{margin:0 0 12px 0;color:#0b4e7b;font-size:1.05rem;}
+        .grid{display:grid;grid-template-columns:280px 1fr;gap:12px 18px;align-items:center;}
+        .row{display:contents;}
+        label.field-label{font-weight:600;color:#2b4860;}
+        .field-inline{display:flex;gap:8px;align-items:center;}
+        input[type="text"], input[type="date"], input[type="number"], select{
+            width:100%;padding:8px 10px;border:1px solid #cfdde9;border-radius:6px;background:#fff;font-size:14px;
+        }
+        .small-note{font-size:12px;color:#6b7f8f;margin-top:6px;}
+        .calc-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
+        .btn{padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:600;}
+        .btn-primary{background:#0b66a3;color:#fff;}
+        .btn-secondary{background:#f2f7fb;color:#0b4e7b;border:1px solid #d6eaf5;}
+        .result{background:#fcfeff;border:1px solid #e1f1f8;padding:14px;border-radius:8px;color:#0b4e7b;font-weight:700;}
+        .detail-toggle{background:#fff;border:1px dashed #d0e6f4;padding:8px;border-radius:6px;cursor:pointer;font-size:13px;color:#0b4e7b;}
+        .detail-box{margin-top:8px;border-top:1px dashed #e6f3fa;padding-top:10px;display:none;}
+        .radio-group{display:flex;gap:12px;align-items:center;}
+        table.result-table{width:100%;border-collapse:collapse;margin-top:8px;}
+        table.result-table td{padding:8px;border-bottom:1px solid #f0f6fa;}
+        @media(max-width:880px){
+            .grid{grid-template-columns:1fr;gap:10px;}
+            .topbar{flex-direction:column;align-items:flex-start;gap:8px;}
+        }
     </style>
 </head>
 <body>
-    <div class="transfer-tax-container">
-        <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">¸ŞÀÎÀ¸·Î</a>
+    <div class="page-wrap">
+        <div class="topbar">
+            <div class="title">ì–‘ë„ì†Œë“ì„¸ ê°„í¸ê³„ì‚° ì…ë ¥ <div style="font-size:0.85rem;color:#5d7485;font-weight:500">ë¶€ë™ì‚° ì–‘ë„ë¶„ì— í•œí•¨</div></div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <a href="{{ url_for('main') }}" class="btn-main">ë©”ì¸ìœ¼ë¡œ</a>
+            </div>
         </div>
-        <div class="transfer-tax-title">¾çµµ¼Òµæ¼¼ °è»ê±â</div>
-        <div class="tax-type-btns">
-            <button type="button" class="tax-type-btn" onclick="showTaxRate('land')">ÅäÁö ¾çµµ¼¼À²</button>
-            <button type="button" class="tax-type-btn" onclick="showTaxRate('house')">ÁÖÅÃ ¾çµµ¼¼À²</button>
+
+        <!-- ê¸°ë³¸ì‚¬í•­ -->
+        <div class="section">
+            <h3>ê¸°ë³¸ì‚¬í•­</h3>
+            <div class="grid">
+                <div class="row">
+                    <label class="field-label">í•„ìˆ˜ì…ë ¥ ì–‘ë„ì¼ì</label>
+                    <div>
+                        <input type="date" id="transferDate" value="2025-10-20">
+                        <div class="small-note">ì–‘ë„ì¼ìë¥¼ ì…ë ¥í•˜ì—¬ ì£¼ì‹­ì‹œì˜¤</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="field-label">í•„ìˆ˜ì…ë ¥ ì·¨ë“ì¼ì</label>
+                    <div>
+                        <input type="date" id="acquireDate" value="2025-10-20">
+                        <div class="small-note">ë¶€ë™ì‚°ì„ ì‚° ë‚ ë¡œ ì”ê¸ˆì„ ì§€ê¸‰í•œ ë‚ ì…ë‹ˆë‹¤.</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="field-label">í•„ìˆ˜ì…ë ¥ ì–‘ë„ë¬¼ê±´ì¢…ë¥˜</label>
+                    <div>
+                        <div class="radio-group">
+                            <label><input type="radio" name="propType" value="land" checked> í† ì§€</label>
+                            <label><input type="radio" name="propType" value="house"> ì£¼íƒ</label>
+                            <label><input type="radio" name="propType" value="highvalue"> ê³ ê°€ì£¼íƒ(1ì„¸ëŒ€1ì£¼íƒ)</label>
+                            <label><input type="radio" name="propType" value="other"> ê¸°íƒ€</label>
+                        </div>
+                        <div class="small-note">í† ì§€, ì£¼íƒ(ì¼ë°˜ì£¼íƒ, ë‹¤ì„¸ëŒ€, ì•„íŒŒíŠ¸ ë“±), ê¸°íƒ€(ì¼ë°˜ê±´ë¬¼ ë“±)ë¡œ êµ¬ë¶„í•©ë‹ˆë‹¤.</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <form class="transfer-tax-form" id="transferTaxForm" onsubmit="return false;">
-            <label>¾çµµÀÏÀÚ</label>
-            <input type="date" id="transferDate" required>
-            <label>ÃëµæÀÏÀÚ</label>
-            <input type="date" id="acquireDate" required>
-            <label>½ÇÁ¦¾çµµ°¡¾×(¿ø)</label>
-            <input type="text" id="transferPrice" required pattern="[0-9,]*" placeholder="¿¹: 500,000,000">
-            <label>½ÇÁ¦Ãëµæ°¡¾×(¿ø)</label>
-            <input type="text" id="acquirePrice" required pattern="[0-9,]*" placeholder="¿¹: 120,000,000">
-            <label>ÇÊ¿ä°æºñ(¿ø)</label>
-            <input type="text" id="expense" required pattern="[0-9,]*" placeholder="¿¹: 2,000,000">
-            <label>ºñ»ç¾÷¿ëÅäÁö ÇØ´ç¿©ºÎ</label>
-            <select id="nonBusinessLand">
-                <option value="no">¾Æ´Ï¿À</option>
-                <option value="yes">¿¹</option>
-            </select>
-            <label>¾çµµÇÏ´Â ÅäÁö ÁöÁ¤Áö¿ª ÇØ´ç¿©ºÎ</label>
-            <select id="designatedArea">
-                <option value="no">¾Æ´Ï¿À</option>
-                <option value="yes">¿¹</option>
-            </select>
-            <label>¾çµµ¼Òµæ±âº»°øÁ¦(¿ø)</label>
-            <input type="text" id="basicDeduction" value="2,500,000" readonly style="background:#f2f2f2;">
-            <button type="submit">°è»êÇÏ±â</button>
-        </form>
-        <div class="result-box" id="resultBox" style="display:none;"></div>
+
+        <!-- ê±°ë˜ê¸ˆì•¡ -->
+        <div class="section">
+            <h3>ê±°ë˜ê¸ˆì•¡ (ê³ ê°€ì£¼íƒ ê³µë™ì†Œìœ  ì‹œ ë³¸ì¸ ì§€ë¶„ ì…ë ¥)</h3>
+            <div class="grid">
+                <div class="row">
+                    <label class="field-label">í•„ìˆ˜ì…ë ¥ ì–‘ë„ê°€ì•¡</label>
+                    <div>
+                        <input type="text" id="transferPrice" placeholder="ì˜ˆ: 500,000,000">
+                        <div class="small-note">ë¶€ë™ì‚°ì„ íŒ”ë©´ì„œ ì‹¤ì œë¡œ ë°›ì€ ê¸ˆì•¡ì…ë‹ˆë‹¤.</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="field-label">í•„ìˆ˜ì…ë ¥ ì·¨ë“ê°€ì•¡(ì‹¤ì§€ì·¨ë“ê°€ì•¡)</label>
+                    <div>
+                        <input type="text" id="acquirePrice" placeholder="ì˜ˆ: 120,000,000">
+                        <div class="small-note">ì·¨ë“ê°€ì•¡ê³„ì‚° ìƒì„¸ ëª…ì„¸ì„œ ì…ë ¥ê¸ˆì•¡ì˜ í•©ê³„ì…ë‹ˆë‹¤. í¼ì¹¨ ë²„íŠ¼ìœ¼ë¡œ ìƒì„¸ ì…ë ¥ ê°€ëŠ¥.</div>
+                        <div class="detail-toggle" onclick="toggleDetail('acquireDetail')">í¼ì¹˜ê¸° / ì·¨ë“ê°€ì•¡ ìƒì„¸</div>
+                        <div id="acquireDetail" class="detail-box">
+                            <label class="small-note">ì·¨ë“ì„¸, ë“±ë¡ì„¸, ë²•ë¬´ì‚¬ë¹„ìš©, ì·¨ë“ì¤‘ê°œìˆ˜ìˆ˜ë£Œ ë“±(ì½¤ë§ˆ ì—†ì´ ìˆ«ì ì…ë ¥)</label>
+                            <input type="text" id="acq_tax" placeholder="ì·¨ë“ì„¸ í•©ê³„">
+                            <input type="text" id="acq_legal" placeholder="ë²•ë¬´ì‚¬ë¹„ìš©">
+                            <input type="text" id="acq_agent" placeholder="ì·¨ë“ì¤‘ê°œìˆ˜ìˆ˜ë£Œ">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="field-label">ì‹¤ì§€ í•„ìš”ê²½ë¹„</label>
+                    <div>
+                        <input type="text" id="otherExpense" placeholder="ì˜ˆ: 2,000,000">
+                        <div class="small-note">ê¸°íƒ€ í•„ìš”ê²½ë¹„ ìƒì„¸ ëª…ì„¸ì„œ ì…ë ¥ê¸ˆì•¡ì˜ í•©ê³„ì…ë‹ˆë‹¤. í¼ì¹¨ ë²„íŠ¼ìœ¼ë¡œ ìƒì„¸ ì…ë ¥ ê°€ëŠ¥.</div>
+                        <div class="detail-toggle" onclick="toggleDetail('expenseDetail')">í¼ì¹˜ê¸° / í•„ìš”ê²½ë¹„ ìƒì„¸</div>
+                        <div id="expenseDetail" class="detail-box">
+                            <label class="small-note">ì–‘ë„ì¤‘ê°œìˆ˜ìˆ˜ë£Œ, êµ­ë¯¼ì£¼íƒì±„ê¶Œë§¤ê°ì°¨ì†, ìë³¸ì ì§€ì¶œ ë“±</label>
+                            <input type="text" id="agentFee" placeholder="ì–‘ë„ì¤‘ê°œìˆ˜ìˆ˜ë£Œ">
+                            <input type="text" id="bondLoss" placeholder="êµ­ë¯¼ì£¼íƒì±„ê¶Œë§¤ê°ì°¨ì†">
+                            <input type="text" id="capex" placeholder="ìë³¸ì ì§€ì¶œì•¡">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="field-label">ì–‘ë„ì†Œë“ê¸°ë³¸ê³µì œ</label>
+                    <div>
+                        <input type="text" id="basicDeduction" value="2,500,000" readonly>
+                        <div class="small-note">1ì¸ë‹¹ ì—°ê°„ 250ë§Œì› í•œë„ì„</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ê¸°íƒ€ì‚¬í•­ -->
+        <div class="section">
+            <h3>ê¸°íƒ€ì‚¬í•­</h3>
+            <div class="grid">
+                <div class="row">
+                    <label class="field-label">ë¯¸ë“±ê¸°ì–‘ë„ì…ë‹ˆê¹Œ?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="unreg" value="yes"> ì˜ˆ</label>
+                        <label><input type="radio" name="unreg" value="no" checked> ì•„ë‹ˆì˜¤</label>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="field-label">ìƒì†ë°›ì€ ìì‚°ì…ë‹ˆê¹Œ?</label>
+                    <div>
+                        <div class="radio-group">
+                            <label><input type="radio" name="inherited" value="yes"> ì˜ˆ</label>
+                            <label><input type="radio" name="inherited" value="no" checked> ì•„ë‹ˆì˜¤</label>
+                        </div>
+                        <div class="small-note">í”¼ìƒì†ì¸ ì·¨ë“ì¼ì´ ìˆìœ¼ë©´ ì„ íƒ í›„ ì…ë ¥</div>
+                        <input type="date" id="inheritedAcquireDate" style="margin-top:8px;">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="field-label">ë¹„ì‚¬ì—…ìš©í† ì§€ í•´ë‹¹ì—¬ë¶€</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="nonbiz" value="yes"> ì˜ˆ</label>
+                        <label><input type="radio" name="nonbiz" value="no" checked> ì•„ë‹ˆì˜¤</label>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="field-label">1ì„¸ëŒ€ 1ì£¼íƒ ì—¬ë¶€ ë° ê±°ì£¼ê¸°ê°„</label>
+                    <div>
+                        <div class="radio-group">
+                            <label><input type="radio" name="oneHouse" value="yes"> ì˜ˆ</label>
+                            <label><input type="radio" name="oneHouse" value="no" checked> ì•„ë‹ˆì˜¤</label>
+                        </div>
+                        <div class="small-note">ë¹„ê³¼ì„¸ ëŒ€ìƒ ì—¬ë¶€ëŠ” ë³´ìœ ê¸°ê°„/ê±°ì£¼ê¸°ê°„ ê·œì • ì°¸ì¡°</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="field-label">ì¡°ì •ëŒ€ìƒì§€ì—­ ì¤‘ê³¼ ì—¬ë¶€</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="areaOver" value="yes"> ì˜ˆ</label>
+                        <label><input type="radio" name="areaOver" value="no" checked> ì•„ë‹ˆì˜¤</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ê³„ì‚° ë° ê²°ê³¼ -->
+        <div style="display:flex;gap:12px;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div class="small-note">ì…ë ¥ í›„ ê³„ì‚°í•˜ê¸° ë²„íŠ¼ì„ ëˆŒëŸ¬ ì˜ˆìƒ ì–‘ë„ì†Œë“ì„¸ë¥¼ í™•ì¸í•˜ì„¸ìš”. (ì°¸ê³ ìš©)</div>
+            <div class="calc-actions">
+                <button class="btn btn-secondary" id="resetBtn" type="button">ì´ˆê¸°í™”</button>
+                <button class="btn btn-primary" id="calcBtn" type="button">ê³„ì‚°í•˜ê¸°</button>
+            </div>
+        </div>
+
+        <div class="section" id="resultSection" style="display:none;">
+            <h3>ê³„ì‚°ê²°ê³¼ (ê°„í¸)</h3>
+            <table class="result-table">
+                <tr><td>ê³¼ì„¸í‘œì¤€(ì–‘ë„ì°¨ìµ)</td><td id="res_gain">- ì›</td></tr>
+                <tr><td>ì¶”ì • ì–‘ë„ì†Œë“ì„¸</td><td id="res_tax">- ì›</td></tr>
+                <tr><td>ê¸°ë³¸ê³µì œ ì ìš©(ì¸ë³„)</td><td id="res_basic">- ì›</td></tr>
+                <tr><td>ë¹„ê³ </td><td id="res_note">-</td></tr>
+            </table>
+        </div>
     </div>
-    <!-- ÅäÁö/ÁÖÅÃ ¾çµµ¼¼À² ¸ğ´Ş -->
-    <div id="taxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);">
-        <div style="background:#fff;max-width:700px;margin:60px auto;padding:32px 28px;border-radius:10px;position:relative;">
-            <button id="closeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">¡¿</button>
-            <div id="taxRateContent"></div>
-        </div>
-    </div>
+
     <script>
-    // 3ÀÚ¸® ÄŞ¸¶
-    function addComma(num) {
-        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
-    function removeComma(str) {
-        return str.replace(/,/g, '');
-    }
-    // ÀÔ·Â¶õ ÄŞ¸¶ ÀÚµ¿
-    ['transferPrice','acquirePrice','expense','basicDeduction'].forEach(id => {
-        const el = document.getElementById(id);
-        el.addEventListener('input', function(e) {
-            let val = removeComma(this.value);
-            if (val) this.value = addComma(Number(val));
+        // ìœ í‹¸
+        function addComma(n){ return (''+Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+        function removeComma(s){ return (s||'').toString().replace(/,/g,'').replace(/[^\d\-]/g,'')||'0'; }
+        function $id(id){return document.getElementById(id);}
+
+        // detail toggle
+        function toggleDetail(id){
+            const el = $id(id);
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // ìë™ ì½¤ë§ˆ í¬ë§·
+        ['transferPrice','acquirePrice','otherExpense','acq_tax','acq_legal','acq_agent','agentFee','bondLoss','capex'].forEach(id=>{
+            const el = $id(id);
+            if(!el) return;
+            el.addEventListener('input', function(){
+                const v = removeComma(this.value);
+                if(v===''||v==='0'){ this.value=''; return; }
+                this.value = addComma(Number(v));
+            });
         });
-    });
-    // ¼¼À² ¾È³» ¸ğ´Ş
-    function showTaxRate(type) {
-        const modal = document.getElementById('taxRateModal');
-        const content = document.getElementById('taxRateContent');
-        if(type==='land') {
-            content.innerHTML = `<h3 style='color:#17506b;'>ÅäÁö ¾çµµ¼¼À²</h3><table style='width:100%;border-collapse:collapse;text-align:center;'><thead><tr style='background:#2980b9;color:#fff;'><th>°ú¼¼Ç¥ÁØ</th><th>¼¼À²</th><th>´©Áø°øÁ¦</th></tr></thead><tbody><tr><td>1,200¸¸¿ø ÀÌÇÏ</td><td>6%</td><td></td></tr><tr><td>4,600¸¸¿ø ÀÌÇÏ</td><td>15%</td><td>1,080,000¿ø</td></tr><tr><td>8,800¸¸¿ø ÀÌÇÏ</td><td>24%</td><td>5,220,000¿ø</td></tr><tr><td>1¾ï5Ãµ¸¸¿ø ÀÌÇÏ</td><td>35%</td><td>14,900,000¿ø</td></tr><tr><td>3¾ï¿ø ÀÌÇÏ</td><td>38%</td><td>19,400,000¿ø</td></tr><tr><td>5¾ï¿ø ÀÌÇÏ</td><td>40%</td><td>25,400,000¿ø</td></tr><tr><td>10¾ï¿ø ÀÌÇÏ</td><td>42%</td><td>45,400,000¿ø</td></tr><tr><td>10¾ï¿ø ÃÊ°ú</td><td>45%</td><td>75,400,000¿ø</td></tr></tbody></table>`;
-        } else {
-            content.innerHTML = `<h3 style='color:#17506b;'>ÁÖÅÃ ¾çµµ¼¼À²</h3><table style='width:100%;border-collapse:collapse;text-align:center;'><thead><tr style='background:#2980b9;color:#fff;'><th>°ú¼¼Ç¥ÁØ</th><th>¼¼À²</th><th>´©Áø°øÁ¦</th></tr></thead><tbody><tr><td>1,200¸¸¿ø ÀÌÇÏ</td><td>6%</td><td></td></tr><tr><td>4,600¸¸¿ø ÀÌÇÏ</td><td>15%</td><td>1,080,000¿ø</td></tr><tr><td>8,800¸¸¿ø ÀÌÇÏ</td><td>24%</td><td>5,220,000¿ø</td></tr><tr><td>1¾ï5Ãµ¸¸¿ø ÀÌÇÏ</td><td>35%</td><td>14,900,000¿ø</td></tr><tr><td>3¾ï¿ø ÀÌÇÏ</td><td>38%</td><td>19,400,000¿ø</td></tr><tr><td>5¾ï¿ø ÀÌÇÏ</td><td>40%</td><td>25,400,000¿ø</td></tr><tr><td>10¾ï¿ø ÀÌÇÏ</td><td>42%</td><td>45,400,000¿ø</td></tr><tr><td>10¾ï¿ø ÃÊ°ú</td><td>45%</td><td>75,400,000¿ø</td></tr></tbody></table>`;
-        }
-        modal.style.display = 'block';
-    }
-    document.getElementById('closeTaxRateModal').onclick = function() {
-        document.getElementById('taxRateModal').style.display = 'none';
-    };
-    // °è»ê
-    document.getElementById('transferTaxForm').addEventListener('submit', function() {
-        const transferPrice = parseInt(removeComma(document.getElementById('transferPrice').value)) || 0;
-        const acquirePrice = parseInt(removeComma(document.getElementById('acquirePrice').value)) || 0;
-        const expense = parseInt(removeComma(document.getElementById('expense').value)) || 0;
-        const basicDeduction = parseInt(removeComma(document.getElementById('basicDeduction').value)) || 0;
-        const gain = transferPrice - acquirePrice - expense - basicDeduction;
-        // ´Ü¼ø ¿¹½Ã: ÅäÁö/ÁÖÅÃ µ¿ÀÏ ´©Áø°øÁ¦Ç¥ Àû¿ë
-        const brackets = [
-            { limit: 12000000, rate: 0.06, minus: 0 },
-            { limit: 46000000, rate: 0.15, minus: 1080000 },
-            { limit: 88000000, rate: 0.24, minus: 5220000 },
-            { limit: 150000000, rate: 0.35, minus: 14900000 },
-            { limit: 300000000, rate: 0.38, minus: 19400000 },
-            { limit: 500000000, rate: 0.40, minus: 25400000 },
-            { limit: 1000000000, rate: 0.42, minus: 45400000 },
-            { limit: Infinity, rate: 0.45, minus: 75400000 }
-        ];
-        let tax = 0, rate = 0, minus = 0;
-        for (let i = 0; i < brackets.length; i++) {
-            if (gain <= brackets[i].limit) {
-                rate = brackets[i].rate;
-                minus = brackets[i].minus;
-                break;
+
+        // ê³„ì‚° ë¡œì§ (ê°„í¸)
+        document.getElementById('calcBtn').addEventListener('click', function(){
+            const tp = parseInt(removeComma($id('transferPrice').value))||0;
+            const ap = parseInt(removeComma($id('acquirePrice').value))||0;
+            const other = parseInt(removeComma($id('otherExpense').value))||0;
+            const acq_tax = parseInt(removeComma($id('acq_tax')?.value))||0;
+            const acq_legal = parseInt(removeComma($id('acq_legal')?.value))||0;
+            const acq_agent = parseInt(removeComma($id('acq_agent')?.value))||0;
+            const agentFee = parseInt(removeComma($id('agentFee')?.value))||0;
+            const bondLoss = parseInt(removeComma($id('bondLoss')?.value))||0;
+            const capex = parseInt(removeComma($id('capex')?.value))||0;
+            const basic = parseInt(removeComma($id('basicDeduction').value))||0;
+
+            // ì–‘ë„ì°¨ìµ = ì–‘ë„ê°€ì•¡ - (ì·¨ë“ê°€ì•¡ + í•„ìš”ê²½ë¹„ + ì·¨ë“ê´€ë ¨ë¹„ìš© ë“±) - ê¸°ë³¸ê³µì œ
+            const totalAcquireRelated = ap + acq_tax + acq_legal + acq_agent;
+            const totalExpenses = other + agentFee + bondLoss + capex;
+            const gain = tp - totalAcquireRelated - totalExpenses - basic;
+
+            // ê³¼ì„¸í‘œì¤€(ë‹¨ìˆœí™”): gain
+            const taxable = gain > 0 ? gain : 0;
+
+            // ë‹¨ìˆœ ëˆ„ì§„ì„¸ìœ¨í‘œ (ì˜ˆì‹œ) â€” ì‹¤ì œëŠ” í† ì§€/ì£¼íƒ/ì¤‘ê³¼ ë“± ë³µì¡
+            const brackets = [
+                {limit:12000000, rate:0.06, minus:0},
+                {limit:46000000, rate:0.15, minus:1080000},
+                {limit:88000000, rate:0.24, minus:5220000},
+                {limit:150000000, rate:0.35, minus:14900000},
+                {limit:300000000, rate:0.38, minus:19400000},
+                {limit:500000000, rate:0.40, minus:25400000},
+                {limit:1000000000, rate:0.42, minus:45400000},
+                {limit:Infinity, rate:0.45, minus:75400000}
+            ];
+            let rate=0, minus=0;
+            for(let i=0;i<brackets.length;i++){
+                if(taxable <= brackets[i].limit){ rate = brackets[i].rate; minus = brackets[i].minus; break; }
             }
-        }
-        tax = Math.floor(gain * rate - minus);
-        if (tax < 0) tax = 0;
-        const resultBox = document.getElementById('resultBox');
-        resultBox.style.display = 'block';
-        resultBox.innerHTML = `¾çµµÂ÷ÀÍ: <b>${addComma(gain)}¿ø</b><br>¾çµµ¼Òµæ¼¼(¿¹»ó): <b>${addComma(tax)}¿ø</b>`;
-    });
+            let tax = Math.floor(taxable * rate - minus);
+            if(tax < 0) tax = 0;
+
+            // í‘œì‹œ
+            $id('res_gain').textContent = addComma(taxable) + ' ì›';
+            $id('res_tax').textContent = addComma(tax) + ' ì›';
+            $id('res_basic').textContent = addComma(basic) + ' ì›';
+            let note = 'ê°„í¸ ê³„ì‚°(ì°¸ê³ ìš©) â€” ì‹¤ì œ ë‚©ë¶€ì„¸ì•¡ì€ ë‹¤ì–‘í•œ ê°€ê°, ì¤‘ê³¼, ì¥ê¸°ë³´ìœ íŠ¹ë³„ê³µì œ ë“±ì— ë”°ë¼ ë‹¬ë¼ì§‘ë‹ˆë‹¤.';
+            $id('res_note').textContent = note;
+            $id('resultSection').style.display = 'block';
+            // ìŠ¤í¬ë¡¤
+            $id('resultSection').scrollIntoView({behavior:'smooth'});
+        });
+
+        // ì´ˆê¸°í™”
+        document.getElementById('resetBtn').addEventListener('click', function(){
+            document.querySelectorAll('#page-wrap input[type=text]').forEach(i=>i.value='');
+            document.querySelectorAll('input[type=date]').forEach(i=>{/* keep default */});
+            $id('transferPrice').value='';$id('acquirePrice').value='';$id('otherExpense').value='';
+            $id('resultSection').style.display='none';
+        });
+
+        // ì—”í„° ì œì¶œ ë°©ì§€ (form ì—†ìŒ)
+        document.addEventListener('keydown', function(e){
+            if(e.key === 'Enter' && e.target && (e.target.tagName === 'INPUT')) e.preventDefault();
+        });
     </script>
 </body>
 </html>
