@@ -2679,6 +2679,68 @@ def get_contact_history_detail(history_id):
     finally:
         conn.close()
 
+@app.route('/api/contact_history/<int:history_id>', methods=['PUT'])
+def update_contact_history(history_id):
+    """개별 접촉이력 수정"""
+    if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.json
+    user_id = session.get('user_id', 'unknown')
+    user_level = session.get('user_level', 'N')
+    
+    conn = get_db_connection()
+    try:
+        # 기존 이력 조회 및 권한 체크
+        existing_history = conn.execute(
+            "SELECT registered_by FROM Contact_History WHERE history_id = ?",
+            (history_id,)
+        ).fetchone()
+        
+        if not existing_history:
+            return jsonify({"success": False, "message": "접촉이력을 찾을 수 없습니다."}), 404
+        
+        # 권한 체크: 본인이 등록한 이력이거나 관리자 권한인 경우만 수정 가능
+        if user_level not in ['V', 'S'] and existing_history[0] != user_id:
+            return jsonify({"success": False, "message": "수정 권한이 없습니다."}), 403
+        
+        # 접촉일시 처리
+        contact_datetime_str = data.get('contact_datetime')
+        if contact_datetime_str:
+            if 'T' in contact_datetime_str:
+                # datetime-local 형식인 경우 한국 시간으로 처리
+                if not contact_datetime_str.endswith('Z') and '+' not in contact_datetime_str:
+                    naive_dt = datetime.strptime(contact_datetime_str, '%Y-%m-%dT%H:%M')
+                    kst_dt = KST.localize(naive_dt)
+                    contact_datetime_str = kst_dt.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            contact_datetime_str = format_kst_datetime()
+        
+        # 접촉이력 업데이트
+        conn.execute("""
+            UPDATE Contact_History 
+            SET contact_datetime = ?, contact_type = ?, contact_person = ?, memo = ?
+            WHERE history_id = ?
+        """, (
+            contact_datetime_str,
+            data.get('contact_type'),
+            data.get('contact_person'),
+            data.get('memo'),
+            history_id
+        ))
+        conn.commit()
+        
+        return jsonify({
+            "success": True, 
+            "message": "접촉이력이 성공적으로 수정되었습니다.",
+            "history_id": history_id
+        })
+    
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/api/contact_history', methods=['POST', 'PUT'])
 def handle_contact_history():
     if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
