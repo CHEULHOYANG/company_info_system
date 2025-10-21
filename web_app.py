@@ -96,15 +96,80 @@ app_dir = os.path.dirname(os.path.abspath(__file__))
 
 # render.com에서는 환경변수 RENDER가 설정됨
 if os.environ.get('RENDER'):
-    # render.com 서버 환경 - Persistent Disk 사용
-    persistent_disk_path = '/var/data'
+    # render.com 서버 환경 - 다양한 경로 확인
+    print("=== RENDER 서버 환경 감지 ===")
+    print(f"현재 작업 디렉터리: {os.getcwd()}")
+    print(f"앱 디렉터리: {app_dir}")
+    print(f"HOME 환경변수: {os.environ.get('HOME', 'N/A')}")
+    print(f"USER 환경변수: {os.environ.get('USER', 'N/A')}")
+    
+    # 루트 디렉터리 확인
+    print("\n=== 루트 디렉터리 구조 확인 ===")
+    try:
+        root_items = os.listdir('/')
+        print(f"/ 디렉터리 내용: {root_items}")
+    except Exception as e:
+        print(f"루트 디렉터리 확인 실패: {e}")
+    
+    # 가능한 경로들 확인
+    possible_paths = [
+        '/var/data',
+        '/opt/render/project/data', 
+        '/opt/render/data',
+        '/data',
+        '/tmp/data',
+        '/app/data',
+        os.path.join(app_dir, 'data')
+    ]
+    
+    print(f"\n=== 가능한 데이터 경로들 확인 ===")
+    persistent_disk_path = None
+    for path in possible_paths:
+        print(f"경로 확인 중: {path}")
+        if os.path.exists(path):
+            print(f"? 발견: {path}")
+            
+            # 디렉터리 내용 확인
+            try:
+                contents = os.listdir(path)
+                print(f"  내용: {contents}")
+            except Exception as e:
+                print(f"  내용 확인 실패: {e}")
+            
+            # 디렉터리에 쓰기 권한이 있는지 확인
+            try:
+                test_file = os.path.join(path, 'test_write.tmp')
+                with open(test_file, 'w') as f:
+                    f.write('test')
+                os.remove(test_file)
+                persistent_disk_path = path
+                print(f"? 쓰기 권한 확인: {path}")
+                break
+            except Exception as e:
+                print(f"? 쓰기 권한 없음: {path} - {e}")
+        else:
+            print(f"? 없음: {path}")
     
     # Persistent Disk 디렉터리 확인 및 생성
-    if os.path.exists(persistent_disk_path):
+    if persistent_disk_path:
         # Persistent Disk가 마운트된 경우
         DB_PATH = os.path.join(persistent_disk_path, 'company_database.db')
-        print(f"Using Persistent Disk DB: {DB_PATH}")
+        print(f"\n? 사용할 DB 경로: {DB_PATH}")
+        
+        # 기존 DB 파일 확인
+        if os.path.exists(DB_PATH):
+            print(f"? 기존 DB 파일 발견: {DB_PATH}")
+        else:
+            print(f"새 DB 파일 생성 예정: {DB_PATH}")
+        
+        # 디렉터리 생성 시도
+        try:
+            os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+            print(f"? DB 디렉터리 준비 완료: {os.path.dirname(DB_PATH)}")
+        except Exception as e:
+            print(f"? DB 디렉터리 생성 실패: {e}")
     else:
+        print("\n? 사용 가능한 Persistent Disk 경로를 찾을 수 없음")
         # Persistent Disk가 없는 경우 (기존 로직 유지)
         # 1순위: 기존 DB 파일이 있으면 계속 사용 (데이터 보존)
         existing_db = os.path.join(app_dir, 'company_database.db')
@@ -134,14 +199,102 @@ def get_db_connection():
         
         conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         conn.row_factory = sqlite3.Row
-        return conn
+        
+        # 연결 테스트 및 기본 테이블 확인
+        try:
+            conn.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1").fetchone()
+            return conn
+        except Exception as table_error:
+            print(f"Database table check failed: {table_error}")
+            conn.close()
+            raise table_error
+            
     except Exception as e:
         print(f"Database connection error: {e}")
-        # 연결 실패 시 메모리 DB로 폴백 (임시 조치)
-        print("Falling back to in-memory database")
-        conn = sqlite3.connect(':memory:', check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        return conn
+        print(f"DB_PATH was: {DB_PATH}")
+        
+        # 연결 실패 시 강제로 새 DB 생성 시도
+        try:
+            # 임시 DB 경로로 재시도
+            temp_db_path = os.path.join(app_dir, 'emergency_database.db')
+            print(f"Attempting emergency DB creation at: {temp_db_path}")
+            
+            conn = sqlite3.connect(temp_db_path, check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            
+            # 기본 테이블들 생성
+            init_emergency_database(conn)
+            
+            return conn
+            
+        except Exception as emergency_error:
+            print(f"Emergency DB creation failed: {emergency_error}")
+            # 최후의 수단: 메모리 DB + 기본 테이블 생성
+            print("Using in-memory database with basic tables")
+            conn = sqlite3.connect(':memory:', check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            init_emergency_database(conn)
+            return conn
+
+def init_emergency_database(conn):
+    """응급 상황용 기본 데이터베이스 테이블들을 생성합니다."""
+    try:
+        # Users 테이블 생성
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS Users (
+                user_id TEXT PRIMARY KEY,
+                password TEXT NOT NULL,
+                name TEXT NOT NULL,
+                user_level TEXT NOT NULL DEFAULT 'N',
+                user_level_name TEXT NOT NULL DEFAULT '일반담당자',
+                branch_code TEXT NOT NULL DEFAULT 'DEFAULT',
+                branch_name TEXT NOT NULL DEFAULT '기본지점',
+                phone TEXT,
+                email TEXT,
+                status TEXT NOT NULL DEFAULT 'ACTIVE',
+                created_date TEXT DEFAULT CURRENT_TIMESTAMP,
+                last_login TEXT
+            )
+        ''')
+        
+        # 기본 관리자 계정 삽입 (하드코딩된 것과 별도로)
+        conn.execute('''
+            INSERT OR IGNORE INTO Users 
+            (user_id, password, name, user_level, user_level_name, branch_code, branch_name, phone)
+            VALUES ('admin', 'admin123!', '시스템관리자', 'V', '메인관리자', 'SYSTEM', '시스템', '010-0000-0000')
+        ''')
+        
+        # 기본적인 다른 테이블들도 생성
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS Company_Basic (
+                biz_no TEXT PRIMARY KEY,
+                company_name TEXT,
+                representative_name TEXT,
+                establish_date TEXT,
+                company_size TEXT,
+                industry_name TEXT,
+                region TEXT
+            )
+        ''')
+        
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS Contact_History (
+                history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                biz_no TEXT,
+                contact_datetime TEXT,
+                contact_type TEXT,
+                contact_person TEXT,
+                memo TEXT,
+                registered_by TEXT,
+                registered_date TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        conn.commit()
+        print("Emergency database tables created successfully")
+        
+    except Exception as e:
+        print(f"Error creating emergency database: {e}")
 
 # 구독 정보 조회 함수
 def get_user_subscription_info(user_id):
@@ -3266,7 +3419,42 @@ def api_change_password():
         conn.close()
 
 if __name__ == '__main__':
+    print("=== 애플리케이션 시작 ===")
+    print(f"Flask 앱 디렉터리: {app_dir}")
+    print(f"데이터베이스 경로: {DB_PATH}")
+    print(f"RENDER 환경변수: {os.environ.get('RENDER', 'N/A')}")
+    print(f"PORT 환경변수: {os.environ.get('PORT', 'N/A')}")
+    
+    # 데이터베이스 파일 상태 확인
+    if os.path.exists(DB_PATH):
+        file_size = os.path.getsize(DB_PATH)
+        print(f"? 데이터베이스 파일 존재: {DB_PATH} (크기: {file_size} bytes)")
+    else:
+        print(f"? 데이터베이스 파일 없음: {DB_PATH}")
+    
     # 앱 시작 시 테이블 초기화
-    init_user_tables()
-    init_business_tables()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    print("\n=== 데이터베이스 테이블 초기화 ===")
+    try:
+        init_user_tables()
+        print("? 사용자 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? 사용자 테이블 초기화 실패: {e}")
+    
+    try:
+        init_business_tables()
+        print("? 비즈니스 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? 비즈니스 테이블 초기화 실패: {e}")
+    
+    # 서버 시작
+    port = int(os.environ.get('PORT', 5000))
+    print(f"\n=== Flask 서버 시작 ===")
+    print(f"Host: 0.0.0.0")
+    print(f"Port: {port}")
+    print(f"Debug: {not os.environ.get('RENDER')}")  # Render에서는 debug=False
+    
+    app.run(
+        host='0.0.0.0', 
+        port=port, 
+        debug=not os.environ.get('RENDER')  # Render에서는 debug=False
+    )
