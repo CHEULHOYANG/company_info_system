@@ -1383,6 +1383,221 @@ def fix_db():
             "message": f"데이터베이스 수정 실패: {str(e)}"
         }), 500
 
+@app.route('/upload_database', methods=['GET', 'POST'])
+def upload_database():
+    """데이터베이스 파일 업로드"""
+    if request.method == 'GET':
+        return '''
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>데이터베이스 업로드</title>
+            <style>
+                body { 
+                    font-family: 'Malgun Gothic', sans-serif; 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    margin: 0; padding: 20px; min-height: 100vh;
+                }
+                .container { 
+                    max-width: 600px; margin: 50px auto; 
+                    background: rgba(255,255,255,0.95);
+                    border-radius: 15px; padding: 30px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                }
+                h2 { color: #333; text-align: center; margin-bottom: 30px; }
+                .upload-area {
+                    border: 2px dashed #ccc; padding: 40px; text-align: center;
+                    border-radius: 10px; margin: 20px 0;
+                    transition: all 0.3s ease;
+                }
+                .upload-area:hover { border-color: #667eea; background: #f8f9ff; }
+                .upload-area.dragover { border-color: #667eea; background: #e8f0fe; }
+                input[type="file"] { margin: 20px 0; }
+                button {
+                    background: linear-gradient(45deg, #667eea, #764ba2);
+                    color: white; border: none; padding: 12px 30px;
+                    border-radius: 25px; cursor: pointer; font-size: 16px;
+                    transition: all 0.3s ease;
+                }
+                button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+                .info { background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0; }
+                .warning { background: #fff3e0; padding: 15px; border-radius: 8px; margin: 20px 0; }
+                #progress { display: none; margin: 20px 0; }
+                .progress-bar { 
+                    width: 100%; height: 20px; background: #f0f0f0; 
+                    border-radius: 10px; overflow: hidden;
+                }
+                .progress-fill { 
+                    height: 100%; background: linear-gradient(45deg, #667eea, #764ba2);
+                    width: 0%; transition: width 0.3s ease;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>?? 데이터베이스 파일 업로드</h2>
+                
+                <div class="info">
+                    <strong>? 업로드 안내:</strong><br>
+                    ? 로컬 <code>company_database.db</code> 파일을 선택하세요<br>
+                    ? 파일 크기: 약 75MB (66만+ 레코드)<br>
+                    ? 업로드 후 기존 데이터베이스는 자동 백업됩니다
+                </div>
+                
+                <div class="warning">
+                    <strong>?? 주의사항:</strong><br>
+                    ? 업로드 중에는 페이지를 새로고침하지 마세요<br>
+                    ? 네트워크 상태가 안정적인 곳에서 진행하세요<br>
+                    ? 기존 데이터는 .backup 파일로 백업됩니다
+                </div>
+                
+                <form id="uploadForm" method="post" enctype="multipart/form-data">
+                    <div class="upload-area" id="uploadArea">
+                        <p>? 파일을 여기에 드래그하거나 클릭하여 선택하세요</p>
+                        <input type="file" name="database" accept=".db" required id="fileInput">
+                        <p id="fileName" style="color: #666; margin-top: 10px;"></p>
+                    </div>
+                    
+                    <div id="progress">
+                        <p>업로드 중...</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit">? 업로드 시작</button>
+                </form>
+                
+                <div id="result" style="margin-top: 20px;"></div>
+            </div>
+            
+            <script>
+                const uploadArea = document.getElementById('uploadArea');
+                const fileInput = document.getElementById('fileInput');
+                const fileName = document.getElementById('fileName');
+                const uploadForm = document.getElementById('uploadForm');
+                const progress = document.getElementById('progress');
+                const result = document.getElementById('result');
+                
+                // 드래그 앤 드롭 이벤트
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+                
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+                
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    fileInput.files = e.dataTransfer.files;
+                    updateFileName();
+                });
+                
+                uploadArea.addEventListener('click', () => {
+                    fileInput.click();
+                });
+                
+                fileInput.addEventListener('change', updateFileName);
+                
+                function updateFileName() {
+                    if (fileInput.files.length > 0) {
+                        const file = fileInput.files[0];
+                        fileName.textContent = `선택된 파일: ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)`;
+                    }
+                }
+                
+                // 폼 제출 처리
+                uploadForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    if (!fileInput.files.length) {
+                        alert('파일을 선택해주세요.');
+                        return;
+                    }
+                    
+                    progress.style.display = 'block';
+                    result.innerHTML = '';
+                    
+                    const formData = new FormData();
+                    formData.append('database', fileInput.files[0]);
+                    
+                    try {
+                        const response = await fetch('/upload_database', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            result.innerHTML = `
+                                <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; color: #2e7d32;">
+                                    <strong>? ${data.message}</strong><br>
+                                    생성된 테이블: ${data.tables.join(', ')}
+                                </div>
+                            `;
+                        } else {
+                            result.innerHTML = `
+                                <div style="background: #ffebee; padding: 15px; border-radius: 8px; color: #c62828;">
+                                    <strong>? ${data.message}</strong>
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        result.innerHTML = `
+                            <div style="background: #ffebee; padding: 15px; border-radius: 8px; color: #c62828;">
+                                <strong>? 업로드 실패: ${error.message}</strong>
+                            </div>
+                        `;
+                    } finally {
+                        progress.style.display = 'none';
+                    }
+                });
+            </script>
+        </body>
+        </html>
+        '''
+    
+    if 'database' not in request.files:
+        return jsonify({"success": False, "message": "파일이 선택되지 않았습니다"})
+    
+    file = request.files['database']
+    if file.filename == '':
+        return jsonify({"success": False, "message": "파일이 선택되지 않았습니다"})
+    
+    try:
+        # 기존 데이터베이스 백업
+        db_path = DB_PATH
+        backup_path = db_path + '.backup'
+        
+        import shutil
+        if os.path.exists(db_path):
+            shutil.copy2(db_path, backup_path)
+        
+        # 새 데이터베이스 파일 저장
+        file.save(db_path)
+        
+        # 업로드된 파일 검증
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = cursor.fetchall()
+        conn.close()
+        
+        return jsonify({
+            "success": True, 
+            "message": f"데이터베이스 업로드 완료. {len(tables)}개 테이블 확인됨",
+            "tables": [table[0] for table in tables]
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": f"업로드 실패: {str(e)}"})
+
 @app.route('/copy_local_data')
 def copy_local_data():
     """로컬 DB 구조와 샘플 데이터를 Render 서버에 복사"""
@@ -1394,9 +1609,72 @@ def copy_local_data():
         results = []
         
         # 먼저 기본 테이블들 생성
-        init_user_tables()
-        init_business_tables()
-        results.append("? 기본 테이블 구조 생성 완료")
+        try:
+            init_user_tables()
+            results.append("? 기본 사용자 테이블 생성 완료")
+        except Exception as e:
+            results.append(f"? 기본 사용자 테이블 생성 실패: {str(e)}")
+        
+        try:
+            init_business_tables()
+            results.append("? 기본 비즈니스 테이블 생성 완료")
+        except Exception as e:
+            results.append(f"? 기본 비즈니스 테이블 생성 실패: {str(e)}")
+        
+        # 핵심 테이블들을 직접 생성 (확실하게)
+        core_tables = [
+            ("Users", '''
+                CREATE TABLE IF NOT EXISTS Users (
+                    user_id TEXT PRIMARY KEY,
+                    password TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    user_level TEXT NOT NULL DEFAULT 'N',
+                    user_level_name TEXT NOT NULL DEFAULT '일반담당자',
+                    branch_code TEXT NOT NULL DEFAULT 'DEFAULT',
+                    branch_name TEXT NOT NULL DEFAULT '기본지점',
+                    phone TEXT,
+                    gender TEXT,
+                    birth_date TEXT,
+                    email TEXT,
+                    status TEXT NOT NULL DEFAULT 'ACTIVE',
+                    created_date TEXT DEFAULT CURRENT_TIMESTAMP,
+                    last_login TEXT
+                )
+            '''),
+            ("Company_Basic", '''
+                CREATE TABLE IF NOT EXISTS Company_Basic (
+                    biz_no TEXT PRIMARY KEY,
+                    company_name TEXT,
+                    representative_name TEXT,
+                    establish_date TEXT,
+                    company_size TEXT,
+                    industry_name TEXT,
+                    region TEXT,
+                    address TEXT,
+                    phone TEXT,
+                    status TEXT DEFAULT 'ACTIVE'
+                )
+            '''),
+            ("Contact_History", '''
+                CREATE TABLE IF NOT EXISTS Contact_History (
+                    history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    biz_no TEXT,
+                    contact_datetime TEXT,
+                    contact_type TEXT,
+                    contact_person TEXT,
+                    memo TEXT,
+                    registered_by TEXT,
+                    registered_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+        ]
+        
+        for table_name, create_sql in core_tables:
+            try:
+                conn.execute(create_sql)
+                results.append(f"? {table_name} 테이블 직접 생성 완료")
+            except Exception as e:
+                results.append(f"? {table_name} 테이블 직접 생성 실패: {str(e)}")
         
         # 추가 테이블들 생성
         additional_tables = [
