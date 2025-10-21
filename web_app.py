@@ -1600,7 +1600,37 @@ def upload_database():
 
 @app.route('/download_database')
 def download_database():
-    """데이터베이스 파일 다운로드"""
+    """데이터베이스 파일 다운로드 (직접 다운로드)"""
+    try:
+        db_path = DB_PATH
+        
+        if not os.path.exists(db_path):
+            return jsonify({
+                "success": False, 
+                "message": "데이터베이스 파일이 존재하지 않습니다."
+            }), 404
+        
+        # 현재 시간으로 파일명 생성
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        download_filename = f"company_database_{timestamp}.db"
+        
+        return send_file(
+            db_path,
+            as_attachment=True,
+            download_name=download_filename,
+            mimetype='application/octet-stream'
+        )
+        
+    except Exception as e:
+        return jsonify({
+            "success": False, 
+            "message": f"다운로드 실패: {str(e)}"
+        }), 500
+
+@app.route('/download')
+def download_page():
+    """데이터베이스 다운로드 페이지 (메인)"""
     try:
         db_path = DB_PATH
         
@@ -1650,9 +1680,9 @@ def download_database():
             "message": f"다운로드 실패: {str(e)}"
         }), 500
 
-@app.route('/download_database_info')
+@app.route('/download_info')
 def download_database_info():
-    """다운로드 전 데이터베이스 정보 확인"""
+    """다운로드 전 데이터베이스 정보 확인 (API)"""
     try:
         db_path = DB_PATH
         
@@ -1832,7 +1862,7 @@ def download_database_page():
                 status.style.display = 'none';
                 
                 try {
-                    const response = await fetch('/download_database_info');
+                    const response = await fetch('/download_info');
                     const data = await response.json();
                     
                     if (data.success) {
@@ -1913,6 +1943,37 @@ def download_database_page():
     </body>
     </html>
     '''
+
+# 간단한 다운로드 경로들 추가
+@app.route('/download')
+def simple_download():
+    """간단한 다운로드 페이지 경로"""
+    return redirect('/download_database_page')
+
+@app.route('/db_download')
+def db_download_alias():
+    """데이터베이스 다운로드 페이지 별칭"""
+    return redirect('/download_database_page')
+
+@app.route('/routes')
+def list_routes():
+    """등록된 모든 라우트 확인"""
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append({
+            'endpoint': rule.endpoint,
+            'methods': list(rule.methods),
+            'rule': str(rule)
+        })
+    
+    routes.sort(key=lambda x: x['rule'])
+    
+    html = "<h2>등록된 라우트 목록</h2><ul>"
+    for route in routes:
+        html += f"<li><strong>{route['rule']}</strong> - {route['methods']} - {route['endpoint']}</li>"
+    html += "</ul>"
+    
+    return html
 
 @app.route('/copy_local_data')
 def copy_local_data():
