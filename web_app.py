@@ -2649,7 +2649,7 @@ def get_contact_history_detail(history_id):
     conn = get_db_connection()
     try:
         history = conn.execute(
-            """SELECT history_id, biz_no, contact_datetime, contact_type, contact_person, memo, registered_by, registered_date
+            """SELECT history_id, biz_no, contact_datetime, contact_type, contact_person, memo, registered_by
                FROM Contact_History 
                WHERE history_id = ?""",
             (history_id,)
@@ -2679,8 +2679,7 @@ def get_contact_history_detail(history_id):
             'contact_type': history[3],
             'contact_person': history[4],
             'memo': history[5],
-            'registered_by': history[6],
-            'registered_date': history[7]
+            'registered_by': history[6]
         }
         
         print(f">>> 성공적으로 반환: {history_data}")
