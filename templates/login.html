@@ -269,6 +269,9 @@
             <div class="form-group">
                 <label for="password">비밀번호</label>
                 <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+                <div style="margin-top: 5px; font-size: 12px; color: rgba(255, 255, 255, 0.7);">
+                    초기패스워드: password1!
+                </div>
             </div>
             
             <button type="submit" class="login-button">로그인</button>
@@ -533,12 +536,6 @@
                 보안을 위해 초기 비밀번호를 변경해주세요.
             </p>
             <form id="passwordChangeForm">
-                <div class="form-group">
-                    <label for="current_password">현재 비밀번호</label>
-                    <input type="password" id="current_password" name="current_password" value="password1!" readonly>
-                    <small style="color: rgba(255, 255, 255, 0.6);">초기 비밀번호가 자동으로 입력됩니다</small>
-                </div>
-                
                 <div class="form-group">
                     <label for="new_password">새 비밀번호</label>
                     <input type="password" id="new_password" name="new_password" placeholder="새 비밀번호를 입력하세요" required oninput="validatePasswordRules()">
@@ -917,24 +914,23 @@
             
             // 비밀번호 유효성 검사
             if (!validatePassword(newPassword)) {
-                showAlert('비밀번호는 8-20자로 대소문자, 숫자, 특수문자를 모두 포함해야 합니다.', 'error');
+                alert('비밀번호는 8-20자로 대소문자, 숫자, 특수문자를 모두 포함해야 합니다.');
                 return;
             }
             
             // 비밀번호 확인
             if (newPassword !== confirmPassword) {
-                showAlert('새 비밀번호와 확인 비밀번호가 일치하지 않습니다.', 'error');
+                alert('새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
                 return;
             }
             
-            // 현재 비밀번호와 동일한지 확인
+            // 초기 비밀번호와 동일한지 확인
             if (newPassword === 'password1!') {
-                showAlert('현재 비밀번호와 다른 비밀번호를 입력해주세요.', 'error');
+                alert('초기 비밀번호와 다른 비밀번호를 입력해주세요.');
                 return;
             }
             
             const formData = {
-                current_password: document.getElementById('current_password').value,
                 new_password: newPassword
             };
             
@@ -948,18 +944,18 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    showAlert('비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.', 'success');
+                    alert('비밀번호가 성공적으로 변경되었습니다. 다시 로그인해주세요.');
                     setTimeout(() => {
                         closePasswordChangeModal();
                         window.location.href = '/login';
                     }, 1500);
                 } else {
-                    showAlert('오류: ' + result.message, 'error');
+                    alert('오류: ' + result.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('비밀번호 변경 중 오류가 발생했습니다.', 'error');
+                alert('비밀번호 변경 중 오류가 발생했습니다.');
             });
         });
         

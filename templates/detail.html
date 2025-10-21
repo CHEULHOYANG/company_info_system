@@ -2,15 +2,14 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>{{ company.basic.company_name }} - 상세 정보</title>
+        <title>상세정보 (ych_p110) - 기업 상세 정보</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <header style="display:flex; align-items:center; justify-content:space-between;">
     <div>
-        <h1 style="display:inline-block;">{{ company.basic.company_name }} <span class="header-subtext">상세 정보</span></h1>
+        <h1 style="display:inline-block;">상세정보 (ych_p110) - {{ company.basic.company_name }} <span class="header-subtext">상세 정보</span></h1>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
     <button onclick="openPioneeringModal()" class="pioneering-button" style="background:#28a745; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">개척등록</button>
-    <button onclick="goToSalesManagement()" class="sales-button" style="background:#007bff; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">영업관리</button>
     <a href="javascript:window.close();" class="back-button">닫기</a>
     <span id="user-name-header" style="font-weight:bold; color:#333; margin-left:10px;">{{ user_name }}님</span>
     </div>
@@ -30,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <div class="tab-nav">
             <button class="tab-link active" data-tab="tab1">기업 상세 조회</button>
-            <button class="tab-link" data-tab="tab2" onclick="goToSalesManagement()">영업관리</button>
         </div>
 
         <div class="tab-content">
@@ -139,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </thead>
                                 <tbody>
                                     <tr><td>매출액</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.sales_revenue) if fin.sales_revenue is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>당기순이익</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.net_income) if fin.net_income is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>당기순이익</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.operating_income) if fin.operating_income is not none else '' }}</td> {% endfor %}</tr>
                                     <tr><td>자산총계</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.total_assets) if fin.total_assets is not none else '' }}</td> {% endfor %}</tr>
                                     <tr><td>자본총계</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.total_equity * 1000) if fin.total_equity is not none else '' }}</td> {% endfor %}</tr>
                                     <tr><td>이익잉여금</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.retained_earnings) if fin.retained_earnings is not none else '' }}</td> {% endfor %}</tr>
@@ -167,76 +165,54 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </tbody>
                             </table>
                             {% else %}<p>대표자 정보가 없습니다.</p>{% endif %}
-                            <h4>주주 구성</h4>
+                            {% set has_predicted = company.shareholders | selectattr("is_predicted", "equalto", true) | list | length > 0 %}
+                            {% set has_actual = company.shareholders | selectattr("is_predicted", "equalto", false) | list | length > 0 %}
+                            <h4>주주 구성 
+                                {% if has_predicted and not has_actual %}
+                                    <span style="font-weight: bold; color: #e74c3c; font-size: 14px;">(예측 주식수)</span>
+                                {% elif has_predicted and has_actual %}
+                                    <span style="font-weight: bold; color: #2980b9; font-size: 14px;">(실제 + 예측 주식수)</span>
+                                {% endif %}
+                            </h4>
                             {% if company.shareholders %}
                             <table class="results-table">
-                                <thead><tr><th>주주명</th><th style="width: 40%;">지분율</th><th>관계</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>주주명</th>
+                                        <th {% if has_predicted and not has_actual %}title="발행주식수와 지분율을 기준으로 계산된 예측 주식수"{% endif %}>
+                                            주식수{% if has_predicted and not has_actual %} *{% endif %}
+                                        </th>
+                                        <th>지분율</th>
+                                        <th>주식가액</th>
+                                        <th>관계</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                 {% for holder in company.shareholders %}
                                 <tr>
-                                    <td>{{ holder.shareholder_name }}</td>
+                                    <td>{{ holder.shareholder_name or '' }}</td>
+                                    <td style="text-align: right;{% if holder.is_predicted %} color: #666;{% endif %}" 
+                                        {% if holder.is_predicted %}title="예측 주식수 (발행주식수 × 지분율)"{% endif %}>
+                                        {{ "{:,.0f}".format(holder.stock_quantity|default(0)) }}주{% if holder.is_predicted %} *{% endif %}
+                                    </td>
                                     <td>
                                         <div class="progress-container">
-                                            <div class="progress-bar" style="width: {{ holder.ownership_percent }}%;">{{ "%.2f"|format(holder.ownership_percent) }}%</div>
+                                            <div class="progress-bar" style="width: {{ holder.ownership_percent|default(0) }}%;">{{ "{:.2f}".format(holder.ownership_percent|default(0)) }}%</div>
                                         </div>
                                     </td>
-                                    <td>{{ holder.relationship }}</td>
+                                    <td style="text-align: right;">{{ "{:,.0f}".format(holder.stock_value_amount|default(0)) }}원</td>
+                                    <td>{{ holder.relationship or '' }}</td>
                                 </tr>
                                 {% endfor %}
                                 </tbody>
                             </table>
+                            {% if has_predicted %}
+                                <p style="font-size: 12px; color: #666; margin-top: 10px; font-style: italic;">
+                                    * 별표(*)가 표시된 주식수는 발행주식수와 지분율을 기준으로 계산된 예측값입니다.
+                                </p>
+                            {% endif %}
                             {% else %}<p>주주 정보가 없습니다.</p>{% endif %}
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab2" class="tab-pane">
-                <div class="detail-card">
-                    <h3>접촉 이력</h3>
-                    <form id="contact-history-form">
-                        <input type="hidden" name="history_id">
-                        <input type="hidden" name="biz_no" value="{{ company.basic.biz_no }}">
-                        <div class="form-row">
-                            <input type="datetime-local" name="contact_datetime" required>
-                            <select name="contact_type" required>
-                                <option value="" disabled selected>유형 선택</option>
-                                <option value="DM발송">DM발송</option>
-                                <option value="전화상담">전화상담</option>
-                                <option value="대면상담">대면상담</option>
-                                <option value="세미나참석">세미나참석</option>
-                                <option value="문자발송">문자발송</option>
-                                <option value="선물발송">선물발송</option>
-                            </select>
-                            <input type="text" name="contact_person" placeholder="담당자" required>
-                        </div>
-                        <div class="form-row">
-                             <textarea name="memo" placeholder="메모 내용" required></textarea>
-                        </div>
-                        <div class="form-row form-buttons">
-                            <button type="submit" id="submit-btn">신규등록</button>
-                            <button type="button" id="cancel-btn" style="display:none;">취소</button>
-                        </div>
-                    </form>
-                    <div class="table-container">
-                        <table class="results-table">
-                            <thead><tr><th>일시</th><th>유형</th><th>담당자</th><th>내용</th><th>작성자</th><th>작업</th></tr></thead>
-                            <tbody id="history-tbody">
-                                {% for item in company.history %}
-                                <tr data-id="{{ item.history_id }}">
-                                    <td class="datetime-value">{{ item.contact_datetime }}</td>
-                                    <td class="type">{{ item.contact_type }}</td>
-                                    <td class="person">{{ item.contact_person }}</td>
-                                    <td class="memo">{{ item.memo }}</td>
-                                    <td>{{ item.registered_by }}</td>
-                                    <td>
-                                        <button class="edit-btn">수정</button>
-                                        <button class="delete-btn">삭제</button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -244,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // 탭 전환 기능 (현재는 tab1만 있음)
         const tabLinks = document.querySelectorAll('.tab-link');
         const tabPanes = document.querySelectorAll('.tab-pane');
 
@@ -258,80 +235,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById(tabId).classList.add('active');
             });
         });
-
-        const form = document.getElementById('contact-history-form');
-        const historyIdInput = form.querySelector('input[name="history_id"]');
-        const datetimeInput = form.querySelector('input[name="contact_datetime"]');
-        const submitBtn = document.getElementById('submit-btn');
-        const cancelBtn = document.getElementById('cancel-btn');
-        const historyTbody = document.getElementById('history-tbody');
-        
-        function resetForm() {
-            form.reset();
-            historyIdInput.value = '';
-            submitBtn.textContent = '신규등록';
-            cancelBtn.style.display = 'none';
-        }
-
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const historyId = historyIdInput.value;
-            const method = historyId ? 'PUT' : 'POST';
-            const url = '/api/contact_history';
-            
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-
-            fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if(result.success) {
-                    alert(result.message);
-                    location.reload();
-                } else {
-                    alert('오류: ' + result.message);
-                }
-            });
-        });
-
-        historyTbody.addEventListener('click', (e) => {
-            const row = e.target.closest('tr');
-            if (!row) return;
-            const historyId = row.dataset.id;
-
-            if (e.target.classList.contains('edit-btn')) {
-                historyIdInput.value = historyId;
-                let dtValue = row.querySelector('.datetime-value').textContent.trim().replace(' ', 'T');
-                if (dtValue.length === 16) dtValue += ':00';
-                datetimeInput.value = dtValue;
-                form.contact_type.value = row.querySelector('.type').textContent;
-                form.contact_person.value = row.querySelector('.person').textContent;
-                form.memo.value = row.querySelector('.memo').textContent;
-                
-                submitBtn.textContent = '수정완료';
-                cancelBtn.style.display = 'inline-block';
-                form.scrollIntoView({ behavior: 'smooth' });
-            }
-
-            if (e.target.classList.contains('delete-btn')) {
-                if (!confirm('정말로 이 이력을 삭제하시겠습니까?')) return;
-                fetch(`/api/contact_history/${historyId}`, { method: 'DELETE' })
-                    .then(response => response.json())
-                    .then(result => {
-                         if(result.success) {
-                            alert('삭제되었습니다.');
-                            row.remove();
-                         } else {
-                            alert('삭제 중 오류가 발생했습니다.');
-                         }
-                    });
-            }
-        });
-        cancelBtn.addEventListener('click', resetForm);
     });
 
     // 개척등록 모달 함수들
@@ -431,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- 개척등록 모달 -->
     <div id="pioneeringModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);">
         <div style="background-color:white; margin:15% auto; padding:30px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
-            <h2 style="margin-top:0; color:#28a745;">개척 대상 등록</h2>
+            <h2 style="margin-top:0; color:#28a745;">개척 대상 등록 (ych_P111)</h2>
             <form id="pioneeringForm">
                 <div style="margin-bottom:20px;">
                     <label style="display:block; margin-bottom:5px; font-weight:500;">기업명:</label>
@@ -461,11 +364,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
-    <script>
-    // 영업관리로 이동하는 함수
-    function goToSalesManagement() {
-        window.open('/sales_management', '_blank');
-    }
     </script>
 </body>
 </html>

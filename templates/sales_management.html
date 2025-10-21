@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>영업관리 - 방문개척활동</title>
+    <title>영업관리 - 방문개척활동 (ych_s010)</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body {
@@ -262,7 +262,7 @@
     <div class="container">
         <div class="header">
             <div>
-                <h1>영업관리 - 방문개척활동</h1>
+                <h1>영업관리 - 방문개척활동 (ych_s010)</h1>
                 <p>{{ user_name }}님 ({{ user_level_name }}) - {{ branch_name }}</p>
             </div>
         </div>
@@ -384,12 +384,6 @@
         <div id="history-tab" class="tab-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3>접촉이력 관리</h3>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-secondary" onclick="downloadCSVTemplate()">CSV 템플릿</button>
-                    <button class="btn btn-success" onclick="downloadCSV()">CSV 다운로드</button>
-                    <input type="file" id="csvFileInputContact" accept=".csv" style="display: none;" onchange="uploadCSV()">
-                    <button class="btn btn-info" onclick="document.getElementById('csvFileInputContact').click()">CSV 업로드</button>
-                </div>
             </div>
             
             <!-- 검색 필터 -->
@@ -437,7 +431,7 @@
     <!-- 비용 등록 모달 -->
     <div id="expenseModal" class="modal">
         <div class="modal-content">
-            <h2 id="expenseModalTitle">영업비용 등록</h2>
+            <h2 id="expenseModalTitle">영업비용 등록 (ych_P011)</h2>
             <form id="expenseForm">
                 <input type="hidden" id="expenseId">
                 
@@ -815,7 +809,7 @@
         }
         
         function openExpenseModal() {
-            document.getElementById('expenseModalTitle').textContent = '영업비용 등록';
+            document.getElementById('expenseModalTitle').textContent = '영업비용 등록 (ych_P011)';
             document.getElementById('expenseForm').reset();
             document.getElementById('expenseId').value = '';
             document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
@@ -834,7 +828,7 @@
             const expense = expenses.find(e => e.id === id);
             if (!expense) return;
             
-            document.getElementById('expenseModalTitle').textContent = '영업비용 수정';
+            document.getElementById('expenseModalTitle').textContent = '영업비용 수정 (ych_P011)';
             document.getElementById('expenseId').value = expense.id;
             document.getElementById('expenseDate').value = expense.expense_date;
             document.getElementById('expenseType').value = expense.expense_type;

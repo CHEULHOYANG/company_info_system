@@ -91,24 +91,32 @@ def format_kst_datetime(dt_str=None):
 template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app.jinja_loader = CP949FileSystemLoader(template_dir)
 
-# DB 경로 설정 (기존 데이터 보존하면서 GitHub 업데이트 시 DB 보존)
+# DB 경로 설정 (Render Persistent Disk 사용)
 app_dir = os.path.dirname(os.path.abspath(__file__))
 
 # render.com에서는 환경변수 RENDER가 설정됨
 if os.environ.get('RENDER'):
-    # render.com 서버 환경
+    # render.com 서버 환경 - Persistent Disk 사용
+    persistent_disk_path = '/var/data'
     
-    # 1순위: 기존 DB 파일이 있으면 계속 사용 (데이터 보존)
-    existing_db = os.path.join(app_dir, 'company_database.db')
-    if os.path.exists(existing_db):
-        DB_PATH = existing_db
-        print(f"Using existing DB: {DB_PATH}")
+    # Persistent Disk 디렉터리 확인 및 생성
+    if os.path.exists(persistent_disk_path):
+        # Persistent Disk가 마운트된 경우
+        DB_PATH = os.path.join(persistent_disk_path, 'company_database.db')
+        print(f"Using Persistent Disk DB: {DB_PATH}")
     else:
-        # 2순위: 기존 DB가 없으면 data 폴더에 새로 생성
-        db_dir = os.path.join(app_dir, 'data')
-        os.makedirs(db_dir, exist_ok=True)
-        DB_PATH = os.path.join(db_dir, 'company_info.db')
-        print(f"Creating new DB: {DB_PATH}")
+        # Persistent Disk가 없는 경우 (기존 로직 유지)
+        # 1순위: 기존 DB 파일이 있으면 계속 사용 (데이터 보존)
+        existing_db = os.path.join(app_dir, 'company_database.db')
+        if os.path.exists(existing_db):
+            DB_PATH = existing_db
+            print(f"Using existing DB (no persistent disk): {DB_PATH}")
+        else:
+            # 2순위: 기존 DB가 없으면 data 폴더에 새로 생성
+            db_dir = os.path.join(app_dir, 'data')
+            os.makedirs(db_dir, exist_ok=True)
+            DB_PATH = os.path.join(db_dir, 'company_info.db')
+            print(f"Creating new DB (no persistent disk): {DB_PATH}")
 else:
     # 로컬 개발 환경 - 기존 파일 사용
     DB_PATH = os.path.join(app_dir, 'company_database.db')
@@ -116,9 +124,24 @@ else:
 
 # --- DB 연결 함수 및 사용자 계정 ---
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    """데이터베이스 연결을 반환합니다. Persistent Disk 지원"""
+    try:
+        # 데이터베이스 디렉터리가 없으면 생성
+        db_dir = os.path.dirname(DB_PATH)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+            print(f"Created DB directory: {db_dir}")
+        
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        # 연결 실패 시 메모리 DB로 폴백 (임시 조치)
+        print("Falling back to in-memory database")
+        conn = sqlite3.connect(':memory:', check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        return conn
 
 # 구독 정보 조회 함수
 def get_user_subscription_info(user_id):
@@ -605,8 +628,49 @@ def check_permission(user_level, required_level):
     level_hierarchy = {'V': 4, 'S': 3, 'M': 2, 'N': 1}
     return level_hierarchy.get(user_level, 0) >= level_hierarchy.get(required_level, 0)
 
-# 앱 시작 시 사용자 테이블 초기화
-init_user_tables()
+# 앱 시작 시 데이터베이스 및 사용자 테이블 초기화
+def initialize_application():
+    """애플리케이션 초기화 함수"""
+    print("=== Application Initialization ===")
+    print(f"Environment: {'Render' if os.environ.get('RENDER') else 'Local'}")
+    print(f"Database Path: {DB_PATH}")
+    
+    # Render 환경에서 Persistent Disk 상태 확인
+    if os.environ.get('RENDER'):
+        persistent_disk_path = '/var/data'
+        if os.path.exists(persistent_disk_path):
+            print("? Persistent Disk detected and mounted")
+            # 디스크 용량 확인
+            try:
+                import shutil
+                total, used, free = shutil.disk_usage(persistent_disk_path)
+                print(f"  Disk space - Total: {total//1024**3}GB, Used: {used//1024**3}GB, Free: {free//1024**3}GB")
+            except:
+                pass
+        else:
+            print("? Persistent Disk not found - using fallback storage")
+    
+    # 데이터베이스 파일 존재 여부 확인
+    if os.path.exists(DB_PATH):
+        print(f"? Database file exists: {DB_PATH}")
+        try:
+            # 데이터베이스 연결 테스트
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1;")
+            conn.close()
+            print("? Database connection successful")
+        except Exception as e:
+            print(f"? Database connection test failed: {e}")
+    else:
+        print(f"Creating new database: {DB_PATH}")
+    
+    # 사용자 테이블 초기화
+    init_user_tables()
+    print("=== Initialization Complete ===")
+
+# 앱 시작 시 초기화 실행
+initialize_application()
 
 # --- 비상장 주식 가치 계산 ---
 def calculate_unlisted_stock_value(financial_data):
@@ -639,13 +703,41 @@ def calculate_unlisted_stock_value(financial_data):
 
     calculated_value = (asset_value * 2 + profit_value * 3) / 5
 
+    # 주식수 계산 - 계층적 fallback 적용
     total_shares = float(latest_data.get('shares_issued_count') or 0)
+    
+    # 1단계: shares_issued_count가 없거나 1 이하인 경우
     if total_shares <= 1:
-        capital_stock = float(latest_data.get('capital_stock_value') or 0)
-        if capital_stock > 0:
-            total_shares = capital_stock / 5000
-        else:
-            total_shares = 1
+        # 2단계: 주주 소유 주식수 합계 시도
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT SUM(CAST(total_shares_owned AS REAL)) 
+                FROM Company_Shareholder 
+                WHERE biz_no = ? AND total_shares_owned IS NOT NULL AND total_shares_owned != ''
+            """, (latest_data.get('biz_no', ''),))
+            total_owned_shares = cursor.fetchone()[0]
+            conn.close()
+            
+            if total_owned_shares and total_owned_shares > 0:
+                total_shares = total_owned_shares
+            else:
+                # 3단계: 자본금/5000 계산
+                capital_stock = float(latest_data.get('capital_stock_value') or 0)
+                if capital_stock > 0:
+                    total_shares = capital_stock / 5000
+                else:
+                    total_shares = 1
+        except Exception as e:
+            print(f"주주 소유 주식수 합계 계산 오류: {e}")
+            # 3단계: 자본금/5000 계산
+            capital_stock = float(latest_data.get('capital_stock_value') or 0)
+            if capital_stock > 0:
+                total_shares = capital_stock / 5000
+            else:
+                total_shares = 1
+    
     if total_shares == 0:
         total_shares = 1
 
@@ -996,62 +1088,71 @@ def api_history_search():
     if not session.get('logged_in'):
         return jsonify({"error": "Unauthorized"}), 401
 
-    user_id = session.get('user_id')
-    print(f"접속 user_id: {user_id}")
+    try:
+        user_id = session.get('user_id')
+        print(f"접속 user_id: {user_id}")
+        query = """
+            SELECT
+                h.history_id,
+                h.contact_datetime,
+                h.biz_no,
+                b.company_name,
+                h.contact_type,
+                h.contact_person,
+                h.memo,
+                h.registered_by
+            FROM Contact_History h
+            LEFT JOIN Company_Basic b ON h.biz_no = b.biz_no
+        """
+        filters = []
+        params = []
 
-    query = """
-        SELECT
-            h.history_id,
-            h.contact_datetime,
-            h.biz_no,
-            b.company_name,
-            h.contact_type,
-            h.contact_person,
-            h.memo,
-            h.registered_by
-        FROM Contact_History h
-        LEFT JOIN Company_Basic b ON h.biz_no = b.biz_no
-    """
-    filters = []
-    params = []
-
-    search_user = request.args.get('registered_by')
-    user_level = session.get('user_level', 'N')
-    
-    # 담당자ID가 명확히 입력된 경우만 해당 담당자 등록건만 조회
-    if search_user is not None and search_user.strip() != "":
-        filters.append("h.registered_by = ?")
-        params.append(search_user.strip())
-    else:
-        # 담당자ID 미입력 시 권한에 따라 조회 범위 결정
-        if check_permission(user_level, 'S'):  # V(메인관리자), S(서브관리자)
-            # 전체 이력 조회 (필터 없음)
-            pass
-        else:
-            # M(매니저), N(일반담당자)는 본인 등록건만 조회
+        search_user = request.args.get('registered_by')
+        user_level = session.get('user_level', 'N')
+        
+        # 담당자ID가 명확히 입력된 경우만 해당 담당자 등록건만 조회
+        if search_user is not None and search_user.strip() != "":
             filters.append("h.registered_by = ?")
-            params.append(user_id)
+            params.append(search_user.strip())
+        else:
+            # 담당자ID 미입력 시 권한에 따라 조회 범위 결정
+            if check_permission(user_level, 'S'):  # V(메인관리자), S(서브관리자)
+                # 전체 이력 조회 (필터 없음)
+                pass
+            else:
+                # M(매니저), N(일반담당자)는 본인 등록건만 조회
+                filters.append("h.registered_by = ?")
+                params.append(user_id)
 
-    if request.args.get('start_date'):
-        filters.append("h.contact_datetime >= ?")
-        params.append(request.args.get('start_date') + ' 00:00:00')
-    if request.args.get('end_date'):
-        filters.append("h.contact_datetime <= ?")
-        params.append(request.args.get('end_date') + ' 23:59:59')
-    if request.args.get('biz_no'):
-        filters.append("h.biz_no LIKE ?")
-        params.append(f"%{request.args.get('biz_no')}%")
+        if request.args.get('start_date'):
+            filters.append("h.contact_datetime >= ?")
+            params.append(request.args.get('start_date') + ' 00:00:00')
+        if request.args.get('end_date'):
+            filters.append("h.contact_datetime <= ?")
+            params.append(request.args.get('end_date') + ' 23:59:59')
+        if request.args.get('biz_no'):
+            filters.append("h.biz_no LIKE ?")
+            params.append(f"%{request.args.get('biz_no')}%")
 
-    if filters:
-        query += " WHERE " + " AND ".join(filters)
-    query += " ORDER BY h.contact_datetime DESC"
+        if filters:
+            query += " WHERE " + " AND ".join(filters)
+        query += " ORDER BY h.contact_datetime DESC"
 
+        print(f"쿼리 실행: {query}")
+        print(f"파라미터: {params}")
 
-    conn = get_db_connection()
-    results = conn.execute(query, params).fetchall()
-    conn.close()
+        conn = get_db_connection()
+        results = conn.execute(query, params).fetchall()
+        conn.close()
 
-    return jsonify([dict(row) for row in results])
+        print(f"조회된 결과 수: {len(results)}")
+        return jsonify([dict(row) for row in results])
+        
+    except Exception as e:
+        print(f"Error in api_history_search: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "Internal server error"}), 500
 
 # ▼▼▼ [수정] get_companies 함수 ▼▼▼
 @app.route('/api/companies')
@@ -1128,7 +1229,7 @@ def company_detail(biz_no):
     basic_info = conn.execute(basic_query, (biz_no,)).fetchone()
     
     financial_query = """
-    SELECT fiscal_year, sales_revenue, net_income, total_assets, total_equity, retained_earnings, corporate_tax, 
+    SELECT fiscal_year, sales_revenue, operating_income, net_income, total_assets, total_equity, retained_earnings, corporate_tax, 
            undistributed_retained_earnings, advances_paid, advances_received, shares_issued_count, total_liabilities,
            IFNULL(capital_stock_value, 0) as capital_stock_value
     FROM Company_Financial WHERE biz_no = ? ORDER BY fiscal_year DESC LIMIT 3
@@ -1178,11 +1279,76 @@ def company_detail(biz_no):
     financial_data_for_calc = [dict(row) for row in financial_info] if financial_info else []
     stock_valuation = calculate_unlisted_stock_value(financial_data_for_calc)
     
+    # 주주 정보 처리 개선 - 지분율, 주식수, 금액 계산
+    processed_shareholders = []
+    total_shares_owned = 0
+    
+    if shareholders:
+        # 전체 주식수 계산 (stock_valuation에서 계산된 값 사용)
+        total_shares_issued = stock_valuation.get('total_shares_issued', 1)
+        estimated_stock_value = stock_valuation.get('estimated_stock_value', 0)
+        
+        for shareholder in shareholders:
+            try:
+                shareholder_dict = dict(shareholder)
+                
+                # 안전한 지분율 변환
+                try:
+                    ownership_percent = float(shareholder_dict.get('ownership_percent', 0) or 0)
+                except (ValueError, TypeError):
+                    ownership_percent = 0.0
+                
+                # 실제 주식수가 있는지 확인
+                actual_stock_quantity = shareholder_dict.get('total_shares_owned')
+                has_actual_stock_data = (actual_stock_quantity is not None and 
+                                       actual_stock_quantity != '' and 
+                                       actual_stock_quantity != 0)
+                
+                if has_actual_stock_data:
+                    # 실제 주식수 데이터가 있는 경우
+                    try:
+                        stock_quantity = float(actual_stock_quantity)
+                        is_predicted = False
+                    except (ValueError, TypeError):
+                        stock_quantity = 0.0
+                        is_predicted = False
+                else:
+                    # 실제 주식수가 없는 경우 지분율로 예측 계산
+                    try:
+                        stock_quantity = (total_shares_issued * ownership_percent) / 100.0
+                        is_predicted = True
+                    except (ValueError, TypeError):
+                        stock_quantity = 0.0
+                        is_predicted = True
+                
+                # 주식 금액 계산
+                try:
+                    stock_value_amount = stock_quantity * estimated_stock_value
+                except (ValueError, TypeError):
+                    stock_value_amount = 0.0
+                
+                shareholder_dict.update({
+                    'ownership_percent': round(ownership_percent, 2),
+                    'stock_quantity': round(stock_quantity, 0),
+                    'stock_value_amount': round(stock_value_amount, 0),
+                    'shareholder_name': shareholder_dict.get('shareholder_name', ''),
+                    'relationship': shareholder_dict.get('relationship', ''),
+                    'is_predicted': is_predicted  # 예측 여부를 표시
+                })
+                
+                processed_shareholders.append(shareholder_dict)
+                total_shares_owned += stock_quantity
+                
+            except Exception as e:
+                print(f"주주 정보 처리 중 오류: {e}")
+                # 오류가 발생한 주주는 건너뛰고 계속 진행
+                continue
+
     company_data = {
         'basic': dict(basic_info) if basic_info else {},
         'financials': [dict(row) for row in financial_info],
         'representatives': [dict(row) for row in representatives],
-        'shareholders': [dict(row) for row in shareholders],
+        'shareholders': processed_shareholders,
         'history': [dict(row) for row in contact_history],
         'patents': [dict(row) for row in patents],
         'additional': additional_info,
@@ -3041,11 +3207,10 @@ def api_change_password():
         return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
     
     data = request.get_json()
-    current_password = data.get('current_password')
     new_password = data.get('new_password')
     
-    if not current_password or not new_password:
-        return jsonify({"success": False, "message": "현재 비밀번호와 새 비밀번호를 입력해주세요."}), 400
+    if not new_password:
+        return jsonify({"success": False, "message": "새 비밀번호를 입력해주세요."}), 400
     
     # 비밀번호 복잡성 검사
     import re
@@ -3057,14 +3222,14 @@ def api_change_password():
     
     conn = get_db_connection()
     try:
-        # 현재 비밀번호 확인
+        # 사용자 존재 확인
         user = conn.execute("SELECT password FROM Users WHERE user_id = ?", (user_id,)).fetchone()
         if not user:
             return jsonify({"success": False, "message": "사용자를 찾을 수 없습니다."}), 404
         
-        # 현재 비밀번호 검증 (단순 문자열 비교 또는 해시 비교)
-        if user['password'] != current_password:
-            return jsonify({"success": False, "message": "현재 비밀번호가 올바르지 않습니다."}), 400
+        # 현재 비밀번호와 동일한지 확인 (같으면 변경 거부)
+        if user['password'] == new_password:
+            return jsonify({"success": False, "message": "현재 비밀번호와 다른 비밀번호를 입력해주세요."}), 400
         
         # 새 비밀번호로 업데이트
         conn.execute("""

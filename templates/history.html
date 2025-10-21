@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>접촉이력 조회</title>
+    <title>접촉이력 조회 (ych_m020)</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body {
@@ -283,7 +283,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>접촉이력 조회 <span id="results-count" class="header-subtext"></span></h1>
+                            <h1>접촉이력 조회 (ych_m020)</h1>
             <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
                 <a href="{{ url_for('index') }}" class="back-button">기업정보조회</a>
                 <a href="{{ url_for('main') }}" class="back-button">메인으로</a>
@@ -312,6 +312,10 @@
                 <input type="date" id="end_date" name="end_date">
                 <input type="text" id="biz_no" name="biz_no" placeholder="사업자번호">
             </form>
+        </div>
+
+        <div class="search-results-info">
+            <span id="results-count" style="font-weight: bold; color: #333;">조회건수 : 0건</span>
         </div>
 
         <div class="table-container">
@@ -384,75 +388,198 @@
         const historyList = document.getElementById('history-list');
         const resultsCountSpan = document.getElementById('results-count');
 
-        // 검색 실행 함수
-        function performSearch() {
-            historyList.innerHTML = '<tr><td colspan="9" class="loading">검색 중...</td></tr>';
-            const formData = new FormData(searchForm);
-            const params = new URLSearchParams(formData);
-
-            fetch(`/api/history_search?${params.toString()}`)
-                .then(response => response.json())
-                .then(data => {
-                    historyList.innerHTML = '';
-                    resultsCountSpan.textContent = `조회건수 : ${data.length.toLocaleString()}건`;
-
-                    if (data.length === 0) {
-                        historyList.innerHTML = '<tr><td colspan="9">검색 결과가 없습니다.</td></tr>';
-                        return;
-                    }
-
-                    data.forEach((item, index) => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${index + 1}</td>
-                            <td>${item.contact_datetime || ''}</td>
-                            <td><a href="#" onclick="openCompanyPopup('${item.biz_no}')">${item.company_name || ''}</a></td>
-                            <td>${item.biz_no || ''}</td>
-                            <td>${item.contact_type || ''}</td>
-                            <td>${item.contact_person || ''}</td>
-                            <td class="memo-cell">${item.memo || ''}</td>
-                            <td>${item.registered_by || ''}</td>
-                            <td><button class="delete-btn" data-id="${item.history_id}" onclick="deleteHistory(this)">삭제</button></td>
-                        `;
-                        historyList.appendChild(row);
-                    });
-                })
-                .catch(error => {
-                    historyList.innerHTML = '<tr><td colspan="9">데이터 조회 중 오류가 발생했습니다.</td></tr>';
-                });
+        // DOM 요소 존재 확인
+        if (!searchButton || !resetButton || !searchForm || !historyList) {
+            console.error('필수 DOM 요소를 찾을 수 없습니다.');
+            return;
         }
 
-        searchButton.addEventListener('click', performSearch);
+        // 검색이 실행 중인지 확인하는 플래그
+        let isSearching = false;
 
-        resetButton.addEventListener('click', () => {
-            searchForm.reset();
-            performSearch();
+        // 검색 실행 함수
+        function performSearch(event) {
+            // 이벤트가 있다면 기본 동작 방지
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            // 이미 검색 중이면 중복 실행 방지
+            if (isSearching) {
+                return;
+            }
+            
+            isSearching = true;
+            
+            try {
+                if (historyList) {
+                    historyList.innerHTML = '<tr><td colspan="9" class="loading">검색 중...</td></tr>';
+                }
+                
+                // 폼 데이터를 명시적으로 수집
+                const formData = {
+                    registered_by: document.getElementById('registered_by').value || '',
+                    start_date: document.getElementById('start_date').value || '',
+                    end_date: document.getElementById('end_date').value || '',
+                    biz_no: document.getElementById('biz_no').value || ''
+                };
+                
+                const params = new URLSearchParams(formData);
+
+                fetch(`/api/history_search?${params.toString()}&_t=${Date.now()}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (historyList) {
+                            historyList.innerHTML = '';
+                        }
+                        if (resultsCountSpan) {
+                            resultsCountSpan.textContent = `조회건수 : ${data.length.toLocaleString()}건`;
+                        }
+
+                        if (data.length === 0) {
+                            if (historyList) {
+                                historyList.innerHTML = '<tr><td colspan="9">검색 결과가 없습니다.</td></tr>';
+                            }
+                            return;
+                        }
+
+                        data.forEach((item, index) => {
+                            const row = document.createElement('tr');
+                            
+                            // 각 셀을 안전하게 생성
+                            const cells = [
+                                index + 1,
+                                item.contact_datetime || '',
+                                '', // 회사명 링크는 별도 처리
+                                item.biz_no || '',
+                                item.contact_type || '',
+                                item.contact_person || '',
+                                item.memo || '',
+                                item.registered_by || '',
+                                '' // 삭제 버튼은 별도 처리
+                            ];
+                            
+                            cells.forEach((cellData, cellIndex) => {
+                                const td = document.createElement('td');
+                                if (cellIndex === 2) { // 회사명 링크
+                                    if (item.company_name) {
+                                        const link = document.createElement('a');
+                                        link.href = '#';
+                                        link.textContent = item.company_name;
+                                        link.onclick = function(e) { 
+                                            e.preventDefault();
+                                            openCompanyPopup(item.biz_no); 
+                                            return false; 
+                                        };
+                                        td.appendChild(link);
+                                    }
+                                } else if (cellIndex === 8) { // 삭제 버튼
+                                    const btn = document.createElement('button');
+                                    btn.className = 'delete-btn';
+                                    btn.textContent = '삭제';
+                                    btn.dataset.id = item.history_id;
+                                    btn.onclick = function(e) { 
+                                        e.preventDefault();
+                                        deleteHistory(this); 
+                                    };
+                                    td.appendChild(btn);
+                                } else if (cellIndex === 6) { // 메모 셀
+                                    td.className = 'memo-cell';
+                                    td.textContent = cellData;
+                                } else {
+                                    td.textContent = cellData;
+                                }
+                                row.appendChild(td);
+                            });
+                            
+                            if (historyList) {
+                                historyList.appendChild(row);
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        console.error('상세 에러:', error);
+                        if (historyList) {
+                            historyList.innerHTML = '<tr><td colspan="9">데이터 조회 중 오류가 발생했습니다: ' + error.message + '</td></tr>';
+                        }
+                    })
+                    .finally(() => {
+                        isSearching = false;
+                    });
+            } catch (error) {
+                console.error('검색 함수 실행 중 오류:', error);
+                if (historyList) {
+                    historyList.innerHTML = '<tr><td colspan="9">검색 중 오류가 발생했습니다.</td></tr>';
+                }
+                isSearching = false;
+            }
+        }
+
+        // 이벤트 리스너 등록 (한 번만)
+        searchButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            performSearch(e);
         });
 
-        // 페이지 로드 시 전체 내역 조회
-        performSearch();
+        resetButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            searchForm.reset();
+            performSearch(e);
+        });
+
+        // 폼 제출 이벤트 방지
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            performSearch(e);
+        });
+
+        // 페이지 로드 시 한 번만 전체 내역 조회
+        setTimeout(() => {
+            performSearch();
+        }, 100);
 
         // 삭제 버튼 기능
         window.deleteHistory = function(btn) {
-            const historyId = btn.getAttribute('data-id');
-            if (!historyId) {
-                alert('삭제할 이력 ID가 없습니다.');
-                return;
+            try {
+                const historyId = btn.getAttribute('data-id');
+                if (!historyId) {
+                    alert('삭제할 이력 ID가 없습니다.');
+                    return;
+                }
+                if (!confirm('정말 삭제하시겠습니까?')) return;
+                
+                fetch(`/api/contact_history/${historyId}`, { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('삭제되었습니다!');
+                            // 검색 함수가 정의되어 있는지 확인 후 호출
+                            if (typeof performSearch === 'function') {
+                                performSearch();
+                            } else {
+                                location.reload();
+                            }
+                        } else {
+                            alert('삭제 실패: ' + (data.message || '오류'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('삭제 오류:', error);
+                        alert('삭제 중 오류가 발생했습니다.');
+                    });
+            } catch (error) {
+                console.error('삭제 함수 오류:', error);
+                alert('삭제 처리 중 오류가 발생했습니다.');
             }
-            if (!confirm('정말 삭제하시겠습니까?')) return;
-            fetch(`/api/contact_history/${historyId}`, { method: 'DELETE' })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('삭제되었습니다!');
-                        performSearch();
-                    } else {
-                        alert('삭제 실패: ' + (data.message || '오류'));
-                    }
-                })
-                .catch(() => alert('삭제 중 오류가 발생했습니다.'));
         }
     });
     </script>
+    <!-- 캐시 무효화 : 20251021_clean -->
 </body>
 </html>
