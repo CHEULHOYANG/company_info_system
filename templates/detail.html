@@ -197,8 +197,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                         {{ "{:,.0f}".format(holder.stock_quantity|default(0)) }}주{% if holder.is_predicted %} *{% endif %}
                                     </td>
                                     <td>
-                                        <div class="progress-container">
-                                            <div class="progress-bar" style="width: {{ holder.ownership_percent|default(0) }}%;">{{ "{:.2f}".format(holder.ownership_percent|default(0)) }}%</div>
+                                        <div class="progress-container-improved">
+                                            <div class="progress-bar-improved" style="width: {{ holder.ownership_percent|default(0) }}%;"></div>
+                                            <div class="progress-text-improved progress-text-{% if (holder.ownership_percent|default(0)) < 15 %}dark{% else %}light{% endif %}">
+                                                {{ "{:.2f}".format(holder.ownership_percent|default(0)) }}%
+                                            </div>
                                         </div>
                                     </td>
                                     <td style="text-align: right;">{{ "{:,.0f}".format(holder.stock_value_amount|default(0)) }}원</td>
@@ -525,6 +528,45 @@ document.addEventListener('DOMContentLoaded', function() {
         color: #000;
     }
 
+    /* 주주구성 지분율 개선 스타일 */
+    .progress-container-improved {
+        position: relative;
+        background: #e9ecef;
+        border-radius: 10px;
+        height: 25px;
+        overflow: visible;
+        min-width: 100px;
+    }
+
+    .progress-bar-improved {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        height: 100%;
+        border-radius: 10px;
+        position: relative;
+        min-width: 2px; /* 최소 폭 보장 */
+    }
+
+    .progress-text-improved {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: bold;
+        font-size: 12px;
+        z-index: 10;
+        white-space: nowrap;
+    }
+
+    .progress-text-dark {
+        color: #000;
+        text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+    }
+
+    .progress-text-light {
+        color: #fff;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
     @media (max-width: 768px) {
         .contact-form .form-row {
             grid-template-columns: 1fr;
@@ -661,11 +703,13 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             listContainer.innerHTML = '<div class="loading">접촉이력을 불러오는 중...</div>';
             
-            const response = await fetch(`/api/contact_history?biz_no=${bizNo}`);
+            // 기존 API 사용 (/api/history_search)
+            const response = await fetch(`/api/history_search?biz_no=${bizNo}`);
             const data = await response.json();
             
-            if (data.success && data.data && data.data.length > 0) {
-                displayContactHistory(data.data);
+            // 기존 API는 배열로 직접 반환함
+            if (Array.isArray(data) && data.length > 0) {
+                displayContactHistory(data);
             } else {
                 listContainer.innerHTML = '<div class="no-data">등록된 접촉이력이 없습니다.</div>';
             }
@@ -683,7 +727,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="contact-history-item">
                 <div class="contact-header">
                     <div class="contact-info">
-                        <span class="contact-type">${history.contact_type}</span>
+                        <span class="contact-type">${history.contact_type || '기타'}</span>
                         <span><strong>일시:</strong> ${formatDateTime(history.contact_datetime)}</span>
                         ${history.contact_person ? `<span><strong>담당자:</strong> ${history.contact_person}</span>` : ''}
                         <span><strong>등록자:</strong> ${history.registered_by}</span>
