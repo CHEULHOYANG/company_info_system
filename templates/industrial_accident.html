@@ -5,121 +5,198 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>산재 민사 배상액 계산기</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+        :root{
+            --glass-bg: rgba(255,255,255,0.06);
+            --card-bg: rgba(255,255,255,0.9);
+            --accent: #6EE7B7; /* green-cyan */
+            --accent-2: #7C3AED; /* purple */
+            --muted: #94a3b8;
         }
-        .input-label {
-            @apply block text-sm font-medium text-gray-700 mb-1;
+        html,body{height:100%;margin:0;font-family:'Noto Sans KR','Inter',sans-serif;background:
+            radial-gradient(1200px 600px at 10% 10%, rgba(124,58,237,0.08), transparent 10%),
+            linear-gradient(180deg,#071024 0%, #0b2540 40%, #071024 100%);
+            color:#e6eef6;-webkit-font-smoothing:antialiased;}
+        .page{
+            max-width:1200px;margin:36px auto;padding:28px;
         }
-        .input-field {
-            @apply mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
+        .header{
+            display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px;
         }
-        .result-label {
-            @apply text-sm font-medium text-gray-500;
+        .brand{
+            display:flex;align-items:center;gap:14px;
         }
-        .result-value {
-            @apply mt-1 text-lg font-bold text-indigo-700;
+        .brand .logo{
+            width:64px;height:64px;border-radius:12px;
+            background:linear-gradient(135deg,var(--accent-2),var(--accent));
+            display:flex;align-items:center;justify-content:center;
+            box-shadow:0 8px 30px rgba(124,58,237,0.18);
+            transform:translateZ(0);
         }
-        .result-value-final {
-            @apply mt-1 text-2xl font-extrabold text-red-600;
+        .brand h1{font-size:1.4rem;margin:0;color:#fff;font-weight:700;letter-spacing:-0.02em;}
+        .brand p{margin:0;color:var(--muted);font-size:0.9rem;}
+        .controls{display:flex;gap:10px;align-items:center;}
+        .btn{
+            padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700;
+            display:inline-flex;gap:8px;align-items:center;justify-content:center;
         }
-        .note {
-            @apply mt-2 text-xs text-gray-500;
+        .btn-ghost{
+            background:transparent;border:1px solid rgba(255,255,255,0.06);color:#cfe9ff;
+            backdrop-filter: blur(6px);
+        }
+        .btn-primary{
+            background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#042127;
+            box-shadow:0 8px 20px rgba(124,58,237,0.16);
+        }
+
+        .layout{display:grid;grid-template-columns:1fr 460px;gap:20px;}
+        .card{
+            background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+            border:1px solid rgba(255,255,255,0.04);
+            border-radius:14px;padding:20px;backdrop-filter: blur(8px);
+            box-shadow: 0 6px 30px rgba(2,6,23,0.6);
+        }
+        .section-title{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+        .section-title h2{margin:0;color:#e6eef6;font-size:1.05rem;}
+        .grid-input{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+        label{display:block;color:var(--muted);font-size:0.92rem;margin-bottom:6px;}
+        input[type="date"],input[type="number"],select,input[type="text"]{
+            width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);
+            background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            color:#dbeafe;font-size:0.95rem;
+        }
+        .muted{color:var(--muted);font-size:0.86rem;margin-top:6px;}
+        .checkbox-row{display:flex;gap:12px;align-items:center;margin-top:8px;color:#dbeafe;}
+        .result-panel{
+            background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:18px;color:#e6eef6;
+        }
+        .result-figure{font-size:1.6rem;font-weight:800;color:#fff;margin:4px 0;}
+        .result-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed rgba(255,255,255,0.03);}
+        .note-box{background:linear-gradient(90deg, rgba(124,58,237,0.06), rgba(110,231,183,0.02));padding:12px;border-radius:10px;color:var(--muted);font-size:0.9rem;margin-top:14px}
+        .small{font-size:0.85rem;color:var(--muted)}
+        .toggle-detail{cursor:pointer;color:var(--accent-2);font-weight:700;font-size:0.9rem}
+        @media(max-width:1000px){
+            .layout{grid-template-columns:1fr}
         }
     </style>
 </head>
-<body class="bg-gray-50">
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <div class="bg-white p-6 rounded-xl shadow-lg">
-            <div class="flex justify-between items-center border-b pb-4 mb-6">
-                <h1 class="text-2xl font-bold text-gray-800">산재 민사 배상액 계산기</h1>
-                <button id="calculateBtn" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    계산 실행
-                </button>
+<body>
+    <div class="page">
+        <div class="header">
+            <div class="brand">
+                <div class="logo" aria-hidden="true">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 12L12 3l9 9" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+                        <path d="M7 21h10" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>산재 민사 배상액 계산기</h1>
+                    <p>미래지향적 UI — 참고용 추정치</p>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Input Section -->
-                <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">입력 정보</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label for="birthDate" class="input-label">생년월일</label>
-                            <input type="date" id="birthDate" class="input-field calculator-input" value="1980-05-05">
-                        </div>
-                        <div>
-                            <label for="retirementAge" class="input-label">정년 (세)</label>
-                            <input type="number" id="retirementAge" class="input-field calculator-input" value="65">
-                        </div>
-                        <div>
-                            <label for="dailyWage" class="input-label">평균 일급 (원)</label>
-                            <input type="number" id="dailyWage" class="input-field calculator-input" value="130000">
-                            <p class="note">월 근무일수는 22일로 가정합니다.</p>
-                        </div>
-                        <div>
-                            <label for="laborLossRate" class="input-label">노동상실률 (%)</label>
-                            <input type="number" id="laborLossRate" class="input-field calculator-input" value="100">
-                        </div>
-                        <div>
-                            <label for="employeeFaultRate" class="input-label">본인 과실률 (%)</label>
-                            <input type="number" id="employeeFaultRate" class="input-field calculator-input" value="30">
-                        </div>
-                        <div>
-                            <label for="iaPension" class="input-label">산재 장해급여 총액 (원)</label>
-                            <input type="number" id="iaPension" class="input-field calculator-input" value="169000000">
-                        </div>
-                        <div class="sm:col-span-2 flex items-center mt-2">
-                            <input type="checkbox" id="deathCase" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 calculator-input">
-                            <label for="deathCase" class="ml-2 block text-sm text-gray-900">사망 사고인 경우 (생활비 1/3 공제 적용)</label>
+            <div class="controls">
+                <a href="{{ url_for('main') }}" class="btn btn-ghost" title="메인으로">메인으로</a>
+                <button id="calculateBtn" class="btn btn-primary">계산 실행</button>
+            </div>
+        </div>
+
+        <div class="layout">
+            <!-- 입력 카드 -->
+            <div class="card">
+                <div class="section-title">
+                    <h2>입력 정보</h2>
+                </div>
+
+                <div class="grid-input">
+                    <div>
+                        <label for="birthDate">생년월일</label>
+                        <input type="date" id="birthDate" class="calculator-input" value="1980-05-05">
+                    </div>
+                    <div>
+                        <label for="retirementAge">정년 (세)</label>
+                        <input type="number" id="retirementAge" class="calculator-input" value="65">
+                    </div>
+
+                    <div>
+                        <label for="dailyWage">평균 일급 (원)</label>
+                        <input type="number" id="dailyWage" class="calculator-input" value="130000">
+                        <div class="muted">월 근무일수는 22일로 가정합니다.</div>
+                    </div>
+                    <div>
+                        <label for="laborLossRate">노동상실률 (%)</label>
+                        <input type="number" id="laborLossRate" class="calculator-input" value="100">
+                    </div>
+
+                    <div>
+                        <label for="employeeFaultRate">본인 과실률 (%)</label>
+                        <input type="number" id="employeeFaultRate" class="calculator-input" value="30">
+                    </div>
+                    <div>
+                        <label for="iaPension">산재 장해급여 총액 (원)</label>
+                        <input type="number" id="iaPension" class="calculator-input" value="169000000">
+                    </div>
+
+                    <div style="grid-column:1 / -1;">
+                        <div class="checkbox-row">
+                            <input type="checkbox" id="deathCase" class="calculator-input" />
+                            <label for="deathCase" style="margin:0">사망 사고인 경우 (생활비 1/3 공제 적용)</label>
                         </div>
                     </div>
                 </div>
 
-                <!-- Result Section -->
-                <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">예상 배상액 산정 결과</h2>
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4 p-3 bg-white rounded-md">
-                            <div>
-                                <p class="result-label">정년 만료일</p>
-                                <p id="retirementDateResult" class="result-value">-</p>
-                            </div>
-                            <div>
-                                <p class="result-label">노동 가능 월수</p>
-                                <p id="workableMonthsResult" class="result-value">-</p>
-                            </div>
-                        </div>
-                        <div class="p-3 bg-white rounded-md">
-                            <p class="result-label">호프만 계수 (장래소득 현가 계산)</p>
-                            <p id="hofmannResult" class="result-value">-</p>
-                             <p class="note">법정 연이율 5%를 월단위로 복리 계산하여 장래에 발생할 소득을 현재가치로 환산하는 지수입니다.</p>
-                        </div>
-                        <div class="p-3 bg-white rounded-md">
-                            <p class="result-label">일실수입 (과실상계 후)</p>
-                            <p id="lostIncomeResult" class="result-value">-</p>
-                        </div>
-                        <div class="p-3 bg-white rounded-md">
-                            <p class="result-label">위자료 (과실상계 후)</p>
-                            <p id="consolationResult" class="result-value">-</p>
-                        </div>
-                        <div class="mt-6 pt-4 border-t border-indigo-200">
-                            <p class="result-label">최종 민사배상액 (산재보상금 공제 후)</p>
-                            <p id="finalAmountResult" class="result-value-final">0 원</p>
+                <div class="note-box">
+                    <strong>참고:</strong> 본 계산기는 일반적인 법원 산정 기준에 따른 참고용 추정치입니다. 실제 판결/합의 결과는 사건별 차이가 큽니다.
+                </div>
+            </div>
+
+            <!-- 결과 패널 -->
+            <aside class="card result-panel">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div class="small">예상 배상액 산정 결과</div>
+                        <div class="small muted" style="margin-top:6px">산재보상금 공제 후 금액(참고용)</div>
+                    </div>
+                    <div style="text-align:right">
+                        <div class="small">조회일시</div>
+                        <div class="small muted" id="nowDatetime"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top:16px;">
+                    <div class="result-item"><div>정년 만료일</div><div id="retirementDateResult" class="small">-</div></div>
+                    <div class="result-item"><div>노동 가능 월수</div><div id="workableMonthsResult" class="small">-</div></div>
+                    <div class="result-item"><div>호프만 계수</div><div id="hofmannResult" class="small">-</div></div>
+                    <div class="result-item"><div>일실수입 (과실상계 후)</div><div id="lostIncomeResult" class="result-figure">- 원</div></div>
+                    <div class="result-item"><div>위자료 (과실상계 후)</div><div id="consolationResult" class="small">-</div></div>
+                    <div style="margin-top:10px;border-top:1px dashed rgba(255,255,255,0.04);padding-top:12px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div class="small">최종 민사배상액 (산재보상금 공제 후)</div>
+                            <div id="finalAmountResult" class="result-figure" style="color:var(--accent);font-size:1.35rem">0 원</div>
                         </div>
                     </div>
                 </div>
-            </div>
-             <div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
-                <p class="font-bold">참고 및 주의사항</p>
-                <p class="text-sm">본 계산기는 일반적인 법원 산정 기준에 따른 참고용 추정치이며, 실제 소송에서는 개별 사건의 구체적인 사실관계, 법원의 판단에 따라 금액이 달라질 수 있습니다. 정확한 금액 산정을 위해서는 법률 전문가와 상담하시기 바랍니다.</p>
-            </div>
+
+                <div style="margin-top:14px;display:flex;gap:8px;">
+                    <button id="copyResult" class="btn btn-ghost" title="결과 복사">결과 복사</button>
+                    <button id="downloadPdf" class="btn btn-ghost" title="PDF 저장">PDF 저장</button>
+                </div>
+            </aside>
         </div>
     </div>
 
     <script>
-        // DOM 요소 가져오기
+        // 시간 표시
+        function formatNow(){
+            const d = new Date();
+            return d.toLocaleString('ko-KR');
+        }
+        document.getElementById('nowDatetime').textContent = formatNow();
+
+        // 기존 계산 스크립트 유지 (간결하게 포함)
         const birthDateInput = document.getElementById('birthDate');
         const retirementAgeInput = document.getElementById('retirementAge');
         const dailyWageInput = document.getElementById('dailyWage');
@@ -136,15 +213,8 @@
         const consolationResult = document.getElementById('consolationResult');
         const finalAmountResult = document.getElementById('finalAmountResult');
 
-        // 숫자 포맷팅 함수
         const formatCurrency = (num) => `${Math.round(num).toLocaleString('ko-KR')} 원`;
-        
-        /**
-         * 호프만 계수 계산 함수
-         * 법정 연이율 5%를 적용하여 장래 소득을 현재 가치로 환산합니다.
-         * @param {number} months - 노동 가능 월수
-         * @returns {number} 호프만 계수
-         */
+
         function calculateHofmann(months) {
             let total = 0;
             const monthlyInterestRate = 0.05 / 12;
@@ -154,10 +224,8 @@
             return total;
         }
 
-        // 메인 계산 함수
         function calculate() {
-            // 1. 입력 값 가져오기
-            const birthDate = new Date(birthDateInput.value);
+            const birthDateVal = birthDateInput.value ? new Date(birthDateInput.value) : null;
             const retirementAge = parseInt(retirementAgeInput.value) || 0;
             const dailyWage = parseFloat(dailyWageInput.value) || 0;
             const laborLossRate = parseFloat(laborLossRateInput.value) || 0;
@@ -165,18 +233,12 @@
             const iaPension = parseFloat(iaPensionInput.value) || 0;
             const isDeathCase = deathCaseCheckbox.checked;
 
-            if (!birthDateInput.value) {
-                alert('생년월일을 입력해주세요.');
-                return;
-            }
+            if (!birthDateVal) { alert('생년월일을 입력해주세요.'); return; }
 
-            // 2. 중간 값 계산
-            // 정년 만료일
-            const retirementDate = new Date(birthDate);
-            retirementDate.setFullYear(birthDate.getFullYear() + retirementAge);
+            const retirementDate = new Date(birthDateVal);
+            retirementDate.setFullYear(birthDateVal.getFullYear() + retirementAge);
             retirementDateResult.textContent = retirementDate.toLocaleDateString('ko-KR');
 
-            // 노동 가능 월수 (사고일(현재)부터 정년까지)
             const today = new Date();
             let workableMonths = (retirementDate.getFullYear() - today.getFullYear()) * 12;
             workableMonths -= today.getMonth();
@@ -184,33 +246,19 @@
             workableMonths = workableMonths > 0 ? workableMonths : 0;
             workableMonthsResult.textContent = `${workableMonths} 개월`;
 
-            // 호프만 계수
             const hofmann = calculateHofmann(workableMonths);
             hofmannResult.textContent = hofmann.toFixed(4);
 
-            // 3. 배상액 계산
-            // 월 소득 (가정: 월 22일 근무)
             const monthlyIncome = dailyWage * 22;
-
-            // 일실수입
             let grossLostIncome = monthlyIncome * hofmann * (laborLossRate / 100);
-            
-            // 사망 시 생활비 공제 (1/3)
-            if (isDeathCase) {
-                grossLostIncome *= (1 - 1/3);
-            }
-            
-            // 본인 과실 상계
+            if (isDeathCase) grossLostIncome *= (1 - 1/3);
             const netLostIncome = grossLostIncome * (1 - (employeeFaultRate / 100));
             lostIncomeResult.textContent = formatCurrency(netLostIncome);
 
-            // 위자료 (기준금액 1억원)
             const consolationBase = 100000000;
-            // 위자료에서의 과실상계는 60%만 반영
             const consolation = consolationBase * (laborLossRate / 100) * (1 - (employeeFaultRate / 100 * 0.6));
             consolationResult.textContent = formatCurrency(consolation);
 
-            // 최종 민사배상액 (산재보험금 공제)
             const finalAmount = netLostIncome + consolation - iaPension;
             finalAmountResult.textContent = formatCurrency(finalAmount > 0 ? finalAmount : 0);
         }
