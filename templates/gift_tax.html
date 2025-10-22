@@ -1,143 +1,365 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Áõ¿©¼¼ °è»ê±â</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>ì¦ì—¬ì„¸ ê³„ì‚°ê¸° - 2025ë…„ ìµœì‹ </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
     <style>
-        .gift-tax-container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
-        .gift-tax-title { font-size: 1.6em; font-weight: bold; margin-bottom: 24px; color: #17506b; text-align:center; }
-        .gift-tax-form label { font-weight: 500; margin-bottom: 6px; display:block; }
-        .gift-tax-form input, .gift-tax-form select { width: 100%; padding: 10px; margin-bottom: 18px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; }
-        .gift-tax-form button { width: 100%; background: #17506b; color: #fff; border: none; border-radius: 5px; padding: 13px; font-size: 17px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .gift-tax-form button:hover { background: #003366; }
-        .result-box { background: #f8f9fa; border-radius: 6px; padding: 18px; margin-top: 18px; font-size: 1.1em; color: #0b4e7b; text-align:center; }
-        .top-bar { display:flex; justify-content:flex-end; margin-bottom:18px; }
-        .main-btn { background:#003366; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-size:15px; font-weight:600; cursor:pointer; }
-        .main-btn:hover { background:#17506b; }
+        :root{
+            --bg-1:#f3f7fb; --bg-2:#eaf2f8;
+            --accent:#6EE7B7; --accent-2:#7C3AED;
+            --glass: rgba(255,255,255,0.75);
+            --muted:#4b6b82;
+            --card-border: rgba(11,37,64,0.06);
+            --text:#0b2540;
+        }
+        html,body{
+            height:100%;margin:0;
+            background:
+                radial-gradient(900px 420px at 10% 8%, rgba(124,58,237,0.06), transparent 12%),
+                linear-gradient(180deg,var(--bg-1) 0%, var(--bg-2) 60%);
+            color:var(--text);
+            font-family:'Pretendard','Noto Sans KR',system-ui,-apple-system;
+            -webkit-font-smoothing:antialiased;
+        }
+        .wrap{max-width:1100px;margin:36px auto;padding:28px;}
+        .header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px;}
+        .brand{display:flex;align-items:center;gap:14px;}
+        .logo{
+            width:68px;height:68px;border-radius:14px;
+            background:linear-gradient(135deg,var(--accent-2),var(--accent));
+            display:flex;align-items:center;justify-content:center;
+            box-shadow:0 8px 24px rgba(124,58,237,0.12);
+        }
+        .brand h1{margin:0;font-size:1.25rem;font-weight:800;color:var(--text);}
+        .brand p{margin:0;color:var(--muted);font-size:0.95rem;}
+        .controls{display:flex;gap:10px;align-items:center;}
+        .btn{padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:700;display:inline-flex;gap:10px;align-items:center;justify-content:center;}
+        /* ë©”ì¸ìœ¼ë¡œ ë²„íŠ¼: ì§„í•œ ë„¤ì´ë¹„ ë°°ê²½ + í°ìƒ‰ í…ìŠ¤íŠ¸ */
+        .btn-ghost{
+            background: linear-gradient(180deg,#04243a,#063a53);
+            color: #ffffff;
+            border: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 6px 18px rgba(4,36,58,0.22);
+            padding:10px 16px;
+        }
+        .btn-primary{
+            background:linear-gradient(90deg,var(--accent),var(--accent-2));
+            color:#022b27;padding:12px 18px;border-radius:14px;box-shadow:0 8px 20px rgba(124,58,237,0.12);
+            position:relative;overflow:visible;transition:transform .14s ease, box-shadow .14s ease;
+        }
+        .btn-primary:before{
+            content:"";position:absolute;inset:-6px;border-radius:16px;background:radial-gradient(ellipse at center, rgba(124,58,237,0.06), transparent 30%);opacity:0;transition:opacity .18s;
+        }
+        /* ë§ˆìš°ìŠ¤ ì˜¤ë²„ ì‹œ ê°€ë³ê²Œ 'ì§„ë™+ê¸€ë¡œìš°' íš¨ê³¼ */
+        .btn-primary:hover{ animation:vibrate .36s linear infinite; transform:translateY(-1px); box-shadow:0 18px 36px rgba(124,58,237,0.12); }
+        .btn-primary:hover:before{ opacity:1; }
+        @keyframes vibrate {
+            0%{ transform: translateX(0) translateY(-1px) rotate(0deg) }
+            25%{ transform: translateX(-0.6px) translateY(-1px) rotate(-0.18deg) }
+            50%{ transform: translateX(0.6px) translateY(-1px) rotate(0.18deg) }
+            75%{ transform: translateX(-0.4px) translateY(-1px) rotate(-0.12deg) }
+            100%{ transform: translateX(0) translateY(-1px) rotate(0deg) }
+        }
+
+        .layout{display:grid;grid-template-columns:1fr 420px;gap:20px;}
+        .card{
+            background: linear-gradient(180deg, var(--glass), rgba(255,255,255,0.92));
+            border:1px solid var(--card-border);
+            border-radius:14px;padding:20px;backdrop-filter: blur(6px);
+            box-shadow: 0 8px 30px rgba(11,37,64,0.06);
+        }
+        .title{font-size:1.02rem;color:var(--text);margin-bottom:10px;font-weight:700;}
+        .muted{color:var(--muted);font-size:0.92rem;}
+        /* ì•ˆì „í•œ 2ì—´ ê·¸ë¦¬ë“œ (ê²¹ì¹¨ ë°©ì§€: minmax(0,1fr) + ìì‹ min-width:0) */
+        .form-row{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:12px;margin-bottom:12px;align-items:center}
+        .form-row > div{min-width:0} /* ê·¸ë¦¬ë“œ í•­ëª© ë‚´ë¶€ì—ì„œ overflow/ê²¹ì¹¨ ë°©ì§€ */
+        label{display:block;color:var(--muted);font-size:0.9rem;margin-bottom:6px}
+        /* ì…ë ¥ì¹¸ ì„ ì„ ë” ëª…í™•í•˜ê²Œ â€” ê¸°ë³¸ êµµê¸°ì™€ í¬ì»¤ìŠ¤ ê°•ì¡° */
+        input[type="text"], select, input[inputmode="numeric"]{
+            width:100%;
+            padding:12px 14px;
+            border-radius:12px;
+            border:1.6px solid rgba(11,37,64,0.09); /* ë” ì„ ëª…í•œ ê¸°ë³¸ ì„  */
+            background:linear-gradient(180deg, #fff, #fbfdff);
+            color:var(--text);
+            font-size:0.96rem;
+            transition: border-color .16s ease, box-shadow .16s ease, transform .06s ease;
+            box-shadow: 0 2px 8px rgba(11,37,64,0.03);
+            box-sizing: border-box; /* ì•ˆì „í•œ ë ˆì´ì•„ì›ƒ */
+        }
+        /* ì…ë ¥ í¬ì»¤ìŠ¤ ê°•ì¡° */
+        input[type="text"]:focus, input[inputmode="numeric"]:focus, select:focus{
+            outline: none;
+            border-color: var(--accent-2);
+            box-shadow: 0 10px 24px rgba(124,58,237,0.08);
+            transform: translateY(-1px);
+        }
+        input[type="text"]::placeholder{color:#9aaebb}
+        .info-box{background:linear-gradient(90deg, rgba(124,58,237,0.03), rgba(110,231,183,0.02));padding:12px;border-radius:10px;color:var(--muted);margin-bottom:12px;font-size:0.95rem;}
+        .calculate-wrap{display:flex;gap:10px;align-items:center;margin-top:10px;}
+        .result-panel{padding:16px;border-radius:12px;border:1px solid rgba(11,37,64,0.04);background:linear-gradient(180deg,#ffffff,#fbfdff);}
+        .result-amount{font-size:1.6rem;font-weight:800;color:var(--text);margin:8px 0}
+        .result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(11,37,64,0.04);color:var(--muted)}
+        .result-row:last-child{border-bottom:none}
+        .deduction-table{width:100%;border-collapse:collapse;margin-top:10px;color:var(--muted)}
+        .deduction-table th, .deduction-table td{padding:8px;border-bottom:1px solid rgba(11,37,64,0.04);text-align:left}
+        .warning{background:linear-gradient(90deg, rgba(255,235,200,0.03), rgba(255,255,255,0.01));padding:12px;border-radius:8px;margin-top:12px;color:var(--muted);font-size:0.9rem}
+        .modal-backdrop{position:fixed;inset:0;background:rgba(11,37,64,0.35);display:none;align-items:center;justify-content:center;z-index:1200}
+        .modal{background:#fff;color:var(--text);border-radius:12px;padding:18px;max-width:780px;width:94%;border:1px solid rgba(11,37,64,0.06)}
+        .modal table{width:100%;border-collapse:collapse;margin-top:8px;color:var(--muted)}
+        .modal th{background:#fafcff;padding:8px;text-align:left}
+        .modal td{padding:8px;text-align:center}
+        @media(max-width:980px){ .layout{grid-template-columns:1fr} .header{flex-direction:column;align-items:flex-start} }
+
+        /* ì»¤ìŠ¤í…€ ì…€ë ‰íŠ¸ í™”ì‚´í‘œ (êµµê²Œ ë³´ì´ê²Œ) */
+        select{
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            padding-right:44px;
+            background-repeat:no-repeat;
+            background-position: right 14px center;
+            background-size:18px;
+            /* ì–‡ì€ í™”ì‚´í‘œ (ê¸°ë³¸) */
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'><path d='M6 9l6 6 6-6' stroke='%230b2540' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>");
+        }
+        /* í¬ì»¤ìŠ¤ ì‹œ í™”ì‚´í‘œ êµµê²Œ + ìƒ‰ìƒ ë³€ê²½(ì‹œê°ì  ìš¸ë¦¼) */
+        select:focus{
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'><path d='M6 9l6 6 6-6' stroke='%237C3AED' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>");
+        }
+
+        /* íŠ¹ì • ì…ë ¥ì¹¸(ì¦ì—¬ì¬ì‚°ê°€ì•¡ / ê³¼ê±° ì¦ì—¬) ê¸°ë³¸ ì„ ì„ ë” ë˜ë ·í•˜ê²Œ + ê²¹ì¹¨ ë°©ì§€ z-index */
+        #giftAmount, #previousGifts{
+            border:2px solid rgba(11,37,64,0.1);
+            padding:12px 14px;
+            position:relative;
+            z-index:1;
+            box-sizing: border-box;
+        }
+        #giftAmount:focus, #previousGifts:focus{
+            border-color: var(--accent-2);
+            box-shadow: 0 10px 24px rgba(124,58,237,0.06);
+            z-index:2;
+        }
     </style>
 </head>
 <body>
-    <div class="gift-tax-container">
-        <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">¸ŞÀÎÀ¸·Î</a>
-        </div>
-        <div class="gift-tax-title">Áõ¿©¼¼ °è»ê±â</div>
-        <button id="show-info-btn" type="button" style="width:100%;background:#208e4c;color:#fff;font-weight:600;padding:10px 0;border-radius:6px;margin-bottom:18px;">Áõ¿©¼¼À²¡¤Áõ¿©°øÁ¦ º¸±â</button>
-        <div id="tax-info-modal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);">
-            <div style="background:#fff;max-width:700px;margin:60px auto;padding:32px 28px;border-radius:10px;position:relative;">
-                <button id="close-info-modal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">¡¿</button>
-                <h3 style="margin-top:0;color:#17506b;">Áõ¿©¼¼ ¼¼À² ¹× Áõ¿© Àç»ê °øÁ¦¾× <span style="font-size:0.7em;color:#888;">*2025³â ±âÁØ</span></h3>
-                <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
-                    <thead><tr style="background:#2980b9;color:#fff;"><th>°ú¼¼Ç¥ÁØ</th><th>¼¼À²</th><th>´©Áø°øÁ¦</th></tr></thead>
-                    <tbody style="text-align:center;">
-                        <tr><td>1¾ï ÀÌÇÏ</td><td>10%</td><td></td></tr>
-                        <tr><td>1¾ï ÃÊ°ú~5¾ï ÀÌÇÏ</td><td>20%</td><td>10,000,000¿ø</td></tr>
-                        <tr><td>5¾ï ÃÊ°ú~10¾ï ÀÌÇÏ</td><td>30%</td><td>60,000,000¿ø</td></tr>
-                        <tr><td>10¾ï ÃÊ°ú~30¾ï ÀÌÇÏ</td><td>40%</td><td>160,000,000¿ø</td></tr>
-                        <tr><td>30¾ï ÃÊ°ú</td><td>50%</td><td>460,000,000¿ø</td></tr>
-                    </tbody>
-                </table>
-                <h4 style="margin-bottom:6px;">Áõ¿©Àç»ê°øÁ¦¾×</h4>
-                <table style="width:100%;border-collapse:collapse;">
-                    <thead><tr style="background:#2980b9;color:#fff;"><th>Áõ¿©ÀÚ¿ÍÀÇ °ü°è</th><th>Áõ¿©Àç»ê°øÁ¦¾×(10³â°£)</th></tr></thead>
-                    <tbody style="text-align:center;">
-                        <tr><td>¹è¿ìÀÚ</td><td>6¾ï¿ø</td></tr>
-                        <tr><td>Á÷°èÁ¸¼Ó(°èºÎ,°è¸ğ Æ÷ÇÔ)</td><td>5Ãµ¸¸¿ø(¹Ì¼º³âÀÚ 2Ãµ¸¸¿ø)</td></tr>
-                        <tr><td>Á÷°èºñ¼Ó</td><td>5Ãµ¸¸¿ø</td></tr>
-                        <tr><td>±âÅ¸Ä£Á·(6ÃÌ ÀÌ³» Ç÷Á·, 4ÃÌ ÀÌ³» ÀÎÃ´)</td><td>1Ãµ¸¸¿ø</td></tr>
-                        <tr><td>±× ¿ÜÀÇ ÀÚ</td><td>0¿ø</td></tr>
-                    </tbody>
-                </table>
+    <div class="wrap">
+        <div class="header">
+            <div class="brand">
+                <div class="logo" aria-hidden="true">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 12L12 3l9 9" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+                        <path d="M7 21h10" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>ì¦ì—¬ì„¸ ê³„ì‚°ê¸°</h1>
+                    <p class="muted">2025ë…„ ê¸°ì¤€ Â· ê°„í¸ ê³„ì‚° (ì°¸ê³ ìš©)</p>
+                </div>
+            </div>
+
+            <div class="controls">
+                <a href="{{ url_for('main') }}" class="btn btn-ghost" title="ë©”ì¸ìœ¼ë¡œ">ë©”ì¸ìœ¼ë¡œ</a>
+                <button id="showModalBtn" class="btn btn-primary" title="ì¦ì—¬ì„¸ìœ¨Â·ê³µì œ ë³´ê¸°">ì„¸ìœ¨Â·ê³µì œ ë³´ê¸°</button>
             </div>
         </div>
-        <form class="gift-tax-form" id="giftTaxForm" onsubmit="return false;">
-            <label>Æò°¡¾×(¿ø)</label>
-            <input type="text" id="appraisedValue" required pattern="[0-9,]*" placeholder="¿¹: 100,000,000">
-            <label>Ã¤¹«¾×(¿ø)</label>
-            <input type="text" id="debtValue" required pattern="[0-9,]*" placeholder="¿¹: 20,000,000">
-            <label>Áõ¿©ÀÚ¿ÍÀÇ °ü°è</label>
-            <select id="relation">
-                <option value="spouse">¹è¿ìÀÚ</option>
-                <option value="parent">Á÷°èÁ¸¼Ó(°èºÎ,°è¸ğ Æ÷ÇÔ)</option>
-                <option value="descendant">Á÷°èºñ¼Ó</option>
-                <option value="relative">±âÅ¸Ä£Á·(6ÃÌ ÀÌ³» Ç÷Á·, 4ÃÌ ÀÌ³» ÀÎÃ´)</option>
-                <option value="other">±× ¿ÜÀÇ ÀÚ</option>
-            </select>
-            <label>°øÁ¦¾×(¿ø, ÀÚµ¿¹İ¿µ)</label>
-            <input type="text" id="deduction" required pattern="[0-9,]*" placeholder="°øÁ¦¾× ÀÚµ¿ÀÔ·Â" readonly style="background:#f2f2f2;">
-            <button type="submit">°è»êÇÏ±â</button>
-        </form>
-        <div class="result-box" id="resultBox" style="display:none;"></div>
+
+        <div class="layout">
+            <section class="card" aria-labelledby="inputTitle">
+                <div id="inputTitle" class="title">ì¦ì—¬ ì •ë³´ ì…ë ¥</div>
+
+                <div class="form-row" style="grid-template-columns:1fr;">
+                    <label for="relationship">ìˆ˜ì¦ì ê´€ê³„</label>
+                    <select id="relationship" required>
+                        <option value="">ì„ íƒí•˜ì„¸ìš”</option>
+                        <option value="spouse">ë°°ìš°ì</option>
+                        <option value="adult_child">ì„±ë…„ ìë…€ (ë§Œ 19ì„¸ ì´ìƒ)</option>
+                        <option value="minor_child">ë¯¸ì„±ë…„ ìë…€ (ë§Œ 19ì„¸ ë¯¸ë§Œ)</option>
+                        <option value="grandchild">ì†ìë…€</option>
+                        <option value="other_relative">ê¸°íƒ€ ì¹œì¡± (6ì´Œ ì´ë‚´)</option>
+                        <option value="non_relative">íƒ€ì¸</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label for="giftAmount">ì¦ì—¬ ì¬ì‚°ê°€ì•¡ (ë§Œì›)</label>
+                        <input inputmode="numeric" id="giftAmount" placeholder="ì˜ˆ: 50000 (5ì–µì›)">
+                    </div>
+                    <div>
+                        <label for="previousGifts">ê³¼ê±° 10ë…„ê°„ ì¦ì—¬ì•¡ í•©ê³„ (ë§Œì›)</label>
+                        <input inputmode="numeric" id="previousGifts" value="0" placeholder="ì˜ˆ: 10000 (1ì–µì›)">
+                    </div>
+                </div>
+
+                <div class="form-row" style="grid-template-columns:1fr;">
+                    <label for="giftType">ì¦ì—¬ ì¬ì‚° ìœ í˜•</label>
+                    <select id="giftType">
+                        <option value="cash">í˜„ê¸ˆ</option>
+                        <option value="real_estate">ë¶€ë™ì‚°</option>
+                        <option value="stock">ì£¼ì‹</option>
+                        <option value="other">ê¸°íƒ€</option>
+                    </select>
+                </div>
+
+                <div class="info-box">
+                    <strong>ì¦ì—¬ì¬ì‚°ê³µì œ (10ë…„ í•©ì‚°)</strong>
+                    <div style="margin-top:8px" class="muted">
+                        ë°°ìš°ì: 6ì–µì› Â· ì„±ë…„ìë…€: 5ì²œë§Œì› Â· ë¯¸ì„±ë…„ìë…€: 2ì²œë§Œì› Â· ì†ìë…€: 5ì²œë§Œì› Â· ê¸°íƒ€ì¹œì¡±: 1ì²œë§Œì› Â· íƒ€ì¸: 0ì›
+                    </div>
+                </div>
+
+                <div class="calculate-wrap">
+                    <button id="calcBtn" class="btn btn-primary" style="flex:1">ì¦ì—¬ì„¸ ê³„ì‚°í•˜ê¸°</button>
+                </div>
+            </section>
+
+            <aside class="card result-panel" id="resultPanel" aria-live="polite" style="display:none">
+                <div class="title">ê³„ì‚° ê²°ê³¼ (ê°„í¸)</div>
+                <div class="muted" style="margin-top:6px">ì°¸ê³ : ì‹¤ì œ ì‹ ê³ ì„¸ì•¡ê³¼ ë‹¤ë¥¼ ìˆ˜ ìˆìŠµë‹ˆë‹¤.</div>
+
+                <div style="margin-top:14px" class="result-amount" id="taxAmount">0ì›</div>
+
+                <div style="margin-top:8px">
+                    <div class="result-row"><div class="muted">ì¦ì—¬ì¬ì‚°ê°€ì•¡</div><div id="resultGiftAmount">0ì›</div></div>
+                    <div class="result-row"><div class="muted">ê³¼ê±° ì¦ì—¬ì•¡ í•©ì‚°</div><div id="resultPreviousGifts">0ì›</div></div>
+                    <div class="result-row"><div class="muted">ì¦ì—¬ì¬ì‚°ê³µì œ</div><div id="resultDeduction">0ì›</div></div>
+                    <div class="result-row"><div class="muted">ê³¼ì„¸í‘œì¤€</div><div id="resultTaxBase">0ì›</div></div>
+                    <div class="result-row"><div class="muted">ì ìš©ì„¸ìœ¨</div><div id="resultTaxRate">0%</div></div>
+                    <div class="result-row"><div class="muted">ì‚°ì¶œì„¸ì•¡</div><div id="resultCalculatedTax">0ì›</div></div>
+                </div>
+
+                <div class="deduction-table" style="margin-top:12px">
+                    <table class="deduction-table" aria-hidden="false">
+                        <thead>
+                            <tr><th>ê³¼ì„¸í‘œì¤€</th><th>ì„¸ìœ¨</th><th>ëˆ„ì§„ê³µì œ</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>2ì–µì› ì´í•˜</td><td>10%</td><td>-</td></tr>
+                            <tr><td>2ì–µ ì´ˆê³¼~5ì–µ ì´í•˜</td><td>20%</td><td>2ì²œë§Œì›</td></tr>
+                            <tr><td>5ì–µ ì´ˆê³¼~10ì–µ ì´í•˜</td><td>30%</td><td>7ì²œë§Œì›</td></tr>
+                            <tr><td>10ì–µ ì´ˆê³¼~30ì–µ ì´í•˜</td><td>40%</td><td>1ì–µ7ì²œë§Œì›</td></tr>
+                            <tr><td>30ì–µ ì´ˆê³¼</td><td>50%</td><td>4ì–µ7ì²œë§Œì›</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="warning" role="note">
+                    âš ï¸ ë³¸ ê³„ì‚° ê²°ê³¼ëŠ” ì°¸ê³ ìš©ì…ë‹ˆë‹¤. ì‹ ê³ Â·ë‚©ë¶€ ì „ ì„¸ë¬´ ì „ë¬¸ê°€ì™€ ìƒë‹´í•˜ì„¸ìš”.
+                </div>
+            </aside>
+        </div>
     </div>
+
+    <!-- modal -->
+    <div class="modal-backdrop" id="modalBackdrop">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h3 id="modalTitle" style="margin:0">ì¦ì—¬ì„¸ ì„¸ìœ¨ ë° ê³µì œ (2025ë…„ ê¸°ì¤€)</h3>
+                <button id="closeModal" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">âœ•</button>
+            </div>
+            <div style="margin-top:12px;">
+                <table>
+                    <thead><tr><th>ê³¼ì„¸í‘œì¤€</th><th>ì„¸ìœ¨</th><th>ëˆ„ì§„ê³µì œ</th></tr></thead>
+                    <tbody>
+                        <tr><td>2ì–µì› ì´í•˜</td><td>10%</td><td>-</td></tr>
+                        <tr><td>2ì–µ ì´ˆê³¼~5ì–µ ì´í•˜</td><td>20%</td><td>20,000,000ì›</td></tr>
+                        <tr><td>5ì–µ ì´ˆê³¼~10ì–µ ì´í•˜</td><td>30%</td><td>70,000,000ì›</td></tr>
+                        <tr><td>10ì–µ ì´ˆê³¼~30ì–µ ì´í•˜</td><td>40%</td><td>170,000,000ì›</td></tr>
+                        <tr><td>30ì–µ ì´ˆê³¼</td><td>50%</td><td>470,000,000ì›</td></tr>
+                    </tbody>
+                </table>
+
+                <div style="margin-top:12px;">
+                    <strong>ì¦ì—¬ì¬ì‚°ê³µì œ (10ë…„ í•©ì‚°)</strong>
+                    <div class="muted" style="margin-top:6px">
+                        ë°°ìš°ì: 6ì–µì› Â· ì„±ë…„ìë…€: 5ì²œë§Œì› Â· ë¯¸ì„±ë…„ìë…€: 2ì²œë§Œì› Â· ì†ìë…€: 5ì²œë§Œì› Â· ê¸°íƒ€ì¹œì¡±: 1ì²œë§Œì› Â· íƒ€ì¸: 0ì›
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-    // Áõ¿©¼¼À²/°øÁ¦¾× ¾È³» ¸ğ´Ş
-    document.getElementById('show-info-btn').onclick = function() {
-        document.getElementById('tax-info-modal').style.display = 'block';
-    };
-    document.getElementById('close-info-modal').onclick = function() {
-        document.getElementById('tax-info-modal').style.display = 'none';
-    };
+        // ìœ í‹¸
+        function addCommas(n){ return (''+Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+        function removeCommas(s){ return (s||'').toString().replace(/,/g,'').replace(/[^\d\-]/g,'')||'0'; }
 
-    // 3ÀÚ¸®¸¶´Ù ÄŞ¸¶ ÀÚµ¿ ÀÔ·Â
-    function addComma(num) {
-        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
-    function removeComma(str) {
-        return str.replace(/,/g, '');
-    }
-    function setDeductionByRelation() {
-        const deductionMap = {
-            spouse: 600000000,
-            parent: 50000000, // ¹Ì¼º³âÀÚ 20000000Àº º°µµ Ã³¸® ÇÊ¿ä
-            descendant: 50000000,
-            relative: 10000000,
-            other: 0
-        };
-        const val = deductionMap[document.getElementById('relation').value] || 0;
-        document.getElementById('deduction').value = addComma(val);
-    }
-    document.getElementById('relation').addEventListener('change', setDeductionByRelation);
-    setDeductionByRelation();
-
-    // ÀÔ·Â¶õ¿¡ 3ÀÚ¸®¸¶´Ù ÄŞ¸¶ ÀÚµ¿
-    ['appraisedValue','debtValue'].forEach(id => {
-        const el = document.getElementById(id);
-        el.addEventListener('input', function(e) {
-            let val = removeComma(this.value);
-            if (val) this.value = addComma(Number(val));
+        // ì…ë ¥ í¬ë§· (ë§Œì› ë‹¨ìœ„)
+        ['giftAmount','previousGifts'].forEach(id=>{
+            const el = document.getElementById(id);
+            if(!el) return;
+            el.addEventListener('input', function(){
+                let v = removeCommas(this.value);
+                if(v===''||v==='0'){ this.value=''; return; }
+                this.value = addCommas(Number(v));
+            });
+            el.addEventListener('blur', function(){
+                if(this.value) this.value = addCommas(Number(removeCommas(this.value)));
+            });
+            el.addEventListener('focus', function(){ if(this.value) this.value = removeCommas(this.value); });
         });
-    });
 
-    document.getElementById('giftTaxForm').addEventListener('submit', function() {
-        const appraisedValue = parseInt(removeComma(document.getElementById('appraisedValue').value)) || 0;
-        const debtValue = parseInt(removeComma(document.getElementById('debtValue').value)) || 0;
-        const deduction = parseInt(removeComma(document.getElementById('deduction').value)) || 0;
-        const taxable = Math.max(appraisedValue - debtValue - deduction, 0);
+        // ê³µì œí•œë„ (ì› ë‹¨ìœ„)
+        const deductionLimits = {
+            'spouse': 600000000,
+            'adult_child': 50000000,
+            'minor_child': 20000000,
+            'grandchild': 50000000,
+            'other_relative': 10000000,
+            'non_relative': 0
+        };
 
-        // ´©Áø°øÁ¦Ç¥ (¿ø ´ÜÀ§)
-        const brackets = [
-            { limit: 100000000, rate: 0.1, minus: 0 },
-            { limit: 500000000, rate: 0.2, minus: 10000000 },
-            { limit: 1000000000, rate: 0.3, minus: 60000000 },
-            { limit: 3000000000, rate: 0.4, minus: 160000000 },
-            { limit: Infinity, rate: 0.5, minus: 460000000 }
-        ];
-        let tax = 0, rate = 0, minus = 0;
-        for (let i = 0; i < brackets.length; i++) {
-            if (taxable <= brackets[i].limit) {
-                rate = brackets[i].rate;
-                minus = brackets[i].minus;
-                break;
-            }
+        // modal control
+        const modal = document.getElementById('modalBackdrop');
+        document.getElementById('showModalBtn').addEventListener('click', ()=> modal.style.display = 'flex');
+        document.getElementById('closeModal').addEventListener('click', ()=> modal.style.display = 'none');
+        modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.style.display='none'; });
+
+        function calcAndShow(){
+            const rel = document.getElementById('relationship').value;
+            const giftAmountWan = parseFloat(removeCommas(document.getElementById('giftAmount').value)) || 0;
+            const previousWan = parseFloat(removeCommas(document.getElementById('previousGifts').value)) || 0;
+            const giftAmount = giftAmountWan * 10000;
+            const previousGifts = previousWan * 10000;
+            if(!rel){ alert('ìˆ˜ì¦ì ê´€ê³„ë¥¼ ì„ íƒí•˜ì„¸ìš”.'); return; }
+            if(giftAmount === 0){ alert('ì¦ì—¬ ì¬ì‚°ê°€ì•¡ì„ ì…ë ¥í•˜ì„¸ìš”.'); return; }
+
+            const limit = deductionLimits[rel] || 0;
+            const usedDeduction = Math.min(previousGifts, limit);
+            const available = Math.max(limit - usedDeduction, 0);
+            const currentDeduction = Math.min(giftAmount, available);
+
+            const taxBase = Math.max(0, giftAmount - currentDeduction);
+
+            let tax = 0; let taxRate = '';
+            if (taxBase <= 200000000) { tax = taxBase * 0.1; taxRate = '10%'; }
+            else if (taxBase <= 500000000) { tax = taxBase * 0.2 - 20000000; taxRate = '20%'; }
+            else if (taxBase <= 1000000000) { tax = taxBase * 0.3 - 70000000; taxRate = '30%'; }
+            else if (taxBase <= 3000000000) { tax = taxBase * 0.4 - 170000000; taxRate = '40%'; }
+            else { tax = taxBase * 0.5 - 470000000; taxRate = '50%'; }
+
+            document.getElementById('taxAmount').textContent = addCommas(Math.round(tax)) + 'ì›';
+            document.getElementById('resultGiftAmount').textContent = addCommas(giftAmount) + 'ì›';
+            document.getElementById('resultPreviousGifts').textContent = addCommas(previousGifts) + 'ì›';
+            document.getElementById('resultDeduction').textContent = addCommas(currentDeduction) + 'ì›';
+            document.getElementById('resultTaxBase').textContent = addCommas(taxBase) + 'ì›';
+            document.getElementById('resultTaxRate').textContent = taxRate;
+            document.getElementById('resultCalculatedTax').textContent = addCommas(Math.round(tax)) + 'ì›';
+
+            document.getElementById('resultPanel').style.display = 'block';
+            document.getElementById('resultPanel').scrollIntoView({behavior:'smooth'});
         }
-        tax = Math.floor(taxable * rate - minus);
-        if (tax < 0) tax = 0;
 
-        const resultBox = document.getElementById('resultBox');
-        resultBox.style.display = 'block';
-        resultBox.innerHTML = `°ú¼¼Ç¥ÁØ: <b>${addComma(taxable)}¿ø</b><br>Áõ¿©¼¼: <b>${addComma(tax)}¿ø</b>`;
-    });
+        document.getElementById('calcBtn').addEventListener('click', calcAndShow);
+
+        // ì—”í„° ì œì¶œ ë°©ì§€
+        document.addEventListener('keydown', function(e){
+            if(e.key === 'Enter' && e.target && e.target.tagName==='INPUT') e.preventDefault();
+        });
     </script>
 </body>
 </html>
