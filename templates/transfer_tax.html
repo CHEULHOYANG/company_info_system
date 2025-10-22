@@ -3,221 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <title>양도소득세 간편계산 입력</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
     <style>
-        /* main.html 유사 배경 / glass-morphism */
-        body{
-            font-family: "Noto Sans KR", "Segoe UI", Tahoma, sans-serif;
-            background: linear-gradient(135deg,#f3f7fb 0%, #eaf0f6 50%, #e6eef6 100%);
-            margin:0;
-            padding:20px 16px;
+        :root{
+            --bg-1:#f3f7fb; --bg-2:#eaf2f8;
+            --accent:#6EE7B7; --accent-2:#7C3AED;
+            --text:#0b2540; --muted:#4b6b82;
+            --card-border: rgba(11,37,64,0.06);
+        }
+
+        html,body{
+            height:100%;margin:0;
+            background:
+                radial-gradient(900px 420px at 10% 8%, rgba(124,58,237,0.04), transparent 14%),
+                linear-gradient(180deg,var(--bg-1) 0%, var(--bg-2) 60%);
+            color:var(--text);
+            font-family:'Pretendard','Noto Sans KR', system-ui, -apple-system;
             -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
         }
-        .page-wrap{
-            max-width:1200px;
-            margin:18px auto;
-            background: rgba(255,255,255,0.85);
-            border-radius:12px;
-            box-shadow: 0 8px 30px rgba(30,60,80,0.08);
-            padding:24px;
-            border:1px solid rgba(200,210,220,0.6);
+
+        .wrap{max-width:1200px;margin:24px auto;padding:22px;}
+        .header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px;}
+        .brand{display:flex;align-items:center;gap:14px;}
+        .logo{
+            width:60px;height:60px;border-radius:12px;
+            background:linear-gradient(135deg,var(--accent-2),var(--accent));
+            display:flex;align-items:center;justify-content:center;
+            box-shadow:0 8px 24px rgba(124,58,237,0.12);
         }
-        .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
-        .title{font-size:1.6rem;font-weight:700;color:#11324d;}
-        .btn-main{background:#0b66a3;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:600;}
-        .section{border:1px solid #e6f0f6;background:linear-gradient(180deg,rgba(255,255,255,0.7),rgba(250,255,255,0.9));border-radius:8px;padding:18px;margin-bottom:14px;}
-        .section h3{margin:0 0 12px 0;color:#0b4e7b;font-size:1.05rem;}
+        .brand h1{margin:0;font-size:1.25rem;font-weight:800;color:var(--text);}
+        .brand p{margin:0;color:var(--muted);font-size:0.92rem;}
+
+        .controls{display:flex;gap:10px;align-items:center;}
+        .btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700;display:inline-flex;gap:10px;align-items:center;justify-content:center;}
+        /* 메인으로 버튼: 진한 네이비 배경 + 흰색 텍스트 */
+        .btn-main{
+            background: linear-gradient(180deg,#04243a,#063a53);
+            color: #ffffff;
+            border: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 6px 18px rgba(4,36,58,0.18);
+            padding:10px 16px;border-radius:10px;text-decoration:none;
+        }
+        .btn-alt{
+            background:linear-gradient(90deg,var(--accent),var(--accent-2));
+            color:#022b27;padding:10px 16px;border-radius:10px;box-shadow:0 8px 18px rgba(124,58,237,0.10);
+        }
+        .btn-alt:hover{ animation:vibrate .36s linear infinite; transform:translateY(-1px); }
+        @keyframes vibrate {
+            0%{ transform: translateX(0) translateY(0) }
+            20%{ transform: translateX(-0.6px) translateY(0) }
+            40%{ transform: translateX(0.6px) translateY(0) }
+            60%{ transform: translateX(-0.4px) translateY(0) }
+            80%{ transform: translateX(0.4px) translateY(0) }
+            100%{ transform: translateX(0) translateY(0) }
+        }
+
+        .layout{display:grid;grid-template-columns:1fr 420px;gap:20px;}
+        .card{
+            background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,255,255,0.98));
+            border:1px solid var(--card-border);
+            border-radius:12px;padding:18px;backdrop-filter: blur(6px);
+            box-shadow: 0 8px 30px rgba(11,37,64,0.05);
+        }
+
+        .title{font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:8px;}
+        .subtitle{font-size:0.92rem;color:var(--muted);margin-top:4px;}
+
+        /* 그리드: 겹침 방지 -> minmax(0,1fr) + 자식 min-width:0 */
         .grid{display:grid;grid-template-columns:280px 1fr;gap:12px 18px;align-items:center;}
-        .row{display:contents;}
-        label.field-label{font-weight:600;color:#2b4860;}
-        .field-inline{display:flex;gap:8px;align-items:center;}
+        .grid-2{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:12px;}
+        .grid > .col, .grid-2 > .col{min-width:0}
+        label.field-label{font-weight:700;color:var(--text);display:block;margin-bottom:6px;}
+
         input[type="text"], input[type="date"], input[type="number"], select{
-            width:100%;padding:8px 10px;border:1px solid #cfdde9;border-radius:6px;background:#fff;font-size:14px;
+            width:100%;padding:10px 12px;border:1.6px solid rgba(11,37,64,0.09);border-radius:10px;background:#fff;font-size:14px;color:var(--text);
+            transition: border-color .14s ease, box-shadow .14s ease, transform .06s ease;box-sizing:border-box;
         }
-        .small-note{font-size:12px;color:#6b7f8f;margin-top:6px;}
-        .calc-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
-        .btn{padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:600;}
-        .btn-primary{background:#0b66a3;color:#fff;}
-        .btn-secondary{background:#f2f7fb;color:#0b4e7b;border:1px solid #d6eaf5;}
-        .result{background:#fcfeff;border:1px solid #e1f1f8;padding:14px;border-radius:8px;color:#0b4e7b;font-weight:700;}
-        .detail-toggle{background:#fff;border:1px dashed #d0e6f4;padding:8px;border-radius:6px;cursor:pointer;font-size:13px;color:#0b4e7b;}
-        .detail-box{margin-top:8px;border-top:1px dashed #e6f3fa;padding-top:10px;display:none;}
-        .radio-group{display:flex;gap:12px;align-items:center;}
-        table.result-table{width:100%;border-collapse:collapse;margin-top:8px;}
-        table.result-table td{padding:8px;border-bottom:1px solid #f0f6fa;}
-        @media(max-width:880px){
-            .grid{grid-template-columns:1fr;gap:10px;}
-            .topbar{flex-direction:column;align-items:flex-start;gap:8px;}
-        }
+        input::placeholder{color:#9aaebb}
+        input:focus, select:focus{outline:none;border-color:var(--accent-2);box-shadow:0 10px 24px rgba(124,58,237,0.06);transform:translateY(-1px);z-index:2}
+
+        .section-title{font-weight:700;color:var(--text);margin-bottom:12px}
+        .small-note{font-size:12px;color:var(--muted);margin-top:6px}
+        .radio-group{display:flex;gap:12px;align-items:center}
+
+        .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:10px}
+        .btn-secondary{background:#f2f7fb;color:var(--text);border:1px solid rgba(11,37,64,0.04);padding:8px 12px;border-radius:8px}
+        .result-panel{padding:14px;border-radius:10px;border:1px solid rgba(11,37,64,0.04);background:linear-gradient(180deg,#ffffff,#fbfdff)}
+        .result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(11,37,64,0.04);color:var(--muted)}
+        .result-row:last-child{border-bottom:none}
+
+        .detail-toggle{background:#fff;border:1px dashed rgba(11,37,64,0.06);padding:8px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text);display:inline-block;margin-top:8px}
+        .detail-box{margin-top:8px;border-top:1px dashed rgba(11,37,64,0.04);padding-top:10px;display:none}
+
+        .deduction-table{width:100%;border-collapse:collapse;margin-top:8px;color:var(--muted)}
+        .deduction-table th, .deduction-table td{padding:8px;border-bottom:1px solid rgba(11,37,64,0.04);text-align:left}
+
+        @media(max-width:980px){ .layout{grid-template-columns:1fr} .grid{grid-template-columns:1fr} .grid-2{grid-template-columns:1fr 1fr} .header{flex-direction:column;align-items:flex-start} }
     </style>
 </head>
 <body>
-    <div class="page-wrap">
-        <div class="topbar">
-            <div class="title">양도소득세 간편계산 입력 <div style="font-size:0.85rem;color:#5d7485;font-weight:500">부동산 양도분에 한함</div></div>
-            <div style="display:flex;gap:8px;align-items:center;">
+    <div class="wrap">
+        <div class="header">
+            <div class="brand">
+                <div class="logo" aria-hidden="true">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 12L12 3l9 9" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+                        <path d="M7 21h10" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>양도소득세 계산기</h1>
+                    <p class="subtitle">부동산 양도분 간편 계산 (참고용)</p>
+                </div>
+            </div>
+
+            <div class="controls">
                 <a href="{{ url_for('main') }}" class="btn-main">메인으로</a>
+                <a href="{{ url_for('transfer_tax_detail') }}" class="btn-alt" style="text-decoration:none">상세계산</a>
             </div>
         </div>
 
-        <!-- 기본사항 -->
-        <div class="section">
-            <h3>기본사항</h3>
-            <div class="grid">
-                <div class="row">
-                    <label class="field-label">필수입력 양도일자</label>
-                    <div>
+        <div class="layout">
+            <section class="card" aria-labelledby="inputTitle">
+                <div id="inputTitle" class="title">기본사항</div>
+                <div class="small-note" style="margin-bottom:12px">양도일자 · 취득일자 · 물건 종류를 입력하세요</div>
+
+                <div class="grid">
+                    <div class="col">
+                        <label class="field-label">양도일자</label>
                         <input type="date" id="transferDate" value="2025-10-20">
-                        <div class="small-note">양도일자를 입력하여 주십시오</div>
                     </div>
-                </div>
-
-                <div class="row">
-                    <label class="field-label">필수입력 취득일자</label>
-                    <div>
+                    <div class="col">
+                        <label class="field-label">취득일자</label>
                         <input type="date" id="acquireDate" value="2025-10-20">
-                        <div class="small-note">부동산을 산 날로 잔금을 지급한 날입니다.</div>
                     </div>
-                </div>
 
-                <div class="row">
-                    <label class="field-label">필수입력 양도물건종류</label>
-                    <div>
-                        <div class="radio-group">
-                            <label><input type="radio" name="propType" value="land" checked> 토지</label>
-                            <label><input type="radio" name="propType" value="house"> 주택</label>
-                            <label><input type="radio" name="propType" value="highvalue"> 고가주택(1세대1주택)</label>
-                            <label><input type="radio" name="propType" value="other"> 기타</label>
+                    <div class="col">
+                        <label class="field-label">양도물건종류</label>
+                        <div>
+                            <div class="radio-group">
+                                <label><input type="radio" name="propType" value="land" checked> 토지</label>
+                                <label><input type="radio" name="propType" value="house"> 주택</label>
+                                <label><input type="radio" name="propType" value="highvalue"> 고가주택</label>
+                                <label><input type="radio" name="propType" value="other"> 기타</label>
+                            </div>
                         </div>
-                        <div class="small-note">토지, 주택(일반주택, 다세대, 아파트 등), 기타(일반건물 등)로 구분합니다.</div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- 거래금액 -->
-        <div class="section">
-            <h3>거래금액 (고가주택 공동소유 시 본인 지분 입력)</h3>
-            <div class="grid">
-                <div class="row">
-                    <label class="field-label">필수입력 양도가액</label>
-                    <div>
+                <div style="height:12px"></div>
+
+                <div class="title" style="font-size:1.05rem">거래금액</div>
+                <div class="small-note" style="margin-bottom:8px">고가주택 공동소유 시 본인 지분을 입력하세요</div>
+
+                <div class="grid-2" style="margin-top:8px;">
+                    <div class="col">
+                        <label class="field-label">양도가액</label>
                         <input type="text" id="transferPrice" placeholder="예: 500,000,000">
-                        <div class="small-note">부동산을 팔면서 실제로 받은 금액입니다.</div>
+                        <div class="small-note">실수령 금액</div>
                     </div>
-                </div>
-
-                <div class="row">
-                    <label class="field-label">필수입력 취득가액(실지취득가액)</label>
-                    <div>
+                    <div class="col">
+                        <label class="field-label">취득가액 (실지취득가액)</label>
                         <input type="text" id="acquirePrice" placeholder="예: 120,000,000">
-                        <div class="small-note">취득가액계산 상세 명세서 입력금액의 합계입니다. 펼침 버튼으로 상세 입력 가능.</div>
-                        <div class="detail-toggle" onclick="toggleDetail('acquireDetail')">펼치기 / 취득가액 상세</div>
-                        <div id="acquireDetail" class="detail-box">
-                            <label class="small-note">취득세, 등록세, 법무사비용, 취득중개수수료 등(콤마 없이 숫자 입력)</label>
-                            <input type="text" id="acq_tax" placeholder="취득세 합계">
-                            <input type="text" id="acq_legal" placeholder="법무사비용">
-                            <input type="text" id="acq_agent" placeholder="취득중개수수료">
-                        </div>
+                        <div class="small-note">취득비용 합계</div>
                     </div>
-                </div>
 
-                <div class="row">
-                    <label class="field-label">실지 필요경비</label>
-                    <div>
+                    <div class="col">
+                        <label class="field-label">실지 필요경비</label>
                         <input type="text" id="otherExpense" placeholder="예: 2,000,000">
-                        <div class="small-note">기타 필요경비 상세 명세서 입력금액의 합계입니다. 펼침 버튼으로 상세 입력 가능.</div>
-                        <div class="detail-toggle" onclick="toggleDetail('expenseDetail')">펼치기 / 필요경비 상세</div>
-                        <div id="expenseDetail" class="detail-box">
-                            <label class="small-note">양도중개수수료, 국민주택채권매각차손, 자본적지출 등</label>
-                            <input type="text" id="agentFee" placeholder="양도중개수수료">
-                            <input type="text" id="bondLoss" placeholder="국민주택채권매각차손">
-                            <input type="text" id="capex" placeholder="자본적지출액">
-                        </div>
+                        <div class="small-note">양도중개수수료 등</div>
                     </div>
-                </div>
-
-                <div class="row">
-                    <label class="field-label">양도소득기본공제</label>
-                    <div>
+                    <div class="col">
+                        <label class="field-label">기본공제(인별)</label>
                         <input type="text" id="basicDeduction" value="2,500,000" readonly>
-                        <div class="small-note">1인당 연간 250만원 한도임</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 기타사항 -->
-        <div class="section">
-            <h3>기타사항</h3>
-            <div class="grid">
-                <div class="row">
-                    <label class="field-label">미등기양도입니까?</label>
-                    <div class="radio-group">
-                        <label><input type="radio" name="unreg" value="yes"> 예</label>
-                        <label><input type="radio" name="unreg" value="no" checked> 아니오</label>
+                        <div class="small-note">연간 250만원 한도</div>
                     </div>
                 </div>
 
-                <div class="row">
-                    <label class="field-label">상속받은 자산입니까?</label>
-                    <div>
-                        <div class="radio-group">
-                            <label><input type="radio" name="inherited" value="yes"> 예</label>
-                            <label><input type="radio" name="inherited" value="no" checked> 아니오</label>
-                        </div>
-                        <div class="small-note">피상속인 취득일이 있으면 선택 후 입력</div>
-                        <input type="date" id="inheritedAcquireDate" style="margin-top:8px;">
+                <div style="height:8px"></div>
+
+                <div class="detail-toggle" onclick="toggleDetail('acquireDetail')">펼치기 · 취득관련 상세</div>
+                <div id="acquireDetail" class="detail-box">
+                    <label class="small-note">취득세, 법무사비, 취득중개수수료 등</label>
+                    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px;">
+                        <input type="text" id="acq_tax" placeholder="취득세 합계">
+                        <input type="text" id="acq_legal" placeholder="법무사비용">
+                        <input type="text" id="acq_agent" placeholder="취득중개수수료">
                     </div>
                 </div>
 
-                <div class="row">
-                    <label class="field-label">비사업용토지 해당여부</label>
-                    <div class="radio-group">
-                        <label><input type="radio" name="nonbiz" value="yes"> 예</label>
-                        <label><input type="radio" name="nonbiz" value="no" checked> 아니오</label>
+                <div style="height:6px"></div>
+
+                <div class="detail-toggle" onclick="toggleDetail('expenseDetail')">펼치기 · 필요경비 상세</div>
+                <div id="expenseDetail" class="detail-box">
+                    <label class="small-note">양도중개수수료, 국민주택채권매각차손, 자본적지출</label>
+                    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px;">
+                        <input type="text" id="agentFee" placeholder="양도중개수수료">
+                        <input type="text" id="bondLoss" placeholder="국민주택채권매각차손">
+                        <input type="text" id="capex" placeholder="자본적지출액">
                     </div>
                 </div>
 
-                <div class="row">
-                    <label class="field-label">1세대 1주택 여부 및 거주기간</label>
-                    <div>
-                        <div class="radio-group">
-                            <label><input type="radio" name="oneHouse" value="yes"> 예</label>
-                            <label><input type="radio" name="oneHouse" value="no" checked> 아니오</label>
-                        </div>
-                        <div class="small-note">비과세 대상 여부는 보유기간/거주기간 규정 참조</div>
-                    </div>
+                <div class="actions">
+                    <button class="btn-secondary" id="resetBtn" type="button">초기화</button>
+                    <button class="btn-alt" id="calcBtn" type="button">계산하기</button>
+                </div>
+            </section>
+
+            <aside class="card result-panel" id="resultSection" style="display:none;">
+                <div class="title">계산결과 (간편)</div>
+                <div style="margin-top:8px">
+                    <div class="result-row"><div class="small-note">과세표준(양도차익)</div><div id="res_gain">- 원</div></div>
+                    <div class="result-row"><div class="small-note">추정 양도소득세</div><div id="res_tax">- 원</div></div>
+                    <div class="result-row"><div class="small-note">기본공제 적용(인별)</div><div id="res_basic">- 원</div></div>
+                    <div class="result-row"><div class="small-note">비고</div><div id="res_note">-</div></div>
                 </div>
 
-                <div class="row">
-                    <label class="field-label">조정대상지역 중과 여부</label>
-                    <div class="radio-group">
-                        <label><input type="radio" name="areaOver" value="yes"> 예</label>
-                        <label><input type="radio" name="areaOver" value="no" checked> 아니오</label>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 계산 및 결과 -->
-        <div style="display:flex;gap:12px;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <div class="small-note">입력 후 계산하기 버튼을 눌러 예상 양도소득세를 확인하세요. (참고용)</div>
-            <div class="calc-actions">
-                <button class="btn btn-secondary" id="resetBtn" type="button">초기화</button>
-                <button class="btn btn-primary" id="calcBtn" type="button">계산하기</button>
-            </div>
-        </div>
-
-        <div class="section" id="resultSection" style="display:none;">
-            <h3>계산결과 (간편)</h3>
-            <table class="result-table">
-                <tr><td>과세표준(양도차익)</td><td id="res_gain">- 원</td></tr>
-                <tr><td>추정 양도소득세</td><td id="res_tax">- 원</td></tr>
-                <tr><td>기본공제 적용(인별)</td><td id="res_basic">- 원</td></tr>
-                <tr><td>비고</td><td id="res_note">-</td></tr>
-            </table>
+                <div style="margin-top:12px" class="small-note">참고: 간편 계산입니다. 실제 납부세액은 중과·장기보유특별공제 등으로 달라집니다.</div>
+            </aside>
         </div>
     </div>
 
@@ -227,13 +232,13 @@
         function removeComma(s){ return (s||'').toString().replace(/,/g,'').replace(/[^\d\-]/g,'')||'0'; }
         function $id(id){return document.getElementById(id);}
 
-        // detail toggle
+        // 토글
         function toggleDetail(id){
             const el = $id(id);
             el.style.display = (el.style.display === 'block') ? 'none' : 'block';
         }
 
-        // 자동 콤마 포맷
+        // 자동 콤마 입력 (null 체크 추가)
         ['transferPrice','acquirePrice','otherExpense','acq_tax','acq_legal','acq_agent','agentFee','bondLoss','capex'].forEach(id=>{
             const el = $id(id);
             if(!el) return;
@@ -244,28 +249,24 @@
             });
         });
 
-        // 계산 로직 (간편)
-        document.getElementById('calcBtn').addEventListener('click', function(){
-            const tp = parseInt(removeComma($id('transferPrice').value))||0;
-            const ap = parseInt(removeComma($id('acquirePrice').value))||0;
-            const other = parseInt(removeComma($id('otherExpense').value))||0;
+        // 계산 로직 (간편) - null 체크 강화
+        $id('calcBtn').addEventListener('click', function(){
+            const tp = parseInt(removeComma($id('transferPrice')?.value))||0;
+            const ap = parseInt(removeComma($id('acquirePrice')?.value))||0;
+            const other = parseInt(removeComma($id('otherExpense')?.value))||0;
             const acq_tax = parseInt(removeComma($id('acq_tax')?.value))||0;
             const acq_legal = parseInt(removeComma($id('acq_legal')?.value))||0;
             const acq_agent = parseInt(removeComma($id('acq_agent')?.value))||0;
             const agentFee = parseInt(removeComma($id('agentFee')?.value))||0;
             const bondLoss = parseInt(removeComma($id('bondLoss')?.value))||0;
             const capex = parseInt(removeComma($id('capex')?.value))||0;
-            const basic = parseInt(removeComma($id('basicDeduction').value))||0;
+            const basic = parseInt(removeComma($id('basicDeduction')?.value))||0;
 
-            // 양도차익 = 양도가액 - (취득가액 + 필요경비 + 취득관련비용 등) - 기본공제
             const totalAcquireRelated = ap + acq_tax + acq_legal + acq_agent;
             const totalExpenses = other + agentFee + bondLoss + capex;
             const gain = tp - totalAcquireRelated - totalExpenses - basic;
-
-            // 과세표준(단순화): gain
             const taxable = gain > 0 ? gain : 0;
 
-            // 단순 누진세율표 (예시) — 실제는 토지/주택/중과 등 복잡
             const brackets = [
                 {limit:12000000, rate:0.06, minus:0},
                 {limit:46000000, rate:0.15, minus:1080000},
@@ -283,28 +284,36 @@
             let tax = Math.floor(taxable * rate - minus);
             if(tax < 0) tax = 0;
 
-            // 표시
-            $id('res_gain').textContent = addComma(taxable) + ' 원';
-            $id('res_tax').textContent = addComma(tax) + ' 원';
-            $id('res_basic').textContent = addComma(basic) + ' 원';
-            let note = '간편 계산(참고용) — 실제 납부세액은 다양한 가감, 중과, 장기보유특별공제 등에 따라 달라집니다.';
-            $id('res_note').textContent = note;
-            $id('resultSection').style.display = 'block';
-            // 스크롤
-            $id('resultSection').scrollIntoView({behavior:'smooth'});
+            // 결과 표시 (null 체크)
+            const resGain = $id('res_gain');
+            const resTax = $id('res_tax');
+            const resBasic = $id('res_basic');
+            const resNote = $id('res_note');
+            const resultSection = $id('resultSection');
+            
+            if(resGain) resGain.textContent = addComma(taxable) + ' 원';
+            if(resTax) resTax.textContent = addComma(tax) + ' 원';
+            if(resBasic) resBasic.textContent = addComma(basic) + ' 원';
+            if(resNote) resNote.textContent = '간편 계산(참고용) — 실제는 중과/특별공제 등으로 달라집니다.';
+            if(resultSection) {
+                resultSection.style.display = 'block';
+                resultSection.scrollIntoView({behavior:'smooth'});
+            }
         });
 
-        // 초기화
-        document.getElementById('resetBtn').addEventListener('click', function(){
-            document.querySelectorAll('#page-wrap input[type=text]').forEach(i=>i.value='');
-            document.querySelectorAll('input[type=date]').forEach(i=>{/* keep default */});
-            $id('transferPrice').value='';$id('acquirePrice').value='';$id('otherExpense').value='';
-            $id('resultSection').style.display='none';
+        // 초기화 (null 체크 추가)
+        $id('resetBtn').addEventListener('click', function(){
+            ['transferPrice','acquirePrice','otherExpense','acq_tax','acq_legal','acq_agent','agentFee','bondLoss','capex'].forEach(id=>{
+                const el = $id(id);
+                if(el) el.value = '';
+            });
+            const resultSection = $id('resultSection');
+            if(resultSection) resultSection.style.display='none';
         });
 
-        // 엔터 제출 방지 (form 없음)
+        // 엔터 제출 방지
         document.addEventListener('keydown', function(e){
-            if(e.key === 'Enter' && e.target && (e.target.tagName === 'INPUT')) e.preventDefault();
+            if(e.key === 'Enter' && e.target && e.target.tagName === 'INPUT') e.preventDefault();
         });
     </script>
 </body>

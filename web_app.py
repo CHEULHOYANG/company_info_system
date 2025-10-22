@@ -2902,6 +2902,13 @@ def transfer_tax():
         return redirect(url_for('login'))
     return render_template('transfer_tax.html', user_name=session.get('user_name'))
 
+@app.route('/transfer_tax_detail')
+def transfer_tax_detail():
+    """양도소득세 상세계산기 (현재는 같은 페이지)"""
+    if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
+        return redirect(url_for('login'))
+    return render_template('transfer_tax.html', user_name=session.get('user_name'))
+
 # --- 종합소득세 계산기 라우트 ---
 @app.route('/income_tax')
 def income_tax():
