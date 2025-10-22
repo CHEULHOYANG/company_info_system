@@ -238,7 +238,11 @@
             el.style.display = (el.style.display === 'block') ? 'none' : 'block';
         }
 
+<<<<<<< HEAD
         // 자동 콤마 입력 (null 체크 추가)
+=======
+        // 자동 콤마 입력 (겹침 방지 위해 minmax 사용)
+>>>>>>> 1358b535c010a81cf7e80fc46dec768e7321b2a0
         ['transferPrice','acquirePrice','otherExpense','acq_tax','acq_legal','acq_agent','agentFee','bondLoss','capex'].forEach(id=>{
             const el = $id(id);
             if(!el) return;
@@ -249,11 +253,19 @@
             });
         });
 
+<<<<<<< HEAD
         // 계산 로직 (간편) - null 체크 강화
         $id('calcBtn').addEventListener('click', function(){
             const tp = parseInt(removeComma($id('transferPrice')?.value))||0;
             const ap = parseInt(removeComma($id('acquirePrice')?.value))||0;
             const other = parseInt(removeComma($id('otherExpense')?.value))||0;
+=======
+        // 계산 로직 (간편)
+        $id('calcBtn').addEventListener('click', function(){
+            const tp = parseInt(removeComma($id('transferPrice').value))||0;
+            const ap = parseInt(removeComma($id('acquirePrice').value))||0;
+            const other = parseInt(removeComma($id('otherExpense').value))||0;
+>>>>>>> 1358b535c010a81cf7e80fc46dec768e7321b2a0
             const acq_tax = parseInt(removeComma($id('acq_tax')?.value))||0;
             const acq_legal = parseInt(removeComma($id('acq_legal')?.value))||0;
             const acq_agent = parseInt(removeComma($id('acq_agent')?.value))||0;
@@ -284,6 +296,7 @@
             let tax = Math.floor(taxable * rate - minus);
             if(tax < 0) tax = 0;
 
+<<<<<<< HEAD
             // 결과 표시 (null 체크)
             const resGain = $id('res_gain');
             const resTax = $id('res_tax');
@@ -309,6 +322,22 @@
             });
             const resultSection = $id('resultSection');
             if(resultSection) resultSection.style.display='none';
+=======
+            $id('res_gain').textContent = addComma(taxable) + ' 원';
+            $id('res_tax').textContent = addComma(tax) + ' 원';
+            $id('res_basic').textContent = addComma(basic) + ' 원';
+            $id('res_note').textContent = '간편 계산(참고용) — 실제는 중과/특별공제 등으로 달라집니다.';
+            $id('resultSection').style.display = 'block';
+            $id('resultSection').scrollIntoView({behavior:'smooth'});
+        });
+
+        // 초기화
+        $id('resetBtn').addEventListener('click', function(){
+            ['transferPrice','acquirePrice','otherExpense','acq_tax','acq_legal','acq_agent','agentFee','bondLoss','capex'].forEach(id=>{
+                if($id(id)) $id(id).value = '';
+            });
+            $id('resultSection').style.display='none';
+>>>>>>> 1358b535c010a81cf7e80fc46dec768e7321b2a0
         });
 
         // 엔터 제출 방지
