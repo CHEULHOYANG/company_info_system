@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: cp949 -*-
 # Company Management System
 import os
 import sqlite3
