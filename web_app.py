@@ -51,6 +51,10 @@ class CP949FileSystemLoader(FileSystemLoader):
 app = Flask(__name__)
 app.secret_key = 'your_very_secret_key_12345'
 
+# 한글 인코딩 설정 - JSON 응답에서 한글 깨짐 방지
+app.config['JSON_AS_ASCII'] = False
+app.config['JSONIFY_MIMETYPE'] = 'application/json; charset=utf-8'
+
 # 업로드 폴더 설정
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -1362,8 +1366,7 @@ def fix_db():
 def upload_database():
     """데이터베이스 파일 업로드"""
     if request.method == 'GET':
-        return '''
-        <!DOCTYPE html>
+        html_content = '''<!DOCTYPE html>
         <html lang="ko">
         <head>
             <meta charset="UTF-8">
@@ -1537,6 +1540,10 @@ def upload_database():
         </body>
         </html>
         '''
+        
+        # 한글 인코딩 문제 해결을 위해 응답 헤더 설정
+        from flask import Response
+        return Response(html_content, content_type='text/html; charset=utf-8')
     
     if 'database' not in request.files:
         return jsonify({"success": False, "message": "파일이 선택되지 않았습니다"})
@@ -1564,14 +1571,18 @@ def upload_database():
         tables = cursor.fetchall()
         conn.close()
         
-        return jsonify({
+        success_response = jsonify({
             "success": True, 
             "message": f"데이터베이스 업로드 완료. {len(tables)}개 테이블 확인됨",
             "tables": [table[0] for table in tables]
         })
+        success_response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return success_response
         
     except Exception as e:
-        return jsonify({"success": False, "message": f"업로드 실패: {str(e)}"})
+        error_response = jsonify({"success": False, "message": f"업로드 실패: {str(e)}"})
+        error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return error_response
 
 @app.route('/download_database')
 def download_database():
@@ -1598,10 +1609,12 @@ def download_database():
         )
         
     except Exception as e:
-        return jsonify({
+        error_response = jsonify({
             "success": False, 
             "message": f"다운로드 실패: {str(e)}"
-        }), 500
+        })
+        error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return error_response, 500
 
 @app.route('/download')
 def download_page():
@@ -1610,10 +1623,12 @@ def download_page():
         db_path = DB_PATH
         
         if not os.path.exists(db_path):
-            return jsonify({
+            error_response = jsonify({
                 "success": False, 
                 "message": "데이터베이스 파일이 존재하지 않습니다."
-            }), 404
+            })
+            error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
+            return error_response, 404
         
         # 데이터베이스 정보 확인
         conn = sqlite3.connect(db_path)
@@ -1650,10 +1665,12 @@ def download_page():
         )
         
     except Exception as e:
-        return jsonify({
+        error_response = jsonify({
             "success": False, 
             "message": f"다운로드 실패: {str(e)}"
-        }), 500
+        })
+        error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return error_response, 500
 
 @app.route('/download_info')
 def download_database_info():
@@ -1693,7 +1710,7 @@ def download_database_info():
         
         conn.close()
         
-        return jsonify({
+        response_data = {
             "success": True,
             "file_exists": True,
             "file_info": {
@@ -1704,19 +1721,25 @@ def download_database_info():
                 "total_records": total_records
             },
             "table_info": table_info
-        })
+        }
+        
+        # JSON 응답에서 한글 인코딩 문제 해결
+        response = jsonify(response_data)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
         
     except Exception as e:
-        return jsonify({
+        error_response = jsonify({
             "success": False, 
             "message": f"정보 조회 실패: {str(e)}"
-        }), 500
+        })
+        error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return error_response, 500
 
 @app.route('/download_database_page')
 def download_database_page():
     """데이터베이스 다운로드 페이지"""
-    return '''
-    <!DOCTYPE html>
+    html_content = '''<!DOCTYPE html>
     <html lang="ko">
     <head>
         <meta charset="UTF-8">
@@ -1918,6 +1941,10 @@ def download_database_page():
     </body>
     </html>
     '''
+    
+    # 한글 인코딩 문제 해결을 위해 응답 헤더 설정
+    from flask import Response
+    return Response(html_content, content_type='text/html; charset=utf-8')
 
 # 간단한 다운로드 경로들 추가
 @app.route('/download')

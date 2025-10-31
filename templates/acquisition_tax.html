@@ -5,85 +5,324 @@
     <title>취득세 계산기</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        .acq-tax-container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
-        .acq-tax-title { font-size: 1.6em; font-weight: bold; margin-bottom: 24px; color: #17506b; text-align:center; }
-        .acq-tax-form label { font-weight: 500; margin-bottom: 6px; display:block; }
-        .acq-tax-form input, .acq-tax-form select { width: 100%; padding: 10px; margin-bottom: 18px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; }
-        .acq-tax-form button { width: 100%; background: #17506b; color: #fff; border: none; border-radius: 5px; padding: 13px; font-size: 17px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .acq-tax-form button:hover { background: #003366; }
-        .result-box { background: #f8f9fa; border-radius: 6px; padding: 18px; margin-top: 18px; font-size: 1.1em; color: #0b4e7b; text-align:center; }
-        .top-bar { display:flex; justify-content:flex-end; margin-bottom:18px; }
-        .main-btn { background:#003366; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-size:15px; font-weight:600; cursor:pointer; }
-        .main-btn:hover { background:#17506b; }
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .acq-tax-container { 
+            max-width: 800px; 
+            margin: 40px auto; 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.3);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        .acq-tax-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 400% 400%;
+            animation: gradient 3s ease infinite;
+        }
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .acq-tax-title { 
+            font-size: 2.2em; 
+            font-weight: 700; 
+            margin-bottom: 30px; 
+            color: #2c3e50; 
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .top-bar { 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px; 
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        .main-btn { 
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff; 
+            border: none; 
+            border-radius: 12px; 
+            padding: 12px 24px; 
+            font-size: 1em; 
+            font-weight: 600; 
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            text-decoration: none;
+            display: inline-block;
+        }
+        .main-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        .tax-rate-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        .tax-rate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+        .acq-tax-form { 
+            background: rgba(248, 250, 252, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label { 
+            display: block;
+            font-weight: 600; 
+            color: #2c3e50;
+            margin-bottom: 10px; 
+            font-size: 1.05em;
+        }
+        .form-group input, .form-group select { 
+            width: 100%; 
+            padding: 12px 16px; 
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px; 
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .radio-group label {
+            display: flex !important;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 400 !important;
+            margin-bottom: 0 !important;
+        }
+        .radio-group label:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        .radio-group input[type="radio"] {
+            margin-right: 8px;
+            width: auto;
+        }
+        .radio-group input[type="radio"]:checked + span {
+            color: #667eea;
+            font-weight: 600;
+        }
+        .submit-btn { 
+            width: 100%; 
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff; 
+            border: none; 
+            border-radius: 12px; 
+            padding: 16px; 
+            font-size: 1.1em; 
+            font-weight: 600; 
+            cursor: pointer; 
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .submit-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        .result-box { 
+            background: linear-gradient(135deg, #e8f5e8, #f0fff0);
+            border-radius: 16px; 
+            padding: 25px; 
+            margin-top: 25px; 
+            font-size: 1.1em; 
+            color: #2c3e50;
+            border-left: 4px solid #28a745;
+        }
+        .help-text {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+        @media (max-width: 768px) {
+            .acq-tax-container {
+                margin: 20px auto;
+                padding: 25px;
+            }
+            .acq-tax-title {
+                font-size: 1.8em;
+            }
+            .top-bar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .radio-group {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="acq-tax-container">
         <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">메인으로</a>
+            <a href="{{ url_for('main') }}" class="main-btn">? 메인으로</a>
+            <button type="button" id="showTaxRateBtn" class="tax-rate-btn">? 취득세율 보기</button>
         </div>
-        <div class="acq-tax-title">취득세 계산기</div>
+        
+        <div class="acq-tax-title">? 취득세 계산기</div>
+        
         <form class="acq-tax-form" id="acqTaxForm" onsubmit="return false;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                <label style="margin-bottom:0;">취득물건종류</label>
-                <button type="button" id="showTaxRateBtn" style="background:#208e4c;color:#fff;font-weight:600;padding:6px 18px;border-radius:6px;border:none;">취득세율 보기</button>
+            <div class="form-group">
+                <label>?? 취득물건종류</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="itemType" value="주택" checked><span>주택</span></label>
+                    <label><input type="radio" name="itemType" value="건축물"><span>건축물</span></label>
+                    <label><input type="radio" name="itemType" value="토지"><span>토지</span></label>
+                </div>
             </div>
-            <div style="display:flex;gap:30px;align-items:center;justify-content:center;margin-bottom:18px;">
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="itemType" value="주택" checked style="margin-right:6px;"> 주택</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="itemType" value="건축물" style="margin-right:6px;"> 건축물</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="itemType" value="토지" style="margin-right:6px;"> 토지</label>
+            
+            <div class="form-group">
+                <label>? 취득구분</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="acqType" value="매매" checked><span>매매</span></label>
+                    <label><input type="radio" name="acqType" value="신축"><span>신축</span></label>
+                    <label><input type="radio" name="acqType" value="증여"><span>증여</span></label>
+                    <label><input type="radio" name="acqType" value="상속"><span>상속</span></label>
+                </div>
             </div>
-            <div style="display:flex;align-items:center;gap:30px;margin-bottom:10px;">
-                <label style="margin-bottom:0;">취득구분</label>
-            </div>
-            <div style="display:flex;gap:30px;align-items:center;justify-content:center;margin-bottom:18px;">
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="매매" checked style="margin-right:6px;"> 매매</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="신축" style="margin-right:6px;"> 신축</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="증여" style="margin-right:6px;"> 증여</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="acqType" value="상속" style="margin-right:6px;"> 상속</label>
-            </div>
-            <div style="display:flex;align-items:center;gap:30px;margin-bottom:10px;">
-                <label style="margin-bottom:0;">주택보유수</label>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
-                <select id="houseCount" style="width:auto;min-width:320px;">
-                    <option value="1">조정 1주택 / 비조정 2주택 / 비조정 1주택</option>
-                    <option value="2">조정 2주택 / 비조정 3주택</option>
-                    <option value="3">조정 3주택 이상 / 비조정 4주택 이상</option>
+            
+            <div class="form-group">
+                <label>? 주택보유수</label>
+                <select id="houseCount">
+                    <option value="1">조정대상지역 1주택 / 비조정대상지역 2주택 이하</option>
+                    <option value="2">조정대상지역 2주택 / 비조정대상지역 3주택</option>
+                    <option value="3">조정대상지역 3주택 이상 / 비조정대상지역 4주택 이상</option>
                 </select>
             </div>
-            <div style="display:flex;align-items:center;gap:30px;margin-bottom:10px;">
-                <label style="margin-bottom:0;">85제곱 초과 여부</label>
+            
+            <div class="form-group">
+                <label>? 전용면적 85㎡ 초과 여부</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="over85" value="no" checked><span>85㎡ 이하</span></label>
+                    <label><input type="radio" name="over85" value="yes"><span>85㎡ 초과</span></label>
+                </div>
             </div>
-            <div style="display:flex;gap:30px;align-items:center;justify-content:center;margin-bottom:18px;">
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="over85" value="yes" style="margin-right:6px;"> 예</label>
-                <label style="font-weight:400;display:flex;align-items:center;"><input type="radio" name="over85" value="no" checked style="margin-right:6px;"> 아니오</label>
+            
+            <div class="form-group">
+                <label>? 취득가액 (원)</label>
+                <input type="text" id="acqPrice" required pattern="[0-9,]*" placeholder="예: 300,000,000">
+                <div class="help-text">실제 거래가격 또는 건축비용을 입력하세요</div>
             </div>
-            <label>취득가액(원)</label>
-            <input type="text" id="acqPrice" required pattern="[0-9,]*" placeholder="예: 300,000,000">
-            <label>공시지가(원)</label>
-            <input type="text" id="officialPrice" required pattern="[0-9,]*" placeholder="예: 250,000,000">
-            <button type="submit">계산</button>
+            
+            <div class="form-group">
+                <label>?? 공시지가 (원)</label>
+                <input type="text" id="officialPrice" required pattern="[0-9,]*" placeholder="예: 250,000,000">
+                <div class="help-text">국토교통부에서 발표하는 공시지가를 입력하세요</div>
+            </div>
+            
+            <button type="submit" class="submit-btn">? 계산하기</button>
         </form>
 
-        <!-- 취득세율 안내 모달 -->
-        <div id="taxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);">
-            <div style="background:#fff;max-width:700px;margin:60px auto;padding:32px 28px;border-radius:10px;position:relative;">
-                <button id="closeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">×</button>
-                <h3 style="color:#17506b;">취득세율/농특세/교육세 안내</h3>
-                <table style="width:100%;border-collapse:collapse;text-align:center;">
-                    <thead><tr style="background:#2980b9;color:#fff;"><th>구분</th><th>취득세</th><th>농특세</th><th>교육세</th></tr></thead>
-                    <tbody>
-                        <tr><td>주택(1주택)</td><td>1%</td><td>-</td><td>-</td></tr>
-                        <tr><td>주택(2주택)</td><td>2%</td><td>-</td><td>-</td></tr>
-                        <tr><td>주택(3주택 이상)</td><td>3%</td><td>0.2%</td><td>-</td></tr>
-                        <tr><td>건축물/토지</td><td>4%</td><td>0.2%</td><td>0.4%</td></tr>
-                    </tbody>
-                </table>
-                <div style="font-size:0.95em;color:#888;margin-top:10px;">실제 세율은 지역, 금액, 조건에 따라 다를 수 있습니다.</div>
+        <div class="result-box" id="resultBox" style="display:none;"></div>
+        
+        <div style="background:rgba(108, 117, 125, 0.1);border-radius:12px;padding:20px;margin-top:25px;">
+            <h4 style="color:#495057;margin-bottom:15px;">? 안내사항</h4>
+            <div style="font-size:0.95em;color:#6c757d;line-height:1.6;">
+                <p><strong>? 조정대상지역:</strong> 서울, 부산, 대구, 인천, 광주, 대전, 울산, 세종, 경기 일부 등</p>
+                <p><strong>? 취득세율:</strong> 주택 1~3%, 건축물/토지 4% + 농특세/교육세</p>
+                <p><strong>?? 주의:</strong> 실제 세율은 지역, 취득시기, 개인 상황에 따라 다를 수 있습니다</p>
             </div>
         </div>
-        <div class="result-box" id="resultBox" style="display:none;"></div>
+
+        <!-- 취득세율 안내 모달 -->
+        <div id="taxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px);">
+            <div style="background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);max-width:700px;margin:60px auto;padding:32px 28px;border-radius:20px;position:relative;box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+                <button id="closeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;color:#6c757d;width:40px;height:40px;border-radius:50%;transition:all 0.3s ease;">×</button>
+                <h3 style="color:#2c3e50;font-size:1.5em;margin-bottom:20px;text-align:center;">? 취득세율/농특세/교육세 안내</h3>
+                <div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;text-align:center;background:rgba(255,255,255,0.9);border-radius:12px;overflow:hidden;">
+                        <thead>
+                            <tr style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">
+                                <th style="padding:15px;font-weight:600;">구분</th>
+                                <th style="padding:15px;font-weight:600;">취득세</th>
+                                <th style="padding:15px;font-weight:600;">농특세</th>
+                                <th style="padding:15px;font-weight:600;">교육세</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom:1px solid rgba(0,0,0,0.1);">
+                                <td style="padding:12px;font-weight:600;">주택(1주택)</td>
+                                <td style="padding:12px;color:#28a745;font-weight:600;">1%</td>
+                                <td style="padding:12px;color:#6c757d;">-</td>
+                                <td style="padding:12px;color:#6c757d;">-</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid rgba(0,0,0,0.1);">
+                                <td style="padding:12px;font-weight:600;">주택(2주택)</td>
+                                <td style="padding:12px;color:#fd7e14;font-weight:600;">2%</td>
+                                <td style="padding:12px;color:#6c757d;">-</td>
+                                <td style="padding:12px;color:#6c757d;">-</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid rgba(0,0,0,0.1);">
+                                <td style="padding:12px;font-weight:600;">주택(3주택 이상)</td>
+                                <td style="padding:12px;color:#dc3545;font-weight:600;">3%</td>
+                                <td style="padding:12px;color:#e83e8c;font-weight:600;">0.2%</td>
+                                <td style="padding:12px;color:#6c757d;">-</td>
+                            </tr>
+                            <tr>
+                                <td style="padding:12px;font-weight:600;">건축물/토지</td>
+                                <td style="padding:12px;color:#6f42c1;font-weight:600;">4%</td>
+                                <td style="padding:12px;color:#e83e8c;font-weight:600;">0.2%</td>
+                                <td style="padding:12px;color:#fd7e14;font-weight:600;">0.4%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="font-size:0.95em;color:#6c757d;margin-top:15px;text-align:center;background:rgba(108, 117, 125, 0.1);padding:10px;border-radius:8px;">
+                    ?? 실제 세율은 지역, 금액, 조건에 따라 다를 수 있습니다.
+                </div>
+            </div>
+        </div>
     </div>
     <script>
     // 3자리 콤마
@@ -93,6 +332,7 @@
     function removeComma(str) {
         return str.replace(/,/g, '');
     }
+    
     // 입력란 콤마 자동
     ['acqPrice','officialPrice'].forEach(id => {
         const el = document.getElementById(id);
@@ -101,6 +341,28 @@
             if (val) this.value = addComma(Number(val));
         });
     });
+    
+    // 라디오 버튼 선택 효과
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // 같은 name의 다른 라벨들 스타일 초기화
+            document.querySelectorAll(`input[name="${this.name}"]`).forEach(r => {
+                const label = r.closest('label');
+                if (label) {
+                    label.style.borderColor = 'rgba(102, 126, 234, 0.2)';
+                    label.style.background = 'rgba(255, 255, 255, 0.8)';
+                }
+            });
+            
+            // 선택된 라벨 스타일 적용
+            const selectedLabel = this.closest('label');
+            if (selectedLabel) {
+                selectedLabel.style.borderColor = '#667eea';
+                selectedLabel.style.background = 'rgba(102, 126, 234, 0.1)';
+            }
+        });
+    });
+    
     // 단순 예시: 주택/건축물/토지별 기본 취득세율/농특세/교육세율 적용
     function getTaxRates(itemType, acqType, houseCount, over85) {
         // 실제 세율은 복잡하므로 예시(주택: 1~3%, 건축물/토지: 4%)
@@ -111,6 +373,7 @@
         }
         return {tax:0.04, nt:0.002, edu:0.004};
     }
+    
     document.getElementById('acqTaxForm').addEventListener('submit', function() {
         const itemType = document.querySelector('input[name="itemType"]:checked').value;
         const acqType = document.querySelector('input[name="acqType"]:checked').value;
@@ -118,31 +381,108 @@
         const over85 = document.querySelector('input[name="over85"]:checked').value;
         const acqPrice = parseInt(removeComma(document.getElementById('acqPrice').value)) || 0;
         const officialPrice = parseInt(removeComma(document.getElementById('officialPrice').value)) || 0;
+        
         const rates = getTaxRates(itemType, acqType, houseCount, over85);
         const tax = Math.floor(acqPrice * rates.tax);
         const ntax = Math.floor(acqPrice * rates.nt);
         const edutax = Math.floor(acqPrice * rates.edu);
+        const totalTax = tax + ntax + edutax;
+        
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
         resultBox.innerHTML =
-            `취득물건종류: <b>${itemType}</b><br>`+
-            `취득구분: <b>${acqType}</b><br>`+
-            `주택보유수: <b>${houseCount}</b><br>`+
-            `85제곱 초과: <b>${over85==='yes'?'예':'아니오'}</b><br>`+
-            `취득가액: <b>${addComma(acqPrice)}원</b><br>`+
-            `공시지가: <b>${addComma(officialPrice)}원</b><br>`+
-            `<hr style='margin:10px 0;'>취득세(예상): <b style='color:#17506b;font-size:1.2em;'>${addComma(tax)}원</b><br>`+
-            `농어촌특별세(예상): <b>${addComma(ntax)}원</b><br>`+
-            `교육세(예상): <b>${addComma(edutax)}원</b>`;
+            `<div style='text-align:center;margin-bottom:20px;'>
+                <h4 style='color:#2c3e50;margin-bottom:15px;'>? 취득세 계산 결과</h4>
+            </div>
+            <div style='background:rgba(255,255,255,0.8);padding:20px;border-radius:12px;margin-bottom:15px;'>
+                <div style='display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;'>
+                    <div style='text-align:center;'>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>취득물건</div>
+                        <div style='font-weight:600;color:#495057;'>${itemType}</div>
+                    </div>
+                    <div style='text-align:center;'>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>취득구분</div>
+                        <div style='font-weight:600;color:#495057;'>${acqType}</div>
+                    </div>
+                </div>
+                <div style='display:grid;grid-template-columns:1fr 1fr;gap:15px;'>
+                    <div style='text-align:center;'>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>주택보유수</div>
+                        <div style='font-weight:600;color:#495057;'>${houseCount}</div>
+                    </div>
+                    <div style='text-align:center;'>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>85㎡ 초과</div>
+                        <div style='font-weight:600;color:#495057;'>${over85==='yes'?'예':'아니오'}</div>
+                    </div>
+                </div>
+            </div>
+            <div style='background:rgba(255,255,255,0.8);padding:20px;border-radius:12px;margin-bottom:15px;'>
+                <div style='display:grid;grid-template-columns:1fr 1fr;gap:15px;'>
+                    <div style='text-align:center;'>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>취득가액</div>
+                        <div style='font-weight:600;color:#495057;'>${addComma(acqPrice)}원</div>
+                    </div>
+                    <div style='text-align:center;'>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>공시지가</div>
+                        <div style='font-weight:600;color:#495057;'>${addComma(officialPrice)}원</div>
+                    </div>
+                </div>
+            </div>
+            <div style='background:rgba(40,167,69,0.1);border:2px solid rgba(40,167,69,0.3);padding:20px;border-radius:12px;'>
+                <div style='text-align:center;margin-bottom:15px;'>
+                    <div style='font-size:1.1em;color:#155724;margin-bottom:8px;'>? 세금 계산 결과</div>
+                </div>
+                <div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:15px;'>
+                    <div style='background:rgba(255,255,255,0.8);padding:12px;border-radius:8px;text-align:center;'>
+                        <div style='font-size:0.8em;color:#6c757d;'>취득세</div>
+                        <div style='font-weight:600;color:#28a745;'>${addComma(tax)}원</div>
+                    </div>
+                    <div style='background:rgba(255,255,255,0.8);padding:12px;border-radius:8px;text-align:center;'>
+                        <div style='font-size:0.8em;color:#6c757d;'>농특세</div>
+                        <div style='font-weight:600;color:#fd7e14;'>${addComma(ntax)}원</div>
+                    </div>
+                    <div style='background:rgba(255,255,255,0.8);padding:12px;border-radius:8px;text-align:center;'>
+                        <div style='font-size:0.8em;color:#6c757d;'>교육세</div>
+                        <div style='font-weight:600;color:#e83e8c;'>${addComma(edutax)}원</div>
+                    </div>
+                </div>
+                <div style='text-align:center;padding:15px;background:rgba(255,255,255,0.9);border-radius:10px;'>
+                    <div style='font-size:1em;color:#155724;margin-bottom:5px;'>? 총 납부세액</div>
+                    <div style='font-size:1.8em;font-weight:700;color:#28a745;'>${addComma(totalTax)}원</div>
+                </div>
+            </div>`;
+            
+        // 결과 박스로 스크롤
+        resultBox.scrollIntoView({ behavior: 'smooth' });
     });
 
     // 취득세율 안내 모달
-    document.getElementById('showTaxRateBtn').onclick = function() {
-        document.getElementById('taxRateModal').style.display = 'block';
+    const showBtn = document.getElementById('showTaxRateBtn');
+    const modal = document.getElementById('taxRateModal');
+    const closeBtn = document.getElementById('closeTaxRateModal');
+
+    showBtn.onclick = function() {
+        modal.style.display = 'block';
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.transition = 'opacity 0.3s ease';
+            modal.style.opacity = '1';
+        }, 50);
     };
-    document.getElementById('closeTaxRateModal').onclick = function() {
-        document.getElementById('taxRateModal').style.display = 'none';
+
+    closeBtn.onclick = function() {
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
     };
+
+    // 모달 배경 클릭시 닫기
+    modal.onclick = function(e) {
+        if(e.target === modal) {
+            closeBtn.onclick();
+        }
+    }
     </script>
 </body>
 </html>

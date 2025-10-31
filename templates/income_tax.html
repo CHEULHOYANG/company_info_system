@@ -5,60 +5,270 @@
     <title>종합소득세 계산기</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        .income-tax-container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); padding: 32px 28px; }
-        .income-tax-title { font-size: 1.6em; font-weight: bold; margin-bottom: 24px; color: #17506b; text-align:center; }
-        .income-tax-form label { font-weight: 500; margin-bottom: 6px; display:block; }
-        .income-tax-form input, .income-tax-form select { width: 100%; padding: 10px; margin-bottom: 18px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; }
-        .income-tax-form button { width: 100%; background: #17506b; color: #fff; border: none; border-radius: 5px; padding: 13px; font-size: 17px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .income-tax-form button:hover { background: #003366; }
-        .result-box { background: #f8f9fa; border-radius: 6px; padding: 18px; margin-top: 18px; font-size: 1.1em; color: #0b4e7b; text-align:center; }
-        .top-bar { display:flex; justify-content:flex-end; margin-bottom:18px; }
-        .main-btn { background:#003366; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-size:15px; font-weight:600; cursor:pointer; }
-        .main-btn:hover { background:#17506b; }
-        .tax-rate-btns { display:flex; gap:10px; justify-content:center; margin-bottom:18px; }
-        .tax-rate-btn { background:#208e4c; color:#fff; border:none; border-radius:5px; padding:8px 18px; font-size:15px; font-weight:600; cursor:pointer; }
-        .tax-rate-btn:hover { background:#003366; }
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .income-tax-container { 
+            max-width: 800px; 
+            margin: 40px auto; 
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.3);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        .income-tax-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 400% 400%;
+            animation: gradient 3s ease infinite;
+        }
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .income-tax-title { 
+            font-size: 2.2em; 
+            font-weight: 700; 
+            margin-bottom: 30px; 
+            color: #2c3e50; 
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .top-bar { 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px; 
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        .main-btn { 
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff; 
+            border: none; 
+            border-radius: 12px; 
+            padding: 12px 24px; 
+            font-size: 1em; 
+            font-weight: 600; 
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            text-decoration: none;
+            display: inline-block;
+        }
+        .main-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        .tax-rate-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        .tax-rate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+        .income-tax-form { 
+            background: rgba(248, 250, 252, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label { 
+            display: block;
+            font-weight: 600; 
+            color: #2c3e50;
+            margin-bottom: 8px; 
+            font-size: 1.05em;
+        }
+        .form-group input, .form-group select { 
+            width: 100%; 
+            padding: 12px 16px; 
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px; 
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .submit-btn { 
+            width: 100%; 
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff; 
+            border: none; 
+            border-radius: 12px; 
+            padding: 16px; 
+            font-size: 1.1em; 
+            font-weight: 600; 
+            cursor: pointer; 
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .submit-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        .result-box { 
+            background: linear-gradient(135deg, #e8f5e8, #f0fff0);
+            border-radius: 16px; 
+            padding: 25px; 
+            margin-top: 25px; 
+            font-size: 1.1em; 
+            color: #2c3e50;
+            border-left: 4px solid #28a745;
+        }
+        .help-text {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+        .input-icon {
+            position: relative;
+        }
+        .input-icon::before {
+            content: attr(data-icon);
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.1em;
+            z-index: 2;
+        }
+        .input-icon input {
+            padding-left: 45px;
+        }
+        @media (max-width: 768px) {
+            .income-tax-container {
+                margin: 20px auto;
+                padding: 25px;
+            }
+            .income-tax-title {
+                font-size: 1.8em;
+            }
+            .top-bar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="income-tax-container">
         <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">메인으로</a>
+            <a href="{{ url_for('main') }}" class="main-btn">? 메인으로</a>
+            <button type="button" class="tax-rate-btn" onclick="showIncomeTaxRate()">? 종합소득세율 보기</button>
         </div>
-        <div class="income-tax-title">종합소득세 계산기</div>
-        <div class="tax-rate-btns">
-            <button type="button" class="tax-rate-btn" onclick="showIncomeTaxRate()">종합소득세율 보기</button>
-        </div>
+        
+        <div class="income-tax-title">? 종합소득세 계산기</div>
+        
         <form class="income-tax-form" id="incomeTaxForm" onsubmit="return false;">
-            <label>종합소득합계(원)</label>
-            <input type="text" id="totalIncome" required pattern="[0-9,]*" placeholder="예: 50,000,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">사업소득, 임대소득 등 종합소득 합계<br>근로, 이자, 배당 소득 합산은 세무전문가와 상담</div>
-            <label>필요경비 비율(%)</label>
-            <input type="number" id="expenseRate" min="0" max="100" value="0" required placeholder="예: 10">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">주요경비: 상품 구입비용, 임차료, 인건비 등</div>
-            <label>인적공제 합계(원)</label>
-            <input type="text" id="personalDeduction" value="1,500,000" required pattern="[0-9,]*" placeholder="예: 1,500,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">본인/부양가족 등 인적공제 총액</div>
-            <label>국민연금 등 합계(원)</label>
-            <input type="text" id="pensionDeduction" value="0" required pattern="[0-9,]*" placeholder="예: 2,000,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">국민연금, 노란우산공제 등 해당연도에 불입한 금액</div>
-            <label>개인연금저축(2000.12.31 이전 가입분, 원)</label>
-            <input type="text" id="oldPension" value="0" required pattern="[0-9,]*" placeholder="예: 1,000,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">Min(개인연금저축불입액×40%, 72만원)</div>
-            <label>자녀세액공제 대상 인원(명)</label>
-            <input type="number" id="childCount" min="0" value="0" required placeholder="예: 2">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">*소득금액이 100만원 이하인 만 6세 이상 만 20세 이하 자녀</div>
-            <label>연금저축 불입금액(2001.1.1 이후 가입분, 원)</label>
-            <input type="text" id="newPension" value="0" required pattern="[0-9,]*" placeholder="예: 2,000,000">
-            <div style="font-size:0.95em;color:#888;margin-bottom:10px;">세액공제대상 연금저축(연간최대 600,000원), 퇴직연금 IRP(연간최대 300,000원)</div>
-            <button type="submit">계산하기</button>
+            <div class="form-group">
+                <label>? 종합소득합계 (원)</label>
+                <div class="input-icon" data-icon="?">
+                    <input type="text" id="totalIncome" required pattern="[0-9,]*" placeholder="예: 50,000,000">
+                </div>
+                <div class="help-text">사업소득, 임대소득 등 종합소득 합계<br>근로소득, 이자소득, 배당소득 합산은 세무전문가와 상담하세요</div>
+            </div>
+            
+            <div class="form-group">
+                <label>? 필요경비 비율 (%)</label>
+                <div class="input-icon" data-icon="?">
+                    <input type="number" id="expenseRate" min="0" max="100" value="0" required placeholder="예: 10">
+                </div>
+                <div class="help-text">주요경비: 상품 구입비용, 임차료, 인건비, 수도광열비 등</div>
+            </div>
+            
+            <div class="form-group">
+                <label>??????? 인적공제 합계 (원)</label>
+                <div class="input-icon" data-icon="???????">
+                    <input type="text" id="personalDeduction" value="1,500,000" required pattern="[0-9,]*" placeholder="예: 1,500,000">
+                </div>
+                <div class="help-text">본인 150만원 + 부양가족 1인당 150만원</div>
+            </div>
+            
+            <div class="form-group">
+                <label>?? 국민연금 등 합계 (원)</label>
+                <div class="input-icon" data-icon="??">
+                    <input type="text" id="pensionDeduction" value="0" required pattern="[0-9,]*" placeholder="예: 2,000,000">
+                </div>
+                <div class="help-text">국민연금, 노란우산공제 등 해당연도에 불입한 금액</div>
+            </div>
+            
+            <div class="form-group">
+                <label>? 개인연금저축 (2000.12.31 이전 가입분, 원)</label>
+                <div class="input-icon" data-icon="?">
+                    <input type="text" id="oldPension" value="0" required pattern="[0-9,]*" placeholder="예: 1,000,000">
+                </div>
+                <div class="help-text">Min(개인연금저축불입액×40%, 72만원)</div>
+            </div>
+            
+            <div class="form-group">
+                <label>? 자녀세액공제 대상 인원 (명)</label>
+                <div class="input-icon" data-icon="?">
+                    <input type="number" id="childCount" min="0" value="0" required placeholder="예: 2">
+                </div>
+                <div class="help-text">소득금액이 100만원 이하인 만 6세 이상 만 20세 이하 자녀 (1인당 15만원 공제)</div>
+            </div>
+            
+            <div class="form-group">
+                <label>? 연금저축 불입금액 (2001.1.1 이후 가입분, 원)</label>
+                <div class="input-icon" data-icon="?">
+                    <input type="text" id="newPension" value="0" required pattern="[0-9,]*" placeholder="예: 2,000,000">
+                </div>
+                <div class="help-text">세액공제: 연금저축 최대 60만원, 퇴직연금 IRP 최대 30만원</div>
+            </div>
+            
+            <button type="submit" class="submit-btn">? 계산하기</button>
         </form>
+        
         <div class="result-box" id="resultBox" style="display:none;"></div>
+        
+        <div style="background:rgba(108, 117, 125, 0.1);border-radius:12px;padding:20px;margin-top:25px;">
+            <h4 style="color:#495057;margin-bottom:15px;">? 안내사항</h4>
+            <div style="font-size:0.95em;color:#6c757d;line-height:1.6;">
+                <p><strong>? 종합소득:</strong> 사업소득, 임대소득, 기타소득의 합계</p>
+                <p><strong>? 필요경비:</strong> 소득을 얻기 위해 직접 지출한 비용</p>
+                <p><strong>?? 주의:</strong> 근로소득, 이자소득, 배당소득이 있는 경우 별도 계산이 필요합니다</p>
+            </div>
+        </div>
     </div>
     <!-- 종합소득세율 모달 -->
-    <div id="incomeTaxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);">
-        <div style="background:#fff;max-width:700px;margin:60px auto;padding:32px 28px;border-radius:10px;position:relative;">
-            <button id="closeIncomeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;">×</button>
+    <div id="incomeTaxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px);">
+        <div style="background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);max-width:700px;margin:60px auto;padding:32px 28px;border-radius:20px;position:relative;box-shadow:0 20px 50px rgba(0,0,0,0.2);">
+            <button id="closeIncomeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;color:#6c757d;width:40px;height:40px;border-radius:50%;transition:all 0.3s ease;">×</button>
             <div id="incomeTaxRateContent"></div>
         </div>
     </div>
@@ -70,6 +280,7 @@
     function removeComma(str) {
         return str.replace(/,/g, '');
     }
+    
     // 입력란 콤마 자동
     ['totalIncome','personalDeduction','pensionDeduction','oldPension','newPension'].forEach(id => {
         const el = document.getElementById(id);
@@ -78,16 +289,92 @@
             if (val) this.value = addComma(Number(val));
         });
     });
+    
     // 세율 안내 모달
     function showIncomeTaxRate() {
         const modal = document.getElementById('incomeTaxRateModal');
         const content = document.getElementById('incomeTaxRateContent');
-        content.innerHTML = `<h3 style='color:#17506b;'>종합소득세율</h3><table style='width:100%;border-collapse:collapse;text-align:center;'><thead><tr style='background:#2980b9;color:#fff;'><th>과세표준</th><th>세율</th><th>누진공제</th></tr></thead><tbody><tr><td>1,400만원 이하</td><td>6%</td><td></td></tr><tr><td>5,000만원 이하</td><td>15%</td><td>1,260,000원</td></tr><tr><td>8,800만원 이하</td><td>24%</td><td>5,760,000원</td></tr><tr><td>1억5천만원 이하</td><td>35%</td><td>14,460,000원</td></tr><tr><td>3억원 이하</td><td>38%</td><td>19,460,000원</td></tr><tr><td>5억원 이하</td><td>40%</td><td>25,460,000원</td></tr><tr><td>10억원 이하</td><td>42%</td><td>35,460,000원</td></tr><tr><td>10억원 초과</td><td>45%</td><td>65,460,000원</td></tr></tbody></table>`;
+        content.innerHTML = `
+            <h3 style='color:#2c3e50;font-size:1.5em;margin-bottom:20px;text-align:center;'>? 종합소득세율</h3>
+            <div style='overflow-x:auto;'>
+                <table style='width:100%;border-collapse:collapse;text-align:center;background:rgba(255,255,255,0.9);border-radius:12px;overflow:hidden;'>
+                    <thead>
+                        <tr style='background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;'>
+                            <th style='padding:15px;font-weight:600;'>과세표준</th>
+                            <th style='padding:15px;font-weight:600;'>세율</th>
+                            <th style='padding:15px;font-weight:600;'>누진공제</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
+                            <td style='padding:12px;'>1,400만원 이하</td>
+                            <td style='padding:12px;font-weight:600;color:#28a745;'>6%</td>
+                            <td style='padding:12px;'>-</td>
+                        </tr>
+                        <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
+                            <td style='padding:12px;'>5,000만원 이하</td>
+                            <td style='padding:12px;font-weight:600;color:#fd7e14;'>15%</td>
+                            <td style='padding:12px;'>126만원</td>
+                        </tr>
+                        <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
+                            <td style='padding:12px;'>8,800만원 이하</td>
+                            <td style='padding:12px;font-weight:600;color:#e83e8c;'>24%</td>
+                            <td style='padding:12px;'>576만원</td>
+                        </tr>
+                        <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
+                            <td style='padding:12px;'>1억5천만원 이하</td>
+                            <td style='padding:12px;font-weight:600;color:#6f42c1;'>35%</td>
+                            <td style='padding:12px;'>1,446만원</td>
+                        </tr>
+                        <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
+                            <td style='padding:12px;'>3억원 이하</td>
+                            <td style='padding:12px;font-weight:600;color:#dc3545;'>38%</td>
+                            <td style='padding:12px;'>1,946만원</td>
+                        </tr>
+                        <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
+                            <td style='padding:12px;'>5억원 이하</td>
+                            <td style='padding:12px;font-weight:600;color:#dc3545;'>40%</td>
+                            <td style='padding:12px;'>2,546만원</td>
+                        </tr>
+                        <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
+                            <td style='padding:12px;'>10억원 이하</td>
+                            <td style='padding:12px;font-weight:600;color:#dc3545;'>42%</td>
+                            <td style='padding:12px;'>3,546만원</td>
+                        </tr>
+                        <tr>
+                            <td style='padding:12px;'>10억원 초과</td>
+                            <td style='padding:12px;font-weight:600;color:#dc3545;'>45%</td>
+                            <td style='padding:12px;'>6,546만원</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style='font-size:0.95em;color:#6c757d;margin-top:15px;text-align:center;background:rgba(108, 117, 125, 0.1);padding:10px;border-radius:8px;'>
+                ?? 실제 세율은 법령 변경 및 개인 상황에 따라 다를 수 있습니다.
+            </div>`;
         modal.style.display = 'block';
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.transition = 'opacity 0.3s ease';
+            modal.style.opacity = '1';
+        }, 50);
     }
+    
     document.getElementById('closeIncomeTaxRateModal').onclick = function() {
-        document.getElementById('incomeTaxRateModal').style.display = 'none';
+        const modal = document.getElementById('incomeTaxRateModal');
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
     };
+    
+    // 모달 배경 클릭시 닫기
+    document.getElementById('incomeTaxRateModal').onclick = function(e) {
+        if(e.target === this) {
+            document.getElementById('closeIncomeTaxRateModal').onclick();
+        }
+    }
+    
     // 계산
     document.getElementById('incomeTaxForm').addEventListener('submit', function() {
         const totalIncome = parseInt(removeComma(document.getElementById('totalIncome').value)) || 0;
@@ -107,7 +394,7 @@
         // 과세표준
         const taxBase = Math.max(incomeAmount - personalDeduction - pensionDeduction - oldPensionDeduct, 0);
 
-        // 누진공제표
+        // 누진공제표 (2024년 기준)
         const brackets = [
             { limit: 14000000, rate: 0.06, minus: 0 },
             { limit: 50000000, rate: 0.15, minus: 1260000 },
@@ -118,6 +405,7 @@
             { limit: 1000000000, rate: 0.42, minus: 35460000 },
             { limit: Infinity, rate: 0.45, minus: 65460000 }
         ];
+        
         let tax = 0, rate = 0, minus = 0;
         for (let i = 0; i < brackets.length; i++) {
             if (taxBase <= brackets[i].limit) {
@@ -140,14 +428,52 @@
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
         resultBox.innerHTML =
-            `필요경비: <b>${addComma(expense)}원</b><br>`+
-            `소득금액: <b>${addComma(incomeAmount)}원</b><br>`+
-            `개인연금저축공제: <b>${addComma(oldPensionDeduct)}원</b><br>`+
-            `과세표준: <b>${addComma(taxBase)}원</b><br>`+
-            `산출세액: <b>${addComma(calcTax)}원</b><br>`+
-            `자녀세액공제: <b>${addComma(childCredit)}원</b><br>`+
-            `연금저축불입공제: <b>${addComma(newPensionCredit)}원</b><br>`+
-            `<hr style='margin:10px 0;'>최종 종합소득세(예상): <b style='color:#17506b;font-size:1.2em;'>${addComma(finalTax)}원</b>`;
+            `<div style='text-align:center;margin-bottom:20px;'>
+                <h4 style='color:#2c3e50;margin-bottom:15px;'>? 종합소득세 계산 결과</h4>
+            </div>
+            <div style='display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;'>
+                <div style='background:rgba(255,255,255,0.8);padding:15px;border-radius:10px;text-align:center;'>
+                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>필요경비</div>
+                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(expense)}원</div>
+                </div>
+                <div style='background:rgba(255,255,255,0.8);padding:15px;border-radius:10px;text-align:center;'>
+                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>소득금액</div>
+                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(incomeAmount)}원</div>
+                </div>
+            </div>
+            <div style='display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;'>
+                <div style='background:rgba(255,255,255,0.8);padding:15px;border-radius:10px;text-align:center;'>
+                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>개인연금저축공제</div>
+                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(oldPensionDeduct)}원</div>
+                </div>
+                <div style='background:rgba(255,255,255,0.8);padding:15px;border-radius:10px;text-align:center;'>
+                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>과세표준</div>
+                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(taxBase)}원</div>
+                </div>
+            </div>
+            <div style='background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.3);padding:15px;border-radius:10px;margin-bottom:15px;'>
+                <div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;'>
+                    <div style='text-align:center;'>
+                        <div style='font-size:0.8em;color:#856404;'>산출세액</div>
+                        <div style='font-weight:600;color:#856404;'>${addComma(calcTax)}원</div>
+                    </div>
+                    <div style='text-align:center;'>
+                        <div style='font-size:0.8em;color:#856404;'>자녀공제</div>
+                        <div style='font-weight:600;color:#856404;'>${addComma(childCredit)}원</div>
+                    </div>
+                    <div style='text-align:center;'>
+                        <div style='font-size:0.8em;color:#856404;'>연금공제</div>
+                        <div style='font-weight:600;color:#856404;'>${addComma(newPensionCredit)}원</div>
+                    </div>
+                </div>
+            </div>
+            <div style='background:rgba(40,167,69,0.1);border:2px solid rgba(40,167,69,0.3);padding:20px;border-radius:12px;text-align:center;'>
+                <div style='font-size:1.1em;color:#155724;margin-bottom:8px;'>? 최종 종합소득세</div>
+                <div style='font-size:2em;font-weight:700;color:#28a745;'>${addComma(finalTax)}원</div>
+            </div>`;
+            
+        // 결과 박스로 스크롤
+        resultBox.scrollIntoView({ behavior: 'smooth' });
     });
     </script>
 </body>
