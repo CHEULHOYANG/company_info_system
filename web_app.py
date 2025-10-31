@@ -1,4 +1,4 @@
-# -*- coding: cp949 -*-
+# -*- coding: utf-8 -*-
 # Company Management System
 import os
 import sqlite3
@@ -22,20 +22,25 @@ def get_kst_now():
 import pytz
 from datetime import timezone, timedelta
 
-# --- 커스텀 템플릿 로더 (CP949 지원) ---
-class CP949FileSystemLoader(FileSystemLoader):
+# --- 커스텀 템플릿 로더 (UTF-8 우선, CP949 폴백) ---
+class UTF8FileSystemLoader(FileSystemLoader):
     def get_source(self, environment, template):
         # 파일 경로 찾기
         for searchpath in self.searchpath:
             filename = os.path.join(searchpath, template)
             if os.path.exists(filename):
-                # CP949로 먼저 시도, 실패하면 UTF-8로 시도
-                try:
-                    with open(filename, 'r', encoding='cp949') as f:
-                        source = f.read()
-                except UnicodeDecodeError:
-                    with open(filename, 'r', encoding='utf-8') as f:
-                        source = f.read()
+                # UTF-8로 먼저 시도, 실패하면 CP949로 시도
+                source = None
+                for encoding in ['utf-8', 'cp949']:
+                    try:
+                        with open(filename, 'r', encoding=encoding) as f:
+                            source = f.read()
+                        break  # 성공하면 루프 종료
+                    except UnicodeDecodeError:
+                        continue
+                
+                if source is None:
+                    raise UnicodeDecodeError(f"Cannot decode template {template} with UTF-8 or CP949")
                 
                 mtime = os.path.getmtime(filename)
                 def uptodate():
@@ -54,6 +59,23 @@ app.secret_key = 'your_very_secret_key_12345'
 # 한글 인코딩 설정 - JSON 응답에서 한글 깨짐 방지
 app.config['JSON_AS_ASCII'] = False
 app.config['JSONIFY_MIMETYPE'] = 'application/json; charset=utf-8'
+
+# 모든 응답에 UTF-8 강제 설정
+@app.before_request
+def before_request():
+    """모든 요청 전에 실행"""
+    pass
+
+@app.after_request
+def after_request(response):
+    """모든 응답 후에 UTF-8 헤더를 강제로 설정"""
+    if response.content_type.startswith('text/html'):
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
+    elif response.content_type.startswith('application/json'):
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    elif response.content_type.startswith('text/'):
+        response.headers['Content-Type'] = response.content_type + '; charset=utf-8'
+    return response
 
 # 업로드 폴더 설정
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
@@ -93,7 +115,7 @@ def format_kst_datetime(dt_str=None):
 
 # 커스텀 템플릿 로더 설정
 template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
-app.jinja_loader = CP949FileSystemLoader(template_dir)
+app.jinja_loader = UTF8FileSystemLoader(template_dir)
 
 # DB 경로 설정 (Render Persistent Disk 사용)
 app_dir = os.path.dirname(os.path.abspath(__file__))
@@ -1830,7 +1852,7 @@ def download_database_page():
                 </div>
                 
                 <div class="download-area">
-                    <h3>? 다운로드 실행</h3>
+                    <h3>?? 다운로드 실행</h3>
                     <p>위 정보를 확인한 후 다운로드를 진행하세요</p>
                     <button class="btn" onclick="downloadDatabase()">
                         ? 데이터베이스 다운로드
