@@ -110,6 +110,35 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
         
+        /* 각 버튼별 차별화된 색상 */
+        .main-btn:nth-child(1) {
+            background: rgba(70, 130, 180, 0.15); /* 스틸 블루 - DB */
+        }
+        .main-btn:nth-child(1):hover {
+            background: rgba(70, 130, 180, 0.25);
+        }
+        
+        .main-btn:nth-child(2) {
+            background: rgba(60, 179, 113, 0.15); /* 미디엄 시 그린 - HISTORY */
+        }
+        .main-btn:nth-child(2):hover {
+            background: rgba(60, 179, 113, 0.25);
+        }
+        
+        .main-btn:nth-child(3) {
+            background: rgba(255, 140, 0, 0.15); /* 다크 오렌지 - SALES */
+        }
+        .main-btn:nth-child(3):hover {
+            background: rgba(255, 140, 0, 0.25);
+        }
+        
+        .manager-btn {
+            background: rgba(220, 20, 60, 0.15) !important; /* 크림슨 - MANAGER */
+        }
+        .manager-btn:hover {
+            background: rgba(220, 20, 60, 0.25) !important;
+        }
+        
         .main-btn-title {
             font-size: 1.4em;
             font-weight: 600;
@@ -136,6 +165,9 @@
             width: 600px;
             z-index: 3;
             position: relative;
+            border-top: 2px solid rgba(255, 255, 255, 0.3);
+            padding-top: 25px;
+            margin-top: 30px;
         }
         
         .tax-title {
@@ -149,9 +181,9 @@
         }
         
         .tax-btn {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.18);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             border-radius: 10px;
             padding: 15px 10px;
             color: white;
@@ -159,11 +191,13 @@
             text-align: center;
             font-size: 0.9em;
             transition: all 0.3s ease;
+            font-weight: 500;
         }
         
         .tax-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.28);
             transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.1);
         }
         
         .login-info {
@@ -261,6 +295,8 @@
                 width: 90vw;
                 max-width: 400px;
                 gap: 10px;
+                margin-top: 25px;
+                padding-top: 20px;
             }
             .header-content {
                 top: 30px;
@@ -328,11 +364,13 @@
                 <div class="main-btn-korean">영업관리</div>
                 <div class="main-btn-subtitle">Pioneering Visit Activity</div>
             </a>
-            <a href="/user_management" class="main-btn">
+            {% if can_manage_users %}
+            <a href="/user_management" class="main-btn manager-btn">
                 <div class="main-btn-title">MANAGER</div>
                 <div class="main-btn-korean">사용자 관리</div>
                 <div class="main-btn-subtitle">User & Subscription Management</div>
             </a>
+            {% endif %}
         </div>
         
         <!-- 세금 계산기 버튼들 -->
