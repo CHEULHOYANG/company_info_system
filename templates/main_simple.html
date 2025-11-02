@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>메인 대시보드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+        
+        .full-screen-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: url('{{ url_for("static", filename="bizness.png") }}') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .full-screen-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(10,31,59,0.6), rgba(74,159,217,0.4));
+        }
+        
+        .center-content {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            color: white;
+        }
+        
+        .main-title {
+            font-size: 6em;
+            font-weight: 300;
+            margin: 0 0 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            letter-spacing: 8px;
+        }
+        
+        .subtitle {
+            font-size: 1.4em;
+            margin: 0;
+            opacity: 0.9;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            letter-spacing: 2px;
+        }
+        
+        .login-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: white;
+            z-index: 4;
+            text-align: center;
+            min-width: 200px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .user-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: white;
+        }
+        
+        .status {
+            background: #28a745;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .bottom-nav {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 5;
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            padding: 12px 24px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 4em;
+                letter-spacing: 4px;
+            }
+            .subtitle {
+                font-size: 1.1em;
+                letter-spacing: 1px;
+            }
+            .login-info {
+                top: 10px;
+                right: 10px;
+                padding: 10px 15px;
+                min-width: 180px;
+            }
+            .user-name {
+                font-size: 14px;
+            }
+            .bottom-nav {
+                bottom: 20px;
+                flex-wrap: wrap;
+                gap: 10px;
+                max-width: 90vw;
+            }
+            .nav-btn {
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="full-screen-container">
+        <div class="center-content">
+            <div class="main-title">CMS</div>
+            <div class="subtitle">Company Management System</div>
+        </div>
+        
+        <div class="login-info">
+            <div class="user-name">{{ user_name }}님 ({{ user_level_name }})</div>
+            <div class="status">로그인됨</div>
+        </div>
+        
+        <div class="bottom-nav">
+            <a href="{{ url_for('index') }}" class="nav-btn">? DB 조회</a>
+            <a href="{{ url_for('history') }}" class="nav-btn">? 연혁 검색</a>
+            <a href="{{ url_for('sales_management') }}" class="nav-btn">? 영업관리</a>
+            <a href="{{ url_for('gift_tax') }}" class="nav-btn">? 세금계산기</a>
+            {% if can_manage_users %}
+            <a href="{{ url_for('user_management') }}" class="nav-btn">? 사용자 관리</a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

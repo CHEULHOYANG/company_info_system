@@ -7,17 +7,15 @@
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
     <style>
         :root{
-            --bg-1:#f3f7fb; --bg-2:#eaf2f8;
-            --accent:#6EE7B7; --accent-2:#7C3AED;
-            --text:#0b2540; --muted:#4b6b82;
-            --card-border: rgba(11,37,64,0.06);
+            --bg-1:#0a1f3b; --bg-2:#1e3a5f;
+            --accent:#4a9fd9; --accent-2:#2d5a87;
+            --text:#ffffff; --muted:#b8d4f0;
+            --card-border: rgba(255,255,255,0.1);
         }
 
         html,body{
             height:100%;margin:0;
-            background:
-                radial-gradient(900px 420px at 10% 8%, rgba(124,58,237,0.04), transparent 14%),
-                linear-gradient(180deg,var(--bg-1) 0%, var(--bg-2) 60%);
+            background: linear-gradient(135deg, #0a1f3b 0%, #4a9fd9 100%);
             color:var(--text);
             font-family:'Pretendard','Noto Sans KR', system-ui, -apple-system;
             -webkit-font-smoothing:antialiased;
@@ -62,10 +60,10 @@
 
         .layout{display:grid;grid-template-columns:1fr 420px;gap:20px;}
         .card{
-            background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,255,255,0.98));
+            background: rgba(255,255,255,0.1);
             border:1px solid var(--card-border);
-            border-radius:12px;padding:18px;backdrop-filter: blur(6px);
-            box-shadow: 0 8px 30px rgba(11,37,64,0.05);
+            border-radius:12px;padding:18px;backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
         }
 
         .title{font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:8px;}
@@ -78,11 +76,11 @@
         label.field-label{font-weight:700;color:var(--text);display:block;margin-bottom:6px;}
 
         input[type="text"], input[type="date"], input[type="number"], select{
-            width:100%;padding:10px 12px;border:1.6px solid rgba(11,37,64,0.09);border-radius:10px;background:#fff;font-size:14px;color:var(--text);
+            width:100%;padding:10px 12px;border:1.6px solid rgba(255,255,255,0.2);border-radius:10px;background:rgba(255,255,255,0.9);font-size:14px;color:#2c3e50;
             transition: border-color .14s ease, box-shadow .14s ease, transform .06s ease;box-sizing:border-box;
         }
         input::placeholder{color:#9aaebb}
-        input:focus, select:focus{outline:none;border-color:var(--accent-2);box-shadow:0 10px 24px rgba(124,58,237,0.06);transform:translateY(-1px);z-index:2}
+        input:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 10px 24px rgba(74,159,217,0.2);transform:translateY(-1px);z-index:2}
 
         .section-title{font-weight:700;color:var(--text);margin-bottom:12px}
         .small-note{font-size:12px;color:var(--muted);margin-top:6px}
@@ -90,7 +88,7 @@
 
         .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:10px}
         .btn-secondary{background:#f2f7fb;color:var(--text);border:1px solid rgba(11,37,64,0.04);padding:8px 12px;border-radius:8px}
-        .result-panel{padding:14px;border-radius:10px;border:1px solid rgba(11,37,64,0.04);background:linear-gradient(180deg,#ffffff,#fbfdff)}
+        .result-panel{padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05)}
         .result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(11,37,64,0.04);color:var(--muted)}
         .result-row:last-child{border-bottom:none}
 
@@ -238,11 +236,7 @@
             el.style.display = (el.style.display === 'block') ? 'none' : 'block';
         }
 
-<<<<<<< HEAD
-        // 자동 콤마 입력 (null 체크 추가)
-=======
-        // 자동 콤마 입력 (겹침 방지 위해 minmax 사용)
->>>>>>> 1358b535c010a81cf7e80fc46dec768e7321b2a0
+        // 자동 콤마 입력
         ['transferPrice','acquirePrice','otherExpense','acq_tax','acq_legal','acq_agent','agentFee','bondLoss','capex'].forEach(id=>{
             const el = $id(id);
             if(!el) return;
@@ -253,19 +247,11 @@
             });
         });
 
-<<<<<<< HEAD
-        // 계산 로직 (간편) - null 체크 강화
+        // 계산 로직 (간편)
         $id('calcBtn').addEventListener('click', function(){
             const tp = parseInt(removeComma($id('transferPrice')?.value))||0;
             const ap = parseInt(removeComma($id('acquirePrice')?.value))||0;
             const other = parseInt(removeComma($id('otherExpense')?.value))||0;
-=======
-        // 계산 로직 (간편)
-        $id('calcBtn').addEventListener('click', function(){
-            const tp = parseInt(removeComma($id('transferPrice').value))||0;
-            const ap = parseInt(removeComma($id('acquirePrice').value))||0;
-            const other = parseInt(removeComma($id('otherExpense').value))||0;
->>>>>>> 1358b535c010a81cf7e80fc46dec768e7321b2a0
             const acq_tax = parseInt(removeComma($id('acq_tax')?.value))||0;
             const acq_legal = parseInt(removeComma($id('acq_legal')?.value))||0;
             const acq_agent = parseInt(removeComma($id('acq_agent')?.value))||0;
@@ -296,8 +282,7 @@
             let tax = Math.floor(taxable * rate - minus);
             if(tax < 0) tax = 0;
 
-<<<<<<< HEAD
-            // 결과 표시 (null 체크)
+            // 결과 표시
             const resGain = $id('res_gain');
             const resTax = $id('res_tax');
             const resBasic = $id('res_basic');
@@ -314,30 +299,14 @@
             }
         });
 
-        // 초기화 (null 체크 추가)
+        // 초기화
         $id('resetBtn').addEventListener('click', function(){
-            ['transferPrice','acquirePrice','otherExpense','acq_tax','acq_legal','acq_agent','agentFee','bondLoss','capex'].forEach(id=>{
+            ['transferPrice','acquirePrice','otherExpense','acq_tax','acq_legal','acg_agent','agentFee','bondLoss','capex'].forEach(id=>{
                 const el = $id(id);
                 if(el) el.value = '';
             });
             const resultSection = $id('resultSection');
             if(resultSection) resultSection.style.display='none';
-=======
-            $id('res_gain').textContent = addComma(taxable) + ' 원';
-            $id('res_tax').textContent = addComma(tax) + ' 원';
-            $id('res_basic').textContent = addComma(basic) + ' 원';
-            $id('res_note').textContent = '간편 계산(참고용) — 실제는 중과/특별공제 등으로 달라집니다.';
-            $id('resultSection').style.display = 'block';
-            $id('resultSection').scrollIntoView({behavior:'smooth'});
-        });
-
-        // 초기화
-        $id('resetBtn').addEventListener('click', function(){
-            ['transferPrice','acquirePrice','otherExpense','acq_tax','acq_legal','acq_agent','agentFee','bondLoss','capex'].forEach(id=>{
-                if($id(id)) $id(id).value = '';
-            });
-            $id('resultSection').style.display='none';
->>>>>>> 1358b535c010a81cf7e80fc46dec768e7321b2a0
         });
 
         // 엔터 제출 방지

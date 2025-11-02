@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>메인 대시보드</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a1f3b 0%, #1e3a5f 25%, #2d5a87 50%, #3b7eb0 75%, #4a9fd9 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255,255,255,0.05) 0%, transparent 50%);
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+
+        .header-image {
+            width: 100vw;
+            height: 100vh;
+            background: url('{{ url_for("static", filename="bizness.png") }}') center/cover no-repeat;
+            position: relative;
+            border-radius: 0;
+            margin: 0;
+            box-shadow: none;
+        }
+        .header-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(10,31,59,0.6), rgba(74,159,217,0.4));
+            border-radius: 0;
+        }
+        .center-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            z-index: 3;
+        }
+        .center-content .main-title {
+            font-size: 6em;
+            font-weight: 300;
+            margin: 0 0 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            letter-spacing: 8px;
+        }
+        .center-content .subtitle {
+            font-size: 1.4em;
+            margin: 0;
+            opacity: 0.9;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            letter-spacing: 2px;
+        }
+        .login-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: white;
+            z-index: 4;
+            text-align: center;
+            min-width: 200px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .login-info .user-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: white;
+        }
+        .login-info .status {
+            background: #28a745;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .bottom-nav {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 5;
+        }
+        .nav-btn {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            padding: 12px 24px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        .main-content {
+            display: none;
+        }
+        .full-screen-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #0a1f3b 0%, #4a9fd9 100%);
+            z-index: 1;
+        }
+        .dashboard-container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #ffffff, #e0f2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            font-weight: 300;
+            margin-bottom: 60px;
+            opacity: 0.9;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .main-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 40px;
+        }
+        
+        .main-btn {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .main-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .main-btn.admin {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: rgba(168, 85, 247, 0.4);
+        }
+        
+        .main-btn.admin:hover {
+            background: rgba(168, 85, 247, 0.3);
+            border-color: rgba(168, 85, 247, 0.6);
+        }
+        
+        .main-btn-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .main-btn-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .sub-buttons {
+            margin-top: 40px;
+            width: 100%;
+        }
+        
+        .sub-title {
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            font-weight: 400;
+        }
+        
+        .sub-button-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .sub-btn {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(5px);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 12px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sub-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+
+        
+        .user-info {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .user-details {
+            text-align: right;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 3px;
+        }
+        
+        .user-role {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 3px;
+        }
+        
+        .subscription-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-top: 3px;
+            display: inline-block;
+        }
+        
+        .logout-button-new {
+            background: rgba(220, 53, 69, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(220, 53, 69, 0.5);
+        }
+        
+        .logout-button-new:hover {
+            background: rgba(220, 53, 69, 1);
+            transform: translateY(-1px);
+        }
+        
+
+        
+        @media (max-width: 768px) {
+            .header-image {
+                height: 150px;
+                margin-bottom: 30px;
+            }
+            .main-content {
+                padding: 0 20px 20px;
+            }
+            .main-title {
+                font-size: 2.5rem;
+            }
+            .main-buttons {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                max-width: 100%;
+            }
+            .sub-button-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .sub-btn {
+                font-size: 12px;
+                padding: 10px 12px;
+                min-height: 35px;
+            }
+            .user-info {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 30px;
+                align-self: flex-end;
+            }
+            .center-content .main-title {
+                font-size: 4em;
+                letter-spacing: 4px;
+            }
+            .center-content .subtitle {
+                font-size: 1.1em;
+                letter-spacing: 1px;
+            }
+            .login-info {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                padding: 10px 15px;
+                min-width: 180px;
+            }
+            .login-info .user-name {
+                font-size: 14px;
+            }
+            .bottom-nav {
+                bottom: 20px;
+                flex-wrap: wrap;
+                gap: 10px;
+                max-width: 90vw;
+            }
+            .nav-btn {
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 전체 화면 컨테이너 -->
+    <div class="full-screen-container">
+        <!-- 헤더 이미지 -->
+        <div class="header-image">
+            <div class="center-content">
+                <div class="main-title">CMS</div>
+                <div class="subtitle">Company Management System</div>
+            </div>
+            <div class="login-info">
+                <div class="user-name">{{ user_name }}님 ({{ user_level_name }})</div>
+                <div class="status">로그인됨</div>
+            </div>
+            
+            <!-- 하단 네비게이션 -->
+            <div class="bottom-nav">
+                <a href="{{ url_for('index') }}" class="nav-btn">? DB 조회</a>
+                <a href="{{ url_for('history') }}" class="nav-btn">? 연혁 검색</a>
+                <a href="{{ url_for('sales_management') }}" class="nav-btn">? 영업관리</a>
+                <a href="{{ url_for('gift_tax') }}" class="nav-btn">? 세금계산기</a>
+                {% if can_manage_users %}
+                <a href="{{ url_for('user_management') }}" class="nav-btn">? 사용자 관리</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 숨겨진 메인 컨텐츠 -->
+    <div class="main-content" style="display: none;">
+        <!-- 사용자 정보 섹션 -->
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name">{{ user_name }}님 ({{ user_level_name }})</div>
+                <div class="user-role">{{ branch_name }}</div>
+                {% if subscription_info %}
+                    {% if subscription_info.days_remaining > 0 %}
+                        <div class="subscription-status" style="color:#28a745; background:rgba(40,167,69,0.2);">
+                            {% if subscription_info.subscription_type == 'YEARLY' %}
+                                연간 구독 ({{ subscription_info.days_remaining }}일 남음)
+                            {% elif subscription_info.subscription_type == 'MONTHLY' %}
+                                월간 구독 ({{ subscription_info.days_remaining }}일 남음)
+                            {% else %}
+                                무료 구독 ({{ subscription_info.days_remaining }}일 남음)
+                            {% endif %}
+                        </div>
+                    {% elif subscription_info.days_remaining == 0 %}
+                        <div class="subscription-status" style="color:#dc3545; background:rgba(220,53,69,0.2);">
+                            오늘 만료
+                        </div>
+                    {% else %}
+                        <div class="subscription-status" style="color:#dc3545; background:rgba(220,53,69,0.2);">
+                            구독 만료 ({{ subscription_info.days_remaining|abs }}일 지남)
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="subscription-status" style="color:#007bff; background:rgba(0,123,255,0.2);">
+                        첫달 무료 체험
+                    </div>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-button-new">로그아웃</a>
+        </div>
+
+        <div class="dashboard-container">
+            <!-- 메인 타이틀 -->
+            <h1 class="main-title">CMS</h1>
+            <p class="subtitle">Company Management System</p>
+            
+            {% block content %}{% endblock %}
+
+            <!-- 메인 대시보드 버튼들 -->
+            <div class="main-buttons">
+                <a href="{{ url_for('index') }}" class="main-btn">
+                    <div class="main-btn-title">DB</div>
+                    <div>기업정보 조회</div>
+                    <div class="main-btn-subtitle">Company Database Search</div>
+                </a>
+                <a href="{{ url_for('history_search') }}" class="main-btn">
+                    <div class="main-btn-title">HISTORY</div>
+                    <div>접촉이력조회</div>
+                    <div class="main-btn-subtitle">Contact History Search</div>
+                </a>
+                <a href="{{ url_for('sales_management') }}" class="main-btn">
+                    <div class="main-btn-title">SALES</div>
+                    <div>영업관리</div>
+                    <div class="main-btn-subtitle">Pioneering Visit Activity</div>
+                </a>
+                {% if can_manage_users %}
+                <a href="{{ url_for('user_management') }}" class="main-btn admin">
+                    <div class="main-btn-title">MANAGER</div>
+                    <div>사용자 관리</div>
+                    <div class="main-btn-subtitle">User & Subscription Management</div>
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- 작은 세금 계산기 서브 버튼들 -->
+            <div class="sub-buttons">
+                <h3 class="sub-title">세금 계산기</h3>
+                <div class="sub-button-grid">
+                    <a href="{{ url_for('gift_tax') }}" class="sub-btn">증여세</a>
+                    <a href="{{ url_for('transfer_tax') }}" class="sub-btn">양도세</a>
+                    <a href="{{ url_for('income_tax') }}" class="sub-btn">종합소득세</a>
+                    <a href="{{ url_for('social_ins_tax') }}" class="sub-btn">4대보험</a>
+                    <a href="{{ url_for('acquisition_tax') }}" class="sub-btn">취득세</a>
+                    <a href="{{ url_for('retirement_pay') }}" class="sub-btn">퇴직금</a>
+                    <a href="{{ url_for('industrial_accident') }}" class="sub-btn">산재보상</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
