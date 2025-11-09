@@ -4418,12 +4418,31 @@ def update_sales_expense(expense_id):
             if not existing or existing['registered_by'] != user_id:
                 return jsonify({"error": "Permission denied"}), 403
         
-        # 파일 업로드 처리
+        # 파일 업로드 처리 (수정 시 영수증 파일 저장)
         receipt_filename = None
         if 'receipt_file' in request.files:
             file = request.files['receipt_file']
             if file and file.filename:
+                # 이미지 파일 형식 체크
+                allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'}
+                file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+                if file_ext not in allowed_extensions:
+                    return jsonify({"error": "이미지 파일만 업로드 가능합니다."}), 400
+
+                # 파일명 보안을 위해 secure_filename 사용
                 filename = secure_filename(file.filename)
+                # 중복 방지를 위해 타임스탬프 추가
+                timestamp = str(int(time.time()))
+                filename = f"{timestamp}_{filename}"
+
+                # 파일 저장
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                try:
+                    file.save(file_path)
+                except Exception as save_err:
+                    print(f"[FILE_SAVE_ERROR] {save_err}")
+                    return jsonify({"success": False, "message": "파일 저장 중 오류가 발생했습니다."}), 500
+
                 receipt_filename = filename
         
         # 파일이 새로 업로드되지 않은 경우 기존 파일명 유지
