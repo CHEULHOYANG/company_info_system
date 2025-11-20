@@ -1893,10 +1893,10 @@ def download_database_page():
     </head>
     <body>
         <div class="container">
-            <h2>? 데이터베이스 다운로드</h2>
+            <h2>데이터베이스 관리</h2>
             
             <div class="info-card">
-                <h3>? 백업 다운로드 안내</h3>
+                <h3>백업 다운로드 안내</h3>
                 <ul>
                     <li><strong>완전백업 (권장)</strong>: 데이터베이스 + 첫부파일(영수증 등)을 ZIP으로 압축하여 다운로드</li>
                     <li><strong>DB만 백업</strong>: 데이터베이스 파일만 다운로드 (첫부파일 제외)</li>
@@ -1914,21 +1914,21 @@ def download_database_page():
                 <div class="stats" id="stats"></div>
                 
                 <div class="info-card">
-                    <h4>? 테이블별 레코드 수</h4>
+                    <h4>테이블별 레코드 수</h4>
                     <div class="table-grid" id="tableGrid"></div>
                 </div>
                 
                 <div class="download-area">
-                    <h3>?? 다운로드 실행</h3>
+                    <h3>백업 다운로드</h3>
                     <p>위 정보를 확인한 후 다운로드를 진행하세요</p>
                     <button class="btn" onclick="downloadFullBackup()" style="background: linear-gradient(45deg, #4CAF50, #45a049);">
-                        ? 완전백업 (DB + 첫부파일)
+                        완전백업 (DB + 첫부파일)
                     </button>
                     <button class="btn" onclick="downloadDatabaseOnly()" style="background: linear-gradient(45deg, #2196F3, #1976D2);">
-                        ? DB만 백업
+                        DB만 백업
                     </button>
                     <a href="/upload_database" class="btn btn-secondary">
-                        ? 업로드 페이지로
+                        데이터베이스 복원
                     </a>
                 </div>
             </div>
@@ -1959,10 +1959,10 @@ def download_database_page():
                         displayDatabaseInfo(data);
                         dbInfo.style.display = 'block';
                     } else {
-                        showStatus('error', `? ${data.message}`);
+                        showStatus('error', `${data.message}`);
                     }
                 } catch (error) {
-                    showStatus('error', `? 정보 조회 실패: ${error.message}`);
+                    showStatus('error', `정보 조회 실패: ${error.message}`);
                 } finally {
                     loading.style.display = 'none';
                 }
@@ -2006,7 +2006,7 @@ def download_database_page():
             }
             
             async function downloadFullBackup() {
-                showStatus('success', '? 완전백업 다운로드를 시작합니다...');
+                showStatus('success', '완전백업 다운로드를 시작합니다...');
                 
                 try {
                     const link = document.createElement('a');
@@ -2016,14 +2016,14 @@ def download_database_page():
                     link.click();
                     document.body.removeChild(link);
                     
-                    showStatus('success', '? 완전백업이 시작되었습니다. ZIP 파일에 DB와 첫부파일이 모두 포함됩니다.');
+                    showStatus('success', '완전백업이 시작되었습니다. ZIP 파일에 DB와 첫부파일이 모두 포함됩니다.');
                 } catch (error) {
-                    showStatus('error', `? 완전백업 실패: ${error.message}`);
+                    showStatus('error', `완전백업 실패: ${error.message}`);
                 }
             }
             
             async function downloadDatabaseOnly() {
-                showStatus('success', '? DB 다운로드를 시작합니다...');
+                showStatus('success', 'DB 다운로드를 시작합니다...');
                 
                 try {
                     const link = document.createElement('a');
@@ -2033,9 +2033,9 @@ def download_database_page():
                     link.click();
                     document.body.removeChild(link);
                     
-                    showStatus('success', '? DB 다운로드가 시작되었습니다. 첫부파일은 포함되지 않습니다.');
+                    showStatus('success', 'DB 다운로드가 시작되었습니다. 첫부파일은 포함되지 않습니다.');
                 } catch (error) {
-                    showStatus('error', `? DB 다운로드 실패: ${error.message}`);
+                    showStatus('error', `DB 다운로드 실패: ${error.message}`);
                 }
             }
             
