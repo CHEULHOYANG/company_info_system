@@ -5396,7 +5396,7 @@ def update_managed_company(company_id):
         update_query = '''
             UPDATE managed_companies SET
                 status = ?, keyman_name = ?, keyman_phone = ?, keyman_position = ?,
-                keyman_email = ?, next_contact_date = ?, notes = ?, 
+                keyman_email = ?, next_contact_date = ?, last_contact_date = ?, notes = ?, 
                 expected_amount = ?, priority_level = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         '''
@@ -5404,7 +5404,7 @@ def update_managed_company(company_id):
         cursor.execute(update_query, (
             data.get('status'), data.get('keyman_name'), data.get('keyman_phone'),
             data.get('keyman_position'), data.get('keyman_email'),
-            data.get('next_contact_date'), data.get('notes'),
+            data.get('next_contact_date'), data.get('last_contact_date'), data.get('notes'),
             data.get('expected_amount', 0), data.get('priority_level', 1),
             company_id
         ))
@@ -5477,7 +5477,7 @@ def add_contact_history():
         conn.close()
 
 @app.route('/api/pipeline/contact/<int:company_id>')
-def get_contact_history(company_id):
+def get_pipeline_contact_history(company_id):
     """특정 기업의 접촉 이력 조회"""
     if not session.get('logged_in'):
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401

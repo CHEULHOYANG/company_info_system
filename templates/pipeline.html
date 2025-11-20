@@ -187,7 +187,8 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900" x-text="company.company_name"></div>
+                                    <div class="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600" 
+                                         @click="editCompany(company)" x-text="company.company_name"></div>
                                     <div class="text-sm text-gray-500" x-text="company.representative_name"></div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -312,8 +313,9 @@
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">예상 금액</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">예상 매출 (보험가입금액)</label>
                             <input type="number" x-model="newCompany.expected_amount"
+                                   placeholder="원 단위로 입력 (예: 5000000)"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
                         </div>
                     </div>
@@ -336,6 +338,106 @@
                         <button type="submit"
                                 class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
                             등록하기
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 기업 정보 수정 모달 -->
+    <div x-show="showEditCompanyModal" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">기업 정보 수정</h3>
+                    <button @click="showEditCompanyModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- 기업 정보 표시 -->
+                <div x-show="editingCompany" class="mb-4 p-3 bg-blue-50 rounded-md">
+                    <div class="font-medium" x-text="editingCompany?.company_name"></div>
+                    <div class="text-sm text-gray-600" x-text="editingCompany?.representative_name"></div>
+                    <div class="text-sm text-gray-500" x-text="editingCompany?.biz_reg_no"></div>
+                </div>
+
+                <!-- 기업 수정 폼 -->
+                <form @submit.prevent="submitEditCompany()" x-show="editingCompany">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 이름*</label>
+                            <input type="text" x-model="editCompanyForm.keyman_name" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 직급</label>
+                            <input type="text" x-model="editCompanyForm.keyman_position"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 연락처</label>
+                            <input type="tel" x-model="editCompanyForm.keyman_phone"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 이메일</label>
+                            <input type="email" x-model="editCompanyForm.keyman_email"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">상태</label>
+                            <select x-model="editCompanyForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="prospect">잠재고객</option>
+                                <option value="contacted">접촉중</option>
+                                <option value="proposal">제안단계</option>
+                                <option value="negotiation">협상중</option>
+                                <option value="contract">계약완료</option>
+                                <option value="hold">보류</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">우선순위</label>
+                            <select x-model="editCompanyForm.priority_level" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="1">낮음</option>
+                                <option value="2">보통</option>
+                                <option value="3">높음</option>
+                                <option value="4">매우 높음</option>
+                                <option value="5">최우선</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">마지막 접촉일</label>
+                            <input type="date" x-model="editCompanyForm.last_contact_date"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">다음 연락 예정일</label>
+                            <input type="date" x-model="editCompanyForm.next_contact_date"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">예상 매출 (보험가입금액)</label>
+                            <input type="number" x-model="editCompanyForm.expected_amount"
+                                   placeholder="원 단위로 입력 (예: 5000000)"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">메모</label>
+                        <textarea x-model="editCompanyForm.notes" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" @click="showEditCompanyModal = false"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                            취소
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                            수정 완료
                         </button>
                     </div>
                 </form>
@@ -457,6 +559,7 @@
                 // 모달 상태
                 showAddCompanyModal: false,
                 showContactModal: false,
+                showEditCompanyModal: false,
                 
                 // 검색 관련
                 companySearch: '',
@@ -487,6 +590,21 @@
                 },
                 
                 selectedCompanyForContact: null,
+                editingCompany: null,
+                
+                // 수정 폼 데이터
+                editCompanyForm: {
+                    keyman_name: '',
+                    keyman_phone: '',
+                    keyman_position: '',
+                    keyman_email: '',
+                    status: 'prospect',
+                    priority_level: 3,
+                    last_contact_date: '',
+                    next_contact_date: '',
+                    expected_amount: 0,
+                    notes: ''
+                },
 
                 // 초기화
                 init() {
@@ -755,14 +873,55 @@
                     return this.allCompanies.reduce((sum, company) => sum + (company.expected_amount || 0), 0);
                 },
 
+                // 기업 정보 수정
+                editCompany(company) {
+                    this.editingCompany = company;
+                    this.editCompanyForm = {
+                        keyman_name: company.keyman_name || '',
+                        keyman_phone: company.keyman_phone || '',
+                        keyman_position: company.keyman_position || '',
+                        keyman_email: company.keyman_email || '',
+                        status: company.status || 'prospect',
+                        priority_level: company.priority_level || 3,
+                        last_contact_date: company.last_contact_date || '',
+                        next_contact_date: company.next_contact_date || '',
+                        expected_amount: company.expected_amount || 0,
+                        notes: company.notes || ''
+                    };
+                    this.showEditCompanyModal = true;
+                },
+
+                // 기업 정보 수정 제출
+                async submitEditCompany() {
+                    if (!this.editingCompany) return;
+
+                    try {
+                        const response = await fetch(`/api/pipeline/company/${this.editingCompany.id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(this.editCompanyForm)
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            alert('기업 정보가 수정되었습니다.');
+                            this.showEditCompanyModal = false;
+                            this.loadDashboardData();
+                        } else {
+                            alert(data.message);
+                        }
+                    } catch (error) {
+                        console.error('수정 실패:', error);
+                        alert('수정 중 오류가 발생했습니다.');
+                    }
+                },
+
                 // 기능 확장을 위한 플레이스홀더
                 addContactRecord(company) {
                     this.showContactHistory(company);
-                },
-
-                editCompany(company) {
-                    // TODO: 기업 정보 수정 모달 구현
-                    alert('기업 정보 수정 기능은 준비중입니다.');
                 }
             }
         }
