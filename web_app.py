@@ -1437,17 +1437,17 @@ def upload_database():
         </head>
         <body>
             <div class="container">
-                <h2>?? 데이터베이스 파일 업로드</h2>
+                <h2>데이터베이스 파일 업로드</h2>
                 
                 <div class="info">
-                    <strong>? 업로드 안내:</strong><br>
+                    <strong>업로드 안내:</strong><br>
                     ? 로컬 <code>company_database.db</code> 파일을 선택하세요<br>
                     ? 파일 크기: 약 75MB (66만+ 레코드)<br>
                     ? 업로드 후 기존 데이터베이스는 자동 백업됩니다
                 </div>
                 
                 <div class="warning">
-                    <strong>?? 주의사항:</strong><br>
+                    <strong>주의사항:</strong><br>
                     ? 업로드 중에는 페이지를 새로고침하지 마세요<br>
                     ? 네트워크 상태가 안정적인 곳에서 진행하세요<br>
                     ? 기존 데이터는 .backup 파일로 백업됩니다
@@ -1455,7 +1455,7 @@ def upload_database():
                 
                 <form id="uploadForm" method="post" enctype="multipart/form-data">
                     <div class="upload-area" id="uploadArea">
-                        <p>? 파일을 여기에 드래그하거나 클릭하여 선택하세요</p>
+                        <p>파일을 여기에 드래그하거나 클릭하여 선택하세요</p>
                         <input type="file" name="database" accept=".db" required id="fileInput">
                         <p id="fileName" style="color: #666; margin-top: 10px;"></p>
                     </div>
@@ -1467,7 +1467,7 @@ def upload_database():
                         </div>
                     </div>
                     
-                    <button type="submit">? 업로드 시작</button>
+                    <button type="submit">업로드 & 복원</button>
                 </form>
                 
                 <div id="result" style="margin-top: 20px;"></div>
@@ -1551,7 +1551,7 @@ def upload_database():
                     } catch (error) {
                         result.innerHTML = `
                             <div style="background: #ffebee; padding: 15px; border-radius: 8px; color: #c62828;">
-                                <strong>? 업로드 실패: ${error.message}</strong>
+                                <strong>업로드 실패: ${error.message}</strong>
                             </div>
                         `;
                     } finally {
