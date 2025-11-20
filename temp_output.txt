@@ -1,0 +1,2241 @@
+--- MATCH: 비상장주식가치 평가 at line 342 ---
+337:             border: 1px solid #dee2e6;
+338:             text-align: center;
+339:             font-size: 12px;
+340:         }
+341:         
+342:         /* 비상장주식가치 평가 */
+343:         .valuation-grid {
+344:             display: grid;
+345:             grid-template-columns: repeat(3, 1fr);
+346:             gap: 20px;
+347:             margin-top: 20px;
+348:         }
+349:         
+350:         /* AI 팁 섹션 */
+351:         .ai-tip-section {
+352:             background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+353:             border-radius: 15px;
+354:             padding: 25px;
+355:             margin-top: 30px;
+356:             border: 1px solid rgba(33, 150, 243, 0.3);
+357:         }
+358:         
+359:         .ai-tip-header {
+360:             display: flex;
+361:             justify-content: space-between;
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1003 ---
+998: 
+999:         <!-- 탭 메뉴 -->
+1000:         <div class="tab-menu">
+1001:             <button id="tab-company-info" class="tab-button active" onclick="showTab('company-info', this)">기업 신상 조회</button>
+1002:             <button id="tab-ai-search" class="tab-button" onclick="showTab('ai-search', this)">AI 서치</button>
+1003:             <button id="tab-contact-history" class="tab-button" onclick="showTab('contact-history', this)">접촉이력 조회</button>
+1004:         </div>
+1005: 
+1006:         <!-- 탭 컨텐츠 -->
+1007:         <div class="tab-content">
+1008:             <!-- 기업 신상 조회 탭 -->
+1009:             <div id="company-info" class="tab-panel active">
+1010:                 <!-- 검색 섹션 -->
+1011:                 <div class="search-section">
+1012:                     <input type="text" id="company-search" placeholder="서영원" value="{{ company.representative_name if company else '서영원' }}">
+1013:                     <button onclick="searchCompany()">조회</button>
+1014:                 </div>
+1015: 
+1016:                 <!-- 기업 정보 레이아웃 -->
+1017:                 <div class="company-layout">
+1018:                     <!-- 기본 정보 -->
+1019:                     <div class="info-panel">
+1020:                         <h3>기본 정보</h3>
+1021:                         <div class="info-item">
+1022:                             <span class="info-label">사업자번호</span>
+--------------------------------------------------
+--- MATCH: contact-history at line 1003 ---
+998: 
+999:         <!-- 탭 메뉴 -->
+1000:         <div class="tab-menu">
+1001:             <button id="tab-company-info" class="tab-button active" onclick="showTab('company-info', this)">기업 신상 조회</button>
+1002:             <button id="tab-ai-search" class="tab-button" onclick="showTab('ai-search', this)">AI 서치</button>
+1003:             <button id="tab-contact-history" class="tab-button" onclick="showTab('contact-history', this)">접촉이력 조회</button>
+1004:         </div>
+1005: 
+1006:         <!-- 탭 컨텐츠 -->
+1007:         <div class="tab-content">
+1008:             <!-- 기업 신상 조회 탭 -->
+1009:             <div id="company-info" class="tab-panel active">
+1010:                 <!-- 검색 섹션 -->
+1011:                 <div class="search-section">
+1012:                     <input type="text" id="company-search" placeholder="서영원" value="{{ company.representative_name if company else '서영원' }}">
+1013:                     <button onclick="searchCompany()">조회</button>
+1014:                 </div>
+1015: 
+1016:                 <!-- 기업 정보 레이아웃 -->
+1017:                 <div class="company-layout">
+1018:                     <!-- 기본 정보 -->
+1019:                     <div class="info-panel">
+1020:                         <h3>기본 정보</h3>
+1021:                         <div class="info-item">
+1022:                             <span class="info-label">사업자번호</span>
+--------------------------------------------------
+--- MATCH: 대표자 at line 1026 ---
+1021:                         <div class="info-item">
+1022:                             <span class="info-label">사업자번호</span>
+1023:                             <span class="info-value" id="business-number">{{ company.biz_no if company else '1018139184' }}</span>
+1024:                         </div>
+1025:                         <div class="info-item">
+1026:                             <span class="info-label">대표자</span>
+1027:                             <span class="info-value editable" id="ceo-name">{{ company.representative_name if company else '서영원' }}</span>
+1028:                             <button onclick="searchCeoName()" class="search-btn">조회</button>
+1029:                             <button class="edit-button" onclick="editCeoName()">수정</button>
+1030:                         </div>
+1031:                         <div class="info-item">
+1032:                             <span class="info-label">설립일</span>
+1033:                             <span class="info-value">{{ company.establish_date if company else '19951005' }}</span>
+1034:                         </div>
+1035:                         <div class="info-item">
+1036:                             <span class="info-label">기업규모</span>
+1037:                             <span class="info-value">{{ company.company_size if company else '중기업' }}</span>
+1038:                         </div>
+1039:                         <div class="info-item">
+1040:                             <span class="info-label">상장등급</span>
+1041:                             <span class="info-value">{{ company.listing_status if company else 'BB' }}</span>
+1042:                         </div>
+1043:                         <div class="info-item">
+1044:                             <span class="info-label">업종</span>
+1045:                             <span class="info-value">{{ company.industry_name if company else '육상 및 항공 운송업' }}</span>
+--------------------------------------------------
+--- MATCH: 비상장주식가치 평가 at line 1191 ---
+1186:                             </tr>
+1187:                         </tbody>
+1188:                     </table>
+1189:                 </div>
+1190: 
+1191:                 <!-- 비상장주식가치 평가 -->
+1192:                 <div class="info-panel" style="margin-top: 20px;">
+1193:                     <h3>? 비상장주식가치 평가 (참고용)</h3>
+1194:                     {% if stock_valuation and stock_valuation.total_shares_issued %}
+1195:                     <div class="valuation-section">
+1196:                         <!-- 주요 평가 결과 -->
+1197:                         <div style="background: linear-gradient(135deg, #e8f5e8, #f0fff0); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 2px solid #28a745;">
+1198:                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+1199:                                 <div>
+1200:                                     <div style="font-size: 14px; color: #666; margin-bottom: 5px;">자산가치 (순자산)</div>
+1201:                                     <div style="font-size: 20px; font-weight: bold; color: #2c5aa0;">{{ "{:,.0f}".format(stock_valuation.asset_value) }} 원</div>
+1202:                                 </div>
+1203:                                 <div>
+1204:                                     <div style="font-size: 14px; color: #666; margin-bottom: 5px;">수익가치 (3년 평균×10)</div>
+1205:                                     <div style="font-size: 20px; font-weight: bold; color: #2c5aa0;">{{ "{:,.0f}".format(stock_valuation.profit_value) }} 원</div>
+1206:                                 </div>
+1207:                             </div>
+1208:                             
+1209:                             <div style="text-align: center; padding: 15px 0; border-top: 1px solid #28a745;">
+1210:                                 <div style="font-size: 16px; color: #28a745; margin-bottom: 5px;">최종 평가가치 (자산 60% + 수익 40%)</div>
+--------------------------------------------------
+--- MATCH: 비상장주식가치 평가 at line 1193 ---
+1188:                     </table>
+1189:                 </div>
+1190: 
+1191:                 <!-- 비상장주식가치 평가 -->
+1192:                 <div class="info-panel" style="margin-top: 20px;">
+1193:                     <h3>? 비상장주식가치 평가 (참고용)</h3>
+1194:                     {% if stock_valuation and stock_valuation.total_shares_issued %}
+1195:                     <div class="valuation-section">
+1196:                         <!-- 주요 평가 결과 -->
+1197:                         <div style="background: linear-gradient(135deg, #e8f5e8, #f0fff0); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 2px solid #28a745;">
+1198:                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+1199:                                 <div>
+1200:                                     <div style="font-size: 14px; color: #666; margin-bottom: 5px;">자산가치 (순자산)</div>
+1201:                                     <div style="font-size: 20px; font-weight: bold; color: #2c5aa0;">{{ "{:,.0f}".format(stock_valuation.asset_value) }} 원</div>
+1202:                                 </div>
+1203:                                 <div>
+1204:                                     <div style="font-size: 14px; color: #666; margin-bottom: 5px;">수익가치 (3년 평균×10)</div>
+1205:                                     <div style="font-size: 20px; font-weight: bold; color: #2c5aa0;">{{ "{:,.0f}".format(stock_valuation.profit_value) }} 원</div>
+1206:                                 </div>
+1207:                             </div>
+1208:                             
+1209:                             <div style="text-align: center; padding: 15px 0; border-top: 1px solid #28a745;">
+1210:                                 <div style="font-size: 16px; color: #28a745; margin-bottom: 5px;">최종 평가가치 (자산 60% + 수익 40%)</div>
+1211:                                 <div style="font-size: 28px; font-weight: bold; color: #d63384;">{{ "{:,.0f}".format(stock_valuation.calculated_value) }} 원</div>
+1212:                             </div>
+--------------------------------------------------
+--- MATCH: 비상장주식가치 평가 at line 1271 ---
+1266:                     </div>
+1267:                     {% else %}
+1268:                     <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; color: #666;">
+1269:                         <div style="font-size: 48px; margin-bottom: 15px;">?</div>
+1270:                         <div style="font-size: 16px; font-weight: 500; margin-bottom: 10px;">재무 데이터 부족</div>
+1271:                         <div style="font-size: 14px;">비상장주식가치 평가를 위한 충분한 재무정보가 없습니다.</div>
+1272:                         <div style="font-size: 13px; color: #999; margin-top: 10px;">최근 3개년 재무제표 데이터가 필요합니다.</div>
+1273:                     </div>
+1274:                     {% endif %}
+1275:                 </div>
+1276: 
+1277:                 <!-- 대표자 정보 -->
+1278:                 <div class="info-panel" style="margin-top: 20px;">
+1279:                     <h3>? 대표자 정보 
+1280:                         {% if representatives and representatives|length > 1 %}
+1281:                             <span style="font-size: 14px; color: #666; font-weight: normal;">({{ representatives|length }}명)</span>
+1282:                         {% endif %}
+1283:                     </h3>
+1284:                     <table class="people-table">
+1285:                         <thead>
+1286:                             <tr>
+1287:                                 <th>성명</th>
+1288:                                 <th>생년월일</th>
+1289:                                 <th>성별</th>
+1290:                                 <th>GFC여부</th>
+--------------------------------------------------
+--- MATCH: 대표자 at line 1277 ---
+1272:                         <div style="font-size: 13px; color: #999; margin-top: 10px;">최근 3개년 재무제표 데이터가 필요합니다.</div>
+1273:                     </div>
+1274:                     {% endif %}
+1275:                 </div>
+1276: 
+1277:                 <!-- 대표자 정보 -->
+1278:                 <div class="info-panel" style="margin-top: 20px;">
+1279:                     <h3>? 대표자 정보 
+1280:                         {% if representatives and representatives|length > 1 %}
+1281:                             <span style="font-size: 14px; color: #666; font-weight: normal;">({{ representatives|length }}명)</span>
+1282:                         {% endif %}
+1283:                     </h3>
+1284:                     <table class="people-table">
+1285:                         <thead>
+1286:                             <tr>
+1287:                                 <th>성명</th>
+1288:                                 <th>생년월일</th>
+1289:                                 <th>성별</th>
+1290:                                 <th>GFC여부</th>
+1291:                                 <th>직책</th>
+1292:                             </tr>
+1293:                         </thead>
+1294:                         <tbody>
+1295:                             {% if representatives and representatives|length > 0 %}
+1296:                                 <!-- Company_CEO 테이블의 실제 대표자 데이터 사용 -->
+--------------------------------------------------
+--- MATCH: 대표자 at line 1279 ---
+1274:                     {% endif %}
+1275:                 </div>
+1276: 
+1277:                 <!-- 대표자 정보 -->
+1278:                 <div class="info-panel" style="margin-top: 20px;">
+1279:                     <h3>? 대표자 정보 
+1280:                         {% if representatives and representatives|length > 1 %}
+1281:                             <span style="font-size: 14px; color: #666; font-weight: normal;">({{ representatives|length }}명)</span>
+1282:                         {% endif %}
+1283:                     </h3>
+1284:                     <table class="people-table">
+1285:                         <thead>
+1286:                             <tr>
+1287:                                 <th>성명</th>
+1288:                                 <th>생년월일</th>
+1289:                                 <th>성별</th>
+1290:                                 <th>GFC여부</th>
+1291:                                 <th>직책</th>
+1292:                             </tr>
+1293:                         </thead>
+1294:                         <tbody>
+1295:                             {% if representatives and representatives|length > 0 %}
+1296:                                 <!-- Company_CEO 테이블의 실제 대표자 데이터 사용 -->
+1297:                                 {% for rep in representatives %}
+1298:                                     <tr>
+--------------------------------------------------
+--- MATCH: 대표자 at line 1296 ---
+1291:                                 <th>직책</th>
+1292:                             </tr>
+1293:                         </thead>
+1294:                         <tbody>
+1295:                             {% if representatives and representatives|length > 0 %}
+1296:                                 <!-- Company_CEO 테이블의 실제 대표자 데이터 사용 -->
+1297:                                 {% for rep in representatives %}
+1298:                                     <tr>
+1299:                                         <td id="ceo-name-display-{{ loop.index }}">{{ rep.name or '정보없음' }}</td>
+1300:                                         <td>{{ rep.birth_date or '정보없음' }}</td>
+1301:                                         <td>{{ rep.gender or '정보없음' }}</td>
+1302:                                         <td><span class="status-{{ 'yes' if rep.is_gfc == 'Y' else 'no' }}">{{ rep.is_gfc or 'N' }}</span></td>
+1303:                                         <td>{{ rep.position or '대표이사' }}</td>
+1304:                                     </tr>
+1305:                                 {% endfor %}
+1306:                             {% elif shareholders and shareholders|length > 0 %}
+1307:                                 <!-- 대표자 정보가 없으면 주주 중에서 '본인' 관계인 사람들을 대표자로 표시 -->
+1308:                                 {% set representatives_from_shareholders = [] %}
+1309:                                 {% for shareholder in shareholders %}
+1310:                                     {% if shareholder.relationship == '본인' %}
+1311:                                         {% set _ = representatives_from_shareholders.append(shareholder) %}
+1312:                                     {% endif %}
+1313:                                 {% endfor %}
+1314:                                 
+1315:                                 {% if representatives_from_shareholders|length > 0 %}
+--------------------------------------------------
+--- MATCH: Company_CEO at line 1296 ---
+1291:                                 <th>직책</th>
+1292:                             </tr>
+1293:                         </thead>
+1294:                         <tbody>
+1295:                             {% if representatives and representatives|length > 0 %}
+1296:                                 <!-- Company_CEO 테이블의 실제 대표자 데이터 사용 -->
+1297:                                 {% for rep in representatives %}
+1298:                                     <tr>
+1299:                                         <td id="ceo-name-display-{{ loop.index }}">{{ rep.name or '정보없음' }}</td>
+1300:                                         <td>{{ rep.birth_date or '정보없음' }}</td>
+1301:                                         <td>{{ rep.gender or '정보없음' }}</td>
+1302:                                         <td><span class="status-{{ 'yes' if rep.is_gfc == 'Y' else 'no' }}">{{ rep.is_gfc or 'N' }}</span></td>
+1303:                                         <td>{{ rep.position or '대표이사' }}</td>
+1304:                                     </tr>
+1305:                                 {% endfor %}
+1306:                             {% elif shareholders and shareholders|length > 0 %}
+1307:                                 <!-- 대표자 정보가 없으면 주주 중에서 '본인' 관계인 사람들을 대표자로 표시 -->
+1308:                                 {% set representatives_from_shareholders = [] %}
+1309:                                 {% for shareholder in shareholders %}
+1310:                                     {% if shareholder.relationship == '본인' %}
+1311:                                         {% set _ = representatives_from_shareholders.append(shareholder) %}
+1312:                                     {% endif %}
+1313:                                 {% endfor %}
+1314:                                 
+1315:                                 {% if representatives_from_shareholders|length > 0 %}
+--------------------------------------------------
+--- MATCH: 대표자 at line 1307 ---
+1302:                                         <td><span class="status-{{ 'yes' if rep.is_gfc == 'Y' else 'no' }}">{{ rep.is_gfc or 'N' }}</span></td>
+1303:                                         <td>{{ rep.position or '대표이사' }}</td>
+1304:                                     </tr>
+1305:                                 {% endfor %}
+1306:                             {% elif shareholders and shareholders|length > 0 %}
+1307:                                 <!-- 대표자 정보가 없으면 주주 중에서 '본인' 관계인 사람들을 대표자로 표시 -->
+1308:                                 {% set representatives_from_shareholders = [] %}
+1309:                                 {% for shareholder in shareholders %}
+1310:                                     {% if shareholder.relationship == '본인' %}
+1311:                                         {% set _ = representatives_from_shareholders.append(shareholder) %}
+1312:                                     {% endif %}
+1313:                                 {% endfor %}
+1314:                                 
+1315:                                 {% if representatives_from_shareholders|length > 0 %}
+1316:                                     {% for rep in representatives_from_shareholders %}
+1317:                                         <tr style="background-color: #fff8dc;">
+1318:                                             <td id="ceo-name-display-{{ loop.index }}">{{ rep.shareholder_name }}</td>
+1319:                                             <td>추정값</td>
+1320:                                             <td>-</td>
+1321:                                             <td>N</td>
+1322:                                             <td style="font-style: italic; color: #666;">주주정보 기반</td>
+1323:                                         </tr>
+1324:                                     {% endfor %}
+1325:                                 {% else %}
+1326:                                     <!-- 주주 중에 '본인'이 없으면 첫 번째 주주를 대표자로 표시 -->
+--------------------------------------------------
+--- MATCH: 대표자 at line 1326 ---
+1321:                                             <td>N</td>
+1322:                                             <td style="font-style: italic; color: #666;">주주정보 기반</td>
+1323:                                         </tr>
+1324:                                     {% endfor %}
+1325:                                 {% else %}
+1326:                                     <!-- 주주 중에 '본인'이 없으면 첫 번째 주주를 대표자로 표시 -->
+1327:                                     <tr style="background-color: #ffe6e6;">
+1328:                                         <td id="ceo-name-display-1">{{ shareholders[0].shareholder_name }}</td>
+1329:                                         <td>추정값</td>
+1330:                                         <td>-</td>
+1331:                                         <td>N</td>
+1332:                                         <td style="font-style: italic; color: #666;">추정 대표자</td>
+1333:                                     </tr>
+1334:                                 {% endif %}
+1335:                             {% else %}
+1336:                                 <!-- 대표자, 주주 정보 모두 없으면 기본 정보에서 가져오기 -->
+1337:                                 <tr style="background-color: #f0f0f0;">
+1338:                                     <td id="ceo-name-display-1">{{ company.representative_name or '정보없음' }}</td>
+1339:                                     <td>{{ company.ceo_birth_date or '정보없음' }}</td>
+1340:                                     <td>{{ company.ceo_gender or '정보없음' }}</td>
+1341:                                     <td>{{ company.gfc_status or 'N' }}</td>
+1342:                                     <td style="font-style: italic; color: #666;">기본 정보</td>
+1343:                                 </tr>
+1344:                             {% endif %}
+1345:                         </tbody>
+--------------------------------------------------
+--- MATCH: 대표자 at line 1332 ---
+1327:                                     <tr style="background-color: #ffe6e6;">
+1328:                                         <td id="ceo-name-display-1">{{ shareholders[0].shareholder_name }}</td>
+1329:                                         <td>추정값</td>
+1330:                                         <td>-</td>
+1331:                                         <td>N</td>
+1332:                                         <td style="font-style: italic; color: #666;">추정 대표자</td>
+1333:                                     </tr>
+1334:                                 {% endif %}
+1335:                             {% else %}
+1336:                                 <!-- 대표자, 주주 정보 모두 없으면 기본 정보에서 가져오기 -->
+1337:                                 <tr style="background-color: #f0f0f0;">
+1338:                                     <td id="ceo-name-display-1">{{ company.representative_name or '정보없음' }}</td>
+1339:                                     <td>{{ company.ceo_birth_date or '정보없음' }}</td>
+1340:                                     <td>{{ company.ceo_gender or '정보없음' }}</td>
+1341:                                     <td>{{ company.gfc_status or 'N' }}</td>
+1342:                                     <td style="font-style: italic; color: #666;">기본 정보</td>
+1343:                                 </tr>
+1344:                             {% endif %}
+1345:                         </tbody>
+1346:                     </table>
+1347:                     
+1348:                     <!-- 대표자 정보 출처 안내 -->
+1349:                     <div style="margin-top: 10px; font-size: 12px; color: #666; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+1350:                         <div style="font-weight: 500; margin-bottom: 5px;">? 정보 출처</div>
+1351:                         <ul style="margin: 0; padding-left: 15px; line-height: 1.4;">
+--------------------------------------------------
+--- MATCH: 대표자 at line 1336 ---
+1331:                                         <td>N</td>
+1332:                                         <td style="font-style: italic; color: #666;">추정 대표자</td>
+1333:                                     </tr>
+1334:                                 {% endif %}
+1335:                             {% else %}
+1336:                                 <!-- 대표자, 주주 정보 모두 없으면 기본 정보에서 가져오기 -->
+1337:                                 <tr style="background-color: #f0f0f0;">
+1338:                                     <td id="ceo-name-display-1">{{ company.representative_name or '정보없음' }}</td>
+1339:                                     <td>{{ company.ceo_birth_date or '정보없음' }}</td>
+1340:                                     <td>{{ company.ceo_gender or '정보없음' }}</td>
+1341:                                     <td>{{ company.gfc_status or 'N' }}</td>
+1342:                                     <td style="font-style: italic; color: #666;">기본 정보</td>
+1343:                                 </tr>
+1344:                             {% endif %}
+1345:                         </tbody>
+1346:                     </table>
+1347:                     
+1348:                     <!-- 대표자 정보 출처 안내 -->
+1349:                     <div style="margin-top: 10px; font-size: 12px; color: #666; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+1350:                         <div style="font-weight: 500; margin-bottom: 5px;">? 정보 출처</div>
+1351:                         <ul style="margin: 0; padding-left: 15px; line-height: 1.4;">
+1352:                             {% if representatives and representatives|length > 0 %}
+1353:                                 <li><strong>Company_CEO 테이블:</strong> 공식 대표자 등기 정보</li>
+1354:                             {% elif shareholders %}
+1355:                                 <li><strong>주주 정보 기반:</strong> 주주 중 '본인' 관계로 추정된 대표자</li>
+--------------------------------------------------
+--- MATCH: 대표자 at line 1348 ---
+1343:                                 </tr>
+1344:                             {% endif %}
+1345:                         </tbody>
+1346:                     </table>
+1347:                     
+1348:                     <!-- 대표자 정보 출처 안내 -->
+1349:                     <div style="margin-top: 10px; font-size: 12px; color: #666; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+1350:                         <div style="font-weight: 500; margin-bottom: 5px;">? 정보 출처</div>
+1351:                         <ul style="margin: 0; padding-left: 15px; line-height: 1.4;">
+1352:                             {% if representatives and representatives|length > 0 %}
+1353:                                 <li><strong>Company_CEO 테이블:</strong> 공식 대표자 등기 정보</li>
+1354:                             {% elif shareholders %}
+1355:                                 <li><strong>주주 정보 기반:</strong> 주주 중 '본인' 관계로 추정된 대표자</li>
+1356:                             {% else %}
+1357:                                 <li><strong>기본 정보:</strong> 회사 기본 정보의 대표자명</li>
+1358:                             {% endif %}
+1359:                             <li>정확한 대표자 정보는 상업등기부등본에서 확인 바람</li>
+1360:                         </ul>
+1361:                     </div>
+1362:                 </div>
+1363: 
+1364:                 <!-- 주주 정보 -->
+1365:                 <div class="info-panel" style="margin-top: 20px;">
+1366:                     <h3>주주 구성</h3>
+1367:                     <table class="people-table">
+--------------------------------------------------
+--- MATCH: 대표자 at line 1353 ---
+1348:                     <!-- 대표자 정보 출처 안내 -->
+1349:                     <div style="margin-top: 10px; font-size: 12px; color: #666; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+1350:                         <div style="font-weight: 500; margin-bottom: 5px;">? 정보 출처</div>
+1351:                         <ul style="margin: 0; padding-left: 15px; line-height: 1.4;">
+1352:                             {% if representatives and representatives|length > 0 %}
+1353:                                 <li><strong>Company_CEO 테이블:</strong> 공식 대표자 등기 정보</li>
+1354:                             {% elif shareholders %}
+1355:                                 <li><strong>주주 정보 기반:</strong> 주주 중 '본인' 관계로 추정된 대표자</li>
+1356:                             {% else %}
+1357:                                 <li><strong>기본 정보:</strong> 회사 기본 정보의 대표자명</li>
+1358:                             {% endif %}
+1359:                             <li>정확한 대표자 정보는 상업등기부등본에서 확인 바람</li>
+1360:                         </ul>
+1361:                     </div>
+1362:                 </div>
+1363: 
+1364:                 <!-- 주주 정보 -->
+1365:                 <div class="info-panel" style="margin-top: 20px;">
+1366:                     <h3>주주 구성</h3>
+1367:                     <table class="people-table">
+1368:                         <thead>
+1369:                             <tr>
+1370:                                 <th>주주명</th>
+1371:                                 <th>주식수</th>
+1372:                                 <th>지분율</th>
+--------------------------------------------------
+--- MATCH: Company_CEO at line 1353 ---
+1348:                     <!-- 대표자 정보 출처 안내 -->
+1349:                     <div style="margin-top: 10px; font-size: 12px; color: #666; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+1350:                         <div style="font-weight: 500; margin-bottom: 5px;">? 정보 출처</div>
+1351:                         <ul style="margin: 0; padding-left: 15px; line-height: 1.4;">
+1352:                             {% if representatives and representatives|length > 0 %}
+1353:                                 <li><strong>Company_CEO 테이블:</strong> 공식 대표자 등기 정보</li>
+1354:                             {% elif shareholders %}
+1355:                                 <li><strong>주주 정보 기반:</strong> 주주 중 '본인' 관계로 추정된 대표자</li>
+1356:                             {% else %}
+1357:                                 <li><strong>기본 정보:</strong> 회사 기본 정보의 대표자명</li>
+1358:                             {% endif %}
+1359:                             <li>정확한 대표자 정보는 상업등기부등본에서 확인 바람</li>
+1360:                         </ul>
+1361:                     </div>
+1362:                 </div>
+1363: 
+1364:                 <!-- 주주 정보 -->
+1365:                 <div class="info-panel" style="margin-top: 20px;">
+1366:                     <h3>주주 구성</h3>
+1367:                     <table class="people-table">
+1368:                         <thead>
+1369:                             <tr>
+1370:                                 <th>주주명</th>
+1371:                                 <th>주식수</th>
+1372:                                 <th>지분율</th>
+--------------------------------------------------
+--- MATCH: 대표자 at line 1355 ---
+1350:                         <div style="font-weight: 500; margin-bottom: 5px;">? 정보 출처</div>
+1351:                         <ul style="margin: 0; padding-left: 15px; line-height: 1.4;">
+1352:                             {% if representatives and representatives|length > 0 %}
+1353:                                 <li><strong>Company_CEO 테이블:</strong> 공식 대표자 등기 정보</li>
+1354:                             {% elif shareholders %}
+1355:                                 <li><strong>주주 정보 기반:</strong> 주주 중 '본인' 관계로 추정된 대표자</li>
+1356:                             {% else %}
+1357:                                 <li><strong>기본 정보:</strong> 회사 기본 정보의 대표자명</li>
+1358:                             {% endif %}
+1359:                             <li>정확한 대표자 정보는 상업등기부등본에서 확인 바람</li>
+1360:                         </ul>
+1361:                     </div>
+1362:                 </div>
+1363: 
+1364:                 <!-- 주주 정보 -->
+1365:                 <div class="info-panel" style="margin-top: 20px;">
+1366:                     <h3>주주 구성</h3>
+1367:                     <table class="people-table">
+1368:                         <thead>
+1369:                             <tr>
+1370:                                 <th>주주명</th>
+1371:                                 <th>주식수</th>
+1372:                                 <th>지분율</th>
+1373:                                 <th>주식가액</th>
+1374:                                 <th>관계</th>
+--------------------------------------------------
+--- MATCH: 대표자 at line 1357 ---
+1352:                             {% if representatives and representatives|length > 0 %}
+1353:                                 <li><strong>Company_CEO 테이블:</strong> 공식 대표자 등기 정보</li>
+1354:                             {% elif shareholders %}
+1355:                                 <li><strong>주주 정보 기반:</strong> 주주 중 '본인' 관계로 추정된 대표자</li>
+1356:                             {% else %}
+1357:                                 <li><strong>기본 정보:</strong> 회사 기본 정보의 대표자명</li>
+1358:                             {% endif %}
+1359:                             <li>정확한 대표자 정보는 상업등기부등본에서 확인 바람</li>
+1360:                         </ul>
+1361:                     </div>
+1362:                 </div>
+1363: 
+1364:                 <!-- 주주 정보 -->
+1365:                 <div class="info-panel" style="margin-top: 20px;">
+1366:                     <h3>주주 구성</h3>
+1367:                     <table class="people-table">
+1368:                         <thead>
+1369:                             <tr>
+1370:                                 <th>주주명</th>
+1371:                                 <th>주식수</th>
+1372:                                 <th>지분율</th>
+1373:                                 <th>주식가액</th>
+1374:                                 <th>관계</th>
+1375:                             </tr>
+1376:                         </thead>
+--------------------------------------------------
+--- MATCH: 대표자 at line 1359 ---
+1354:                             {% elif shareholders %}
+1355:                                 <li><strong>주주 정보 기반:</strong> 주주 중 '본인' 관계로 추정된 대표자</li>
+1356:                             {% else %}
+1357:                                 <li><strong>기본 정보:</strong> 회사 기본 정보의 대표자명</li>
+1358:                             {% endif %}
+1359:                             <li>정확한 대표자 정보는 상업등기부등본에서 확인 바람</li>
+1360:                         </ul>
+1361:                     </div>
+1362:                 </div>
+1363: 
+1364:                 <!-- 주주 정보 -->
+1365:                 <div class="info-panel" style="margin-top: 20px;">
+1366:                     <h3>주주 구성</h3>
+1367:                     <table class="people-table">
+1368:                         <thead>
+1369:                             <tr>
+1370:                                 <th>주주명</th>
+1371:                                 <th>주식수</th>
+1372:                                 <th>지분율</th>
+1373:                                 <th>주식가액</th>
+1374:                                 <th>관계</th>
+1375:                             </tr>
+1376:                         </thead>
+1377:                         <tbody>
+1378:                             {% if shareholders %}
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1479 ---
+1474:                         <button type="button" class="btn-submit" onclick="submitPioneering()">등록</button>
+1475:                     </div>
+1476:                 </div>
+1477:             </div>
+1478: 
+1479:             <!-- 접촉이력 관리 탭 -->
+1480:             <div id="contact-history" class="tab-panel">
+1481:                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+1482:                     <h3>접촉이력 조회</h3>
+1483:                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+1484:                         <button onclick="openPioneeringModal()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">개척등록</button>
+1485:                         <button onclick="addNewContactHistory()" style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">+ 접촉이력 등록</button>
+1486:                         <button onclick="window.open('/history', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">? 전체 접촉이력 관리</button>
+1487:                     </div>
+1488:                 </div>
+1489:                 
+1490:                 <!-- 검색 필터 -->
+1491:                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+1492:                     <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+1493:                         <input type="date" id="contact-start-date" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1494:                         <span>~</span>
+1495:                         <input type="date" id="contact-end-date" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1496:                         <input type="text" id="contact-search" placeholder="담당자명 검색" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
+1497:                         <button onclick="searchContactHistory()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">검색</button>
+1498:                         <button onclick="resetContactFilter()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">초기화</button>
+--------------------------------------------------
+--- MATCH: contact-history at line 1480 ---
+1475:                     </div>
+1476:                 </div>
+1477:             </div>
+1478: 
+1479:             <!-- 접촉이력 관리 탭 -->
+1480:             <div id="contact-history" class="tab-panel">
+1481:                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+1482:                     <h3>접촉이력 조회</h3>
+1483:                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+1484:                         <button onclick="openPioneeringModal()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">개척등록</button>
+1485:                         <button onclick="addNewContactHistory()" style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">+ 접촉이력 등록</button>
+1486:                         <button onclick="window.open('/history', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">? 전체 접촉이력 관리</button>
+1487:                     </div>
+1488:                 </div>
+1489:                 
+1490:                 <!-- 검색 필터 -->
+1491:                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+1492:                     <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+1493:                         <input type="date" id="contact-start-date" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1494:                         <span>~</span>
+1495:                         <input type="date" id="contact-end-date" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1496:                         <input type="text" id="contact-search" placeholder="담당자명 검색" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
+1497:                         <button onclick="searchContactHistory()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">검색</button>
+1498:                         <button onclick="resetContactFilter()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">초기화</button>
+1499:                     </div>
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1482 ---
+1477:             </div>
+1478: 
+1479:             <!-- 접촉이력 관리 탭 -->
+1480:             <div id="contact-history" class="tab-panel">
+1481:                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+1482:                     <h3>접촉이력 조회</h3>
+1483:                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+1484:                         <button onclick="openPioneeringModal()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">개척등록</button>
+1485:                         <button onclick="addNewContactHistory()" style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">+ 접촉이력 등록</button>
+1486:                         <button onclick="window.open('/history', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">? 전체 접촉이력 관리</button>
+1487:                     </div>
+1488:                 </div>
+1489:                 
+1490:                 <!-- 검색 필터 -->
+1491:                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+1492:                     <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+1493:                         <input type="date" id="contact-start-date" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1494:                         <span>~</span>
+1495:                         <input type="date" id="contact-end-date" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1496:                         <input type="text" id="contact-search" placeholder="담당자명 검색" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
+1497:                         <button onclick="searchContactHistory()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">검색</button>
+1498:                         <button onclick="resetContactFilter()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">초기화</button>
+1499:                     </div>
+1500:                 </div>
+1501:                 
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1485 ---
+1480:             <div id="contact-history" class="tab-panel">
+1481:                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+1482:                     <h3>접촉이력 조회</h3>
+1483:                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+1484:                         <button onclick="openPioneeringModal()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">개척등록</button>
+1485:                         <button onclick="addNewContactHistory()" style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">+ 접촉이력 등록</button>
+1486:                         <button onclick="window.open('/history', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">? 전체 접촉이력 관리</button>
+1487:                     </div>
+1488:                 </div>
+1489:                 
+1490:                 <!-- 검색 필터 -->
+1491:                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+1492:                     <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+1493:                         <input type="date" id="contact-start-date" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1494:                         <span>~</span>
+1495:                         <input type="date" id="contact-end-date" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1496:                         <input type="text" id="contact-search" placeholder="담당자명 검색" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
+1497:                         <button onclick="searchContactHistory()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">검색</button>
+1498:                         <button onclick="resetContactFilter()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">초기화</button>
+1499:                     </div>
+1500:                 </div>
+1501:                 
+1502:                 <!-- 접촉이력 테이블 -->
+1503:                 <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+1504:                     <table style="width: 100%; border-collapse: collapse;">
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1486 ---
+1481:                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+1482:                     <h3>접촉이력 조회</h3>
+1483:                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+1484:                         <button onclick="openPioneeringModal()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">개척등록</button>
+1485:                         <button onclick="addNewContactHistory()" style="background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">+ 접촉이력 등록</button>
+1486:                         <button onclick="window.open('/history', '_blank')" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">? 전체 접촉이력 관리</button>
+1487:                     </div>
+1488:                 </div>
+1489:                 
+1490:                 <!-- 검색 필터 -->
+1491:                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+1492:                     <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+1493:                         <input type="date" id="contact-start-date" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1494:                         <span>~</span>
+1495:                         <input type="date" id="contact-end-date" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1496:                         <input type="text" id="contact-search" placeholder="담당자명 검색" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px;">
+1497:                         <button onclick="searchContactHistory()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">검색</button>
+1498:                         <button onclick="resetContactFilter()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">초기화</button>
+1499:                     </div>
+1500:                 </div>
+1501:                 
+1502:                 <!-- 접촉이력 테이블 -->
+1503:                 <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+1504:                     <table style="width: 100%; border-collapse: collapse;">
+1505:                         <thead>
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1502 ---
+1497:                         <button onclick="searchContactHistory()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">검색</button>
+1498:                         <button onclick="resetContactFilter()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">초기화</button>
+1499:                     </div>
+1500:                 </div>
+1501:                 
+1502:                 <!-- 접촉이력 테이블 -->
+1503:                 <div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+1504:                     <table style="width: 100%; border-collapse: collapse;">
+1505:                         <thead>
+1506:                             <tr style="background: linear-gradient(135deg, #2c5aa0, #4a9fd9); color: white;">
+1507:                                 <th style="padding: 12px 8px; text-align: left; font-weight: 600;">접촉일시</th>
+1508:                                 <th style="padding: 12px 8px; text-align: left; font-weight: 600;">사업자번호</th>
+1509:                                 <th style="padding: 12px 8px; text-align: left; font-weight: 600;">기업명</th>
+1510:                                 <th style="padding: 12px 8px; text-align: left; font-weight: 600;">접촉유형</th>
+1511:                                 <th style="padding: 12px 8px; text-align: left; font-weight: 600;">접촉자</th>
+1512:                                 <th style="padding: 12px 8px; text-align: left; font-weight: 600; width: 200px;">메모</th>
+1513:                                 <th style="padding: 12px 8px; text-align: center; font-weight: 600;">등록자</th>
+1514:                                 <th style="padding: 12px 8px; text-align: center; font-weight: 600;">첨부2</th>
+1515: 
+1516:                             </tr>
+1517:                         </thead>
+1518:                         <tbody id="contactHistoryTable">
+1519:                             <tr>
+1520:                                 <td colspan="8" style="padding: 40px; text-align: center; color: #6c757d;">접촉이력을 불러오는 중...</td>
+1521:                             </tr>
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1520 ---
+1515: 
+1516:                             </tr>
+1517:                         </thead>
+1518:                         <tbody id="contactHistoryTable">
+1519:                             <tr>
+1520:                                 <td colspan="8" style="padding: 40px; text-align: center; color: #6c757d;">접촉이력을 불러오는 중...</td>
+1521:                             </tr>
+1522:                         </tbody>
+1523:                     </table>
+1524:                 </div>
+1525:             </div>
+1526: 
+1527:             <!-- AI 서치 탭 -->
+1528:             <div id="ai-search" class="tab-panel">
+1529:                 <div class="ai-comprehensive-analysis">
+1530:                     <!-- 종합 분석 리포트 섹션 -->
+1531:                     <div class="analysis-header">
+1532:                         <h3>AI 종합 분석 리포트</h3>
+1533:                         <button class="analysis-button" onclick="startComprehensiveAnalysis()">분석 실행</button>
+1534:                     </div>
+1535:                     
+1536:                     <div class="comprehensive-report" id="comprehensiveReport">
+1537:                         <div class="loading-animation">
+1538:                             <div class="spinner"></div>
+1539:                             <p>분석을 위해 버튼을 클릭하세요.</p>
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1573 ---
+1568:                 
+1569:                 // AI 서치 탭 선택 시 자동 분석 시작
+1570:                 if (tabId === 'ai-search' && !analysisCompleted) {
+1571:                     setTimeout(startComprehensiveAnalysis, 300);
+1572:                 }
+1573:                 // 접촉이력 탭 선택 시 데이터 로드
+1574:                 if (tabId === 'contact-history') {
+1575:                     setTimeout(loadContactHistory, 200);
+1576:                 }
+1577:             }
+1578:         }
+1579: 
+1580:         // 종합 분석 시작 함수 (애니메이션 시작)
+1581:         function startComprehensiveAnalysis() {
+1582:             if (analysisCompleted) return;
+1583:             
+1584:             const analysisSteps = document.getElementById('analysisSteps');
+1585:             if (!analysisSteps) return;
+1586: 
+1587:             // 초기화
+1588:             analysisSteps.innerHTML = ''; 
+1589:             if (analysisStepInterval) clearInterval(analysisStepInterval);
+1590: 
+1591:             const steps = [
+1592:                 '? 재무 데이터 수집 중...',
+--------------------------------------------------
+--- MATCH: contact-history at line 1574 ---
+1569:                 // AI 서치 탭 선택 시 자동 분석 시작
+1570:                 if (tabId === 'ai-search' && !analysisCompleted) {
+1571:                     setTimeout(startComprehensiveAnalysis, 300);
+1572:                 }
+1573:                 // 접촉이력 탭 선택 시 데이터 로드
+1574:                 if (tabId === 'contact-history') {
+1575:                     setTimeout(loadContactHistory, 200);
+1576:                 }
+1577:             }
+1578:         }
+1579: 
+1580:         // 종합 분석 시작 함수 (애니메이션 시작)
+1581:         function startComprehensiveAnalysis() {
+1582:             if (analysisCompleted) return;
+1583:             
+1584:             const analysisSteps = document.getElementById('analysisSteps');
+1585:             if (!analysisSteps) return;
+1586: 
+1587:             // 초기화
+1588:             analysisSteps.innerHTML = ''; 
+1589:             if (analysisStepInterval) clearInterval(analysisStepInterval);
+1590: 
+1591:             const steps = [
+1592:                 '? 재무 데이터 수집 중...',
+1593:                 '? 주주 구성 및 지배구조 분석...',
+--------------------------------------------------
+--- MATCH: 대표자 at line 1641 ---
+1636: Task: [${currentCompanyName}] 기업에 대한 종합 경영 진단 보고서 작성
+1637: 
+1638: 분석 데이터:
+1639: - 기업명: ${currentCompanyName}
+1640: - 사업자번호: ${currentBizNo}
+1641: - 대표자: ${document.getElementById('ceo-name') ? document.getElementById('ceo-name').textContent : '정보없음'}
+1642: 
+1643: 다음 목차로 HTML 형식(h3, ul, li, p, strong 태그 사용)의 보고서를 작성해주세요:
+1644: 1. Executive Summary (경영 현황 요약)
+1645: 2. 재무 건전성 및 성장성 진단
+1646: 3. 주요 리스크 요인 및 대응 방안
+1647: 4. CEO를 위한 전략적 제언 (세무, 승계, 자금 등)
+1648: 
+1649: * 형식: 깔끔하고 가독성 높은 HTML 스타일 (CSS 클래스 제외, 인라인 스타일 지양)
+1650:             `;
+1651:             
+1652:             console.log('[DEBUG] AI 분석 API 요청 시작');
+1653:             
+1654:             // 90초 타임아웃 설정
+1655:             const controller = new AbortController();
+1656:             const timeoutId = setTimeout(() => controller.abort(), 90000);
+1657:             
+1658:             fetch('/api/ai-analysis', {
+1659:                 method: 'POST',
+1660:                 headers: { 'Content-Type': 'application/json' },
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1740 ---
+1735:                     </button>
+1736:                 </div>
+1737:             `;
+1738:         }
+1739: 
+1740:         // --- 기타 기존 함수들 (접촉이력, 모달 등) ---
+1741:         // (이 부분은 기존 코드의 loadContactHistory, openPioneeringModal 등을 유지하거나 
+1742:         // 위에서 제공된 코드의 나머지 부분을 그대로 사용하시면 됩니다.)
+1743:         
+1744:         function loadContactHistory() {
+1745:             const tableBody = document.getElementById('contactHistoryTable');
+1746:             if(!tableBody) return;
+1747:             
+1748:             tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">로딩 중...</td></tr>';
+1749:             
+1750:             fetch(`/api/contact_history?biz_no=${currentBizNo}`)
+1751:             .then(res => res.json())
+1752:             .then(data => {
+1753:                 if(data.success && data.histories.length > 0) {
+1754:                     let html = '';
+1755:                     data.histories.forEach(h => {
+1756:                         html += `
+1757:                             <tr style="border-bottom: 1px solid #eee;">
+1758:                                 <td style="padding:10px;">${h.contact_datetime}</td>
+1759:                                 <td style="padding:10px;">${h.biz_no}</td>
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1771 ---
+1766:                             </tr>
+1767:                         `;
+1768:                     });
+1769:                     tableBody.innerHTML = html;
+1770:                 } else {
+1771:                     tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">접촉이력이 없습니다.</td></tr>';
+1772:                 }
+1773:             })
+1774:             .catch(err => {
+1775:                 tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:red;">데이터 로드 실패</td></tr>';
+1776:             });
+1777:         }
+1778:         
+1779:         // 페이지 로드 시 초기화
+1780:         document.addEventListener('DOMContentLoaded', function() {
+1781:             console.log('페이지 로드 완료');
+1782:             // 필요 시 초기화 로직 추가
+1783:         });
+1784:     </script>
+1785: 
+1786:     <!-- 접촉이력 등록/수정 모달 -->
+1787:     <div id="contactHistoryModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+1788:         <div class="modal-content" style="position: relative; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+1789:             <span class="close" onclick="closeContactModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #aaa;">&times;</span>
+1790:             <h3 id="contactModalTitle" style="margin-top: 0; color: #333;">접촉이력 등록</h3>
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1786 ---
+1781:             console.log('페이지 로드 완료');
+1782:             // 필요 시 초기화 로직 추가
+1783:         });
+1784:     </script>
+1785: 
+1786:     <!-- 접촉이력 등록/수정 모달 -->
+1787:     <div id="contactHistoryModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+1788:         <div class="modal-content" style="position: relative; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+1789:             <span class="close" onclick="closeContactModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #aaa;">&times;</span>
+1790:             <h3 id="contactModalTitle" style="margin-top: 0; color: #333;">접촉이력 등록</h3>
+1791:             
+1792:             <form id="contactHistoryForm" style="margin-top: 20px;">
+1793:                 <input type="hidden" id="contactHistoryId" value="">
+1794:                 
+1795:                 <div style="margin-bottom: 15px;">
+1796:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉일시 *</label>
+1797:                     <input type="datetime-local" id="contactDatetime" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1798:                 </div>
+1799:                 
+1800:                 <div style="margin-bottom: 15px;">
+1801:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉유형 *</label>
+1802:                     <select id="contactType" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1803:                         <option value="">선택하세요</option>
+1804:                         <option value="방문">방문</option>
+1805:                         <option value="전화">전화</option>
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1790 ---
+1785: 
+1786:     <!-- 접촉이력 등록/수정 모달 -->
+1787:     <div id="contactHistoryModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+1788:         <div class="modal-content" style="position: relative; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+1789:             <span class="close" onclick="closeContactModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #aaa;">&times;</span>
+1790:             <h3 id="contactModalTitle" style="margin-top: 0; color: #333;">접촉이력 등록</h3>
+1791:             
+1792:             <form id="contactHistoryForm" style="margin-top: 20px;">
+1793:                 <input type="hidden" id="contactHistoryId" value="">
+1794:                 
+1795:                 <div style="margin-bottom: 15px;">
+1796:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉일시 *</label>
+1797:                     <input type="datetime-local" id="contactDatetime" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1798:                 </div>
+1799:                 
+1800:                 <div style="margin-bottom: 15px;">
+1801:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉유형 *</label>
+1802:                     <select id="contactType" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1803:                         <option value="">선택하세요</option>
+1804:                         <option value="방문">방문</option>
+1805:                         <option value="전화">전화</option>
+1806:                         <option value="이메일">이메일</option>
+1807:                         <option value="회의">회의</option>
+1808:                         <option value="기타">기타</option>
+1809:                     </select>
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1848 ---
+1843:                     setTimeout(() => {
+1844:                         startComprehensiveAnalysis();
+1845:                     }, 300);
+1846:                 }
+1847:                 
+1848:                 // 접촉이력 탭인 경우 데이터 로드
+1849:                 if (tabId === 'contact-history') {
+1850:                     setTimeout(() => {
+1851:                         loadContactHistory();
+1852:                     }, 200);
+1853:                 }
+1854:             } else {
+1855:                 console.error('탭 패널을 찾을 수 없음:', tabId);
+1856:             }
+1857:         }
+1858:         
+1859:         // 탭 전환 함수 (완전히 개선된 버전)
+1860:         function switchTab(tabId, event) {
+1861:             console.log('=== switchTab 호출 ===');
+1862:             console.log('tabId:', tabId);
+1863:             console.log('event:', event);
+1864:             
+1865:             try {
+1866:                 // 이벤트 전파 방지
+1867:                 if (event) {
+--------------------------------------------------
+--- MATCH: contact-history at line 1849 ---
+1844:                         startComprehensiveAnalysis();
+1845:                     }, 300);
+1846:                 }
+1847:                 
+1848:                 // 접촉이력 탭인 경우 데이터 로드
+1849:                 if (tabId === 'contact-history') {
+1850:                     setTimeout(() => {
+1851:                         loadContactHistory();
+1852:                     }, 200);
+1853:                 }
+1854:             } else {
+1855:                 console.error('탭 패널을 찾을 수 없음:', tabId);
+1856:             }
+1857:         }
+1858:         
+1859:         // 탭 전환 함수 (완전히 개선된 버전)
+1860:         function switchTab(tabId, event) {
+1861:             console.log('=== switchTab 호출 ===');
+1862:             console.log('tabId:', tabId);
+1863:             console.log('event:', event);
+1864:             
+1865:             try {
+1866:                 // 이벤트 전파 방지
+1867:                 if (event) {
+1868:                     event.preventDefault();
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1929 ---
+1924:                             console.log('startComprehensiveAnalysis 함수가 정의되지 않음');
+1925:                         }
+1926:                     }, 300);
+1927:                 }
+1928:                 
+1929:                 // 접촉이력 탭으로 전환시 데이터 로드
+1930:                 if (tabId === 'contact-history') {
+1931:                     console.log('접촉이력 탭 - 데이터 로드 시작');
+1932:                     setTimeout(() => {
+1933:                         if (typeof loadContactHistory === 'function') {
+1934:                             loadContactHistory();
+1935:                         } else {
+1936:                             console.log('loadContactHistory 함수가 정의되지 않음');
+1937:                         }
+1938:                     }, 200);
+1939:                 }
+1940:                 
+1941:             } catch (error) {
+1942:                 console.error('탭 전환 중 오류 발생:', error);
+1943:             }
+1944:         }
+1945:         
+1946:         // 페이지 로드 완료 후 탭 이벤트 리스너 추가
+1947:         document.addEventListener('DOMContentLoaded', function() {
+1948:             console.log('=== DOM 로드 완료 - 탭 시스템 초기화 ===');
+--------------------------------------------------
+--- MATCH: contact-history at line 1930 ---
+1925:                         }
+1926:                     }, 300);
+1927:                 }
+1928:                 
+1929:                 // 접촉이력 탭으로 전환시 데이터 로드
+1930:                 if (tabId === 'contact-history') {
+1931:                     console.log('접촉이력 탭 - 데이터 로드 시작');
+1932:                     setTimeout(() => {
+1933:                         if (typeof loadContactHistory === 'function') {
+1934:                             loadContactHistory();
+1935:                         } else {
+1936:                             console.log('loadContactHistory 함수가 정의되지 않음');
+1937:                         }
+1938:                     }, 200);
+1939:                 }
+1940:                 
+1941:             } catch (error) {
+1942:                 console.error('탭 전환 중 오류 발생:', error);
+1943:             }
+1944:         }
+1945:         
+1946:         // 페이지 로드 완료 후 탭 이벤트 리스너 추가
+1947:         document.addEventListener('DOMContentLoaded', function() {
+1948:             console.log('=== DOM 로드 완료 - 탭 시스템 초기화 ===');
+1949:             
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1931 ---
+1926:                     }, 300);
+1927:                 }
+1928:                 
+1929:                 // 접촉이력 탭으로 전환시 데이터 로드
+1930:                 if (tabId === 'contact-history') {
+1931:                     console.log('접촉이력 탭 - 데이터 로드 시작');
+1932:                     setTimeout(() => {
+1933:                         if (typeof loadContactHistory === 'function') {
+1934:                             loadContactHistory();
+1935:                         } else {
+1936:                             console.log('loadContactHistory 함수가 정의되지 않음');
+1937:                         }
+1938:                     }, 200);
+1939:                 }
+1940:                 
+1941:             } catch (error) {
+1942:                 console.error('탭 전환 중 오류 발생:', error);
+1943:             }
+1944:         }
+1945:         
+1946:         // 페이지 로드 완료 후 탭 이벤트 리스너 추가
+1947:         document.addEventListener('DOMContentLoaded', function() {
+1948:             console.log('=== DOM 로드 완료 - 탭 시스템 초기화 ===');
+1949:             
+1950:             // 탭 버튼들 상태 확인
+--------------------------------------------------
+--- MATCH: contact-history at line 1967 ---
+1962:             function handleTabClick(e) {
+1963:                 console.log('=== 탭 버튼 클릭 감지 ===');
+1964:                 console.log('클릭된 버튼:', this.textContent.trim());
+1965:                 console.log('버튼 ID:', this.id);
+1966:                 
+1967:                 const tabIds = ['company-info', 'ai-search', 'contact-history'];
+1968:                 const buttonTexts = ['기업 신상 조회', 'AI 서치', '접촉이력 조회'];
+1969:                 
+1970:                 // 버튼 텍스트로 탭 ID 찾기
+1971:                 let targetTabId = null;
+1972:                 const buttonText = this.textContent.trim();
+1973:                 
+1974:                 if (buttonText.includes('기업 신상') || buttonText.includes('기업신상')) {
+1975:                     targetTabId = 'company-info';
+1976:                 } else if (buttonText.includes('AI') || buttonText.includes('서치')) {
+1977:                     targetTabId = 'ai-search';
+1978:                 } else if (buttonText.includes('접촉이력') || buttonText.includes('이력')) {
+1979:                     targetTabId = 'contact-history';
+1980:                 }
+1981:                 
+1982:                 console.log('결정된 탭 ID:', targetTabId);
+1983:                 
+1984:                 if (targetTabId) {
+1985:                     switchTab(targetTabId, e);
+1986:                 } else {
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1968 ---
+1963:                 console.log('=== 탭 버튼 클릭 감지 ===');
+1964:                 console.log('클릭된 버튼:', this.textContent.trim());
+1965:                 console.log('버튼 ID:', this.id);
+1966:                 
+1967:                 const tabIds = ['company-info', 'ai-search', 'contact-history'];
+1968:                 const buttonTexts = ['기업 신상 조회', 'AI 서치', '접촉이력 조회'];
+1969:                 
+1970:                 // 버튼 텍스트로 탭 ID 찾기
+1971:                 let targetTabId = null;
+1972:                 const buttonText = this.textContent.trim();
+1973:                 
+1974:                 if (buttonText.includes('기업 신상') || buttonText.includes('기업신상')) {
+1975:                     targetTabId = 'company-info';
+1976:                 } else if (buttonText.includes('AI') || buttonText.includes('서치')) {
+1977:                     targetTabId = 'ai-search';
+1978:                 } else if (buttonText.includes('접촉이력') || buttonText.includes('이력')) {
+1979:                     targetTabId = 'contact-history';
+1980:                 }
+1981:                 
+1982:                 console.log('결정된 탭 ID:', targetTabId);
+1983:                 
+1984:                 if (targetTabId) {
+1985:                     switchTab(targetTabId, e);
+1986:                 } else {
+1987:                     console.error('탭 ID를 결정할 수 없음:', buttonText);
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 1978 ---
+1973:                 
+1974:                 if (buttonText.includes('기업 신상') || buttonText.includes('기업신상')) {
+1975:                     targetTabId = 'company-info';
+1976:                 } else if (buttonText.includes('AI') || buttonText.includes('서치')) {
+1977:                     targetTabId = 'ai-search';
+1978:                 } else if (buttonText.includes('접촉이력') || buttonText.includes('이력')) {
+1979:                     targetTabId = 'contact-history';
+1980:                 }
+1981:                 
+1982:                 console.log('결정된 탭 ID:', targetTabId);
+1983:                 
+1984:                 if (targetTabId) {
+1985:                     switchTab(targetTabId, e);
+1986:                 } else {
+1987:                     console.error('탭 ID를 결정할 수 없음:', buttonText);
+1988:                 }
+1989:             }
+1990:             
+1991:             console.log('=== 탭 시스템 초기화 완료 ===');
+1992:         });
+1993:         
+1994:         // 종합 분석 변수
+1995:         let analysisCompleted = false;
+1996:         let questionCount = 0;
+1997:         const maxQuestions = 5;
+--------------------------------------------------
+--- MATCH: contact-history at line 1979 ---
+1974:                 if (buttonText.includes('기업 신상') || buttonText.includes('기업신상')) {
+1975:                     targetTabId = 'company-info';
+1976:                 } else if (buttonText.includes('AI') || buttonText.includes('서치')) {
+1977:                     targetTabId = 'ai-search';
+1978:                 } else if (buttonText.includes('접촉이력') || buttonText.includes('이력')) {
+1979:                     targetTabId = 'contact-history';
+1980:                 }
+1981:                 
+1982:                 console.log('결정된 탭 ID:', targetTabId);
+1983:                 
+1984:                 if (targetTabId) {
+1985:                     switchTab(targetTabId, e);
+1986:                 } else {
+1987:                     console.error('탭 ID를 결정할 수 없음:', buttonText);
+1988:                 }
+1989:             }
+1990:             
+1991:             console.log('=== 탭 시스템 초기화 완료 ===');
+1992:         });
+1993:         
+1994:         // 종합 분석 변수
+1995:         let analysisCompleted = false;
+1996:         let questionCount = 0;
+1997:         const maxQuestions = 5;
+1998:         
+--------------------------------------------------
+--- MATCH: 대표자 at line 2101 ---
+2096: 다음 기업에 대해 전문적이고 실용적인 경영 컨설팅 분석을 수행해주세요.
+2097: 
+2098: ■ 기업 기본 정보
+2099: - 기업명: ${companyData.companyName}
+2100: - 사업자번호: ${companyData.bizNo}
+2101: - 대표자: ${companyData.ceoName}
+2102: - 업종: ${companyData.industry}
+2103: - 설립일: ${companyData.establishDate}
+2104: - 기업규모: ${companyData.companySize}
+2105: - 신용등급: ${companyData.listingStatus}
+2106: - 주소: ${companyData.address}
+2107: - GFC거래여부: ${companyData.gfcStatus}
+2108: 
+2109: ■ 재무 현황 (최근 3개년)
+2110: ${financialData.map(item => `${item.item}: 2024년 ${item.year1}원, 2023년 ${item.year2}원, 2022년 ${item.year3}원`).join('\n')}
+2111: 
+2112: ■ 주주 구성 현황
+2113: ${shareholderData.length > 0 ? shareholderData.map(sh => `- ${sh.name}: ${sh.percentage} (${sh.shares}, 가치: ${sh.value})`).join('\n') : '주주 정보 없음'}
+2114: 
+2115: ■ 비상장주식 평가 (원고율 기준)
+2116: - 저가차 평가가치: 22,510,097,000원
+2117: - 수정가치 평가가치: 22,586,066,667원 
+2118: - 1주당 평가액: 9,197원 (평가일자 기준 491,900주)
+2119: - 평가방법: 원고율 기준 수익가치 및 순자산가치 종합 평가
+2120: - 주식가치 변동요인: 재무성과, 수익성, 성장성 반영
+--------------------------------------------------
+--- MATCH: 대표자 at line 2141 ---
+2136: - 소액주주 보호 및 주주권 행사 방안
+2137: - 경영진과 주주간 이해관계 조정 방안
+2138: - 적대적 M&A 방어 전략 수립
+2139: - 이사회 구성 및 의사결정구조 개선방안
+2140: 
+2141: **3. ? 대표자 및 경영진 핵심과제**
+2142: - **가업승계 전략**: 세대교체 로드맵 및 세무최적화
+2143: - **배당정책**: 주주환원 정책 수립 및 배당성향 결정
+2144: - **퇴직급여**: 대표자 및 임원 퇴직금 최적화 방안
+2145: - **보상체계**: 성과연동 임원보수 설계
+2146: - **승계준비**: 후계자 육성 및 경영권 이전 계획
+2147: - **세무전략**: 증여/상속세 절세 방안
+2148: 
+2149: **4. ? 업종특화 경쟁력 및 성장전략**
+2150: - ${companyData.industry} 업종 특성 및 시장환경 분석
+2151: - 경쟁사 대비 차별화 요소 및 경쟁우위 발굴
+2152: - 디지털 전환 및 기술혁신 적용방안
+2153: - 신시장 진출 및 사업다각화 기회
+2154: - 고객세분화 및 마케팅 전략 개선
+2155: - 공급망 최적화 및 운영효율성 제고
+2156: 
+2157: **5. ?? 리스크 관리 및 위기대응**
+2158: - **재무리스크**: 유동성, 신용, 시장리스크 관리
+2159: - **영업리스크**: 매출집중, 고객이탈, 공급망 리스크
+2160: - **규제리스크**: 법규준수, 환경규제, 세무리스크
+--------------------------------------------------
+--- MATCH: 대표자 at line 2144 ---
+2139: - 이사회 구성 및 의사결정구조 개선방안
+2140: 
+2141: **3. ? 대표자 및 경영진 핵심과제**
+2142: - **가업승계 전략**: 세대교체 로드맵 및 세무최적화
+2143: - **배당정책**: 주주환원 정책 수립 및 배당성향 결정
+2144: - **퇴직급여**: 대표자 및 임원 퇴직금 최적화 방안
+2145: - **보상체계**: 성과연동 임원보수 설계
+2146: - **승계준비**: 후계자 육성 및 경영권 이전 계획
+2147: - **세무전략**: 증여/상속세 절세 방안
+2148: 
+2149: **4. ? 업종특화 경쟁력 및 성장전략**
+2150: - ${companyData.industry} 업종 특성 및 시장환경 분석
+2151: - 경쟁사 대비 차별화 요소 및 경쟁우위 발굴
+2152: - 디지털 전환 및 기술혁신 적용방안
+2153: - 신시장 진출 및 사업다각화 기회
+2154: - 고객세분화 및 마케팅 전략 개선
+2155: - 공급망 최적화 및 운영효율성 제고
+2156: 
+2157: **5. ?? 리스크 관리 및 위기대응**
+2158: - **재무리스크**: 유동성, 신용, 시장리스크 관리
+2159: - **영업리스크**: 매출집중, 고객이탈, 공급망 리스크
+2160: - **규제리스크**: 법규준수, 환경규제, 세무리스크
+2161: - **경영리스크**: 핵심인력 의존도, 정보보안
+2162: - ESG 경영 도입 및 지속가능성 제고
+2163: - 비상계획 수립 및 위기관리 매뉴얼
+--------------------------------------------------
+--- MATCH: 대표자 at line 2530 ---
+2525:             if (event.target === modal) {
+2526:                 closePioneeringModal();
+2527:             }
+2528:         }
+2529:         
+2530:         // 대표자명 수정 함수
+2531:         function editCeoName() {
+2532:             const ceoNameElement = document.getElementById('ceo-name');
+2533:             const currentName = ceoNameElement.textContent;
+2534:             
+2535:             // 마스킹된 이름인지 확인 (예: 서*원, 서**, 등)
+2536:             if (currentName.includes('*')) {
+2537:                 // AI를 통해 실제 이름 검색
+2538:                 searchRealCeoName(currentBizNo, currentCompanyName);
+2539:             } else {
+2540:                 // 일반 수정
+2541:                 const newName = prompt('새로운 대표자명을 입력하세요:', currentName);
+2542:                 if (newName && newName.trim()) {
+2543:                     updateCeoName(newName.trim());
+2544:                 }
+2545:             }
+2546:         }
+2547:         
+2548:         // AI를 통한 실제 대표자명 검색
+2549:         function searchRealCeoName(bizNo, companyName) {
+--------------------------------------------------
+--- MATCH: 대표자 at line 2541 ---
+2536:             if (currentName.includes('*')) {
+2537:                 // AI를 통해 실제 이름 검색
+2538:                 searchRealCeoName(currentBizNo, currentCompanyName);
+2539:             } else {
+2540:                 // 일반 수정
+2541:                 const newName = prompt('새로운 대표자명을 입력하세요:', currentName);
+2542:                 if (newName && newName.trim()) {
+2543:                     updateCeoName(newName.trim());
+2544:                 }
+2545:             }
+2546:         }
+2547:         
+2548:         // AI를 통한 실제 대표자명 검색
+2549:         function searchRealCeoName(bizNo, companyName) {
+2550:             const resultElement = document.getElementById('ceo-name');
+2551:             resultElement.textContent = '검색 중...';
+2552:             
+2553:             // AI API 호출
+2554:             fetch('/api/ai-search-ceo', {
+2555:                 method: 'POST',
+2556:                 headers: {
+2557:                     'Content-Type': 'application/json',
+2558:                 },
+2559:                 body: JSON.stringify({
+2560:                     biz_no: bizNo,
+--------------------------------------------------
+--- MATCH: 대표자 at line 2548 ---
+2543:                     updateCeoName(newName.trim());
+2544:                 }
+2545:             }
+2546:         }
+2547:         
+2548:         // AI를 통한 실제 대표자명 검색
+2549:         function searchRealCeoName(bizNo, companyName) {
+2550:             const resultElement = document.getElementById('ceo-name');
+2551:             resultElement.textContent = '검색 중...';
+2552:             
+2553:             // AI API 호출
+2554:             fetch('/api/ai-search-ceo', {
+2555:                 method: 'POST',
+2556:                 headers: {
+2557:                     'Content-Type': 'application/json',
+2558:                 },
+2559:                 body: JSON.stringify({
+2560:                     biz_no: bizNo,
+2561:                     company_name: companyName
+2562:                 })
+2563:             })
+2564:             .then(response => response.json())
+2565:             .then(data => {
+2566:                 if (data.success && data.ceo_name) {
+2567:                     updateCeoName(data.ceo_name);
+--------------------------------------------------
+--- MATCH: 대표자 at line 2570 ---
+2565:             .then(data => {
+2566:                 if (data.success && data.ceo_name) {
+2567:                     updateCeoName(data.ceo_name);
+2568:                 } else {
+2569:                     resultElement.textContent = '검색 실패';
+2570:                     alert('대표자명을 찾을 수 없습니다. 직접 입력해주세요.');
+2571:                     const newName = prompt('대표자명을 입력하세요:');
+2572:                     if (newName && newName.trim()) {
+2573:                         updateCeoName(newName.trim());
+2574:                     } else {
+2575:                         resultElement.textContent = currentName; // 원래 값으로 복구
+2576:                     }
+2577:                 }
+2578:             })
+2579:             .catch(error => {
+2580:                 console.error('Error:', error);
+2581:                 resultElement.textContent = '검색 오류';
+2582:                 alert('검색 중 오류가 발생했습니다.');
+2583:             });
+2584:         }
+2585:         
+2586:         // 대표자명 업데이트
+2587:         function updateCeoName(newName) {
+2588:             document.getElementById('ceo-name').textContent = newName;
+2589:             document.getElementById('ceo-name-display').textContent = newName;
+--------------------------------------------------
+--- MATCH: 대표자 at line 2571 ---
+2566:                 if (data.success && data.ceo_name) {
+2567:                     updateCeoName(data.ceo_name);
+2568:                 } else {
+2569:                     resultElement.textContent = '검색 실패';
+2570:                     alert('대표자명을 찾을 수 없습니다. 직접 입력해주세요.');
+2571:                     const newName = prompt('대표자명을 입력하세요:');
+2572:                     if (newName && newName.trim()) {
+2573:                         updateCeoName(newName.trim());
+2574:                     } else {
+2575:                         resultElement.textContent = currentName; // 원래 값으로 복구
+2576:                     }
+2577:                 }
+2578:             })
+2579:             .catch(error => {
+2580:                 console.error('Error:', error);
+2581:                 resultElement.textContent = '검색 오류';
+2582:                 alert('검색 중 오류가 발생했습니다.');
+2583:             });
+2584:         }
+2585:         
+2586:         // 대표자명 업데이트
+2587:         function updateCeoName(newName) {
+2588:             document.getElementById('ceo-name').textContent = newName;
+2589:             document.getElementById('ceo-name-display').textContent = newName;
+2590:             
+--------------------------------------------------
+--- MATCH: 대표자 at line 2586 ---
+2581:                 resultElement.textContent = '검색 오류';
+2582:                 alert('검색 중 오류가 발생했습니다.');
+2583:             });
+2584:         }
+2585:         
+2586:         // 대표자명 업데이트
+2587:         function updateCeoName(newName) {
+2588:             document.getElementById('ceo-name').textContent = newName;
+2589:             document.getElementById('ceo-name-display').textContent = newName;
+2590:             
+2591:             // 서버에 업데이트 요청
+2592:             fetch('/api/update-ceo-name', {
+2593:                 method: 'POST',
+2594:                 headers: {
+2595:                     'Content-Type': 'application/json',
+2596:                 },
+2597:                 body: JSON.stringify({
+2598:                     biz_no: currentBizNo,
+2599:                     new_ceo_name: newName
+2600:                 })
+2601:             })
+2602:             .then(response => response.json())
+2603:             .then(data => {
+2604:                 if (data.success) {
+2605:                     console.log('대표자명이 성공적으로 업데이트되었습니다.');
+--------------------------------------------------
+--- MATCH: 대표자 at line 2605 ---
+2600:                 })
+2601:             })
+2602:             .then(response => response.json())
+2603:             .then(data => {
+2604:                 if (data.success) {
+2605:                     console.log('대표자명이 성공적으로 업데이트되었습니다.');
+2606:                 } else {
+2607:                     console.error('업데이트 실패:', data.message);
+2608:                 }
+2609:             })
+2610:             .catch(error => {
+2611:                 console.error('Error:', error);
+2612:             });
+2613:         }
+2614:         
+2615:         // AI 검색 함수
+2616:         function performAISearch() {
+2617:             const query = document.getElementById('ai-query').value.trim();
+2618:             if (!query) {
+2619:                 alert('검색어를 입력해주세요.');
+2620:                 return;
+2621:             }
+2622:             
+2623:             const resultContent = document.getElementById('ai-result-content');
+2624:             const startTime = new Date();
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2704 ---
+2699:         // AI 추천 레퍼토리 함수
+2700:         function getAIRecommendation() {
+2701:             alert('AI 추천 레퍼토리 기능은 개발 중입니다.');
+2702:         }
+2703: 
+2704:         // 접촉이력 관리 함수들
+2705:         function openContactModal() {
+2706:             // 접촉이력 등록 모달 열기
+2707:             const currentDate = new Date();
+2708:             const formattedDate = currentDate.toISOString().slice(0, 16);
+2709:             
+2710:             const contactData = {
+2711:                 datetime: prompt('접촉 날짜와 시간을 입력하세요 (YYYY-MM-DD HH:MM):', formattedDate.replace('T', ' ')),
+2712:                 type: prompt('접촉 유형을 입력하세요 (전화/방문/이메일/회의):', '전화'),
+2713:                 person: prompt('접촉 대상자를 입력하세요:', ''),
+2714:                 memo: prompt('메모를 입력하세요:', '')
+2715:             };
+2716:             
+2717:             if (contactData.datetime && contactData.type) {
+2718:                 registerContactHistory(contactData);
+2719:             }
+2720:         }
+2721:         
+2722:         function registerContactHistory(contactData = null) {
+2723:             if (!contactData) {
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2706 ---
+2701:             alert('AI 추천 레퍼토리 기능은 개발 중입니다.');
+2702:         }
+2703: 
+2704:         // 접촉이력 관리 함수들
+2705:         function openContactModal() {
+2706:             // 접촉이력 등록 모달 열기
+2707:             const currentDate = new Date();
+2708:             const formattedDate = currentDate.toISOString().slice(0, 16);
+2709:             
+2710:             const contactData = {
+2711:                 datetime: prompt('접촉 날짜와 시간을 입력하세요 (YYYY-MM-DD HH:MM):', formattedDate.replace('T', ' ')),
+2712:                 type: prompt('접촉 유형을 입력하세요 (전화/방문/이메일/회의):', '전화'),
+2713:                 person: prompt('접촉 대상자를 입력하세요:', ''),
+2714:                 memo: prompt('메모를 입력하세요:', '')
+2715:             };
+2716:             
+2717:             if (contactData.datetime && contactData.type) {
+2718:                 registerContactHistory(contactData);
+2719:             }
+2720:         }
+2721:         
+2722:         function registerContactHistory(contactData = null) {
+2723:             if (!contactData) {
+2724:                 contactData = {
+2725:                     datetime: document.getElementById('contactDateTime')?.value,
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2755 ---
+2750:                 body: JSON.stringify(requestData)
+2751:             })
+2752:             .then(response => response.json())
+2753:             .then(data => {
+2754:                 if (data.success) {
+2755:                     alert('접촉이력이 등록되었습니다.');
+2756:                     loadContactHistory(); // 목록 새로고침
+2757:                 } else {
+2758:                     alert('등록 실패: ' + data.message);
+2759:                 }
+2760:             })
+2761:             .catch(error => {
+2762:                 console.error('접촉이력 등록 오류:', error);
+2763:                 alert('등록 중 오류가 발생했습니다.');
+2764:             });
+2765:         }
+2766:         
+2767:         function searchContactHistory() {
+2768:             // 접촉이력 검색
+2769:             loadContactHistory();
+2770:         }
+2771:         
+2772:         function resetContactFilter() {
+2773:             // 검색 필터 초기화
+2774:             document.getElementById('contact-start-date').value = '';
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2762 ---
+2757:                 } else {
+2758:                     alert('등록 실패: ' + data.message);
+2759:                 }
+2760:             })
+2761:             .catch(error => {
+2762:                 console.error('접촉이력 등록 오류:', error);
+2763:                 alert('등록 중 오류가 발생했습니다.');
+2764:             });
+2765:         }
+2766:         
+2767:         function searchContactHistory() {
+2768:             // 접촉이력 검색
+2769:             loadContactHistory();
+2770:         }
+2771:         
+2772:         function resetContactFilter() {
+2773:             // 검색 필터 초기화
+2774:             document.getElementById('contact-start-date').value = '';
+2775:             document.getElementById('contact-end-date').value = '';
+2776:             document.getElementById('contact-search').value = '';
+2777:             loadContactHistory();
+2778:         }
+2779:         
+2780:         function loadContactHistory() {
+2781:             const tableBody = document.getElementById('contactHistoryTable');
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2768 ---
+2763:                 alert('등록 중 오류가 발생했습니다.');
+2764:             });
+2765:         }
+2766:         
+2767:         function searchContactHistory() {
+2768:             // 접촉이력 검색
+2769:             loadContactHistory();
+2770:         }
+2771:         
+2772:         function resetContactFilter() {
+2773:             // 검색 필터 초기화
+2774:             document.getElementById('contact-start-date').value = '';
+2775:             document.getElementById('contact-end-date').value = '';
+2776:             document.getElementById('contact-search').value = '';
+2777:             loadContactHistory();
+2778:         }
+2779:         
+2780:         function loadContactHistory() {
+2781:             const tableBody = document.getElementById('contactHistoryTable');
+2782:             tableBody.innerHTML = '<tr><td colspan="8" style="padding: 20px; text-align: center; color: #6c757d;">접촉이력을 불러오는 중...</td></tr>';
+2783:             
+2784:             // API 호출로 접촉이력 데이터 로드
+2785:             fetch(`/api/contact_history?biz_no=${currentBizNo}`)
+2786:             .then(response => response.json())
+2787:             .then(data => {
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2782 ---
+2777:             loadContactHistory();
+2778:         }
+2779:         
+2780:         function loadContactHistory() {
+2781:             const tableBody = document.getElementById('contactHistoryTable');
+2782:             tableBody.innerHTML = '<tr><td colspan="8" style="padding: 20px; text-align: center; color: #6c757d;">접촉이력을 불러오는 중...</td></tr>';
+2783:             
+2784:             // API 호출로 접촉이력 데이터 로드
+2785:             fetch(`/api/contact_history?biz_no=${currentBizNo}`)
+2786:             .then(response => response.json())
+2787:             .then(data => {
+2788:                 if (data.success && data.histories && data.histories.length > 0) {
+2789:                     displayContactHistory(data.histories);
+2790:                 } else {
+2791:                     tableBody.innerHTML = '<tr><td colspan="8" style="padding: 40px; text-align: center; color: #6c757d;">접촉이력이 없습니다.</td></tr>';
+2792:                 }
+2793:             })
+2794:             .catch(error => {
+2795:                 console.error('Error loading contact history:', error);
+2796:                 tableBody.innerHTML = '<tr><td colspan="8" style="padding: 20px; text-align: center; color: #dc3545;">접촉이력 로드 중 오류가 발생했습니다.</td></tr>';
+2797:             });
+2798:         }
+2799:         
+2800:         function displayContactHistory(histories) {
+2801:             const tableBody = document.getElementById('contactHistoryTable');
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2784 ---
+2779:         
+2780:         function loadContactHistory() {
+2781:             const tableBody = document.getElementById('contactHistoryTable');
+2782:             tableBody.innerHTML = '<tr><td colspan="8" style="padding: 20px; text-align: center; color: #6c757d;">접촉이력을 불러오는 중...</td></tr>';
+2783:             
+2784:             // API 호출로 접촉이력 데이터 로드
+2785:             fetch(`/api/contact_history?biz_no=${currentBizNo}`)
+2786:             .then(response => response.json())
+2787:             .then(data => {
+2788:                 if (data.success && data.histories && data.histories.length > 0) {
+2789:                     displayContactHistory(data.histories);
+2790:                 } else {
+2791:                     tableBody.innerHTML = '<tr><td colspan="8" style="padding: 40px; text-align: center; color: #6c757d;">접촉이력이 없습니다.</td></tr>';
+2792:                 }
+2793:             })
+2794:             .catch(error => {
+2795:                 console.error('Error loading contact history:', error);
+2796:                 tableBody.innerHTML = '<tr><td colspan="8" style="padding: 20px; text-align: center; color: #dc3545;">접촉이력 로드 중 오류가 발생했습니다.</td></tr>';
+2797:             });
+2798:         }
+2799:         
+2800:         function displayContactHistory(histories) {
+2801:             const tableBody = document.getElementById('contactHistoryTable');
+2802:             let html = '';
+2803:             
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2791 ---
+2786:             .then(response => response.json())
+2787:             .then(data => {
+2788:                 if (data.success && data.histories && data.histories.length > 0) {
+2789:                     displayContactHistory(data.histories);
+2790:                 } else {
+2791:                     tableBody.innerHTML = '<tr><td colspan="8" style="padding: 40px; text-align: center; color: #6c757d;">접촉이력이 없습니다.</td></tr>';
+2792:                 }
+2793:             })
+2794:             .catch(error => {
+2795:                 console.error('Error loading contact history:', error);
+2796:                 tableBody.innerHTML = '<tr><td colspan="8" style="padding: 20px; text-align: center; color: #dc3545;">접촉이력 로드 중 오류가 발생했습니다.</td></tr>';
+2797:             });
+2798:         }
+2799:         
+2800:         function displayContactHistory(histories) {
+2801:             const tableBody = document.getElementById('contactHistoryTable');
+2802:             let html = '';
+2803:             
+2804:             histories.forEach((history, index) => {
+2805:                 const bgColor = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
+2806:                 const shortMemo = history.memo ? (history.memo.length > 20 ? history.memo.substring(0, 20) + '...' : history.memo) : '';
+2807:                 
+2808:                 html += `
+2809:                     <tr style="background: ${bgColor}; border-bottom: 1px solid #e9ecef;" onmouseover="this.style.background='#e3f2fd'" onmouseout="this.style.background='${bgColor}'">
+2810:                         <td style="padding: 12px 8px; color: #495057;">${formatDateTime(history.contact_datetime)}</td>
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2796 ---
+2791:                     tableBody.innerHTML = '<tr><td colspan="8" style="padding: 40px; text-align: center; color: #6c757d;">접촉이력이 없습니다.</td></tr>';
+2792:                 }
+2793:             })
+2794:             .catch(error => {
+2795:                 console.error('Error loading contact history:', error);
+2796:                 tableBody.innerHTML = '<tr><td colspan="8" style="padding: 20px; text-align: center; color: #dc3545;">접촉이력 로드 중 오류가 발생했습니다.</td></tr>';
+2797:             });
+2798:         }
+2799:         
+2800:         function displayContactHistory(histories) {
+2801:             const tableBody = document.getElementById('contactHistoryTable');
+2802:             let html = '';
+2803:             
+2804:             histories.forEach((history, index) => {
+2805:                 const bgColor = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
+2806:                 const shortMemo = history.memo ? (history.memo.length > 20 ? history.memo.substring(0, 20) + '...' : history.memo) : '';
+2807:                 
+2808:                 html += `
+2809:                     <tr style="background: ${bgColor}; border-bottom: 1px solid #e9ecef;" onmouseover="this.style.background='#e3f2fd'" onmouseout="this.style.background='${bgColor}'">
+2810:                         <td style="padding: 12px 8px; color: #495057;">${formatDateTime(history.contact_datetime)}</td>
+2811:                         <td style="padding: 12px 8px; color: #6c757d; font-family: 'Courier New', monospace;">${history.biz_no || ''}</td>
+2812:                         <td style="padding: 12px 8px; color: #495057; font-weight: 500;">${history.company_name || ''}</td>
+2813:                         <td style="padding: 12px 8px; color: #6c757d;">${history.contact_type || ''}</td>
+2814:                         <td style="padding: 12px 8px; color: #6c757d;">${history.contact_person || ''}</td>
+2815:                         <td style="padding: 12px 8px; color: #6c757d; position: relative; cursor: pointer;" 
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2934 ---
+2929:                 hour: '2-digit',
+2930:                 minute: '2-digit'
+2931:             });
+2932:         }
+2933:         
+2934:         // 접촉이력 수정 함수
+2935:         function editContactHistory(historyId) {
+2936:             // 기존 접촉이력 데이터를 가져와서 모달에 채움
+2937:             fetch(`/api/contact_history?contact_id=${historyId}`)
+2938:             .then(response => response.json())
+2939:             .then(data => {
+2940:                 if (data.success && data.histories && data.histories.length > 0) {
+2941:                     const history = data.histories[0];
+2942:                     openContactModal(history);
+2943:                 } else {
+2944:                     alert('접촉이력 데이터를 불러올 수 없습니다.');
+2945:                 }
+2946:             })
+2947:             .catch(error => {
+2948:                 console.error('Error loading contact history:', error);
+2949:                 alert('접촉이력 로드 중 오류가 발생했습니다.');
+2950:             });
+2951:         }
+2952: 
+2953:         // 접촉이력 모달 열기 함수
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2936 ---
+2931:             });
+2932:         }
+2933:         
+2934:         // 접촉이력 수정 함수
+2935:         function editContactHistory(historyId) {
+2936:             // 기존 접촉이력 데이터를 가져와서 모달에 채움
+2937:             fetch(`/api/contact_history?contact_id=${historyId}`)
+2938:             .then(response => response.json())
+2939:             .then(data => {
+2940:                 if (data.success && data.histories && data.histories.length > 0) {
+2941:                     const history = data.histories[0];
+2942:                     openContactModal(history);
+2943:                 } else {
+2944:                     alert('접촉이력 데이터를 불러올 수 없습니다.');
+2945:                 }
+2946:             })
+2947:             .catch(error => {
+2948:                 console.error('Error loading contact history:', error);
+2949:                 alert('접촉이력 로드 중 오류가 발생했습니다.');
+2950:             });
+2951:         }
+2952: 
+2953:         // 접촉이력 모달 열기 함수
+2954:         function openContactModal(historyData = null) {
+2955:             const modal = document.getElementById('contactHistoryModal');
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2944 ---
+2939:             .then(data => {
+2940:                 if (data.success && data.histories && data.histories.length > 0) {
+2941:                     const history = data.histories[0];
+2942:                     openContactModal(history);
+2943:                 } else {
+2944:                     alert('접촉이력 데이터를 불러올 수 없습니다.');
+2945:                 }
+2946:             })
+2947:             .catch(error => {
+2948:                 console.error('Error loading contact history:', error);
+2949:                 alert('접촉이력 로드 중 오류가 발생했습니다.');
+2950:             });
+2951:         }
+2952: 
+2953:         // 접촉이력 모달 열기 함수
+2954:         function openContactModal(historyData = null) {
+2955:             const modal = document.getElementById('contactHistoryModal');
+2956:             const modalTitle = document.getElementById('contactModalTitle');
+2957:             
+2958:             if (historyData) {
+2959:                 // 수정 모드
+2960:                 modalTitle.textContent = '접촉이력 수정';
+2961:                 document.getElementById('contactHistoryId').value = historyData.id;
+2962:                 
+2963:                 // 날짜 형식 변환 (YYYY-MM-DD HH:MM:SS -> YYYY-MM-DDTHH:MM)
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2949 ---
+2944:                     alert('접촉이력 데이터를 불러올 수 없습니다.');
+2945:                 }
+2946:             })
+2947:             .catch(error => {
+2948:                 console.error('Error loading contact history:', error);
+2949:                 alert('접촉이력 로드 중 오류가 발생했습니다.');
+2950:             });
+2951:         }
+2952: 
+2953:         // 접촉이력 모달 열기 함수
+2954:         function openContactModal(historyData = null) {
+2955:             const modal = document.getElementById('contactHistoryModal');
+2956:             const modalTitle = document.getElementById('contactModalTitle');
+2957:             
+2958:             if (historyData) {
+2959:                 // 수정 모드
+2960:                 modalTitle.textContent = '접촉이력 수정';
+2961:                 document.getElementById('contactHistoryId').value = historyData.id;
+2962:                 
+2963:                 // 날짜 형식 변환 (YYYY-MM-DD HH:MM:SS -> YYYY-MM-DDTHH:MM)
+2964:                 if (historyData.contact_datetime) {
+2965:                     const dateStr = historyData.contact_datetime.replace(' ', 'T').substring(0, 16);
+2966:                     document.getElementById('contactDatetime').value = dateStr;
+2967:                 }
+2968:                 
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2953 ---
+2948:                 console.error('Error loading contact history:', error);
+2949:                 alert('접촉이력 로드 중 오류가 발생했습니다.');
+2950:             });
+2951:         }
+2952: 
+2953:         // 접촉이력 모달 열기 함수
+2954:         function openContactModal(historyData = null) {
+2955:             const modal = document.getElementById('contactHistoryModal');
+2956:             const modalTitle = document.getElementById('contactModalTitle');
+2957:             
+2958:             if (historyData) {
+2959:                 // 수정 모드
+2960:                 modalTitle.textContent = '접촉이력 수정';
+2961:                 document.getElementById('contactHistoryId').value = historyData.id;
+2962:                 
+2963:                 // 날짜 형식 변환 (YYYY-MM-DD HH:MM:SS -> YYYY-MM-DDTHH:MM)
+2964:                 if (historyData.contact_datetime) {
+2965:                     const dateStr = historyData.contact_datetime.replace(' ', 'T').substring(0, 16);
+2966:                     document.getElementById('contactDatetime').value = dateStr;
+2967:                 }
+2968:                 
+2969:                 document.getElementById('contactType').value = historyData.contact_type || '';
+2970:                 document.getElementById('contactPerson').value = historyData.contact_person || '';
+2971:                 document.getElementById('contactMemo').value = historyData.memo || '';
+2972:             } else {
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2960 ---
+2955:             const modal = document.getElementById('contactHistoryModal');
+2956:             const modalTitle = document.getElementById('contactModalTitle');
+2957:             
+2958:             if (historyData) {
+2959:                 // 수정 모드
+2960:                 modalTitle.textContent = '접촉이력 수정';
+2961:                 document.getElementById('contactHistoryId').value = historyData.id;
+2962:                 
+2963:                 // 날짜 형식 변환 (YYYY-MM-DD HH:MM:SS -> YYYY-MM-DDTHH:MM)
+2964:                 if (historyData.contact_datetime) {
+2965:                     const dateStr = historyData.contact_datetime.replace(' ', 'T').substring(0, 16);
+2966:                     document.getElementById('contactDatetime').value = dateStr;
+2967:                 }
+2968:                 
+2969:                 document.getElementById('contactType').value = historyData.contact_type || '';
+2970:                 document.getElementById('contactPerson').value = historyData.contact_person || '';
+2971:                 document.getElementById('contactMemo').value = historyData.memo || '';
+2972:             } else {
+2973:                 // 등록 모드
+2974:                 modalTitle.textContent = '접촉이력 등록';
+2975:                 document.getElementById('contactHistoryId').value = '';
+2976:                 
+2977:                 // 현재 시간으로 기본값 설정
+2978:                 const now = new Date();
+2979:                 const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2974 ---
+2969:                 document.getElementById('contactType').value = historyData.contact_type || '';
+2970:                 document.getElementById('contactPerson').value = historyData.contact_person || '';
+2971:                 document.getElementById('contactMemo').value = historyData.memo || '';
+2972:             } else {
+2973:                 // 등록 모드
+2974:                 modalTitle.textContent = '접촉이력 등록';
+2975:                 document.getElementById('contactHistoryId').value = '';
+2976:                 
+2977:                 // 현재 시간으로 기본값 설정
+2978:                 const now = new Date();
+2979:                 const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+2980:                     .toISOString().substring(0, 16);
+2981:                 document.getElementById('contactDatetime').value = localDateTime;
+2982:                 
+2983:                 document.getElementById('contactType').value = '';
+2984:                 document.getElementById('contactPerson').value = '';
+2985:                 document.getElementById('contactMemo').value = '';
+2986:             }
+2987:             
+2988:             modal.style.display = 'block';
+2989:         }
+2990: 
+2991:         // 접촉이력 모달 닫기 함수
+2992:         function closeContactModal() {
+2993:             const modal = document.getElementById('contactHistoryModal');
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2991 ---
+2986:             }
+2987:             
+2988:             modal.style.display = 'block';
+2989:         }
+2990: 
+2991:         // 접촉이력 모달 닫기 함수
+2992:         function closeContactModal() {
+2993:             const modal = document.getElementById('contactHistoryModal');
+2994:             modal.style.display = 'none';
+2995:         }
+2996: 
+2997:         // 접촉이력 등록 함수 (접촉이력 탭에서 호출)
+2998:         function addNewContactHistory() {
+2999:             openContactModal();
+3000:         }
+3001:         
+3002:         // 접촉이력 삭제 함수
+3003:         function deleteContactHistory(historyId) {
+3004:             if (confirm('이 접촉이력을 삭제하시겠습니까?')) {
+3005:                 fetch(`/api/contact_history/${historyId}`, {
+3006:                     method: 'DELETE',
+3007:                     headers: {
+3008:                         'Content-Type': 'application/json',
+3009:                     }
+3010:                 })
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 2997 ---
+2992:         function closeContactModal() {
+2993:             const modal = document.getElementById('contactHistoryModal');
+2994:             modal.style.display = 'none';
+2995:         }
+2996: 
+2997:         // 접촉이력 등록 함수 (접촉이력 탭에서 호출)
+2998:         function addNewContactHistory() {
+2999:             openContactModal();
+3000:         }
+3001:         
+3002:         // 접촉이력 삭제 함수
+3003:         function deleteContactHistory(historyId) {
+3004:             if (confirm('이 접촉이력을 삭제하시겠습니까?')) {
+3005:                 fetch(`/api/contact_history/${historyId}`, {
+3006:                     method: 'DELETE',
+3007:                     headers: {
+3008:                         'Content-Type': 'application/json',
+3009:                     }
+3010:                 })
+3011:                 .then(response => response.json())
+3012:                 .then(data => {
+3013:                     if (data.success) {
+3014:                         alert('접촉이력이 성공적으로 삭제되었습니다.');
+3015:                         loadContactHistory(); // 목록 새로고침
+3016:                     } else {
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 3002 ---
+2997:         // 접촉이력 등록 함수 (접촉이력 탭에서 호출)
+2998:         function addNewContactHistory() {
+2999:             openContactModal();
+3000:         }
+3001:         
+3002:         // 접촉이력 삭제 함수
+3003:         function deleteContactHistory(historyId) {
+3004:             if (confirm('이 접촉이력을 삭제하시겠습니까?')) {
+3005:                 fetch(`/api/contact_history/${historyId}`, {
+3006:                     method: 'DELETE',
+3007:                     headers: {
+3008:                         'Content-Type': 'application/json',
+3009:                     }
+3010:                 })
+3011:                 .then(response => response.json())
+3012:                 .then(data => {
+3013:                     if (data.success) {
+3014:                         alert('접촉이력이 성공적으로 삭제되었습니다.');
+3015:                         loadContactHistory(); // 목록 새로고침
+3016:                     } else {
+3017:                         alert('삭제 실패: ' + (data.message || '알 수 없는 오류'));
+3018:                     }
+3019:                 })
+3020:                 .catch(error => {
+3021:                     console.error('Error:', error);
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 3004 ---
+2999:             openContactModal();
+3000:         }
+3001:         
+3002:         // 접촉이력 삭제 함수
+3003:         function deleteContactHistory(historyId) {
+3004:             if (confirm('이 접촉이력을 삭제하시겠습니까?')) {
+3005:                 fetch(`/api/contact_history/${historyId}`, {
+3006:                     method: 'DELETE',
+3007:                     headers: {
+3008:                         'Content-Type': 'application/json',
+3009:                     }
+3010:                 })
+3011:                 .then(response => response.json())
+3012:                 .then(data => {
+3013:                     if (data.success) {
+3014:                         alert('접촉이력이 성공적으로 삭제되었습니다.');
+3015:                         loadContactHistory(); // 목록 새로고침
+3016:                     } else {
+3017:                         alert('삭제 실패: ' + (data.message || '알 수 없는 오류'));
+3018:                     }
+3019:                 })
+3020:                 .catch(error => {
+3021:                     console.error('Error:', error);
+3022:                     alert('삭제 중 오류가 발생했습니다.');
+3023:                 });
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 3014 ---
+3009:                     }
+3010:                 })
+3011:                 .then(response => response.json())
+3012:                 .then(data => {
+3013:                     if (data.success) {
+3014:                         alert('접촉이력이 성공적으로 삭제되었습니다.');
+3015:                         loadContactHistory(); // 목록 새로고침
+3016:                     } else {
+3017:                         alert('삭제 실패: ' + (data.message || '알 수 없는 오류'));
+3018:                     }
+3019:                 })
+3020:                 .catch(error => {
+3021:                     console.error('Error:', error);
+3022:                     alert('삭제 중 오류가 발생했습니다.');
+3023:                 });
+3024:             }
+3025:         }
+3026: 
+3027:         // 접촉이력 폼 제출 처리
+3028:         document.addEventListener('DOMContentLoaded', function() {
+3029:             const contactForm = document.getElementById('contactHistoryForm');
+3030:             if (contactForm) {
+3031:                 contactForm.addEventListener('submit', function(e) {
+3032:                     e.preventDefault();
+3033:                     
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 3027 ---
+3022:                     alert('삭제 중 오류가 발생했습니다.');
+3023:                 });
+3024:             }
+3025:         }
+3026: 
+3027:         // 접촉이력 폼 제출 처리
+3028:         document.addEventListener('DOMContentLoaded', function() {
+3029:             const contactForm = document.getElementById('contactHistoryForm');
+3030:             if (contactForm) {
+3031:                 contactForm.addEventListener('submit', function(e) {
+3032:                     e.preventDefault();
+3033:                     
+3034:                     const historyId = document.getElementById('contactHistoryId').value;
+3035:                     const contactDatetime = document.getElementById('contactDatetime').value;
+3036:                     const contactType = document.getElementById('contactType').value;
+3037:                     const contactPerson = document.getElementById('contactPerson').value;
+3038:                     const contactMemo = document.getElementById('contactMemo').value;
+3039:                     
+3040:                     if (!contactDatetime || !contactType) {
+3041:                         alert('접촉일시와 접촉유형은 필수입니다.');
+3042:                         return;
+3043:                     }
+3044:                     
+3045:                     const data = {
+3046:                         biz_no: currentBizNo,
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 3067 ---
+3062:                         body: JSON.stringify(data)
+3063:                     })
+3064:                     .then(response => response.json())
+3065:                     .then(result => {
+3066:                         if (result.success) {
+3067:                             alert(historyId ? '접촉이력이 성공적으로 수정되었습니다.' : '접촉이력이 성공적으로 등록되었습니다.');
+3068:                             closeContactModal();
+3069:                             loadContactHistory(); // 목록 새로고침
+3070:                         } else {
+3071:                             alert('처리 실패: ' + (result.message || '알 수 없는 오류'));
+3072:                         }
+3073:                     })
+3074:                     .catch(error => {
+3075:                         console.error('Error:', error);
+3076:                         alert('처리 중 오류가 발생했습니다.');
+3077:                     });
+3078:                 });
+3079:             }
+3080:         });
+3081: 
+3082:         // 페이지 로드 시 초기화
+3083:         document.addEventListener('DOMContentLoaded', function() {
+3084:             console.log('기업 상세 페이지 로드 완료');
+3085:             
+3086:             // 현재 기업 정보 로그
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 3092 ---
+3087:             console.log('현재 기업:', currentCompanyName, '사업자번호:', currentBizNo);
+3088:             
+3089:             // AI Tip 자동 분석 실행
+3090:             autoAnalyzeCompany();
+3091:             
+3092:             // 접촉이력 탭 활성화 시 데이터 로드를 위한 이벤트 리스너
+3093:             document.querySelector('.tab-button:nth-child(2)').addEventListener('click', function() {
+3094:                 setTimeout(() => {
+3095:                     if (document.getElementById('contact-history').classList.contains('active')) {
+3096:                         loadContactHistory();
+3097:                     }
+3098:                 }, 100);
+3099:             });
+3100:         });
+3101:         
+3102:         // AI 자동 분석 함수
+3103:         function autoAnalyzeCompany() {
+3104:             const tipContent = document.getElementById('ai-tip-content-main');
+3105:             
+3106:             fetch('/api/ai-analysis', {
+3107:                 method: 'POST',
+3108:                 headers: {
+3109:                     'Content-Type': 'application/json',
+3110:                 },
+3111:                 body: JSON.stringify({
+--------------------------------------------------
+--- MATCH: contact-history at line 3095 ---
+3090:             autoAnalyzeCompany();
+3091:             
+3092:             // 접촉이력 탭 활성화 시 데이터 로드를 위한 이벤트 리스너
+3093:             document.querySelector('.tab-button:nth-child(2)').addEventListener('click', function() {
+3094:                 setTimeout(() => {
+3095:                     if (document.getElementById('contact-history').classList.contains('active')) {
+3096:                         loadContactHistory();
+3097:                     }
+3098:                 }, 100);
+3099:             });
+3100:         });
+3101:         
+3102:         // AI 자동 분석 함수
+3103:         function autoAnalyzeCompany() {
+3104:             const tipContent = document.getElementById('ai-tip-content-main');
+3105:             
+3106:             fetch('/api/ai-analysis', {
+3107:                 method: 'POST',
+3108:                 headers: {
+3109:                     'Content-Type': 'application/json',
+3110:                 },
+3111:                 body: JSON.stringify({
+3112:                     query: `${currentCompanyName}의 재무상태, 투자가치, 리스크 요인을 종합적으로 분석해주세요. 기업의 강점과 약점, 향후 전망에 대해서도 설명해주세요.`,
+3113:                     biz_no: currentBizNo,
+3114:                     company_name: currentCompanyName
+--------------------------------------------------
+--- MATCH: contact-history at line 3265 ---
+3260:                                 startComprehensiveAnalysis();
+3261:                             }
+3262:                         }, 300);
+3263:                     }
+3264:                     
+3265:                     if (tabId === 'contact-history') {
+3266:                         console.log('접촉이력 탭 - 데이터 로드 준비');
+3267:                         setTimeout(function() {
+3268:                             if (window.loadContactHistory) {
+3269:                                 loadContactHistory();
+3270:                             }
+3271:                         }, 200);
+3272:                     }
+3273:                 } else {
+3274:                     console.error('타겟 패널을 찾을 수 없음:', tabId);
+3275:                 }
+3276:                 
+3277:                 console.log('=== showTab 함수 실행 완료 ===');
+3278:                 return true;
+3279:                 
+3280:             } catch (error) {
+3281:                 console.error('showTab 함수 오류:', error);
+3282:                 alert('탭 전환 중 오류가 발생했습니다: ' + error.message);
+3283:                 return false;
+3284:             }
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 3266 ---
+3261:                             }
+3262:                         }, 300);
+3263:                     }
+3264:                     
+3265:                     if (tabId === 'contact-history') {
+3266:                         console.log('접촉이력 탭 - 데이터 로드 준비');
+3267:                         setTimeout(function() {
+3268:                             if (window.loadContactHistory) {
+3269:                                 loadContactHistory();
+3270:                             }
+3271:                         }, 200);
+3272:                     }
+3273:                 } else {
+3274:                     console.error('타겟 패널을 찾을 수 없음:', tabId);
+3275:                 }
+3276:                 
+3277:                 console.log('=== showTab 함수 실행 완료 ===');
+3278:                 return true;
+3279:                 
+3280:             } catch (error) {
+3281:                 console.error('showTab 함수 오류:', error);
+3282:                 alert('탭 전환 중 오류가 발생했습니다: ' + error.message);
+3283:                 return false;
+3284:             }
+3285:         };
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 3421 ---
+3416:                 console.error('등록 오류:', error);
+3417:                 alert('등록 중 오류가 발생했습니다.');
+3418:             });
+3419:         };
+3420: 
+3421:     <!-- 접촉이력 등록/수정 모달 -->
+3422:     <div id="contactHistoryModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+3423:         <div class="modal-content" style="position: relative; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+3424:             <span class="close" onclick="closeContactModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #aaa;">&times;</span>
+3425:             <h3 id="contactModalTitle" style="margin-top: 0; color: #333;">접촉이력 등록</h3>
+3426:             
+3427:             <form id="contactHistoryForm" style="margin-top: 20px;">
+3428:                 <input type="hidden" id="contactHistoryId" value="">
+3429:                 
+3430:                 <div style="margin-bottom: 15px;">
+3431:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉일시 *</label>
+3432:                     <input type="datetime-local" id="contactDatetime" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+3433:                 </div>
+3434:                 
+3435:                 <div style="margin-bottom: 15px;">
+3436:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉유형 *</label>
+3437:                     <select id="contactType" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+3438:                         <option value="">선택하세요</option>
+3439:                         <option value="방문">방문</option>
+3440:                         <option value="전화">전화</option>
+--------------------------------------------------
+--- MATCH: 접촉이력 at line 3425 ---
+3420: 
+3421:     <!-- 접촉이력 등록/수정 모달 -->
+3422:     <div id="contactHistoryModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+3423:         <div class="modal-content" style="position: relative; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+3424:             <span class="close" onclick="closeContactModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #aaa;">&times;</span>
+3425:             <h3 id="contactModalTitle" style="margin-top: 0; color: #333;">접촉이력 등록</h3>
+3426:             
+3427:             <form id="contactHistoryForm" style="margin-top: 20px;">
+3428:                 <input type="hidden" id="contactHistoryId" value="">
+3429:                 
+3430:                 <div style="margin-bottom: 15px;">
+3431:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉일시 *</label>
+3432:                     <input type="datetime-local" id="contactDatetime" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+3433:                 </div>
+3434:                 
+3435:                 <div style="margin-bottom: 15px;">
+3436:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉유형 *</label>
+3437:                     <select id="contactType" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+3438:                         <option value="">선택하세요</option>
+3439:                         <option value="방문">방문</option>
+3440:                         <option value="전화">전화</option>
+3441:                         <option value="이메일">이메일</option>
+3442:                         <option value="회의">회의</option>
+3443:                         <option value="기타">기타</option>
+3444:                     </select>
+--------------------------------------------------

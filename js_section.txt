@@ -1,0 +1,1865 @@
+1601:             const firstStep = document.createElement('div');
+1602:             firstStep.className = 'step';
+1603:             firstStep.textContent = steps[0];
+1604:             analysisSteps.appendChild(firstStep);
+1605:             stepIndex++;
+1606: 
+1607:             // 실제 분석 요청
+1608:             performComprehensiveAnalysis();
+1609: 
+1610:             // 단계별 애니메이션
+1611:             analysisStepInterval = setInterval(() => {
+1612:                 if (stepIndex < steps.length) {
+1613:                     const stepDiv = document.createElement('div');
+1614:                     stepDiv.className = 'step';
+1615:                     stepDiv.textContent = steps[stepIndex];
+1616:                     analysisSteps.appendChild(stepDiv);
+1617:                     
+1618:                     // 스크롤 자동 내리기
+1619:                     const container = document.getElementById('comprehensiveReport');
+1620:                     if(container) container.scrollTop = container.scrollHeight;
+1621:                     
+1622:                     stepIndex++;
+1623:                 } else {
+1624:                     clearInterval(analysisStepInterval);
+1625:                 }
+1626:             }, 1500); // 1.5초마다 메시지 변경
+1627:         }
+1628: 
+1629:         // 실제 API 호출 함수 (타임아웃 90초 설정)
+1630:         function performComprehensiveAnalysis() {
+1631:             const reportDiv = document.getElementById('comprehensiveReport');
+1632:             
+1633:             // 분석 프롬프트 생성
+1634:             const prompt = `
+1635: Role: 전문 경영 컨설턴트
+1636: Task: [${currentCompanyName}] 기업에 대한 종합 경영 진단 보고서 작성
+1637: 
+1638: 분석 데이터:
+1639: - 기업명: ${currentCompanyName}
+1640: - 사업자번호: ${currentBizNo}
+1641: - 대표자: ${document.getElementById('ceo-name') ? document.getElementById('ceo-name').textContent : '정보없음'}
+1642: 
+1643: 다음 목차로 HTML 형식(h3, ul, li, p, strong 태그 사용)의 보고서를 작성해주세요:
+1644: 1. Executive Summary (경영 현황 요약)
+1645: 2. 재무 건전성 및 성장성 진단
+1646: 3. 주요 리스크 요인 및 대응 방안
+1647: 4. CEO를 위한 전략적 제언 (세무, 승계, 자금 등)
+1648: 
+1649: * 형식: 깔끔하고 가독성 높은 HTML 스타일 (CSS 클래스 제외, 인라인 스타일 지양)
+1650:             `;
+1651:             
+1652:             console.log('[DEBUG] AI 분석 API 요청 시작');
+1653:             
+1654:             // 90초 타임아웃 설정
+1655:             const controller = new AbortController();
+1656:             const timeoutId = setTimeout(() => controller.abort(), 90000);
+1657:             
+1658:             fetch('/api/ai-analysis', {
+1659:                 method: 'POST',
+1660:                 headers: { 'Content-Type': 'application/json' },
+1661:                 body: JSON.stringify({
+1662:                     query: prompt,
+1663:                     biz_no: currentBizNo,
+1664:                     company_name: currentCompanyName
+1665:                 }),
+1666:                 signal: controller.signal
+1667:             })
+1668:             .then(response => {
+1669:                 if (!response.ok) throw new Error('Network response error');
+1670:                 return response.json();
+1671:             })
+1672:             .then(data => {
+1673:                 clearTimeout(timeoutId);
+1674:                 if (analysisStepInterval) clearInterval(analysisStepInterval); // 로딩 종료
+1675:                 
+1676:                 if (data.success) {
+1677:                     displayComprehensiveReport(data.result);
+1678:                     analysisCompleted = true;
+1679:                 } else {
+1680:                     throw new Error(data.message || '분석 실패');
+1681:                 }
+1682:             })
+1683:             .catch(error => {
+1684:                 clearTimeout(timeoutId);
+1685:                 if (analysisStepInterval) clearInterval(analysisStepInterval); // 로딩 종료
+1686:                 
+1687:                 console.error('[ERROR]', error);
+1688:                 let msg = '분석 중 오류가 발생했습니다.';
+1689:                 if (error.name === 'AbortError') msg = '분석 시간이 너무 오래 걸려 중단되었습니다.';
+1690:                 showAnalysisError(msg + ' (잠시 후 다시 시도해주세요)');
+1691:             });
+1692:         }
+1693: 
+1694:         // 결과 표시 함수
+1695:         function displayComprehensiveReport(result) {
+1696:             const reportDiv = document.getElementById('comprehensiveReport');
+1697:             // 줄바꿈 처리 및 HTML 포맷팅
+1698:             let formatted = result;
+1699:             if (!result.includes('<div') && !result.includes('<h')) {
+1700:                 formatted = result.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+1701:             }
+1702: 
+1703:             reportDiv.innerHTML = `
+1704:                 <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+1705:                     <div style="border-bottom: 2px solid #4a9fd9; margin-bottom: 20px; padding-bottom: 10px;">
+1706:                         <h2 style="color: #2c5aa0; margin: 0;">? AI 종합 분석 결과</h2>
+1707:                     </div>
+1708:                     <div style="line-height: 1.8; color: #333; font-size: 15px;">
+1709:                         ${formatted}
+1710:                     </div>
+1711:                     <div style="margin-top: 30px; text-align: right; font-size: 12px; color: #888;">
+1712:                         * 본 분석은 AI에 의해 생성되었으며, 참고용으로만 활용하시기 바랍니다.
+1713:                     </div>
+1714:                     <div style="margin-top: 20px; text-align: center;">
+1715:                         <button onclick="analysisCompleted=false; startComprehensiveAnalysis()" 
+1716:                                 style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+1717:                             ? 다시 분석하기
+1718:                         </button>
+1719:                     </div>
+1720:                 </div>
+1721:             `;
+1722:         }
+1723: 
+1724:         // 에러 표시 함수
+1725:         function showAnalysisError(msg) {
+1726:             const reportDiv = document.getElementById('comprehensiveReport');
+1727:             reportDiv.innerHTML = `
+1728:                 <div style="text-align: center; padding: 40px; color: #dc3545;">
+1729:                     <div style="font-size: 48px; margin-bottom: 20px;">??</div>
+1730:                     <h3>분석을 완료하지 못했습니다</h3>
+1731:                     <p>${msg}</p>
+1732:                     <button onclick="analysisCompleted=false; startComprehensiveAnalysis()" 
+1733:                             style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+1734:                         다시 시도
+1735:                     </button>
+1736:                 </div>
+1737:             `;
+1738:         }
+1739: 
+1740:         // --- 기타 기존 함수들 (접촉이력, 모달 등) ---
+1741:         // (이 부분은 기존 코드의 loadContactHistory, openPioneeringModal 등을 유지하거나 
+1742:         // 위에서 제공된 코드의 나머지 부분을 그대로 사용하시면 됩니다.)
+1743:         
+1744:         function loadContactHistory() {
+1745:             const tableBody = document.getElementById('contactHistoryTable');
+1746:             if(!tableBody) return;
+1747:             
+1748:             tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">로딩 중...</td></tr>';
+1749:             
+1750:             fetch(`/api/contact_history?biz_no=${currentBizNo}`)
+1751:             .then(res => res.json())
+1752:             .then(data => {
+1753:                 if(data.success && data.histories.length > 0) {
+1754:                     let html = '';
+1755:                     data.histories.forEach(h => {
+1756:                         html += `
+1757:                             <tr style="border-bottom: 1px solid #eee;">
+1758:                                 <td style="padding:10px;">${h.contact_datetime}</td>
+1759:                                 <td style="padding:10px;">${h.biz_no}</td>
+1760:                                 <td style="padding:10px;">${h.company_name}</td>
+1761:                                 <td style="padding:10px;">${h.contact_type}</td>
+1762:                                 <td style="padding:10px;">${h.contact_person}</td>
+1763:                                 <td style="padding:10px;">${h.memo}</td>
+1764:                                 <td style="padding:10px;">${h.registered_by_name || h.registered_by}</td>
+1765:                                 <td style="padding:10px;">-</td>
+1766:                             </tr>
+1767:                         `;
+1768:                     });
+1769:                     tableBody.innerHTML = html;
+1770:                 } else {
+1771:                     tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">접촉이력이 없습니다.</td></tr>';
+1772:                 }
+1773:             })
+1774:             .catch(err => {
+1775:                 tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:red;">데이터 로드 실패</td></tr>';
+1776:             });
+1777:         }
+1778:         
+1779:         // 페이지 로드 시 초기화
+1780:         document.addEventListener('DOMContentLoaded', function() {
+1781:             console.log('페이지 로드 완료');
+1782:             // 필요 시 초기화 로직 추가
+1783:         });
+1784:     </script>
+1785: 
+1786:     <!-- 접촉이력 등록/수정 모달 -->
+1787:     <div id="contactHistoryModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+1788:         <div class="modal-content" style="position: relative; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+1789:             <span class="close" onclick="closeContactModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #aaa;">&times;</span>
+1790:             <h3 id="contactModalTitle" style="margin-top: 0; color: #333;">접촉이력 등록</h3>
+1791:             
+1792:             <form id="contactHistoryForm" style="margin-top: 20px;">
+1793:                 <input type="hidden" id="contactHistoryId" value="">
+1794:                 
+1795:                 <div style="margin-bottom: 15px;">
+1796:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉일시 *</label>
+1797:                     <input type="datetime-local" id="contactDatetime" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1798:                 </div>
+1799:                 
+1800:                 <div style="margin-bottom: 15px;">
+1801:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉유형 *</label>
+1802:                     <select id="contactType" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+1803:                         <option value="">선택하세요</option>
+1804:                         <option value="방문">방문</option>
+1805:                         <option value="전화">전화</option>
+1806:                         <option value="이메일">이메일</option>
+1807:                         <option value="회의">회의</option>
+1808:                         <option value="기타">기타</option>
+1809:                     </select>
+1810:                 </div>
+1811:                 
+1812:                 <div style="margin-bottom: 15px;">
+1813:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉자</label>
+1814:                     <input type="text" id="contactPerson" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="담당자명">
+1815:                 </div>
+1816:                 
+1817:                 <div style="margin-bottom: 20px;">
+1818:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">메모</label>
+1819:                     <textarea id="contactMemo" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" placeholder="접촉 내용을 입력하세요"></textarea>
+1820:                 </div>
+1821:                 
+1822:                 <div style="text-align: right;">
+1823:                     <button type="button" onclick="closeContactModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">취소</button>
+1824:                     <button type="submit" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">저장</button>
+1825:                 </div>
+1826:             </form>
+1827:         </div>
+1828:     </div>
+1829: </body>
+1830: </html>
+1831:             
+1832:             // 클릭된 버튼을 활성화
+1833:             clickedButton.classList.add('active');
+1834:             
+1835:             // 해당 탭 패널 표시
+1836:             const targetPanel = document.getElementById(tabId);
+1837:             if (targetPanel) {
+1838:                 targetPanel.classList.add('active');
+1839:                 console.log('탭 전환 성공:', tabId);
+1840:                 
+1841:                 // AI 서치 탭인 경우 분석 시작
+1842:                 if (tabId === 'ai-search') {
+1843:                     setTimeout(() => {
+1844:                         startComprehensiveAnalysis();
+1845:                     }, 300);
+1846:                 }
+1847:                 
+1848:                 // 접촉이력 탭인 경우 데이터 로드
+1849:                 if (tabId === 'contact-history') {
+1850:                     setTimeout(() => {
+1851:                         loadContactHistory();
+1852:                     }, 200);
+1853:                 }
+1854:             } else {
+1855:                 console.error('탭 패널을 찾을 수 없음:', tabId);
+1856:             }
+1857:         }
+1858:         
+1859:         // 탭 전환 함수 (완전히 개선된 버전)
+1860:         function switchTab(tabId, event) {
+1861:             console.log('=== switchTab 호출 ===');
+1862:             console.log('tabId:', tabId);
+1863:             console.log('event:', event);
+1864:             
+1865:             try {
+1866:                 // 이벤트 전파 방지
+1867:                 if (event) {
+1868:                     event.preventDefault();
+1869:                     event.stopPropagation();
+1870:                 }
+1871:                 
+1872:                 // 현재 모든 탭 버튼과 패널 상태 확인
+1873:                 const allButtons = document.querySelectorAll('.tab-button');
+1874:                 const allPanels = document.querySelectorAll('.tab-panel');
+1875:                 console.log('발견된 탭 버튼 수:', allButtons.length);
+1876:                 console.log('발견된 탭 패널 수:', allPanels.length);
+1877:                 
+1878:                 // 모든 탭 버튼에서 active 클래스 제거
+1879:                 allButtons.forEach((btn, i) => {
+1880:                     console.log(`버튼 ${i}: ${btn.textContent.trim()} - 활성화 해제`);
+1881:                     btn.classList.remove('active');
+1882:                 });
+1883:                 
+1884:                 // 모든 탭 패널 숨김
+1885:                 allPanels.forEach((panel, i) => {
+1886:                     console.log(`패널 ${i}: ${panel.id} - 숨김`);
+1887:                     panel.classList.remove('active');
+1888:                 });
+1889:                 
+1890:                 // 클릭한 탭 버튼에 active 클래스 추가
+1891:                 if (event && event.target) {
+1892:                     console.log('이벤트 타겟으로 버튼 활성화:', event.target.textContent.trim());
+1893:                     event.target.classList.add('active');
+1894:                 } else {
+1895:                     // ID로 버튼 찾아서 활성화
+1896:                     const targetButton = document.getElementById('tab-' + tabId);
+1897:                     if (targetButton) {
+1898:                         console.log('ID로 버튼 찾아서 활성화:', targetButton.textContent.trim());
+1899:                         targetButton.classList.add('active');
+1900:                     } else {
+1901:                         console.error('버튼을 찾을 수 없음: tab-' + tabId);
+1902:                     }
+1903:                 }
+1904:                 
+1905:                 // 해당 탭 패널 표시
+1906:                 const targetPanel = document.getElementById(tabId);
+1907:                 if (targetPanel) {
+1908:                     console.log('타겟 패널 활성화:', tabId);
+1909:                     targetPanel.classList.add('active');
+1910:                     console.log('=== 탭 전환 성공 ===');
+1911:                 } else {
+1912:                     console.error('탭 패널을 찾을 수 없음:', tabId);
+1913:                     // 모든 패널 ID 출력해서 디버깅
+1914:                     allPanels.forEach(panel => console.log('사용가능한 패널 ID:', panel.id));
+1915:                 }
+1916:                 
+1917:                 // AI 서치 탭으로 전환시 종합 분석 실행
+1918:                 if (tabId === 'ai-search') {
+1919:                     console.log('AI 서치 탭 - 종합 분석 시작');
+1920:                     setTimeout(() => {
+1921:                         if (typeof startComprehensiveAnalysis === 'function') {
+1922:                             startComprehensiveAnalysis();
+1923:                         } else {
+1924:                             console.log('startComprehensiveAnalysis 함수가 정의되지 않음');
+1925:                         }
+1926:                     }, 300);
+1927:                 }
+1928:                 
+1929:                 // 접촉이력 탭으로 전환시 데이터 로드
+1930:                 if (tabId === 'contact-history') {
+1931:                     console.log('접촉이력 탭 - 데이터 로드 시작');
+1932:                     setTimeout(() => {
+1933:                         if (typeof loadContactHistory === 'function') {
+1934:                             loadContactHistory();
+1935:                         } else {
+1936:                             console.log('loadContactHistory 함수가 정의되지 않음');
+1937:                         }
+1938:                     }, 200);
+1939:                 }
+1940:                 
+1941:             } catch (error) {
+1942:                 console.error('탭 전환 중 오류 발생:', error);
+1943:             }
+1944:         }
+1945:         
+1946:         // 페이지 로드 완료 후 탭 이벤트 리스너 추가
+1947:         document.addEventListener('DOMContentLoaded', function() {
+1948:             console.log('=== DOM 로드 완료 - 탭 시스템 초기화 ===');
+1949:             
+1950:             // 탭 버튼들 상태 확인
+1951:             const tabButtons = document.querySelectorAll('.tab-button');
+1952:             console.log('탭 버튼 개수:', tabButtons.length);
+1953:             
+1954:             tabButtons.forEach((button, index) => {
+1955:                 console.log(`탭 버튼 ${index}: ${button.textContent.trim()}, ID: ${button.id}`);
+1956:                 
+1957:                 // 기존 이벤트 리스너 제거 후 새로 추가
+1958:                 button.removeEventListener('click', handleTabClick);
+1959:                 button.addEventListener('click', handleTabClick);
+1960:             });
+1961:             
+1962:             function handleTabClick(e) {
+1963:                 console.log('=== 탭 버튼 클릭 감지 ===');
+1964:                 console.log('클릭된 버튼:', this.textContent.trim());
+1965:                 console.log('버튼 ID:', this.id);
+1966:                 
+1967:                 const tabIds = ['company-info', 'ai-search', 'contact-history'];
+1968:                 const buttonTexts = ['기업 신상 조회', 'AI 서치', '접촉이력 조회'];
+1969:                 
+1970:                 // 버튼 텍스트로 탭 ID 찾기
+1971:                 let targetTabId = null;
+1972:                 const buttonText = this.textContent.trim();
+1973:                 
+1974:                 if (buttonText.includes('기업 신상') || buttonText.includes('기업신상')) {
+1975:                     targetTabId = 'company-info';
+1976:                 } else if (buttonText.includes('AI') || buttonText.includes('서치')) {
+1977:                     targetTabId = 'ai-search';
+1978:                 } else if (buttonText.includes('접촉이력') || buttonText.includes('이력')) {
+1979:                     targetTabId = 'contact-history';
+1980:                 }
+1981:                 
+1982:                 console.log('결정된 탭 ID:', targetTabId);
+1983:                 
+1984:                 if (targetTabId) {
+1985:                     switchTab(targetTabId, e);
+1986:                 } else {
+1987:                     console.error('탭 ID를 결정할 수 없음:', buttonText);
+1988:                 }
+1989:             }
+1990:             
+1991:             console.log('=== 탭 시스템 초기화 완료 ===');
+1992:         });
+1993:         
+1994:         // 종합 분석 변수
+1995:         let analysisCompleted = false;
+1996:         let questionCount = 0;
+1997:         const maxQuestions = 5;
+1998:         
+1999:         // 종합 분석 시작 함수 (개선된 버전)
+2000:         function startComprehensiveAnalysis() {
+2001:             console.log('[DEBUG] AI 분석 시작 요청');
+2002:             
+2003:             if (analysisCompleted) {
+2004:                 console.log('[INFO] 이미 분석 완료됨');
+2005:                 return; // 이미 분석이 완료된 경우 중복 실행 방지
+2006:             }
+2007:             
+2008:             // 기업 정보 확인
+2009:             if (!currentBizNo || !currentCompanyName) {
+2010:                 console.error('[ERROR] 기업 정보 부족:', { currentBizNo, currentCompanyName });
+2011:                 showAnalysisError('기업 정보가 부족합니다.');
+2012:                 return;
+2013:             }
+2014:             
+2015:             const reportDiv = document.getElementById('comprehensiveReport');
+2016:             const analysisSteps = document.getElementById('analysisSteps');
+2017:             
+2018:             // 분석 단계 시뮬레이션
+2019:             const steps = [
+2020:                 '? 재무 데이터 분석 중...',
+2021:                 '? 주주 구성 검토 중...',
+2022:                 '? 비상장 주식 평가 중...',
+2023:                 '? 기업 현황 종합 분석 중...',
+2024:                 '? 전략적 제언 수립 중...'
+2025:             ];
+2026:             
+2027:             let stepIndex = 0;
+2028:             const stepInterval = setInterval(() => {
+2029:                 if (stepIndex < steps.length) {
+2030:                     const stepDiv = document.createElement('div');
+2031:                     stepDiv.className = 'step';
+2032:                     stepDiv.textContent = steps[stepIndex];
+2033:                     stepDiv.style.animationDelay = `${stepIndex * 0.1}s`;
+2034:                     analysisSteps.appendChild(stepDiv);
+2035:                     stepIndex++;
+2036:                 } else {
+2037:                     clearInterval(stepInterval);
+2038:                     // 실제 AI 분석 호출
+2039:                     performComprehensiveAnalysis();
+2040:                 }
+2041:             }, 800);
+2042:         }
+2043:         
+2044:         // 실제 종합 분석 실행
+2045:         function performComprehensiveAnalysis() {
+2046:             const reportDiv = document.getElementById('comprehensiveReport');
+2047:             const analysisStatus = document.getElementById('analysisStatus');
+2048:             
+2049:             // 실제 데이터로 종합 분석 프롬프트 생성
+2050:             const companyData = {
+2051:                 bizNo: currentBizNo || '{{ company.biz_no if company else "1018139184" }}',
+2052:                 companyName: currentCompanyName || '{{ company.company_name if company else "동화에이스" }}', 
+2053:                 ceoName: document.getElementById('ceo-name') ? document.getElementById('ceo-name').textContent : '{{ company.representative_name if company else "서영원" }}',
+2054:                 industry: '{{ company.industry_name if company else "육상 및 항공 운송업" }}',
+2055:                 establishDate: '{{ company.establish_date if company else "1970-01-01" }}',
+2056:                 companySize: '{{ company.company_size if company else "소기업" }}',
+2057:                 listingStatus: '{{ company.listing_status if company else "BB" }}',
+2058:                 address: '{{ company.address if company else "서울 서초구 바우뛰로 184, 5층" }}',
+2059:                 gfcStatus: '{{ "Y" if company and company.is_gfc == "1" else "N" }}'
+2060:             };
+2061:             
+2062:             // 재무 데이터 수집
+2063:             const financialData = [];
+2064:             const financialRows = document.querySelectorAll('.financial-table tbody tr');
+2065:             financialRows.forEach((row, index) => {
+2066:                 if (index < 6) { // 주요 재무 항목만
+2067:                     const cells = row.querySelectorAll('td');
+2068:                     if (cells.length >= 4) {
+2069:                         const itemName = cells[0].textContent;
+2070:                         const year1 = cells[1].textContent.replace(/,/g, '');
+2071:                         const year2 = cells[2].textContent.replace(/,/g, '');
+2072:                         const year3 = cells[3].textContent.replace(/,/g, '');
+2073:                         financialData.push({ item: itemName, year1, year2, year3 });
+2074:                     }
+2075:                 }
+2076:             });
+2077:             
+2078:             // 주주 데이터 수집
+2079:             const shareholderData = [];
+2080:             const shareholderRows = document.querySelectorAll('table tbody tr');
+2081:             shareholderRows.forEach(row => {
+2082:                 const cells = row.querySelectorAll('td');
+2083:                 if (cells.length >= 5) {
+2084:                     const name = cells[0].textContent.trim();
+2085:                     const shares = cells[1].textContent;
+2086:                     const percentage = cells[2].textContent;
+2087:                     const value = cells[3].textContent;
+2088:                     if (name && name !== '정보없음' && !name.includes('주주 정보가 없습니다')) {
+2089:                         shareholderData.push({ name, shares, percentage, value });
+2090:                     }
+2091:                 }
+2092:             });
+2093:             
+2094:             const comprehensivePrompt = `■■ ${companyData.companyName} 기업 종합 분석 리포트 ■■
+2095: 
+2096: 다음 기업에 대해 전문적이고 실용적인 경영 컨설팅 분석을 수행해주세요.
+2097: 
+2098: ■ 기업 기본 정보
+2099: - 기업명: ${companyData.companyName}
+2100: - 사업자번호: ${companyData.bizNo}
+2101: - 대표자: ${companyData.ceoName}
+2102: - 업종: ${companyData.industry}
+2103: - 설립일: ${companyData.establishDate}
+2104: - 기업규모: ${companyData.companySize}
+2105: - 신용등급: ${companyData.listingStatus}
+2106: - 주소: ${companyData.address}
+2107: - GFC거래여부: ${companyData.gfcStatus}
+2108: 
+2109: ■ 재무 현황 (최근 3개년)
+2110: ${financialData.map(item => `${item.item}: 2024년 ${item.year1}원, 2023년 ${item.year2}원, 2022년 ${item.year3}원`).join('\n')}
+2111: 
+2112: ■ 주주 구성 현황
+2113: ${shareholderData.length > 0 ? shareholderData.map(sh => `- ${sh.name}: ${sh.percentage} (${sh.shares}, 가치: ${sh.value})`).join('\n') : '주주 정보 없음'}
+2114: 
+2115: ■ 비상장주식 평가 (원고율 기준)
+2116: - 저가차 평가가치: 22,510,097,000원
+2117: - 수정가치 평가가치: 22,586,066,667원 
+2118: - 1주당 평가액: 9,197원 (평가일자 기준 491,900주)
+2119: - 평가방법: 원고율 기준 수익가치 및 순자산가치 종합 평가
+2120: - 주식가치 변동요인: 재무성과, 수익성, 성장성 반영
+2121: 
+2122: ● 전문 경영컨설팅 분석 요청사항 ●
+2123: 
+2124: 다음 6개 분야에 대해 체계적이고 실무적인 경영컨설팅 리포트를 작성해주세요:
+2125: 
+2126: **1. ? 재무 건전성 및 성장성 종합분석**
+2127: - 3개년 재무성과 트렌드 분석 (매출성장률, 수익성 지표)
+2128: - 재무안정성 평가 (유동성, 레버리지, 활동성 비율)
+2129: - ROE, ROA, 매출액순이익률 등 수익성 지표 분석
+2130: - 이익잉여금 규모 및 배당여력 평가
+2131: - 현금흐름 및 운전자본 관리 상태
+2132: - 동종업계 대비 재무성과 벤치마킹
+2133: 
+2134: **2. ? 주주구조 및 지배구조 분석**
+2135: - 주요주주 지분구조 및 경영권 집중도 분석
+2136: - 소액주주 보호 및 주주권 행사 방안
+2137: - 경영진과 주주간 이해관계 조정 방안
+2138: - 적대적 M&A 방어 전략 수립
+2139: - 이사회 구성 및 의사결정구조 개선방안
+2140: 
+2141: **3. ? 대표자 및 경영진 핵심과제**
+2142: - **가업승계 전략**: 세대교체 로드맵 및 세무최적화
+2143: - **배당정책**: 주주환원 정책 수립 및 배당성향 결정
+2144: - **퇴직급여**: 대표자 및 임원 퇴직금 최적화 방안
+2145: - **보상체계**: 성과연동 임원보수 설계
+2146: - **승계준비**: 후계자 육성 및 경영권 이전 계획
+2147: - **세무전략**: 증여/상속세 절세 방안
+2148: 
+2149: **4. ? 업종특화 경쟁력 및 성장전략**
+2150: - ${companyData.industry} 업종 특성 및 시장환경 분석
+2151: - 경쟁사 대비 차별화 요소 및 경쟁우위 발굴
+2152: - 디지털 전환 및 기술혁신 적용방안
+2153: - 신시장 진출 및 사업다각화 기회
+2154: - 고객세분화 및 마케팅 전략 개선
+2155: - 공급망 최적화 및 운영효율성 제고
+2156: 
+2157: **5. ?? 리스크 관리 및 위기대응**
+2158: - **재무리스크**: 유동성, 신용, 시장리스크 관리
+2159: - **영업리스크**: 매출집중, 고객이탈, 공급망 리스크
+2160: - **규제리스크**: 법규준수, 환경규제, 세무리스크
+2161: - **경영리스크**: 핵심인력 의존도, 정보보안
+2162: - ESG 경영 도입 및 지속가능성 제고
+2163: - 비상계획 수립 및 위기관리 매뉴얼
+2164: 
+2165: **6. ? 5년간 전략 로드맵**
+2166: - **1년차**: 단기 수익성 개선 및 효율화
+2167: - **2-3년차**: 성장기반 구축 및 시장확대  
+2168: - **4-5년차**: 지속가능 성장 및 가치창출
+2169: - 핵심성과지표(KPI) 설정 및 모니터링
+2170: - 단계별 투자계획 및 자금조달 방안
+2171: - 목표 재무성과 및 기업가치 제고 계획
+2172: 
+2173: 각 분야별로 **구체적이고 실행가능한 액션플랜**을 제시하되, ${companyData.companyName}의 업종(${companyData.industry}), 규모(${companyData.companySize}), 재무상황에 특화된 맞춤형 전략을 수립해주세요.
+2174: 
+2175: 특히 **중소기업 특성을 고려**하여 현실적이고 실용적인 방안을 중심으로 제안해주시기 바랍니다.`;
+2176:             
+2177:             console.log('[DEBUG] API 요청 시작:', {
+2178:                 biz_no: companyData.bizNo,
+2179:                 company: companyData.companyName,
+2180:                 promptLength: comprehensivePrompt.length
+2181:             });
+2182:             
+2183:             // 30초 타임아웃 설정
+2184:             const controller = new AbortController();
+2185:             const timeoutId = setTimeout(() => {
+2186:                 controller.abort();
+2187:                 document.getElementById('ai-analysis-content').innerHTML = `
+2188:                     <div style="padding: 20px; text-align: center; color: #dc3545;">
+2189:                         <h4>? AI 분석 요청 시간 초과</h4>
+2190:                         <p>AI 서비스 응답 시간이 30초를 초과했습니다.<br>
+2191:                         잠시 후 다시 시도해주세요.</p>
+2192:                         <button onclick="startAIAnalysis()" class="btn btn-primary">다시 시도</button>
+2193:                     </div>
+2194:                 `;
+2195:             }, 30000);
+2196:             
+2197:             fetch('/api/ai-analysis', {
+2198:                 method: 'POST',
+2199:                 headers: {
+2200:                     'Content-Type': 'application/json',
+2201:                 },
+2202:                 body: JSON.stringify({
+2203:                     query: comprehensivePrompt,
+2204:                     biz_no: companyData.bizNo,
+2205:                     company_name: companyData.companyName
+2206:                 }),
+2207:                 signal: controller.signal
+2208:             })
+2209:             .then(response => {
+2210:                 console.log('[DEBUG] API 응답 수신:', response.status);
+2211:                 return response.json();
+2212:             })
+2213:             .then(data => {
+2214:                 console.log('[DEBUG] API 응답 데이터:', data);
+2215:                 
+2216:                 // 결과 데이터 찾기 (다양한 키 지원)
+2217:                 const result = data.result || data.response || data.analysis;
+2218:                 
+2219:                 if (data.success && result) {
+2220:                     console.log('[SUCCESS] AI 분석 결과 수신:', result.substring(0, 100) + '...');
+2221:                     displayComprehensiveReport(result);
+2222:                     
+2223:                     // 성공 알림
+2224:                     if (data.note) {
+2225:                         console.log('[INFO]', data.note);
+2226:                     }
+2227:                 } else {
+2228:                     const errorMsg = data.message || '분석 결과를 받을 수 없습니다.';
+2229:                     console.error('[ERROR] API 응답 오류:', errorMsg);
+2230:                     console.log('[DEBUG] 전체 응답:', data);
+2231:                     showAnalysisError(errorMsg);
+2232:                 }
+2233:             })
+2234:             .catch(error => {
+2235:                 console.error('[ERROR] API 호출 실패:', error);
+2236:                 showAnalysisError(`네트워크 오류가 발생했습니다: ${error.message}`);
+2237:             });
+2238:         }
+2239:         
+2240:         // 종합 분석 결과 표시
+2241:         function displayComprehensiveReport(analysisResult) {
+2242:             console.log('[DISPLAY] 결과 표시 시도:', analysisResult ? analysisResult.length + '자' : '비어있음');
+2243:             
+2244:             // 여러 가능한 컨테이너 ID 확인
+2245:             const reportDiv = document.getElementById('comprehensiveReport') || document.getElementById('ai-analysis-content');
+2246:             const analysisStatus = document.getElementById('analysisStatus');
+2247:             const followupSection = document.getElementById('followupSection');
+2248:             
+2249:             if (!reportDiv) {
+2250:                 console.error('[ERROR] 분석 결과 컨테이너를 찾을 수 없습니다');
+2251:                 alert('분석 결과를 표시할 영역을 찾을 수 없습니다. 페이지를 새로고침 해주세요.');
+2252:                 return;
+2253:             }
+2254:             
+2255:             // 상태 업데이트
+2256:             if (analysisStatus) {
+2257:                 analysisStatus.innerHTML = '<span class="status-indicator completed">? 분석 완료</span>';
+2258:             }
+2259:             
+2260:             console.log('[FORMAT] 결과 포맷팅 시작:', analysisResult.substring(0, 200));
+2261:             
+2262:             // 간단하고 안전한 포맷팅 - HTML이 이미 포함된 경우 그대로 사용
+2263:             let formattedResult;
+2264:             if (analysisResult.includes('<div') || analysisResult.includes('<h')) {
+2265:                 // 이미 HTML 포맷팅이 된 경우 그대로 사용
+2266:                 formattedResult = analysisResult;
+2267:                 console.log('[FORMAT] HTML 형식 감지 - 그대로 사용');
+2268:             } else {
+2269:                 // 텍스트인 경우 기본 포맷팅 적용
+2270:                 formattedResult = analysisResult
+2271:                     .replace(/\n/g, '<br>')
+2272:                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+2273:                     .replace(/\*(.*?)\*/g, '<em>$1</em>');
+2274:                 console.log('[FORMAT] 텍스트 형식 감지 - 기본 포맷팅 적용');
+2275:             }
+2276:             
+2277:             // 결과를 즉시 표시 (복잡한 포맷팅 제거)
+2278:             console.log('[DISPLAY] 결과 표시 중...');
+2279:             
+2280:             try {
+2281:                 reportDiv.innerHTML = `
+2282:                     <div style="padding: 20px; background: white; border-radius: 12px; margin: 10px 0;">
+2283:                         <div style="background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); color: white; padding: 20px; margin: -20px -20px 20px -20px; border-radius: 12px 12px 0 0; text-align: center;">
+2284:                             <h2 style="margin: 0; font-size: 24px;">? AI 분석 결과</h2>
+2285:                             <p style="margin: 10px 0 0 0; opacity: 0.9;">즉시 분석 완료</p>
+2286:                         </div>
+2287:                         <div style="margin-top: 20px;">
+2288:                             ${formattedResult}
+2289:                         </div>
+2290:                     </div>
+2291:                 `;
+2292:                 
+2293:                 console.log('[SUCCESS] 분석 결과 표시 완료');
+2294:                 
+2295:                 // 스크롤하여 결과 표시
+2296:                 reportDiv.scrollIntoView({ behavior: 'smooth' });
+2297:                 
+2298:             } catch (error) {
+2299:                 console.error('[ERROR] 결과 표시 중 오류:', error);
+2300:                 reportDiv.innerHTML = `
+2301:                     <div style="padding: 20px; background: #f8d7da; color: #721c24; border-radius: 8px; text-align: center;">
+2302:                         <h3>?? 표시 오류</h3>
+2303:                         <p>분석 결과를 표시하는 중 오류가 발생했습니다.</p>
+2304:                         <button onclick="location.reload()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">페이지 새로고침</button>
+2305:                     </div>
+2306:                 `;
+2307:             }
+2308:             
+2309:             // 후속 섹션 활성화
+2310:             if (followupSection) {
+2311:                 followupSection.style.display = 'block';
+2312:                         </p>
+2313:                     </div>
+2314:                 </div>
+2315:             `;
+2316:             
+2317:             // 추가 질문 섹션 표시
+2318:             followupSection.style.display = 'block';
+2319:             analysisCompleted = true;
+2320:             
+2321:             // 부드러운 스크롤로 결과 섹션으로 이동
+2322:             setTimeout(() => {
+2323:                 reportDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+2324:             }, 500);
+2325:         }
+2326:         
+2327:         // 분석 오류 표시 (개선된 버전)
+2328:         function showAnalysisError(message) {
+2329:             const reportDiv = document.getElementById('comprehensiveReport');
+2330:             const analysisStatus = document.getElementById('analysisStatus');
+2331:             
+2332:             console.error('[ERROR] AI 분석 오류:', message);
+2333:             
+2334:             analysisStatus.innerHTML = '<span class="status-indicator" style="background: #f8d7da; color: #721c24;">분석 실패</span>';
+2335:             reportDiv.innerHTML = `
+2336:                 <div style="text-align: center; padding: 50px; color: #dc3545; background: rgba(248, 215, 218, 0.1); border-radius: 15px;">
+2337:                     <div style="font-size: 48px; margin-bottom: 20px;">??</div>
+2338:                     <h4>분석을 완료할 수 없습니다</h4>
+2339:                     <p style="margin: 15px 0; color: #6c757d;">${message}</p>
+2340:                     <div style="margin-top: 25px;">
+2341:                         <button onclick="performComprehensiveAnalysis()" style="margin: 5px; padding: 12px 24px; background: #6f42c1; color: white; border: none; border-radius: 8px; cursor: pointer;">분석 다시 시도</button>
+2342:                         <button onclick="analysisCompleted=false; startComprehensiveAnalysis()" style="margin: 5px; padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer;">처음부터 다시</button>
+2343:                     </div>
+2344:                     <div style="margin-top: 20px; font-size: 12px; color: #6c757d;">
+2345:                         문제가 지속되면 네트워크 연결과 API 키 설정을 확인해주세요.
+2346:                     </div>
+2347:                 </div>
+2348:             `;
+2349:         }
+2350:         
+2351:         // 추가 질문하기
+2352:         function askFollowupQuestion() {
+2353:             if (questionCount >= maxQuestions) {
+2354:                 alert('최대 5개까지만 질문할 수 있습니다.');
+2355:                 return;
+2356:             }
+2357:             
+2358:             const questionInput = document.getElementById('followupQuestion');
+2359:             const question = questionInput.value.trim();
+2360:             
+2361:             if (!question) {
+2362:                 alert('질문을 입력해주세요.');
+2363:                 return;
+2364:             }
+2365:             
+2366:             // 버튼 비활성화
+2367:             const askButton = document.getElementById('askButton');
+2368:             askButton.disabled = true;
+2369:             askButton.textContent = '답변 중...';
+2370:             
+2371:             // API 호출
+2372:             fetch('/api/ai-analysis', {
+2373:                 method: 'POST',
+2374:                 headers: {
+2375:                     'Content-Type': 'application/json',
+2376:                 },
+2377:                 body: JSON.stringify({
+2378:                     query: question + '\n\n위의 기업 분석 결과를 참고하여 답변해주세요.'
+2379:                 })
+2380:             })
+2381:             .then(response => response.json())
+2382:             .then(data => {
+2383:                 if (data.success) {
+2384:                     addQAToHistory(question, data.result);
+2385:                     questionCount++;
+2386:                     updateQuestionCounter();
+2387:                     questionInput.value = '';
+2388:                 } else {
+2389:                     alert('답변을 가져올 수 없습니다: ' + data.message);
+2390:                 }
+2391:             })
+2392:             .catch(error => {
+2393:                 console.error('Question error:', error);
+2394:                 alert('질문 처리 중 오류가 발생했습니다.');
+2395:             })
+2396:             .finally(() => {
+2397:                 askButton.disabled = false;
+2398:                 askButton.textContent = '질문하기';
+2399:             });
+2400:         }
+2401:         
+2402:         // 추천 질문 선택
+2403:         function askSuggestion(suggestionText) {
+2404:             document.getElementById('followupQuestion').value = suggestionText;
+2405:             askFollowupQuestion();
+2406:         }
+2407:         
+2408:         // Q&A 히스토리에 추가
+2409:         function addQAToHistory(question, answer) {
+2410:             const historyDiv = document.getElementById('qaHistory');
+2411:             const qaItem = document.createElement('div');
+2412:             qaItem.className = 'qa-item';
+2413:             qaItem.innerHTML = `
+2414:                 <div class="qa-question">Q${questionCount + 1}. ${question}</div>
+2415:                 <div class="qa-answer">${answer.replace(/\n/g, '<br>')}</div>
+2416:             `;
+2417:             historyDiv.appendChild(qaItem);
+2418:         }
+2419:         
+2420:         // 질문 카운터 업데이트
+2421:         function updateQuestionCounter() {
+2422:             document.getElementById('questionCount').textContent = questionCount;
+2423:             
+2424:             if (questionCount >= maxQuestions) {
+2425:                 document.getElementById('askButton').disabled = true;
+2426:                 document.getElementById('followupQuestion').disabled = true;
+2427:                 document.getElementById('askButton').textContent = '질문 한도 초과';
+2428:             }
+2429:         }
+2430: 
+2431: 
+2432:         // 기업 검색 함수
+2433:         function searchCompany() {
+2434:             const searchValue = document.getElementById('company-search').value;
+2435:             
+2436:             if (searchValue.trim()) {
+2437:                 // 검색 로직 구현
+2438:                 console.log('검색어:', searchValue);
+2439:                 // 실제 구현 시 AJAX 호출로 데이터 업데이트
+2440:                 alert('검색 기능은 개발 중입니다: ' + searchValue);
+2441:             }
+2442:         }
+2443:         
+2444:         // 개척등록 모달창 열기
+2445:         function registerPioneering() {
+2446:             console.log('개척등록 버튼 클릭됨');
+2447:             try {
+2448:                 // 오늘 날짜로 기본값 설정
+2449:                 const today = new Date().toISOString().split('T')[0];
+2450:                 
+2451:                 const visitDateEl = document.getElementById('visitDate');
+2452:                 const memoEl = document.getElementById('memo');
+2453:                 const modalEl = document.getElementById('pioneeringModal');
+2454:                 
+2455:                 console.log('요소 확인:', {
+2456:                     visitDate: !!visitDateEl,
+2457:                     memo: !!memoEl,
+2458:                     modal: !!modalEl
+2459:                 });
+2460:                 
+2461:                 if (visitDateEl) visitDateEl.value = today;
+2462:                 if (memoEl) memoEl.value = '개척 관련 메모사항...';
+2463:                 
+2464:                 // 모달창 표시
+2465:                 if (modalEl) {
+2466:                     modalEl.style.display = 'block';
+2467:                     console.log('모달창 표시됨');
+2468:                 } else {
+2469:                     console.error('모달창을 찾을 수 없음');
+2470:                 }
+2471:             } catch (error) {
+2472:                 console.error('개척등록 함수 오류:', error);
+2473:             }
+2474:         }
+2475: 
+2476:         // 개척등록 모달창 닫기
+2477:         function closePioneeringModal() {
+2478:             document.getElementById('pioneeringModal').style.display = 'none';
+2479:         }
+2480: 
+2481:         // 실제 개척등록 실행
+2482:         function submitPioneering() {
+2483:             const companyName = document.getElementById('companyName').value;
+2484:             const bizNo = document.getElementById('bizNo').value;
+2485:             const visitDate = document.getElementById('visitDate').value;
+2486:             const memo = document.getElementById('memo').value;
+2487: 
+2488:             // 필수 입력 검증
+2489:             if (!visitDate) {
+2490:                 alert('방문일자를 입력해주세요.');
+2491:                 return;
+2492:             }
+2493: 
+2494:             // API 호출로 개척 대상 등록
+2495:             fetch('/api/pioneering_targets', {
+2496:                 method: 'POST',
+2497:                 headers: {
+2498:                     'Content-Type': 'application/json',
+2499:                 },
+2500:                 body: JSON.stringify({
+2501:                     company_name: companyName,
+2502:                     biz_no: bizNo,
+2503:                     visit_date: visitDate,
+2504:                     notes: memo || '기업상세조회에서 등록'
+2505:                 })
+2506:             })
+2507:             .then(response => response.json())
+2508:             .then(data => {
+2509:                 if (data.success) {
+2510:                     alert('개척 대상으로 성공적으로 등록되었습니다.');
+2511:                     closePioneeringModal();
+2512:                 } else {
+2513:                     alert('등록 실패: ' + (data.message || '알 수 없는 오류'));
+2514:                 }
+2515:             })
+2516:             .catch(error => {
+2517:                 console.error('Error:', error);
+2518:                 alert('등록 중 오류가 발생했습니다.');
+2519:             });
+2520:         }
+2521: 
+2522:         // 모달창 외부 클릭시 닫기
+2523:         window.onclick = function(event) {
+2524:             const modal = document.getElementById('pioneeringModal');
+2525:             if (event.target === modal) {
+2526:                 closePioneeringModal();
+2527:             }
+2528:         }
+2529:         
+2530:         // 대표자명 수정 함수
+2531:         function editCeoName() {
+2532:             const ceoNameElement = document.getElementById('ceo-name');
+2533:             const currentName = ceoNameElement.textContent;
+2534:             
+2535:             // 마스킹된 이름인지 확인 (예: 서*원, 서**, 등)
+2536:             if (currentName.includes('*')) {
+2537:                 // AI를 통해 실제 이름 검색
+2538:                 searchRealCeoName(currentBizNo, currentCompanyName);
+2539:             } else {
+2540:                 // 일반 수정
+2541:                 const newName = prompt('새로운 대표자명을 입력하세요:', currentName);
+2542:                 if (newName && newName.trim()) {
+2543:                     updateCeoName(newName.trim());
+2544:                 }
+2545:             }
+2546:         }
+2547:         
+2548:         // AI를 통한 실제 대표자명 검색
+2549:         function searchRealCeoName(bizNo, companyName) {
+2550:             const resultElement = document.getElementById('ceo-name');
+2551:             resultElement.textContent = '검색 중...';
+2552:             
+2553:             // AI API 호출
+2554:             fetch('/api/ai-search-ceo', {
+2555:                 method: 'POST',
+2556:                 headers: {
+2557:                     'Content-Type': 'application/json',
+2558:                 },
+2559:                 body: JSON.stringify({
+2560:                     biz_no: bizNo,
+2561:                     company_name: companyName
+2562:                 })
+2563:             })
+2564:             .then(response => response.json())
+2565:             .then(data => {
+2566:                 if (data.success && data.ceo_name) {
+2567:                     updateCeoName(data.ceo_name);
+2568:                 } else {
+2569:                     resultElement.textContent = '검색 실패';
+2570:                     alert('대표자명을 찾을 수 없습니다. 직접 입력해주세요.');
+2571:                     const newName = prompt('대표자명을 입력하세요:');
+2572:                     if (newName && newName.trim()) {
+2573:                         updateCeoName(newName.trim());
+2574:                     } else {
+2575:                         resultElement.textContent = currentName; // 원래 값으로 복구
+2576:                     }
+2577:                 }
+2578:             })
+2579:             .catch(error => {
+2580:                 console.error('Error:', error);
+2581:                 resultElement.textContent = '검색 오류';
+2582:                 alert('검색 중 오류가 발생했습니다.');
+2583:             });
+2584:         }
+2585:         
+2586:         // 대표자명 업데이트
+2587:         function updateCeoName(newName) {
+2588:             document.getElementById('ceo-name').textContent = newName;
+2589:             document.getElementById('ceo-name-display').textContent = newName;
+2590:             
+2591:             // 서버에 업데이트 요청
+2592:             fetch('/api/update-ceo-name', {
+2593:                 method: 'POST',
+2594:                 headers: {
+2595:                     'Content-Type': 'application/json',
+2596:                 },
+2597:                 body: JSON.stringify({
+2598:                     biz_no: currentBizNo,
+2599:                     new_ceo_name: newName
+2600:                 })
+2601:             })
+2602:             .then(response => response.json())
+2603:             .then(data => {
+2604:                 if (data.success) {
+2605:                     console.log('대표자명이 성공적으로 업데이트되었습니다.');
+2606:                 } else {
+2607:                     console.error('업데이트 실패:', data.message);
+2608:                 }
+2609:             })
+2610:             .catch(error => {
+2611:                 console.error('Error:', error);
+2612:             });
+2613:         }
+2614:         
+2615:         // AI 검색 함수
+2616:         function performAISearch() {
+2617:             const query = document.getElementById('ai-query').value.trim();
+2618:             if (!query) {
+2619:                 alert('검색어를 입력해주세요.');
+2620:                 return;
+2621:             }
+2622:             
+2623:             const resultContent = document.getElementById('ai-result-content');
+2624:             const startTime = new Date();
+2625:             
+2626:             // 진행 상황 표시를 위한 HTML 생성
+2627:             function updateLoadingDisplay() {
+2628:                 const elapsed = Math.floor((new Date() - startTime) / 1000);
+2629:                 const minutes = Math.floor(elapsed / 60);
+2630:                 const seconds = elapsed % 60;
+2631:                 const timeStr = minutes > 0 ? `${minutes}분 ${seconds}초` : `${seconds}초`;
+2632:                 
+2633:                 resultContent.innerHTML = `
+2634:                     <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 25px; border-radius: 12px; border: 1px solid #2196f3; text-align: center;">
+2635:                         <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+2636:                             <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #2196f3; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 15px;"></div>
+2637:                             <h4 style="margin: 0; color: #1976d2; font-size: 18px;">? AI 컨설팅 보고서 작성 중</h4>
+2638:                         </div>
+2639:                         <div style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+2640:                             <p style="margin: 5px 0; font-size: 14px; color: #424242;"><strong>분석 기업:</strong> ${currentCompanyName}</p>
+2641:                             <p style="margin: 5px 0; font-size: 14px; color: #424242;"><strong>분석 질문:</strong> ${query}</p>
+2642:                             <p style="margin: 5px 0; font-size: 14px; color: #1976d2;"><strong>진행 시간:</strong> ${timeStr}</p>
+2643:                         </div>
+2644:                         <div style="background: #fff3cd; padding: 12px; border-radius: 6px; border-left: 4px solid #ffc107;">
+2645:                             <p style="margin: 0; font-size: 13px; color: #856404;">? M&A 전문가 수준의 상세 분석을 준비 중입니다...</p>
+2646:                         </div>
+2647:                     </div>
+2648:                     <style>
+2649:                         @keyframes spin {
+2650:                             0% { transform: rotate(0deg); }
+2651:                             100% { transform: rotate(360deg); }
+2652:                         }
+2653:                     </style>
+2654:                 `;
+2655:             }
+2656:             
+2657:             // 초기 로딩 화면 표시
+2658:             updateLoadingDisplay();
+2659:             
+2660:             // 1초마다 시간 업데이트
+2661:             const loadingInterval = setInterval(updateLoadingDisplay, 1000);
+2662:             
+2663:             fetch('/api/ai-analysis', {
+2664:                 method: 'POST',
+2665:                 headers: {
+2666:                     'Content-Type': 'application/json',
+2667:                 },
+2668:                 body: JSON.stringify({
+2669:                     query: query,
+2670:                     biz_no: currentBizNo,
+2671:                     company_name: currentCompanyName
+2672:                 })
+2673:             })
+2674:             .then(response => response.json())
+2675:             .then(data => {
+2676:                 clearInterval(loadingInterval);
+2677:                 if (data.success) {
+2678:                     // 완료 시 결과 표시
+2679:                     const elapsed = Math.floor((new Date() - startTime) / 1000);
+2680:                     const timeStr = elapsed < 60 ? `${elapsed}초` : `${Math.floor(elapsed/60)}분 ${elapsed%60}초`;
+2681:                     
+2682:                     resultContent.innerHTML = `
+2683:                         <div style="background: #d4edda; padding: 12px; border-radius: 6px; border-left: 4px solid #28a745; margin-bottom: 15px;">
+2684:                             <p style="margin: 0; font-size: 13px; color: #155724;">? <strong>분석 완료</strong> (소요시간: ${timeStr})</p>
+2685:                         </div>
+2686:                         <div style="line-height: 1.6;">${data.result}</div>
+2687:                     `;
+2688:                 } else {
+2689:                     resultContent.innerHTML = `<p style="color: red;">오류: ${data.message}</p>`;
+2690:                 }
+2691:             })
+2692:             .catch(error => {
+2693:                 clearInterval(loadingInterval);
+2694:                 console.error('Error:', error);
+2695:                 resultContent.innerHTML = '<p style="color: red;">AI 분석 중 오류가 발생했습니다.</p>';
+2696:             });
+2697:         }
+2698:         
+2699:         // AI 추천 레퍼토리 함수
+2700:         function getAIRecommendation() {
+2701:             alert('AI 추천 레퍼토리 기능은 개발 중입니다.');
+2702:         }
+2703: 
+2704:         // 접촉이력 관리 함수들
+2705:         function openContactModal() {
+2706:             // 접촉이력 등록 모달 열기
+2707:             const currentDate = new Date();
+2708:             const formattedDate = currentDate.toISOString().slice(0, 16);
+2709:             
+2710:             const contactData = {
+2711:                 datetime: prompt('접촉 날짜와 시간을 입력하세요 (YYYY-MM-DD HH:MM):', formattedDate.replace('T', ' ')),
+2712:                 type: prompt('접촉 유형을 입력하세요 (전화/방문/이메일/회의):', '전화'),
+2713:                 person: prompt('접촉 대상자를 입력하세요:', ''),
+2714:                 memo: prompt('메모를 입력하세요:', '')
+2715:             };
+2716:             
+2717:             if (contactData.datetime && contactData.type) {
+2718:                 registerContactHistory(contactData);
+2719:             }
+2720:         }
+2721:         
+2722:         function registerContactHistory(contactData = null) {
+2723:             if (!contactData) {
+2724:                 contactData = {
+2725:                     datetime: document.getElementById('contactDateTime')?.value,
+2726:                     type: document.getElementById('contactType')?.value,
+2727:                     person: document.getElementById('contactPerson')?.value,
+2728:                     memo: document.getElementById('contactMemo')?.value
+2729:                 };
+2730:             }
+2731:             
+2732:             const requestData = {
+2733:                 biz_no: '{{ company.biz_no if company else "1298602676" }}',
+2734:                 contact_datetime: contactData.datetime,
+2735:                 contact_type: contactData.type,
+2736:                 contact_person: contactData.person || '',
+2737:                 memo: contactData.memo || ''
+2738:             };
+2739:             
+2740:             if (!requestData.contact_datetime || !requestData.contact_type) {
+2741:                 alert('접촉일시와 접촉유형은 필수입니다.');
+2742:                 return;
+2743:             }
+2744:             
+2745:             fetch('/api/contact_history', {
+2746:                 method: 'POST',
+2747:                 headers: {
+2748:                     'Content-Type': 'application/json'
+2749:                 },
+2750:                 body: JSON.stringify(requestData)
+2751:             })
+2752:             .then(response => response.json())
+2753:             .then(data => {
+2754:                 if (data.success) {
+2755:                     alert('접촉이력이 등록되었습니다.');
+2756:                     loadContactHistory(); // 목록 새로고침
+2757:                 } else {
+2758:                     alert('등록 실패: ' + data.message);
+2759:                 }
+2760:             })
+2761:             .catch(error => {
+2762:                 console.error('접촉이력 등록 오류:', error);
+2763:                 alert('등록 중 오류가 발생했습니다.');
+2764:             });
+2765:         }
+2766:         
+2767:         function searchContactHistory() {
+2768:             // 접촉이력 검색
+2769:             loadContactHistory();
+2770:         }
+2771:         
+2772:         function resetContactFilter() {
+2773:             // 검색 필터 초기화
+2774:             document.getElementById('contact-start-date').value = '';
+2775:             document.getElementById('contact-end-date').value = '';
+2776:             document.getElementById('contact-search').value = '';
+2777:             loadContactHistory();
+2778:         }
+2779:         
+2780:         function loadContactHistory() {
+2781:             const tableBody = document.getElementById('contactHistoryTable');
+2782:             tableBody.innerHTML = '<tr><td colspan="8" style="padding: 20px; text-align: center; color: #6c757d;">접촉이력을 불러오는 중...</td></tr>';
+2783:             
+2784:             // API 호출로 접촉이력 데이터 로드
+2785:             fetch(`/api/contact_history?biz_no=${currentBizNo}`)
+2786:             .then(response => response.json())
+2787:             .then(data => {
+2788:                 if (data.success && data.histories && data.histories.length > 0) {
+2789:                     displayContactHistory(data.histories);
+2790:                 } else {
+2791:                     tableBody.innerHTML = '<tr><td colspan="8" style="padding: 40px; text-align: center; color: #6c757d;">접촉이력이 없습니다.</td></tr>';
+2792:                 }
+2793:             })
+2794:             .catch(error => {
+2795:                 console.error('Error loading contact history:', error);
+2796:                 tableBody.innerHTML = '<tr><td colspan="8" style="padding: 20px; text-align: center; color: #dc3545;">접촉이력 로드 중 오류가 발생했습니다.</td></tr>';
+2797:             });
+2798:         }
+2799:         
+2800:         function displayContactHistory(histories) {
+2801:             const tableBody = document.getElementById('contactHistoryTable');
+2802:             let html = '';
+2803:             
+2804:             histories.forEach((history, index) => {
+2805:                 const bgColor = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
+2806:                 const shortMemo = history.memo ? (history.memo.length > 20 ? history.memo.substring(0, 20) + '...' : history.memo) : '';
+2807:                 
+2808:                 html += `
+2809:                     <tr style="background: ${bgColor}; border-bottom: 1px solid #e9ecef;" onmouseover="this.style.background='#e3f2fd'" onmouseout="this.style.background='${bgColor}'">
+2810:                         <td style="padding: 12px 8px; color: #495057;">${formatDateTime(history.contact_datetime)}</td>
+2811:                         <td style="padding: 12px 8px; color: #6c757d; font-family: 'Courier New', monospace;">${history.biz_no || ''}</td>
+2812:                         <td style="padding: 12px 8px; color: #495057; font-weight: 500;">${history.company_name || ''}</td>
+2813:                         <td style="padding: 12px 8px; color: #6c757d;">${history.contact_type || ''}</td>
+2814:                         <td style="padding: 12px 8px; color: #6c757d;">${history.contact_person || ''}</td>
+2815:                         <td style="padding: 12px 8px; color: #6c757d; position: relative; cursor: pointer;" 
+2816:                             onmouseover="showMemoTooltip(event, '${escapeHtml(history.memo || '')}')" 
+2817:                             onmouseout="hideMemoTooltip()">${shortMemo}</td>
+2818:                         <td style="padding: 12px 8px; text-align: center; color: #495057;">${history.registered_by_name || history.registered_by || ''}</td>
+2819:                         <td style="padding: 12px 8px; text-align: center;">
+2820:                             <button onclick="editContactHistory(${history.id})" style="background: #007bff; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; margin-right: 2px;">수정</button>
+2821:                             <button onclick="deleteContactHistory(${history.id})" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">삭제</button>
+2822:                         </td>
+2823:                     </tr>
+2824:                 `;
+2825:             });
+2826:             
+2827:             tableBody.innerHTML = html;
+2828:         }
+2829:         
+2830:         // 메모 툴팁 표시 함수
+2831:         function showMemoTooltip(event, memoText) {
+2832:             if (!memoText || memoText.trim() === '' || memoText === 'undefined') return;
+2833:             
+2834:             // 기존 툴팁 제거
+2835:             const existingTooltip = document.getElementById('memoTooltip');
+2836:             if (existingTooltip) {
+2837:                 existingTooltip.remove();
+2838:             }
+2839:             
+2840:             // 새 툴팁 생성
+2841:             const tooltip = document.createElement('div');
+2842:             tooltip.id = 'memoTooltip';
+2843:             tooltip.style.cssText = `
+2844:                 position: absolute;
+2845:                 background: linear-gradient(135deg, #2c3e50, #34495e);
+2846:                 color: white;
+2847:                 padding: 12px 16px;
+2848:                 border-radius: 10px;
+2849:                 font-size: 13px;
+2850:                 line-height: 1.5;
+2851:                 z-index: 1000;
+2852:                 max-width: 350px;
+2853:                 min-width: 200px;
+2854:                 word-wrap: break-word;
+2855:                 box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+2856:                 pointer-events: none;
+2857:                 border: 1px solid rgba(255,255,255,0.1);
+2858:                 backdrop-filter: blur(10px);
+2859:                 animation: tooltipFadeIn 0.2s ease-out;
+2860:             `;
+2861:             
+2862:             // 툴팁 내용 구성
+2863:             tooltip.innerHTML = `
+2864:                 <div style="display: flex; align-items: center; margin-bottom: 8px;">
+2865:                     <span style="font-size: 16px; margin-right: 8px;">?</span>
+2866:                     <strong style="color: #74b9ff;">메모 상세내용</strong>
+2867:                 </div>
+2868:                 <div style="color: #ddd; word-break: break-word;">${memoText}</div>
+2869:             `;
+2870:             
+2871:             // 애니메이션 CSS 추가
+2872:             if (!document.getElementById('tooltipAnimation')) {
+2873:                 const style = document.createElement('style');
+2874:                 style.id = 'tooltipAnimation';
+2875:                 style.textContent = `
+2876:                     @keyframes tooltipFadeIn {
+2877:                         from { opacity: 0; transform: translateY(10px) scale(0.9); }
+2878:                         to { opacity: 1; transform: translateY(0) scale(1); }
+2879:                     }
+2880:                 `;
+2881:                 document.head.appendChild(style);
+2882:             }
+2883:             
+2884:             // 위치 설정
+2885:             document.body.appendChild(tooltip);
+2886:             const rect = event.target.getBoundingClientRect();
+2887:             const tooltipRect = tooltip.getBoundingClientRect();
+2888:             
+2889:             // 화면 바깥쪽 및 위쪽 넘침 방지
+2890:             let left = rect.left + window.scrollX;
+2891:             let top = rect.top + window.scrollY - tooltipRect.height - 15;
+2892:             
+2893:             if (left + tooltipRect.width > window.innerWidth) {
+2894:                 left = window.innerWidth - tooltipRect.width - 20;
+2895:             }
+2896:             if (left < 10) {
+2897:                 left = 10;
+2898:             }
+2899:             if (top < window.scrollY + 10) {
+2900:                 top = rect.bottom + window.scrollY + 10; // 아래쪽에 표시
+2901:             }
+2902:             
+2903:             tooltip.style.left = left + 'px';
+2904:             tooltip.style.top = top + 'px';
+2905:         }
+2906:         
+2907:         // 메모 툴팁 숨김 함수
+2908:         function hideMemoTooltip() {
+2909:             const tooltip = document.getElementById('memoTooltip');
+2910:             if (tooltip) {
+2911:                 tooltip.remove();
+2912:             }
+2913:         }
+2914:         
+2915:         // HTML 이스케이프 함수
+2916:         function escapeHtml(text) {
+2917:             if (!text) return '';
+2918:             return text.replace(/'/g, '&#39;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+2919:         }
+2920:         
+2921:         // 날짜시간 포맷 함수
+2922:         function formatDateTime(dateTimeStr) {
+2923:             if (!dateTimeStr) return '';
+2924:             const date = new Date(dateTimeStr);
+2925:             return date.toLocaleString('ko-KR', {
+2926:                 year: 'numeric',
+2927:                 month: '2-digit',
+2928:                 day: '2-digit',
+2929:                 hour: '2-digit',
+2930:                 minute: '2-digit'
+2931:             });
+2932:         }
+2933:         
+2934:         // 접촉이력 수정 함수
+2935:         function editContactHistory(historyId) {
+2936:             // 기존 접촉이력 데이터를 가져와서 모달에 채움
+2937:             fetch(`/api/contact_history?contact_id=${historyId}`)
+2938:             .then(response => response.json())
+2939:             .then(data => {
+2940:                 if (data.success && data.histories && data.histories.length > 0) {
+2941:                     const history = data.histories[0];
+2942:                     openContactModal(history);
+2943:                 } else {
+2944:                     alert('접촉이력 데이터를 불러올 수 없습니다.');
+2945:                 }
+2946:             })
+2947:             .catch(error => {
+2948:                 console.error('Error loading contact history:', error);
+2949:                 alert('접촉이력 로드 중 오류가 발생했습니다.');
+2950:             });
+2951:         }
+2952: 
+2953:         // 접촉이력 모달 열기 함수
+2954:         function openContactModal(historyData = null) {
+2955:             const modal = document.getElementById('contactHistoryModal');
+2956:             const modalTitle = document.getElementById('contactModalTitle');
+2957:             
+2958:             if (historyData) {
+2959:                 // 수정 모드
+2960:                 modalTitle.textContent = '접촉이력 수정';
+2961:                 document.getElementById('contactHistoryId').value = historyData.id;
+2962:                 
+2963:                 // 날짜 형식 변환 (YYYY-MM-DD HH:MM:SS -> YYYY-MM-DDTHH:MM)
+2964:                 if (historyData.contact_datetime) {
+2965:                     const dateStr = historyData.contact_datetime.replace(' ', 'T').substring(0, 16);
+2966:                     document.getElementById('contactDatetime').value = dateStr;
+2967:                 }
+2968:                 
+2969:                 document.getElementById('contactType').value = historyData.contact_type || '';
+2970:                 document.getElementById('contactPerson').value = historyData.contact_person || '';
+2971:                 document.getElementById('contactMemo').value = historyData.memo || '';
+2972:             } else {
+2973:                 // 등록 모드
+2974:                 modalTitle.textContent = '접촉이력 등록';
+2975:                 document.getElementById('contactHistoryId').value = '';
+2976:                 
+2977:                 // 현재 시간으로 기본값 설정
+2978:                 const now = new Date();
+2979:                 const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+2980:                     .toISOString().substring(0, 16);
+2981:                 document.getElementById('contactDatetime').value = localDateTime;
+2982:                 
+2983:                 document.getElementById('contactType').value = '';
+2984:                 document.getElementById('contactPerson').value = '';
+2985:                 document.getElementById('contactMemo').value = '';
+2986:             }
+2987:             
+2988:             modal.style.display = 'block';
+2989:         }
+2990: 
+2991:         // 접촉이력 모달 닫기 함수
+2992:         function closeContactModal() {
+2993:             const modal = document.getElementById('contactHistoryModal');
+2994:             modal.style.display = 'none';
+2995:         }
+2996: 
+2997:         // 접촉이력 등록 함수 (접촉이력 탭에서 호출)
+2998:         function addNewContactHistory() {
+2999:             openContactModal();
+3000:         }
+3001:         
+3002:         // 접촉이력 삭제 함수
+3003:         function deleteContactHistory(historyId) {
+3004:             if (confirm('이 접촉이력을 삭제하시겠습니까?')) {
+3005:                 fetch(`/api/contact_history/${historyId}`, {
+3006:                     method: 'DELETE',
+3007:                     headers: {
+3008:                         'Content-Type': 'application/json',
+3009:                     }
+3010:                 })
+3011:                 .then(response => response.json())
+3012:                 .then(data => {
+3013:                     if (data.success) {
+3014:                         alert('접촉이력이 성공적으로 삭제되었습니다.');
+3015:                         loadContactHistory(); // 목록 새로고침
+3016:                     } else {
+3017:                         alert('삭제 실패: ' + (data.message || '알 수 없는 오류'));
+3018:                     }
+3019:                 })
+3020:                 .catch(error => {
+3021:                     console.error('Error:', error);
+3022:                     alert('삭제 중 오류가 발생했습니다.');
+3023:                 });
+3024:             }
+3025:         }
+3026: 
+3027:         // 접촉이력 폼 제출 처리
+3028:         document.addEventListener('DOMContentLoaded', function() {
+3029:             const contactForm = document.getElementById('contactHistoryForm');
+3030:             if (contactForm) {
+3031:                 contactForm.addEventListener('submit', function(e) {
+3032:                     e.preventDefault();
+3033:                     
+3034:                     const historyId = document.getElementById('contactHistoryId').value;
+3035:                     const contactDatetime = document.getElementById('contactDatetime').value;
+3036:                     const contactType = document.getElementById('contactType').value;
+3037:                     const contactPerson = document.getElementById('contactPerson').value;
+3038:                     const contactMemo = document.getElementById('contactMemo').value;
+3039:                     
+3040:                     if (!contactDatetime || !contactType) {
+3041:                         alert('접촉일시와 접촉유형은 필수입니다.');
+3042:                         return;
+3043:                     }
+3044:                     
+3045:                     const data = {
+3046:                         biz_no: currentBizNo,
+3047:                         company_name: currentCompanyName,
+3048:                         contact_datetime: contactDatetime.replace('T', ' ') + ':00',
+3049:                         contact_type: contactType,
+3050:                         contact_person: contactPerson,
+3051:                         memo: contactMemo
+3052:                     };
+3053:                     
+3054:                     const url = historyId ? `/api/contact_history/${historyId}` : '/api/contact_history';
+3055:                     const method = historyId ? 'PUT' : 'POST';
+3056:                     
+3057:                     fetch(url, {
+3058:                         method: method,
+3059:                         headers: {
+3060:                             'Content-Type': 'application/json',
+3061:                         },
+3062:                         body: JSON.stringify(data)
+3063:                     })
+3064:                     .then(response => response.json())
+3065:                     .then(result => {
+3066:                         if (result.success) {
+3067:                             alert(historyId ? '접촉이력이 성공적으로 수정되었습니다.' : '접촉이력이 성공적으로 등록되었습니다.');
+3068:                             closeContactModal();
+3069:                             loadContactHistory(); // 목록 새로고침
+3070:                         } else {
+3071:                             alert('처리 실패: ' + (result.message || '알 수 없는 오류'));
+3072:                         }
+3073:                     })
+3074:                     .catch(error => {
+3075:                         console.error('Error:', error);
+3076:                         alert('처리 중 오류가 발생했습니다.');
+3077:                     });
+3078:                 });
+3079:             }
+3080:         });
+3081: 
+3082:         // 페이지 로드 시 초기화
+3083:         document.addEventListener('DOMContentLoaded', function() {
+3084:             console.log('기업 상세 페이지 로드 완료');
+3085:             
+3086:             // 현재 기업 정보 로그
+3087:             console.log('현재 기업:', currentCompanyName, '사업자번호:', currentBizNo);
+3088:             
+3089:             // AI Tip 자동 분석 실행
+3090:             autoAnalyzeCompany();
+3091:             
+3092:             // 접촉이력 탭 활성화 시 데이터 로드를 위한 이벤트 리스너
+3093:             document.querySelector('.tab-button:nth-child(2)').addEventListener('click', function() {
+3094:                 setTimeout(() => {
+3095:                     if (document.getElementById('contact-history').classList.contains('active')) {
+3096:                         loadContactHistory();
+3097:                     }
+3098:                 }, 100);
+3099:             });
+3100:         });
+3101:         
+3102:         // AI 자동 분석 함수
+3103:         function autoAnalyzeCompany() {
+3104:             const tipContent = document.getElementById('ai-tip-content-main');
+3105:             
+3106:             fetch('/api/ai-analysis', {
+3107:                 method: 'POST',
+3108:                 headers: {
+3109:                     'Content-Type': 'application/json',
+3110:                 },
+3111:                 body: JSON.stringify({
+3112:                     query: `${currentCompanyName}의 재무상태, 투자가치, 리스크 요인을 종합적으로 분석해주세요. 기업의 강점과 약점, 향후 전망에 대해서도 설명해주세요.`,
+3113:                     biz_no: currentBizNo,
+3114:                     company_name: currentCompanyName
+3115:                 })
+3116:             })
+3117:             .then(response => response.json())
+3118:             .then(data => {
+3119:                 if (data.success) {
+3120:                     tipContent.innerHTML = `
+3121:                         <div style="line-height: 1.6;">${data.result}</div>
+3122:                         <div class="ai-disclaimer">* Gemini AI 모델을 사용하여 실시간 분석한 결과입니다.</div>
+3123:                     `;
+3124:                 } else {
+3125:                     tipContent.innerHTML = `
+3126:                         <p style="color: red;">AI 분석을 불러올 수 없습니다: ${data.message}</p>
+3127:                         <div class="ai-disclaimer">* Gemini AI 연결을 확인해주세요.</div>
+3128:                     `;
+3129:                 }
+3130:             })
+3131:             .catch(error => {
+3132:                 console.error('AI 분석 오류:', error);
+3133:                 tipContent.innerHTML = `
+3134:                     <p style="color: red;">AI 분석 중 오류가 발생했습니다.</p>
+3135:                     <div class="ai-disclaimer">* 네트워크 연결을 확인해주세요.</div>
+3136:                 `;
+3137:             });
+3138:         }
+3139: 
+3140:         // 주주 삭제 모드 토글
+3141:         let deleteMode = false;
+3142:         function toggleDeleteMode() {
+3143:             deleteMode = !deleteMode;
+3144:             const deleteButtons = document.querySelectorAll('.delete-btn');
+3145:             const deleteModeBtn = document.getElementById('deleteModeBtn');
+3146:             
+3147:             if (deleteMode) {
+3148:                 deleteButtons.forEach(btn => btn.style.display = 'inline-block');
+3149:                 deleteModeBtn.textContent = '삭제 취소';
+3150:                 deleteModeBtn.style.background = '#6c757d';
+3151:             } else {
+3152:                 deleteButtons.forEach(btn => btn.style.display = 'none');
+3153:                 deleteModeBtn.textContent = '삭제 모드';
+3154:                 deleteModeBtn.style.background = '#dc3545';
+3155:             }
+3156:         }
+3157: 
+3158:         // 주주 삭제 함수
+3159:         function deleteShareholder(shareholderName) {
+3160:             if (confirm(`'${shareholderName}' 주주를 삭제하시겠습니까?`)) {
+3161:                 // A
+3162:                 // PI 호출로 주주 삭제
+3163:                 fetch('/api/delete-shareholder', {
+3164:                     method: 'POST',
+3165:                     headers: {
+3166:                         'Content-Type': 'application/json',
+3167:                     },
+3168:                     body: JSON.stringify({
+3169:                         biz_no: currentBizNo,
+3170:                         shareholder_name: shareholderName
+3171:                     })
+3172:                 })
+3173:                 .then(response => response.json())
+3174:                 .then(data => {
+3175:                     if (data.success) {
+3176:                         alert('주주가 성공적으로 삭제되었습니다.');
+3177:                         location.reload(); // 페이지 새로고침으로 변경사항 반영
+3178:                     } else {
+3179:                         alert('삭제 실패: ' + (data.message || '알 수 없는 오류'));
+3180:                     }
+3181:                 })
+3182:                 .catch(error => {
+3183:                     console.error('Error:', error);
+3184:                     alert('삭제 중 오류가 발생했습니다.');
+3185:                 });
+3186:             }
+3187:         }
+3188: 
+3189:         // 7. 스크롤 네비게이션 함수들
+3190:         function scrollToTop() {
+3191:             window.scrollTo({ top: 0, behavior: 'smooth' });
+3192:         }
+3193: 
+3194:         function scrollToBottom() {
+3195:             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+3196:         }
+3197: 
+3198:         // 스크롤에 따라 버튼 표시/숨김
+3199:         window.addEventListener('scroll', function() {
+3200:             const scrollNav = document.getElementById('scrollNav');
+3201:             if (window.scrollY > 300) {
+3202:                 scrollNav.style.display = 'block';
+3203:             } else {
+3204:                 scrollNav.style.display = 'none';
+3205:             }
+3206:         });
+3207: 
+3208:         // 페이지 로드 시 스크롤 버튼 초기화
+3209:         document.addEventListener('DOMContentLoaded', function() {
+3210:             const scrollNav = document.getElementById('scrollNav');
+3211:             if (scrollNav) {
+3212:                 scrollNav.style.display = window.scrollY > 300 ? 'block' : 'none';
+3213:             }
+3214:         });
+3215:     </script>
+3216: 
+3217:     <!-- 긴급 수정: 최하단 함수 재정의 -->
+3218:     <script>
+3219:         // 확실한 함수 정의 - 브라우저 호환성 최대화
+3220:         window.showTab = function(tabId, clickedButton) {
+3221:             console.log('=== showTab 함수 실행 시작 ===');
+3222:             console.log('탭 ID:', tabId, '버튼:', clickedButton);
+3223:             
+3224:             try {
+3225:                 // 모든 탭 버튼 비활성화
+3226:                 var tabButtons = document.querySelectorAll('.tab-button');
+3227:                 console.log('찾은 탭 버튼 수:', tabButtons.length);
+3228:                 
+3229:                 for (var i = 0; i < tabButtons.length; i++) {
+3230:                     tabButtons[i].classList.remove('active');
+3231:                     console.log('버튼', i, '비활성화');
+3232:                 }
+3233:                 
+3234:                 // 모든 탭 패널 숨김
+3235:                 var tabPanels = document.querySelectorAll('.tab-panel');
+3236:                 console.log('찾은 탭 패널 수:', tabPanels.length);
+3237:                 
+3238:                 for (var j = 0; j < tabPanels.length; j++) {
+3239:                     tabPanels[j].classList.remove('active');
+3240:                     console.log('패널', j, '숨김');
+3241:                 }
+3242:                 
+3243:                 // 클릭된 버튼 활성화
+3244:                 if (clickedButton) {
+3245:                     clickedButton.classList.add('active');
+3246:                     console.log('클릭된 버튼 활성화');
+3247:                 }
+3248:                 
+3249:                 // 타겟 패널 표시
+3250:                 var targetPanel = document.getElementById(tabId);
+3251:                 if (targetPanel) {
+3252:                     targetPanel.classList.add('active');
+3253:                     console.log('타겟 패널', tabId, '활성화 완료');
+3254:                     
+3255:                     // 특별한 처리
+3256:                     if (tabId === 'ai-search') {
+3257:                         console.log('AI 서치 탭 - 분석 시작 준비');
+3258:                         setTimeout(function() {
+3259:                             if (window.startComprehensiveAnalysis) {
+3260:                                 startComprehensiveAnalysis();
+3261:                             }
+3262:                         }, 300);
+3263:                     }
+3264:                     
+3265:                     if (tabId === 'contact-history') {
+3266:                         console.log('접촉이력 탭 - 데이터 로드 준비');
+3267:                         setTimeout(function() {
+3268:                             if (window.loadContactHistory) {
+3269:                                 loadContactHistory();
+3270:                             }
+3271:                         }, 200);
+3272:                     }
+3273:                 } else {
+3274:                     console.error('타겟 패널을 찾을 수 없음:', tabId);
+3275:                 }
+3276:                 
+3277:                 console.log('=== showTab 함수 실행 완료 ===');
+3278:                 return true;
+3279:                 
+3280:             } catch (error) {
+3281:                 console.error('showTab 함수 오류:', error);
+3282:                 alert('탭 전환 중 오류가 발생했습니다: ' + error.message);
+3283:                 return false;
+3284:             }
+3285:         };
+3286:         
+3287:         window.registerPioneering = function() {
+3288:             console.log('=== registerPioneering 함수 실행 시작 ===');
+3289:             
+3290:             try {
+3291:                 // 간단한 모달창 표시 방법
+3292:                 var modalHtml = `
+3293:                 <div id="quickPioneeringModal" style="
+3294:                     position: fixed;
+3295:                     top: 0;
+3296:                     left: 0;
+3297:                     width: 100%;
+3298:                     height: 100%;
+3299:                     background: rgba(0,0,0,0.7);
+3300:                     z-index: 10000;
+3301:                     display: flex;
+3302:                     justify-content: center;
+3303:                     align-items: center;
+3304:                 ">
+3305:                     <div style="
+3306:                         background: white;
+3307:                         padding: 30px;
+3308:                         border-radius: 15px;
+3309:                         width: 90%;
+3310:                         max-width: 500px;
+3311:                         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+3312:                     ">
+3313:                         <h2 style="margin-top: 0; color: #28a745;">개척 대상 등록 (ych_P111)</h2>
+3314:                         <form>
+3315:                             <div style="margin-bottom: 20px;">
+3316:                                 <label style="display: block; margin-bottom: 5px; font-weight: 500;">기업명:</label>
+3317:                                 <input type="text" id="qCompanyName" value="${window.currentCompanyName || '회사명'}" readonly 
+3318:                                        style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; background: #f8f9fa; box-sizing: border-box;">
+3319:                             </div>
+3320:                             <div style="margin-bottom: 20px;">
+3321:                                 <label style="display: block; margin-bottom: 5px; font-weight: 500;">사업자번호:</label>
+3322:                                 <input type="text" id="qBizNo" value="${window.currentBizNo || '사업자번호'}" readonly 
+3323:                                        style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; background: #f8f9fa; box-sizing: border-box;">
+3324:                             </div>
+3325:                             <div style="margin-bottom: 20px;">
+3326:                                 <label for="qVisitDate" style="display: block; margin-bottom: 5px; font-weight: 500;">방문일자 *:</label>
+3327:                                 <input type="date" id="qVisitDate" required 
+3328:                                        style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; box-sizing: border-box;">
+3329:                             </div>
+3330:                             <div style="margin-bottom: 30px;">
+3331:                                 <label for="qMemo" style="display: block; margin-bottom: 5px; font-weight: 500;">메모:</label>
+3332:                                 <textarea id="qMemo" placeholder="개척 관련 메모사항..." 
+3333:                                           style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; min-height: 80px; resize: vertical; box-sizing: border-box;"></textarea>
+3334:                             </div>
+3335:                             <div style="display: flex; gap: 10px; justify-content: flex-end;">
+3336:                                 <button type="button" onclick="closeQuickModal()" 
+3337:                                         style="padding: 10px 20px; border: none; border-radius: 5px; background: #6c757d; color: white; cursor: pointer;">취소</button>
+3338:                                 <button type="button" onclick="submitQuickPioneering()" 
+3339:                                         style="padding: 10px 20px; border: none; border-radius: 5px; background: #28a745; color: white; cursor: pointer;">등록</button>
+3340:                             </div>
+3341:                         </form>
+3342:                     </div>
+3343:                 </div>
+3344:                 `;
+3345:                 
+3346:                 // 기존 모달 제거
+3347:                 var existingModal = document.getElementById('quickPioneeringModal');
+3348:                 if (existingModal) {
+3349:                     existingModal.remove();
+3350:                 }
+3351:                 
+3352:                 // 새 모달 추가
+3353:                 document.body.insertAdjacentHTML('beforeend', modalHtml);
+3354:                 
+3355:                 // 오늘 날짜 설정
+3356:                 var today = new Date().toISOString().split('T')[0];
+3357:                 document.getElementById('qVisitDate').value = today;
+3358:                 
+3359:                 console.log('개척등록 모달창 표시 완료');
+3360:                 return true;
+3361:                 
+3362:             } catch (error) {
+3363:                 console.error('registerPioneering 함수 오류:', error);
+3364:                 alert('개척등록 모달 표시 중 오류가 발생했습니다: ' + error.message);
+3365:                 return false;
+3366:             }
+3367:         };
+3368:         
+3369:         window.closeQuickModal = function() {
+3370:             var modal = document.getElementById('quickPioneeringModal');
+3371:             if (modal) {
+3372:                 modal.remove();
+3373:                 console.log('개척등록 모달창 닫힘');
+3374:             }
+3375:         };
+3376:         
+3377:         window.submitQuickPioneering = function() {
+3378:             console.log('개척등록 제출 시작');
+3379:             
+3380:             var visitDate = document.getElementById('qVisitDate').value;
+3381:             var memo = document.getElementById('qMemo').value;
+3382:             
+3383:             if (!visitDate) {
+3384:                 alert('방문일자를 입력해주세요.');
+3385:                 return;
+3386:             }
+3387:             
+3388:             // 서버로 전송
+3389:             var data = {
+3390:                 biz_no: window.currentBizNo || '${company.biz_no if company else "1018139184"}',
+3391:                 visit_date: visitDate,
+3392:                 notes: memo,
+3393:                 visitor_id: '${user_id if user_id else "unknown"}'
+3394:             };
+3395:             
+3396:             console.log('전송 데이터:', data);
+3397:             
+3398:             fetch('/api/pioneering_targets', {
+3399:                 method: 'POST',
+3400:                 headers: {
+3401:                     'Content-Type': 'application/json'
+3402:                 },
+3403:                 body: JSON.stringify(data)
+3404:             })
+3405:             .then(response => response.json())
+3406:             .then(result => {
+3407:                 if (result.success) {
+3408:                     alert('개척 대상이 정상적으로 등록되었습니다.');
+3409:                     closeQuickModal();
+3410:                     location.reload();
+3411:                 } else {
+3412:                     alert(result.message || '등록에 실패했습니다.');
+3413:                 }
+3414:             })
+3415:             .catch(error => {
+3416:                 console.error('등록 오류:', error);
+3417:                 alert('등록 중 오류가 발생했습니다.');
+3418:             });
+3419:         };
+3420: 
+3421:     <!-- 접촉이력 등록/수정 모달 -->
+3422:     <div id="contactHistoryModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;">
+3423:         <div class="modal-content" style="position: relative; margin: 5% auto; padding: 20px; width: 80%; max-width: 600px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+3424:             <span class="close" onclick="closeContactModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #aaa;">&times;</span>
+3425:             <h3 id="contactModalTitle" style="margin-top: 0; color: #333;">접촉이력 등록</h3>
+3426:             
+3427:             <form id="contactHistoryForm" style="margin-top: 20px;">
+3428:                 <input type="hidden" id="contactHistoryId" value="">
+3429:                 
+3430:                 <div style="margin-bottom: 15px;">
+3431:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉일시 *</label>
+3432:                     <input type="datetime-local" id="contactDatetime" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+3433:                 </div>
+3434:                 
+3435:                 <div style="margin-bottom: 15px;">
+3436:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉유형 *</label>
+3437:                     <select id="contactType" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+3438:                         <option value="">선택하세요</option>
+3439:                         <option value="방문">방문</option>
+3440:                         <option value="전화">전화</option>
+3441:                         <option value="이메일">이메일</option>
+3442:                         <option value="회의">회의</option>
+3443:                         <option value="기타">기타</option>
+3444:                     </select>
+3445:                 </div>
+3446:                 
+3447:                 <div style="margin-bottom: 15px;">
+3448:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">접촉자</label>
+3449:                     <input type="text" id="contactPerson" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="담당자명">
+3450:                 </div>
+3451:                 
+3452:                 <div style="margin-bottom: 20px;">
+3453:                     <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">메모</label>
+3454:                     <textarea id="contactMemo" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" placeholder="접촉 내용을 입력하세요"></textarea>
+3455:                 </div>
+3456:                 
+3457:                 <div style="text-align: right;">
+3458:                     <button type="button" onclick="closeContactModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">취소</button>
+3459:                     <button type="submit" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">저장</button>
+3460:                 </div>
+3461:             </form>
+3462:         </div>
+3463:     </div>
+3464: </body>
+3465: </html>

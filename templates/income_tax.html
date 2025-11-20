@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Á¾ÇÕ¼Òµæ¼¼ °è»ê±â</title>
+    <title>ì¢…í•©ì†Œë“ì„¸ ê³„ì‚°ê¸°</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body { 
@@ -188,92 +188,92 @@
 <body>
     <div class="income-tax-container">
         <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">? ¸ÞÀÎÀ¸·Î</a>
-            <button type="button" class="tax-rate-btn" onclick="showIncomeTaxRate()">? Á¾ÇÕ¼Òµæ¼¼À² º¸±â</button>
+            <a href="{{ url_for('main') }}" class="main-btn">? ë©”ì¸ìœ¼ë¡œ</a>
+            <button type="button" class="tax-rate-btn" onclick="showIncomeTaxRate()">? ì¢…í•©ì†Œë“ì„¸ìœ¨ ë³´ê¸°</button>
         </div>
         
-        <div class="income-tax-title">? Á¾ÇÕ¼Òµæ¼¼ °è»ê±â</div>
+        <div class="income-tax-title">? ì¢…í•©ì†Œë“ì„¸ ê³„ì‚°ê¸°</div>
         
         <form class="income-tax-form" id="incomeTaxForm" onsubmit="return false;">
             <div class="form-group">
-                <label>? Á¾ÇÕ¼ÒµæÇÕ°è (¿ø)</label>
+                <label>? ì¢…í•©ì†Œë“í•©ê³„ (ì›)</label>
                 <div class="input-icon" data-icon="?">
-                    <input type="text" id="totalIncome" required pattern="[0-9,]*" placeholder="¿¹: 50,000,000">
+                    <input type="text" id="totalIncome" required pattern="[0-9,]*" placeholder="ì˜ˆ: 50,000,000">
                 </div>
-                <div class="help-text">»ç¾÷¼Òµæ, ÀÓ´ë¼Òµæ µî Á¾ÇÕ¼Òµæ ÇÕ°è<br>±Ù·Î¼Òµæ, ÀÌÀÚ¼Òµæ, ¹è´ç¼Òµæ ÇÕ»êÀº ¼¼¹«Àü¹®°¡¿Í »ó´ãÇÏ¼¼¿ä</div>
+                <div class="help-text">ì‚¬ì—…ì†Œë“, ìž„ëŒ€ì†Œë“ ë“± ì¢…í•©ì†Œë“ í•©ê³„<br>ê·¼ë¡œì†Œë“, ì´ìžì†Œë“, ë°°ë‹¹ì†Œë“ í•©ì‚°ì€ ì„¸ë¬´ì „ë¬¸ê°€ì™€ ìƒë‹´í•˜ì„¸ìš”</div>
             </div>
             
             <div class="form-group">
-                <label>? ÇÊ¿ä°æºñ ºñÀ² (%)</label>
+                <label>? í•„ìš”ê²½ë¹„ ë¹„ìœ¨ (%)</label>
                 <div class="input-icon" data-icon="?">
-                    <input type="number" id="expenseRate" min="0" max="100" value="0" required placeholder="¿¹: 10">
+                    <input type="number" id="expenseRate" min="0" max="100" value="0" required placeholder="ì˜ˆ: 10">
                 </div>
-                <div class="help-text">ÁÖ¿ä°æºñ: »óÇ° ±¸ÀÔºñ¿ë, ÀÓÂ÷·á, ÀÎ°Çºñ, ¼öµµ±¤¿­ºñ µî</div>
+                <div class="help-text">ì£¼ìš”ê²½ë¹„: ìƒí’ˆ êµ¬ìž…ë¹„ìš©, ìž„ì°¨ë£Œ, ì¸ê±´ë¹„, ìˆ˜ë„ê´‘ì—´ë¹„ ë“±</div>
             </div>
             
             <div class="form-group">
-                <label>??????? ÀÎÀû°øÁ¦ ÇÕ°è (¿ø)</label>
+                <label>??????? ì¸ì ê³µì œ í•©ê³„ (ì›)</label>
                 <div class="input-icon" data-icon="???????">
-                    <input type="text" id="personalDeduction" value="1,500,000" required pattern="[0-9,]*" placeholder="¿¹: 1,500,000">
+                    <input type="text" id="personalDeduction" value="1,500,000" required pattern="[0-9,]*" placeholder="ì˜ˆ: 1,500,000">
                 </div>
-                <div class="help-text">º»ÀÎ 150¸¸¿ø + ºÎ¾ç°¡Á· 1ÀÎ´ç 150¸¸¿ø</div>
+                <div class="help-text">ë³¸ì¸ 150ë§Œì› + ë¶€ì–‘ê°€ì¡± 1ì¸ë‹¹ 150ë§Œì›</div>
             </div>
             
             <div class="form-group">
-                <label>?? ±¹¹Î¿¬±Ý µî ÇÕ°è (¿ø)</label>
+                <label>?? êµ­ë¯¼ì—°ê¸ˆ ë“± í•©ê³„ (ì›)</label>
                 <div class="input-icon" data-icon="??">
-                    <input type="text" id="pensionDeduction" value="0" required pattern="[0-9,]*" placeholder="¿¹: 2,000,000">
+                    <input type="text" id="pensionDeduction" value="0" required pattern="[0-9,]*" placeholder="ì˜ˆ: 2,000,000">
                 </div>
-                <div class="help-text">±¹¹Î¿¬±Ý, ³ë¶õ¿ì»ê°øÁ¦ µî ÇØ´ç¿¬µµ¿¡ ºÒÀÔÇÑ ±Ý¾×</div>
+                <div class="help-text">êµ­ë¯¼ì—°ê¸ˆ, ë…¸ëž€ìš°ì‚°ê³µì œ ë“± í•´ë‹¹ì—°ë„ì— ë¶ˆìž…í•œ ê¸ˆì•¡</div>
             </div>
             
             <div class="form-group">
-                <label>? °³ÀÎ¿¬±ÝÀúÃà (2000.12.31 ÀÌÀü °¡ÀÔºÐ, ¿ø)</label>
+                <label>? ê°œì¸ì—°ê¸ˆì €ì¶• (2000.12.31 ì´ì „ ê°€ìž…ë¶„, ì›)</label>
                 <div class="input-icon" data-icon="?">
-                    <input type="text" id="oldPension" value="0" required pattern="[0-9,]*" placeholder="¿¹: 1,000,000">
+                    <input type="text" id="oldPension" value="0" required pattern="[0-9,]*" placeholder="ì˜ˆ: 1,000,000">
                 </div>
-                <div class="help-text">Min(°³ÀÎ¿¬±ÝÀúÃàºÒÀÔ¾×¡¿40%, 72¸¸¿ø)</div>
+                <div class="help-text">Min(ê°œì¸ì—°ê¸ˆì €ì¶•ë¶ˆìž…ì•¡Ã—40%, 72ë§Œì›)</div>
             </div>
             
             <div class="form-group">
-                <label>? ÀÚ³à¼¼¾×°øÁ¦ ´ë»ó ÀÎ¿ø (¸í)</label>
+                <label>? ìžë…€ì„¸ì•¡ê³µì œ ëŒ€ìƒ ì¸ì› (ëª…)</label>
                 <div class="input-icon" data-icon="?">
-                    <input type="number" id="childCount" min="0" value="0" required placeholder="¿¹: 2">
+                    <input type="number" id="childCount" min="0" value="0" required placeholder="ì˜ˆ: 2">
                 </div>
-                <div class="help-text">¼Òµæ±Ý¾×ÀÌ 100¸¸¿ø ÀÌÇÏÀÎ ¸¸ 6¼¼ ÀÌ»ó ¸¸ 20¼¼ ÀÌÇÏ ÀÚ³à (1ÀÎ´ç 15¸¸¿ø °øÁ¦)</div>
+                <div class="help-text">ì†Œë“ê¸ˆì•¡ì´ 100ë§Œì› ì´í•˜ì¸ ë§Œ 6ì„¸ ì´ìƒ ë§Œ 20ì„¸ ì´í•˜ ìžë…€ (1ì¸ë‹¹ 15ë§Œì› ê³µì œ)</div>
             </div>
             
             <div class="form-group">
-                <label>? ¿¬±ÝÀúÃà ºÒÀÔ±Ý¾× (2001.1.1 ÀÌÈÄ °¡ÀÔºÐ, ¿ø)</label>
+                <label>? ì—°ê¸ˆì €ì¶• ë¶ˆìž…ê¸ˆì•¡ (2001.1.1 ì´í›„ ê°€ìž…ë¶„, ì›)</label>
                 <div class="input-icon" data-icon="?">
-                    <input type="text" id="newPension" value="0" required pattern="[0-9,]*" placeholder="¿¹: 2,000,000">
+                    <input type="text" id="newPension" value="0" required pattern="[0-9,]*" placeholder="ì˜ˆ: 2,000,000">
                 </div>
-                <div class="help-text">¼¼¾×°øÁ¦: ¿¬±ÝÀúÃà ÃÖ´ë 60¸¸¿ø, ÅðÁ÷¿¬±Ý IRP ÃÖ´ë 30¸¸¿ø</div>
+                <div class="help-text">ì„¸ì•¡ê³µì œ: ì—°ê¸ˆì €ì¶• ìµœëŒ€ 60ë§Œì›, í‡´ì§ì—°ê¸ˆ IRP ìµœëŒ€ 30ë§Œì›</div>
             </div>
             
-            <button type="submit" class="submit-btn">? °è»êÇÏ±â</button>
+            <button type="submit" class="submit-btn">? ê³„ì‚°í•˜ê¸°</button>
         </form>
         
         <div class="result-box" id="resultBox" style="display:none;"></div>
         
         <div style="background:rgba(108, 117, 125, 0.1);border-radius:12px;padding:20px;margin-top:25px;">
-            <h4 style="color:#495057;margin-bottom:15px;">? ¾È³»»çÇ×</h4>
+            <h4 style="color:#495057;margin-bottom:15px;">? ì•ˆë‚´ì‚¬í•­</h4>
             <div style="font-size:0.95em;color:#6c757d;line-height:1.6;">
-                <p><strong>? Á¾ÇÕ¼Òµæ:</strong> »ç¾÷¼Òµæ, ÀÓ´ë¼Òµæ, ±âÅ¸¼ÒµæÀÇ ÇÕ°è</p>
-                <p><strong>? ÇÊ¿ä°æºñ:</strong> ¼ÒµæÀ» ¾ò±â À§ÇØ Á÷Á¢ ÁöÃâÇÑ ºñ¿ë</p>
-                <p><strong>?? ÁÖÀÇ:</strong> ±Ù·Î¼Òµæ, ÀÌÀÚ¼Òµæ, ¹è´ç¼ÒµæÀÌ ÀÖ´Â °æ¿ì º°µµ °è»êÀÌ ÇÊ¿äÇÕ´Ï´Ù</p>
+                <p><strong>? ì¢…í•©ì†Œë“:</strong> ì‚¬ì—…ì†Œë“, ìž„ëŒ€ì†Œë“, ê¸°íƒ€ì†Œë“ì˜ í•©ê³„</p>
+                <p><strong>? í•„ìš”ê²½ë¹„:</strong> ì†Œë“ì„ ì–»ê¸° ìœ„í•´ ì§ì ‘ ì§€ì¶œí•œ ë¹„ìš©</p>
+                <p><strong>?? ì£¼ì˜:</strong> ê·¼ë¡œì†Œë“, ì´ìžì†Œë“, ë°°ë‹¹ì†Œë“ì´ ìžˆëŠ” ê²½ìš° ë³„ë„ ê³„ì‚°ì´ í•„ìš”í•©ë‹ˆë‹¤</p>
             </div>
         </div>
     </div>
-    <!-- Á¾ÇÕ¼Òµæ¼¼À² ¸ð´Þ -->
+    <!-- ì¢…í•©ì†Œë“ì„¸ìœ¨ ëª¨ë‹¬ -->
     <div id="incomeTaxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px);">
         <div style="background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);max-width:700px;margin:60px auto;padding:32px 28px;border-radius:20px;position:relative;box-shadow:0 20px 50px rgba(0,0,0,0.2);">
-            <button id="closeIncomeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;color:#6c757d;width:40px;height:40px;border-radius:50%;transition:all 0.3s ease;">¡¿</button>
+            <button id="closeIncomeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;color:#6c757d;width:40px;height:40px;border-radius:50%;transition:all 0.3s ease;">Ã—</button>
             <div id="incomeTaxRateContent"></div>
         </div>
     </div>
     <script>
-    // 3ÀÚ¸® ÄÞ¸¶
+    // 3ìžë¦¬ ì½¤ë§ˆ
     function addComma(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
@@ -281,7 +281,7 @@
         return str.replace(/,/g, '');
     }
     
-    // ÀÔ·Â¶õ ÄÞ¸¶ ÀÚµ¿
+    // ìž…ë ¥ëž€ ì½¤ë§ˆ ìžë™
     ['totalIncome','personalDeduction','pensionDeduction','oldPension','newPension'].forEach(id => {
         const el = document.getElementById(id);
         el.addEventListener('input', function(e) {
@@ -290,67 +290,67 @@
         });
     });
     
-    // ¼¼À² ¾È³» ¸ð´Þ
+    // ì„¸ìœ¨ ì•ˆë‚´ ëª¨ë‹¬
     function showIncomeTaxRate() {
         const modal = document.getElementById('incomeTaxRateModal');
         const content = document.getElementById('incomeTaxRateContent');
         content.innerHTML = `
-            <h3 style='color:#2c3e50;font-size:1.5em;margin-bottom:20px;text-align:center;'>? Á¾ÇÕ¼Òµæ¼¼À²</h3>
+            <h3 style='color:#2c3e50;font-size:1.5em;margin-bottom:20px;text-align:center;'>? ì¢…í•©ì†Œë“ì„¸ìœ¨</h3>
             <div style='overflow-x:auto;'>
                 <table style='width:100%;border-collapse:collapse;text-align:center;background:rgba(255,255,255,0.9);border-radius:12px;overflow:hidden;'>
                     <thead>
                         <tr style='background:linear-gradient(135deg,#0a1f3b,#4a9fd9);color:#fff;'>
-                            <th style='padding:15px;font-weight:600;'>°ú¼¼Ç¥ÁØ</th>
-                            <th style='padding:15px;font-weight:600;'>¼¼À²</th>
-                            <th style='padding:15px;font-weight:600;'>´©Áø°øÁ¦</th>
+                            <th style='padding:15px;font-weight:600;'>ê³¼ì„¸í‘œì¤€</th>
+                            <th style='padding:15px;font-weight:600;'>ì„¸ìœ¨</th>
+                            <th style='padding:15px;font-weight:600;'>ëˆ„ì§„ê³µì œ</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
-                            <td style='padding:12px;'>1,400¸¸¿ø ÀÌÇÏ</td>
+                            <td style='padding:12px;'>1,400ë§Œì› ì´í•˜</td>
                             <td style='padding:12px;font-weight:600;color:#28a745;'>6%</td>
                             <td style='padding:12px;'>-</td>
                         </tr>
                         <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
-                            <td style='padding:12px;'>5,000¸¸¿ø ÀÌÇÏ</td>
+                            <td style='padding:12px;'>5,000ë§Œì› ì´í•˜</td>
                             <td style='padding:12px;font-weight:600;color:#fd7e14;'>15%</td>
-                            <td style='padding:12px;'>126¸¸¿ø</td>
+                            <td style='padding:12px;'>126ë§Œì›</td>
                         </tr>
                         <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
-                            <td style='padding:12px;'>8,800¸¸¿ø ÀÌÇÏ</td>
+                            <td style='padding:12px;'>8,800ë§Œì› ì´í•˜</td>
                             <td style='padding:12px;font-weight:600;color:#e83e8c;'>24%</td>
-                            <td style='padding:12px;'>576¸¸¿ø</td>
+                            <td style='padding:12px;'>576ë§Œì›</td>
                         </tr>
                         <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
-                            <td style='padding:12px;'>1¾ï5Ãµ¸¸¿ø ÀÌÇÏ</td>
+                            <td style='padding:12px;'>1ì–µ5ì²œë§Œì› ì´í•˜</td>
                             <td style='padding:12px;font-weight:600;color:#6f42c1;'>35%</td>
-                            <td style='padding:12px;'>1,446¸¸¿ø</td>
+                            <td style='padding:12px;'>1,446ë§Œì›</td>
                         </tr>
                         <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
-                            <td style='padding:12px;'>3¾ï¿ø ÀÌÇÏ</td>
+                            <td style='padding:12px;'>3ì–µì› ì´í•˜</td>
                             <td style='padding:12px;font-weight:600;color:#dc3545;'>38%</td>
-                            <td style='padding:12px;'>1,946¸¸¿ø</td>
+                            <td style='padding:12px;'>1,946ë§Œì›</td>
                         </tr>
                         <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
-                            <td style='padding:12px;'>5¾ï¿ø ÀÌÇÏ</td>
+                            <td style='padding:12px;'>5ì–µì› ì´í•˜</td>
                             <td style='padding:12px;font-weight:600;color:#dc3545;'>40%</td>
-                            <td style='padding:12px;'>2,546¸¸¿ø</td>
+                            <td style='padding:12px;'>2,546ë§Œì›</td>
                         </tr>
                         <tr style='border-bottom:1px solid rgba(0,0,0,0.1);'>
-                            <td style='padding:12px;'>10¾ï¿ø ÀÌÇÏ</td>
+                            <td style='padding:12px;'>10ì–µì› ì´í•˜</td>
                             <td style='padding:12px;font-weight:600;color:#dc3545;'>42%</td>
-                            <td style='padding:12px;'>3,546¸¸¿ø</td>
+                            <td style='padding:12px;'>3,546ë§Œì›</td>
                         </tr>
                         <tr>
-                            <td style='padding:12px;'>10¾ï¿ø ÃÊ°ú</td>
+                            <td style='padding:12px;'>10ì–µì› ì´ˆê³¼</td>
                             <td style='padding:12px;font-weight:600;color:#dc3545;'>45%</td>
-                            <td style='padding:12px;'>6,546¸¸¿ø</td>
+                            <td style='padding:12px;'>6,546ë§Œì›</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             <div style='font-size:0.95em;color:#6c757d;margin-top:15px;text-align:center;background:rgba(108, 117, 125, 0.1);padding:10px;border-radius:8px;'>
-                ?? ½ÇÁ¦ ¼¼À²Àº ¹ý·É º¯°æ ¹× °³ÀÎ »óÈ²¿¡ µû¶ó ´Ù¸¦ ¼ö ÀÖ½À´Ï´Ù.
+                ?? ì‹¤ì œ ì„¸ìœ¨ì€ ë²•ë ¹ ë³€ê²½ ë° ê°œì¸ ìƒí™©ì— ë”°ë¼ ë‹¤ë¥¼ ìˆ˜ ìžˆìŠµë‹ˆë‹¤.
             </div>`;
         modal.style.display = 'block';
         modal.style.opacity = '0';
@@ -368,14 +368,14 @@
         }, 300);
     };
     
-    // ¸ð´Þ ¹è°æ Å¬¸¯½Ã ´Ý±â
+    // ëª¨ë‹¬ ë°°ê²½ í´ë¦­ì‹œ ë‹«ê¸°
     document.getElementById('incomeTaxRateModal').onclick = function(e) {
         if(e.target === this) {
             document.getElementById('closeIncomeTaxRateModal').onclick();
         }
     }
     
-    // °è»ê
+    // ê³„ì‚°
     document.getElementById('incomeTaxForm').addEventListener('submit', function() {
         const totalIncome = parseInt(removeComma(document.getElementById('totalIncome').value)) || 0;
         const expenseRate = parseFloat(document.getElementById('expenseRate').value) || 0;
@@ -385,16 +385,16 @@
         const childCount = parseInt(document.getElementById('childCount').value) || 0;
         const newPension = parseInt(removeComma(document.getElementById('newPension').value)) || 0;
 
-        // ÇÊ¿ä°æºñ
+        // í•„ìš”ê²½ë¹„
         const expense = Math.floor(totalIncome * expenseRate / 100);
-        // ¼Òµæ±Ý¾×
+        // ì†Œë“ê¸ˆì•¡
         const incomeAmount = totalIncome - expense;
-        // °³ÀÎ¿¬±ÝÀúÃà°øÁ¦(2000.12.31 ÀÌÀü): ºÒÀÔ¾×¡¿0.4, ÃÖ´ë 720,000¿ø
+        // ê°œì¸ì—°ê¸ˆì €ì¶•ê³µì œ(2000.12.31 ì´ì „): ë¶ˆìž…ì•¡Ã—0.4, ìµœëŒ€ 720,000ì›
         const oldPensionDeduct = Math.min(Math.floor(oldPension * 0.4), 720000);
-        // °ú¼¼Ç¥ÁØ
+        // ê³¼ì„¸í‘œì¤€
         const taxBase = Math.max(incomeAmount - personalDeduction - pensionDeduction - oldPensionDeduct, 0);
 
-        // ´©Áø°øÁ¦Ç¥ (2024³â ±âÁØ)
+        // ëˆ„ì§„ê³µì œí‘œ (2024ë…„ ê¸°ì¤€)
         const brackets = [
             { limit: 14000000, rate: 0.06, minus: 0 },
             { limit: 50000000, rate: 0.15, minus: 1260000 },
@@ -417,62 +417,62 @@
         let calcTax = Math.floor(taxBase * rate - minus);
         if (calcTax < 0) calcTax = 0;
 
-        // ÀÚ³à¼¼¾×°øÁ¦(1ÀÎ´ç 150,000¿ø)
+        // ìžë…€ì„¸ì•¡ê³µì œ(1ì¸ë‹¹ 150,000ì›)
         const childCredit = childCount * 150000;
-        // ¿¬±ÝÀúÃàºÒÀÔ¾× ¼¼¾×°øÁ¦(ÃÖ´ë 600,000¿ø)
+        // ì—°ê¸ˆì €ì¶•ë¶ˆìž…ì•¡ ì„¸ì•¡ê³µì œ(ìµœëŒ€ 600,000ì›)
         const newPensionCredit = Math.min(Math.floor(newPension * 0.15), 600000);
 
-        // ÃÖÁ¾ »êÃâ¼¼¾×
+        // ìµœì¢… ì‚°ì¶œì„¸ì•¡
         const finalTax = Math.max(calcTax - childCredit - newPensionCredit, 0);
 
         const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
         resultBox.innerHTML =
             `<div style='text-align:center;margin-bottom:20px;'>
-                <h4 style='color:#2c3e50;margin-bottom:15px;'>? Á¾ÇÕ¼Òµæ¼¼ °è»ê °á°ú</h4>
+                <h4 style='color:#2c3e50;margin-bottom:15px;'>? ì¢…í•©ì†Œë“ì„¸ ê³„ì‚° ê²°ê³¼</h4>
             </div>
             <div style='display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;'>
                 <div style='background:rgba(255,255,255,0.8);padding:15px;border-radius:10px;text-align:center;'>
-                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>ÇÊ¿ä°æºñ</div>
-                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(expense)}¿ø</div>
+                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>í•„ìš”ê²½ë¹„</div>
+                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(expense)}ì›</div>
                 </div>
                 <div style='background:rgba(255,255,255,0.8);padding:15px;border-radius:10px;text-align:center;'>
-                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>¼Òµæ±Ý¾×</div>
-                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(incomeAmount)}¿ø</div>
+                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>ì†Œë“ê¸ˆì•¡</div>
+                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(incomeAmount)}ì›</div>
                 </div>
             </div>
             <div style='display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;'>
                 <div style='background:rgba(255,255,255,0.8);padding:15px;border-radius:10px;text-align:center;'>
-                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>°³ÀÎ¿¬±ÝÀúÃà°øÁ¦</div>
-                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(oldPensionDeduct)}¿ø</div>
+                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>ê°œì¸ì—°ê¸ˆì €ì¶•ê³µì œ</div>
+                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(oldPensionDeduct)}ì›</div>
                 </div>
                 <div style='background:rgba(255,255,255,0.8);padding:15px;border-radius:10px;text-align:center;'>
-                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>°ú¼¼Ç¥ÁØ</div>
-                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(taxBase)}¿ø</div>
+                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>ê³¼ì„¸í‘œì¤€</div>
+                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(taxBase)}ì›</div>
                 </div>
             </div>
             <div style='background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.3);padding:15px;border-radius:10px;margin-bottom:15px;'>
                 <div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;'>
                     <div style='text-align:center;'>
-                        <div style='font-size:0.8em;color:#856404;'>»êÃâ¼¼¾×</div>
-                        <div style='font-weight:600;color:#856404;'>${addComma(calcTax)}¿ø</div>
+                        <div style='font-size:0.8em;color:#856404;'>ì‚°ì¶œì„¸ì•¡</div>
+                        <div style='font-weight:600;color:#856404;'>${addComma(calcTax)}ì›</div>
                     </div>
                     <div style='text-align:center;'>
-                        <div style='font-size:0.8em;color:#856404;'>ÀÚ³à°øÁ¦</div>
-                        <div style='font-weight:600;color:#856404;'>${addComma(childCredit)}¿ø</div>
+                        <div style='font-size:0.8em;color:#856404;'>ìžë…€ê³µì œ</div>
+                        <div style='font-weight:600;color:#856404;'>${addComma(childCredit)}ì›</div>
                     </div>
                     <div style='text-align:center;'>
-                        <div style='font-size:0.8em;color:#856404;'>¿¬±Ý°øÁ¦</div>
-                        <div style='font-weight:600;color:#856404;'>${addComma(newPensionCredit)}¿ø</div>
+                        <div style='font-size:0.8em;color:#856404;'>ì—°ê¸ˆê³µì œ</div>
+                        <div style='font-weight:600;color:#856404;'>${addComma(newPensionCredit)}ì›</div>
                     </div>
                 </div>
             </div>
             <div style='background:rgba(40,167,69,0.1);border:2px solid rgba(40,167,69,0.3);padding:20px;border-radius:12px;text-align:center;'>
-                <div style='font-size:1.1em;color:#155724;margin-bottom:8px;'>? ÃÖÁ¾ Á¾ÇÕ¼Òµæ¼¼</div>
-                <div style='font-size:2em;font-weight:700;color:#28a745;'>${addComma(finalTax)}¿ø</div>
+                <div style='font-size:1.1em;color:#155724;margin-bottom:8px;'>? ìµœì¢… ì¢…í•©ì†Œë“ì„¸</div>
+                <div style='font-size:2em;font-weight:700;color:#28a745;'>${addComma(finalTax)}ì›</div>
             </div>`;
             
-        // °á°ú ¹Ú½º·Î ½ºÅ©·Ñ
+        // ê²°ê³¼ ë°•ìŠ¤ë¡œ ìŠ¤í¬ë¡¤
         resultBox.scrollIntoView({ behavior: 'smooth' });
     });
     </script>

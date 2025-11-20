@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             min-height: 100vh;
             background: linear-gradient(135deg, #0a1f3b 0%, #1e3a5f 25%, #2d5a87 50%, #3b7eb0 75%, #4a9fd9 100%);
@@ -20,7 +21,7 @@
             justify-content: center;
             position: relative;
         }
-        
+
         body::before {
             content: '';
             position: fixed;
@@ -28,13 +29,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
-                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
             z-index: 1;
             pointer-events: none;
         }
-        
+
         .login-container {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(15px);
@@ -46,16 +47,16 @@
             position: relative;
             z-index: 2;
         }
-        
+
         .login-title {
             text-align: center;
             color: white;
             font-size: 2.5rem;
             font-weight: 300;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
-        
+
         .login-subtitle {
             text-align: center;
             color: rgba(255, 255, 255, 0.8);
@@ -63,18 +64,18 @@
             margin-bottom: 30px;
             font-weight: 300;
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         .form-group label {
             color: rgba(255, 255, 255, 0.9);
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
         }
-        
+
         .form-group input {
             width: 100%;
             padding: 12px 16px;
@@ -85,18 +86,18 @@
             font-size: 16px;
             transition: all 0.3s ease;
         }
-        
+
         .form-group input::placeholder {
             color: rgba(255, 255, 255, 0.6);
         }
-        
+
         .form-group input:focus {
             outline: none;
             border-color: rgba(255, 255, 255, 0.6);
             background: rgba(255, 255, 255, 0.15);
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
         }
-        
+
         .login-button {
             width: 100%;
             padding: 14px;
@@ -110,12 +111,12 @@
             transition: all 0.3s ease;
             margin: 20px 0;
         }
-        
+
         .login-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0, 123, 255, 0.3);
         }
-        
+
         .error-message {
             background: rgba(220, 53, 69, 0.2);
             border: 1px solid rgba(220, 53, 69, 0.4);
@@ -125,14 +126,14 @@
             margin-bottom: 20px;
             text-align: center;
         }
-        
+
         .signup-section {
             text-align: center;
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .signup-button {
             background: rgba(40, 167, 69, 0.2);
             border: 1px solid rgba(40, 167, 69, 0.4);
@@ -145,12 +146,12 @@
             width: 100%;
             margin-top: 10px;
         }
-        
+
         .signup-button:hover {
             background: rgba(40, 167, 69, 0.3);
             transform: translateY(-1px);
         }
-        
+
         .pricing-info {
             text-align: center;
             margin-top: 20px;
@@ -161,7 +162,7 @@
             color: rgba(255, 255, 255, 0.9);
             font-size: 14px;
         }
-        
+
         .pricing-highlight {
             color: #4dabf7;
             font-weight: 600;
@@ -169,18 +170,18 @@
             margin-bottom: 8px;
             display: block;
         }
-        
+
         .btn-link {
             color: #4dabf7;
             text-decoration: none;
             font-weight: 500;
         }
-        
+
         .btn-link:hover {
             color: #74c0fc;
             text-decoration: underline;
         }
-        
+
         .modal {
             display: none;
             position: fixed;
@@ -189,10 +190,10 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(5px);
         }
-        
+
         .modal-content {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(15px);
@@ -207,26 +208,26 @@
             color: white;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
-        
-        /* Ω∫≈©∑—πŸ Ω∫≈∏¿œ */
+
+        /* Ïä§ÌÅ¨Î°§Î∞î Ïä§ÌÉÄÏùº */
         .modal-content::-webkit-scrollbar {
             width: 8px;
         }
-        
+
         .modal-content::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
         }
-        
+
         .modal-content::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.3);
             border-radius: 10px;
         }
-        
+
         .modal-content::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.5);
         }
-        
+
         .close {
             color: #aaa;
             float: right;
@@ -234,380 +235,401 @@
             font-weight: bold;
             cursor: pointer;
         }
-        
+
         .close:hover {
             color: white;
         }
-        
+
         @media (max-width: 480px) {
             .login-container {
                 width: 90%;
                 padding: 30px 20px;
             }
-            
+
             .login-title {
                 font-size: 2rem;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="login-container">
         <h1 class="login-title">CMS</h1>
-        <p class="login-subtitle">Company Management System</p>
-        
+        <p class="login-subtitle">Í∏∞ÏóÖ Í¥ÄÎ¶¨ ÏãúÏä§ÌÖú</p>
+
         {% if error %}
-            <div class="error-message">{{ error }}</div>
+        <div class="error-message">{{ error }}</div>
         {% endif %}
-        
+
         <form method="POST">
             <div class="form-group">
-                <label for="user_id">ªÁøÎ¿⁄ ID</label>
-                <input type="text" id="user_id" name="user_id" placeholder="ªÁøÎ¿⁄ ID∏¶ ¿‘∑¬«œººø‰" required>
+                <label for="user_id">ÏÇ¨Ïö©Ïûê ID</label>
+                <input type="text" id="user_id" name="user_id" placeholder="ÏÇ¨Ïö©Ïûê IDÎ•º ÏûÖÎ†•ÌïòÏÑ∏Ïöî" required>
             </div>
-            
+
             <div class="form-group">
-                <label for="password">∫Òπ–π¯»£</label>
-                <input type="password" id="password" name="password" placeholder="∫Òπ–π¯»£∏¶ ¿‘∑¬«œººø‰" required>
+                <label for="password">ÎπÑÎ∞ÄÎ≤àÌò∏</label>
+                <input type="password" id="password" name="password" placeholder="ÎπÑÎ∞ÄÎ≤àÌò∏Î•º ÏûÖÎ†•ÌïòÏÑ∏Ïöî" required>
                 <div style="margin-top: 5px; font-size: 12px; color: rgba(255, 255, 255, 0.7);">
-                    √ ±‚∆–Ω∫øˆµÂ: password1!
+                    Ï¥àÍ∏∞Ìå®Ïä§ÏõåÎìú: password1!
                 </div>
             </div>
-            
-            <button type="submit" class="login-button">∑Œ±◊¿Œ</button>
+
+            <button type="submit" class="login-button">Î°úÍ∑∏Ïù∏</button>
         </form>
-        
+
         <div class="signup-section">
-            <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 10px;">∞Ë¡§¿Ã æ¯¿∏Ω≈∞°ø‰?</p>
-            <button type="button" class="signup-button" onclick="openSignupModal()">»∏ø¯∞°¿‘ Ω≈√ª</button>
-            <button type="button" class="signup-button" onclick="openResultModal()" style="margin-top: 10px; background: rgba(255, 193, 7, 0.2); border-color: rgba(255, 193, 7, 0.4); color: #ffc107;">Ω≈√ª ∞·∞˙ ¡∂»∏</button>
+            <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 10px;">Í≥ÑÏ†ïÏù¥ ÏóÜÏúºÏã†Í∞ÄÏöî?</p>
+            <button type="button" class="signup-button" onclick="openSignupModal()">ÌöåÏõêÍ∞ÄÏûÖ Ïã†Ï≤≠</button>
+            <button type="button" class="signup-button" onclick="openResultModal()"
+                style="margin-top: 10px; background: rgba(255, 193, 7, 0.2); border-color: rgba(255, 193, 7, 0.4); color: #ffc107;">Ïã†Ï≤≠
+                Í≤∞Í≥º Ï°∞Ìöå</button>
         </div>
-        
+
         <div class="pricing-info">
-            <span class="pricing-highlight">√π¥ﬁ π´∑· ¿ÃøÎ!</span>
-            <div>ø˘ ¿ÃøÎ∑·: 3,000ø¯ | ≥‚ ¿ÃøÎ∑·: 30,000ø¯</div>
+            <span class="pricing-highlight">Ï≤´Îã¨ Î¨¥Î£å Ïù¥Ïö©!</span>
+            <div>Ïõî Ïù¥Ïö©Î£å: 3,000Ïõê | ÎÖÑ Ïù¥Ïö©Î£å: 30,000Ïõê</div>
         </div>
     </div>
 
-    <!-- »∏ø¯∞°¿‘ ∏¥ﬁ -->
+    <!-- ÌöåÏõêÍ∞ÄÏûÖ Î™®Îã¨ -->
     <div id="signupModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeSignupModal()">&times;</span>
-            <h2>»∏ø¯∞°¿‘ Ω≈√ª</h2>
+            <h2>ÌöåÏõêÍ∞ÄÏûÖ Ïã†Ï≤≠</h2>
             <form id="signupForm">
                 <div class="form-group">
-                    <label for="signup_user_id">»Ò∏¡ ªÁøÎ¿⁄ ID</label>
+                    <label for="signup_user_id">Ìù¨Îßù ÏÇ¨Ïö©Ïûê ID</label>
                     <input type="text" id="signup_user_id" name="user_id" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="signup_name">¿Ã∏ß</label>
+                    <label for="signup_name">Ïù¥Î¶Ñ</label>
                     <input type="text" id="signup_name" name="name" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="signup_phone">ø¨∂Ù√≥</label>
+                    <label for="signup_phone">Ïó∞ÎùΩÏ≤ò</label>
                     <div style="display: flex; gap: 5px; align-items: center;">
-                        <input type="text" id="signup_phone1" name="phone1" value="010" maxlength="3" style="width: 70px; text-align: center;" required>
+                        <input type="text" id="signup_phone1" name="phone1" value="010" maxlength="3"
+                            style="width: 70px; text-align: center;" required>
                         <span style="color: white;">-</span>
-                        <input type="text" id="signup_phone2" name="phone2" maxlength="4" style="width: 80px; text-align: center;" placeholder="0000" required>
+                        <input type="text" id="signup_phone2" name="phone2" maxlength="4"
+                            style="width: 80px; text-align: center;" placeholder="0000" required>
                         <span style="color: white;">-</span>
-                        <input type="text" id="signup_phone3" name="phone3" maxlength="4" style="width: 80px; text-align: center;" placeholder="0000" required>
+                        <input type="text" id="signup_phone3" name="phone3" maxlength="4"
+                            style="width: 80px; text-align: center;" placeholder="0000" required>
                     </div>
                 </div>
-                
+
                 <div style="display: flex; gap: 10px;">
                     <div class="form-group" style="flex: 1;">
-                        <label for="signup_email_local">¿Ã∏ﬁ¿œ</label>
-                        <input type="text" id="signup_email_local" name="email_local" placeholder="¿Ã∏ﬁ¿œ æ∆¿Ãµ" required style="background: white; color: black;">
+                        <label for="signup_email_local">Ïù¥Î©îÏùº</label>
+                        <input type="text" id="signup_email_local" name="email_local" placeholder="Ïù¥Î©îÏùº ÏïÑÏù¥Îîî" required
+                            style="background: white; color: black;">
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label>&nbsp;</label>
-                        <select id="signup_email_domain" name="email_domain" style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black;" onchange="toggleEmailDirect()">
+                        <select id="signup_email_domain" name="email_domain"
+                            style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black;"
+                            onchange="toggleEmailDirect()">
                             <option value="gmail.com">@gmail.com</option>
                             <option value="naver.com">@naver.com</option>
                             <option value="daum.net">@daum.net</option>
                             <option value="yahoo.com">@yahoo.com</option>
                             <option value="hotmail.com">@hotmail.com</option>
-                            <option value="direct">¡˜¡¢¿‘∑¬</option>
+                            <option value="direct">ÏßÅÏ†ëÏûÖÎ†•</option>
                         </select>
-                        <input type="text" id="signup_email_direct" name="email_direct" placeholder="¿¸√º ¿Ã∏ﬁ¿œ ¡÷º“ ¿‘∑¬" style="display: none; padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black; margin-top: 5px;">
+                        <input type="text" id="signup_email_direct" name="email_direct" placeholder="Ï†ÑÏ≤¥ Ïù¥Î©îÏùº Ï£ºÏÜå ÏûÖÎ†•"
+                            style="display: none; padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black; margin-top: 5px;">
                     </div>
                 </div>
-                
+
                 <div style="display: flex; gap: 10px;">
                     <div class="form-group" style="flex: 1;">
-                        <label for="signup_birth_year">ª˝≥‚ø˘¿œ</label>
-                        <select id="signup_birth_year" name="birth_year" style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black;">
-                            <option value="1912">1912≥‚</option>
-                            <option value="1913">1913≥‚</option>
-                            <option value="1914">1914≥‚</option>
-                            <option value="1915">1915≥‚</option>
-                            <option value="1916">1916≥‚</option>
-                            <option value="1917">1917≥‚</option>
-                            <option value="1918">1918≥‚</option>
-                            <option value="1919">1919≥‚</option>
-                            <option value="1920">1920≥‚</option>
-                            <option value="1921">1921≥‚</option>
-                            <option value="1922">1922≥‚</option>
-                            <option value="1923">1923≥‚</option>
-                            <option value="1924">1924≥‚</option>
-                            <option value="1925">1925≥‚</option>
-                            <option value="1926">1926≥‚</option>
-                            <option value="1927">1927≥‚</option>
-                            <option value="1928">1928≥‚</option>
-                            <option value="1929">1929≥‚</option>
-                            <option value="1930">1930≥‚</option>
-                            <option value="1931">1931≥‚</option>
-                            <option value="1932">1932≥‚</option>
-                            <option value="1933">1933≥‚</option>
-                            <option value="1934">1934≥‚</option>
-                            <option value="1935">1935≥‚</option>
-                            <option value="1936">1936≥‚</option>
-                            <option value="1937">1937≥‚</option>
-                            <option value="1938">1938≥‚</option>
-                            <option value="1939">1939≥‚</option>
-                            <option value="1940">1940≥‚</option>
-                            <option value="1941">1941≥‚</option>
-                            <option value="1942">1942≥‚</option>
-                            <option value="1943">1943≥‚</option>
-                            <option value="1944">1944≥‚</option>
-                            <option value="1945">1945≥‚</option>
-                            <option value="1946">1946≥‚</option>
-                            <option value="1947">1947≥‚</option>
-                            <option value="1948">1948≥‚</option>
-                            <option value="1949">1949≥‚</option>
-                            <option value="1950">1950≥‚</option>
-                            <option value="1951">1951≥‚</option>
-                            <option value="1952">1952≥‚</option>
-                            <option value="1953">1953≥‚</option>
-                            <option value="1954">1954≥‚</option>
-                            <option value="1955">1955≥‚</option>
-                            <option value="1956">1956≥‚</option>
-                            <option value="1957">1957≥‚</option>
-                            <option value="1958">1958≥‚</option>
-                            <option value="1959">1959≥‚</option>
-                            <option value="1960">1960≥‚</option>
-                            <option value="1961">1961≥‚</option>
-                            <option value="1962">1962≥‚</option>
-                            <option value="1963">1963≥‚</option>
-                            <option value="1964">1964≥‚</option>
-                            <option value="1965">1965≥‚</option>
-                            <option value="1966">1966≥‚</option>
-                            <option value="1967">1967≥‚</option>
-                            <option value="1968">1968≥‚</option>
-                            <option value="1969">1969≥‚</option>
-                            <option value="1970">1970≥‚</option>
-                            <option value="1971">1971≥‚</option>
-                            <option value="1972" selected>1972≥‚</option>
-                            <option value="1973">1973≥‚</option>
-                            <option value="1974">1974≥‚</option>
-                            <option value="1975">1975≥‚</option>
-                            <option value="1976">1976≥‚</option>
-                            <option value="1977">1977≥‚</option>
-                            <option value="1978">1978≥‚</option>
-                            <option value="1979">1979≥‚</option>
-                            <option value="1980">1980≥‚</option>
-                            <option value="1981">1981≥‚</option>
-                            <option value="1982">1982≥‚</option>
-                            <option value="1983">1983≥‚</option>
-                            <option value="1984">1984≥‚</option>
-                            <option value="1985">1985≥‚</option>
-                            <option value="1986">1986≥‚</option>
-                            <option value="1987">1987≥‚</option>
-                            <option value="1988">1988≥‚</option>
-                            <option value="1989">1989≥‚</option>
-                            <option value="1990">1990≥‚</option>
-                            <option value="1991">1991≥‚</option>
-                            <option value="1992">1992≥‚</option>
-                            <option value="1993">1993≥‚</option>
-                            <option value="1994">1994≥‚</option>
-                            <option value="1995">1995≥‚</option>
-                            <option value="1996">1996≥‚</option>
-                            <option value="1997">1997≥‚</option>
-                            <option value="1998">1998≥‚</option>
-                            <option value="1999">1999≥‚</option>
-                            <option value="2000">2000≥‚</option>
-                            <option value="2001">2001≥‚</option>
-                            <option value="2002">2002≥‚</option>
-                            <option value="2003">2003≥‚</option>
-                            <option value="2004">2004≥‚</option>
-                            <option value="2005">2005≥‚</option>
+                        <label for="signup_birth_year">ÏÉùÎÖÑÏõîÏùº</label>
+                        <select id="signup_birth_year" name="birth_year"
+                            style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black;">
+                            <option value="1912">1912ÎÖÑ</option>
+                            <option value="1913">1913ÎÖÑ</option>
+                            <option value="1914">1914ÎÖÑ</option>
+                            <option value="1915">1915ÎÖÑ</option>
+                            <option value="1916">1916ÎÖÑ</option>
+                            <option value="1917">1917ÎÖÑ</option>
+                            <option value="1918">1918ÎÖÑ</option>
+                            <option value="1919">1919ÎÖÑ</option>
+                            <option value="1920">1920ÎÖÑ</option>
+                            <option value="1921">1921ÎÖÑ</option>
+                            <option value="1922">1922ÎÖÑ</option>
+                            <option value="1923">1923ÎÖÑ</option>
+                            <option value="1924">1924ÎÖÑ</option>
+                            <option value="1925">1925ÎÖÑ</option>
+                            <option value="1926">1926ÎÖÑ</option>
+                            <option value="1927">1927ÎÖÑ</option>
+                            <option value="1928">1928ÎÖÑ</option>
+                            <option value="1929">1929ÎÖÑ</option>
+                            <option value="1930">1930ÎÖÑ</option>
+                            <option value="1931">1931ÎÖÑ</option>
+                            <option value="1932">1932ÎÖÑ</option>
+                            <option value="1933">1933ÎÖÑ</option>
+                            <option value="1934">1934ÎÖÑ</option>
+                            <option value="1935">1935ÎÖÑ</option>
+                            <option value="1936">1936ÎÖÑ</option>
+                            <option value="1937">1937ÎÖÑ</option>
+                            <option value="1938">1938ÎÖÑ</option>
+                            <option value="1939">1939ÎÖÑ</option>
+                            <option value="1940">1940ÎÖÑ</option>
+                            <option value="1941">1941ÎÖÑ</option>
+                            <option value="1942">1942ÎÖÑ</option>
+                            <option value="1943">1943ÎÖÑ</option>
+                            <option value="1944">1944ÎÖÑ</option>
+                            <option value="1945">1945ÎÖÑ</option>
+                            <option value="1946">1946ÎÖÑ</option>
+                            <option value="1947">1947ÎÖÑ</option>
+                            <option value="1948">1948ÎÖÑ</option>
+                            <option value="1949">1949ÎÖÑ</option>
+                            <option value="1950">1950ÎÖÑ</option>
+                            <option value="1951">1951ÎÖÑ</option>
+                            <option value="1952">1952ÎÖÑ</option>
+                            <option value="1953">1953ÎÖÑ</option>
+                            <option value="1954">1954ÎÖÑ</option>
+                            <option value="1955">1955ÎÖÑ</option>
+                            <option value="1956">1956ÎÖÑ</option>
+                            <option value="1957">1957ÎÖÑ</option>
+                            <option value="1958">1958ÎÖÑ</option>
+                            <option value="1959">1959ÎÖÑ</option>
+                            <option value="1960">1960ÎÖÑ</option>
+                            <option value="1961">1961ÎÖÑ</option>
+                            <option value="1962">1962ÎÖÑ</option>
+                            <option value="1963">1963ÎÖÑ</option>
+                            <option value="1964">1964ÎÖÑ</option>
+                            <option value="1965">1965ÎÖÑ</option>
+                            <option value="1966">1966ÎÖÑ</option>
+                            <option value="1967">1967ÎÖÑ</option>
+                            <option value="1968">1968ÎÖÑ</option>
+                            <option value="1969">1969ÎÖÑ</option>
+                            <option value="1970">1970ÎÖÑ</option>
+                            <option value="1971">1971ÎÖÑ</option>
+                            <option value="1972" selected>1972ÎÖÑ</option>
+                            <option value="1973">1973ÎÖÑ</option>
+                            <option value="1974">1974ÎÖÑ</option>
+                            <option value="1975">1975ÎÖÑ</option>
+                            <option value="1976">1976ÎÖÑ</option>
+                            <option value="1977">1977ÎÖÑ</option>
+                            <option value="1978">1978ÎÖÑ</option>
+                            <option value="1979">1979ÎÖÑ</option>
+                            <option value="1980">1980ÎÖÑ</option>
+                            <option value="1981">1981ÎÖÑ</option>
+                            <option value="1982">1982ÎÖÑ</option>
+                            <option value="1983">1983ÎÖÑ</option>
+                            <option value="1984">1984ÎÖÑ</option>
+                            <option value="1985">1985ÎÖÑ</option>
+                            <option value="1986">1986ÎÖÑ</option>
+                            <option value="1987">1987ÎÖÑ</option>
+                            <option value="1988">1988ÎÖÑ</option>
+                            <option value="1989">1989ÎÖÑ</option>
+                            <option value="1990">1990ÎÖÑ</option>
+                            <option value="1991">1991ÎÖÑ</option>
+                            <option value="1992">1992ÎÖÑ</option>
+                            <option value="1993">1993ÎÖÑ</option>
+                            <option value="1994">1994ÎÖÑ</option>
+                            <option value="1995">1995ÎÖÑ</option>
+                            <option value="1996">1996ÎÖÑ</option>
+                            <option value="1997">1997ÎÖÑ</option>
+                            <option value="1998">1998ÎÖÑ</option>
+                            <option value="1999">1999ÎÖÑ</option>
+                            <option value="2000">2000ÎÖÑ</option>
+                            <option value="2001">2001ÎÖÑ</option>
+                            <option value="2002">2002ÎÖÑ</option>
+                            <option value="2003">2003ÎÖÑ</option>
+                            <option value="2004">2004ÎÖÑ</option>
+                            <option value="2005">2005ÎÖÑ</option>
                         </select>
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label>&nbsp;</label>
-                        <select id="signup_birth_month" name="birth_month" style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black;">
-                            <option value="01">1ø˘</option>
-                            <option value="02">2ø˘</option>
-                            <option value="03">3ø˘</option>
-                            <option value="04">4ø˘</option>
-                            <option value="05">5ø˘</option>
-                            <option value="06">6ø˘</option>
-                            <option value="07">7ø˘</option>
-                            <option value="08">8ø˘</option>
-                            <option value="09">9ø˘</option>
-                            <option value="10">10ø˘</option>
-                            <option value="11">11ø˘</option>
-                            <option value="12">12ø˘</option>
+                        <select id="signup_birth_month" name="birth_month"
+                            style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black;">
+                            <option value="01">1Ïõî</option>
+                            <option value="02">2Ïõî</option>
+                            <option value="03">3Ïõî</option>
+                            <option value="04">4Ïõî</option>
+                            <option value="05">5Ïõî</option>
+                            <option value="06">6Ïõî</option>
+                            <option value="07">7Ïõî</option>
+                            <option value="08">8Ïõî</option>
+                            <option value="09">9Ïõî</option>
+                            <option value="10">10Ïõî</option>
+                            <option value="11">11Ïõî</option>
+                            <option value="12">12Ïõî</option>
                         </select>
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label>&nbsp;</label>
-                        <select id="signup_birth_day" name="birth_day" style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black;">
-                            <option value="01">1¿œ</option>
-                            <option value="02">2¿œ</option>
-                            <option value="03">3¿œ</option>
-                            <option value="04">4¿œ</option>
-                            <option value="05">5¿œ</option>
-                            <option value="06">6¿œ</option>
-                            <option value="07">7¿œ</option>
-                            <option value="08">8¿œ</option>
-                            <option value="09">9¿œ</option>
-                            <option value="10">10¿œ</option>
-                            <option value="11">11¿œ</option>
-                            <option value="12">12¿œ</option>
-                            <option value="13">13¿œ</option>
-                            <option value="14">14¿œ</option>
-                            <option value="15">15¿œ</option>
-                            <option value="16">16¿œ</option>
-                            <option value="17">17¿œ</option>
-                            <option value="18">18¿œ</option>
-                            <option value="19">19¿œ</option>
-                            <option value="20">20¿œ</option>
-                            <option value="21">21¿œ</option>
-                            <option value="22">22¿œ</option>
-                            <option value="23">23¿œ</option>
-                            <option value="24">24¿œ</option>
-                            <option value="25">25¿œ</option>
-                            <option value="26">26¿œ</option>
-                            <option value="27">27¿œ</option>
-                            <option value="28">28¿œ</option>
-                            <option value="29">29¿œ</option>
-                            <option value="30">30¿œ</option>
-                            <option value="31">31¿œ</option>
+                        <select id="signup_birth_day" name="birth_day"
+                            style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black;">
+                            <option value="01">1Ïùº</option>
+                            <option value="02">2Ïùº</option>
+                            <option value="03">3Ïùº</option>
+                            <option value="04">4Ïùº</option>
+                            <option value="05">5Ïùº</option>
+                            <option value="06">6Ïùº</option>
+                            <option value="07">7Ïùº</option>
+                            <option value="08">8Ïùº</option>
+                            <option value="09">9Ïùº</option>
+                            <option value="10">10Ïùº</option>
+                            <option value="11">11Ïùº</option>
+                            <option value="12">12Ïùº</option>
+                            <option value="13">13Ïùº</option>
+                            <option value="14">14Ïùº</option>
+                            <option value="15">15Ïùº</option>
+                            <option value="16">16Ïùº</option>
+                            <option value="17">17Ïùº</option>
+                            <option value="18">18Ïùº</option>
+                            <option value="19">19Ïùº</option>
+                            <option value="20">20Ïùº</option>
+                            <option value="21">21Ïùº</option>
+                            <option value="22">22Ïùº</option>
+                            <option value="23">23Ïùº</option>
+                            <option value="24">24Ïùº</option>
+                            <option value="25">25Ïùº</option>
+                            <option value="26">26Ïùº</option>
+                            <option value="27">27Ïùº</option>
+                            <option value="28">28Ïùº</option>
+                            <option value="29">29Ïùº</option>
+                            <option value="30">30Ïùº</option>
+                            <option value="31">31Ïùº</option>
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="signup_gender">º∫∫∞</label>
-                    <select id="signup_gender" name="gender" style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black; width: 100%;">
-                        <option value="M">≥≤º∫</option>
-                        <option value="F">ø©º∫</option>
+                    <label for="signup_gender">ÏÑ±Î≥Ñ</label>
+                    <select id="signup_gender" name="gender"
+                        style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black; width: 100%;">
+                        <option value="M">ÎÇ®ÏÑ±</option>
+                        <option value="F">Ïó¨ÏÑ±</option>
                     </select>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="signup_position">¡˜√•</label>
-                    <input type="text" id="signup_position" name="position" placeholder="øπ: ∞˙¿Â, ¥Î∏Æ, ∆¿¿Â µÓ" style="background: white; color: black;">
+                    <label for="signup_position">ÏßÅÏ±Ö</label>
+                    <input type="text" id="signup_position" name="position" placeholder="Ïòà: Í≥ºÏû•, ÎåÄÎ¶¨, ÌåÄÏû• Îì±"
+                        style="background: white; color: black;">
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="signup_branch">º“º” ¡ˆ¡°</label>
-                    <select id="signup_branch" name="branch" style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black; width: 100%;">
-                        <option value="¡ﬂæ”">¡ﬂæ”</option>
-                        <option value="∏Ì¡ﬂ">∏Ì¡ﬂ</option>
-                        <option value="∏Ìµø">∏Ìµø</option>
-                        <option value="√Êπ´∑Œ">√Êπ´∑Œ</option>
-                        <option value="º±¡¯">º±¡¯</option>
-                        <option value="±§»≠πÆ">±§»≠πÆ</option>
-                        <option value="Ω√√ª">Ω√√ª</option>
-                        <option value="±‚≈∏">±‚≈∏ (¡˜¡¢¿‘∑¬)</option>
+                    <label for="signup_branch">ÏÜåÏÜç ÏßÄÏ†ê</label>
+                    <select id="signup_branch" name="branch"
+                        style="padding: 12px; border-radius: 10px; background: white; border: 1px solid rgba(255,255,255,0.3); color: black; width: 100%;">
+                        <option value="Ï§ëÏïô">Ï§ëÏïô</option>
+                        <option value="Î™ÖÏ§ë">Î™ÖÏ§ë</option>
+                        <option value="Î™ÖÎèô">Î™ÖÎèô</option>
+                        <option value="Ï∂©Î¨¥Î°ú">Ï∂©Î¨¥Î°ú</option>
+                        <option value="ÏÑ†ÏßÑ">ÏÑ†ÏßÑ</option>
+                        <option value="Í¥ëÌôîÎ¨∏">Í¥ëÌôîÎ¨∏</option>
+                        <option value="ÏãúÏ≤≠">ÏãúÏ≤≠</option>
+                        <option value="Í∏∞ÌÉÄ">Í∏∞ÌÉÄ (ÏßÅÏ†ëÏûÖÎ†•)</option>
                     </select>
-                    <input type="text" id="signup_branch_other" name="branch_other" placeholder="¡ˆ¡°∏Ì¿ª ¿‘∑¬«œººø‰" style="margin-top: 10px; display: none; background: white; color: black;">
+                    <input type="text" id="signup_branch_other" name="branch_other" placeholder="ÏßÄÏ†êÎ™ÖÏùÑ ÏûÖÎ†•ÌïòÏÑ∏Ïöî"
+                        style="margin-top: 10px; display: none; background: white; color: black;">
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="signup_purpose">¿ÃøÎ∏Ò¿˚</label>
-                    <textarea id="signup_purpose" name="purpose" rows="3" style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; resize: vertical;" placeholder="Ω√Ω∫≈€ ¿ÃøÎ ∏Ò¿˚¿ª ∞£¥‹»˜ º≥∏Ì«ÿ¡÷ººø‰"></textarea>
+                    <label for="signup_purpose">Ïù¥Ïö©Î™©Ï†Å</label>
+                    <textarea id="signup_purpose" name="purpose" rows="3"
+                        style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; resize: vertical;"
+                        placeholder="ÏãúÏä§ÌÖú Ïù¥Ïö© Î™©Ï†ÅÏùÑ Í∞ÑÎã®Ìûà ÏÑ§Î™ÖÌï¥Ï£ºÏÑ∏Ïöî"></textarea>
                 </div>
-                
-                <button type="submit" class="login-button">Ω≈√ª«œ±‚</button>
+
+                <button type="submit" class="login-button">Ïã†Ï≤≠ÌïòÍ∏∞</button>
             </form>
         </div>
     </div>
 
-    <!-- ∫Òπ–π¯»£ ∫Ø∞Ê ∏¥ﬁ -->
+    <!-- ÎπÑÎ∞ÄÎ≤àÌò∏ Î≥ÄÍ≤Ω Î™®Îã¨ -->
     <div id="passwordChangeModal" class="modal">
         <div class="modal-content">
-            <h2 style="margin-bottom: 20px; color: #ffc107;"> √ ±‚ ∫Òπ–π¯»£ ∫Ø∞Ê « ø‰</h2>
+            <h2 style="margin-bottom: 20px; color: #ffc107;"> Ï¥àÍ∏∞ ÎπÑÎ∞ÄÎ≤àÌò∏ Î≥ÄÍ≤Ω ÌïÑÏöî</h2>
             <p style="margin-bottom: 20px; color: rgba(255, 255, 255, 0.8);">
-                ∫∏æ»¿ª ¿ß«ÿ √ ±‚ ∫Òπ–π¯»£∏¶ ∫Ø∞Ê«ÿ¡÷ººø‰.
+                Î≥¥ÏïàÏùÑ ÏúÑÌï¥ Ï¥àÍ∏∞ ÎπÑÎ∞ÄÎ≤àÌò∏Î•º Î≥ÄÍ≤ΩÌï¥Ï£ºÏÑ∏Ïöî.
             </p>
             <form id="passwordChangeForm">
                 <div class="form-group">
-                    <label for="new_password">ªı ∫Òπ–π¯»£</label>
-                    <input type="password" id="new_password" name="new_password" placeholder="ªı ∫Òπ–π¯»£∏¶ ¿‘∑¬«œººø‰" required oninput="validatePasswordRules()">
+                    <label for="new_password">ÏÉà ÎπÑÎ∞ÄÎ≤àÌò∏</label>
+                    <input type="password" id="new_password" name="new_password" placeholder="ÏÉà ÎπÑÎ∞ÄÎ≤àÌò∏Î•º ÏûÖÎ†•ÌïòÏÑ∏Ïöî" required
+                        oninput="validatePasswordRules()">
                     <div id="password_rules" style="margin-top: 5px; color: rgba(255, 255, 255, 0.6); font-size: 12px;">
-                        8-20¿⁄, ¥Îº“πÆ¿⁄, º˝¿⁄, ∆ØºˆπÆ¿⁄ ∆˜«‘
+                        8-20Ïûê, ÎåÄÏÜåÎ¨∏Ïûê, Ïà´Ïûê, ÌäπÏàòÎ¨∏Ïûê Ìè¨Ìï®
                     </div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="confirm_password">∫Òπ–π¯»£ »Æ¿Œ</label>
-                    <input type="password" id="confirm_password" name="confirm_password" placeholder="ªı ∫Òπ–π¯»£∏¶ ¥ŸΩ√ ¿‘∑¬«œººø‰" required oninput="validatePasswordMatch()">
+                    <label for="confirm_password">ÎπÑÎ∞ÄÎ≤àÌò∏ ÌôïÏù∏</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="ÏÉà ÎπÑÎ∞ÄÎ≤àÌò∏Î•º Îã§Ïãú ÏûÖÎ†•ÌïòÏÑ∏Ïöî"
+                        required oninput="validatePasswordMatch()">
                     <small id="password_match_message" style="display: none;"></small>
                     <div id="password_match_message" style="margin-top: 5px; font-size: 12px; display: none;">
-                        <!-- ∫Òπ–π¯»£ ¿œƒ° ø©∫Œ ∏ﬁΩ√¡ˆ -->
+                        <!-- ÎπÑÎ∞ÄÎ≤àÌò∏ ÏùºÏπò Ïó¨Î∂Ä Î©îÏãúÏßÄ -->
                     </div>
                 </div>
-                
-                <button type="submit" class="login-button">∫Òπ–π¯»£ ∫Ø∞Ê</button>
+
+                <button type="submit" class="login-button">ÎπÑÎ∞ÄÎ≤àÌò∏ Î≥ÄÍ≤Ω</button>
             </form>
         </div>
     </div>
 
-    <!-- Ω≈√ª ∞·∞˙ ¡∂»∏ ∏¥ﬁ -->
+    <!-- Ïã†Ï≤≠ Í≤∞Í≥º Ï°∞Ìöå Î™®Îã¨ -->
     <div id="resultModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeResultModal()">&times;</span>
-            <h2>Ω≈√ª ∞·∞˙ ¡∂»∏</h2>
+            <h2>Ïã†Ï≤≠ Í≤∞Í≥º Ï°∞Ìöå</h2>
             <form id="resultForm">
                 <div class="form-group">
-                    <label for="result_user_id">Ω≈√ª«— ªÁøÎ¿⁄ ID</label>
+                    <label for="result_user_id">Ïã†Ï≤≠Ìïú ÏÇ¨Ïö©Ïûê ID</label>
                     <input type="text" id="result_user_id" name="user_id" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="result_name">¿Ã∏ß</label>
+                    <label for="result_name">Ïù¥Î¶Ñ</label>
                     <input type="text" id="result_name" name="name" required>
                 </div>
-                
-                <button type="submit" class="login-button">¡∂»∏«œ±‚</button>
+
+                <button type="submit" class="login-button">Ï°∞ÌöåÌïòÍ∏∞</button>
             </form>
-            
+
             <div id="resultDisplay" style="display: none; margin-top: 20px;">
-                <!-- ¡∂»∏ ∞·∞˙∞° ø©±‚ø° «•Ω√µÀ¥œ¥Ÿ -->
+                <!-- Ï°∞Ìöå Í≤∞Í≥ºÍ∞Ä Ïó¨Í∏∞Ïóê ÌëúÏãúÎê©ÎãàÎã§ -->
             </div>
         </div>
     </div>
 
     <script>
-        // »∏ø¯∞°¿‘ ∏¥ﬁ ø≠±‚/¥›±‚
+        // ÌöåÏõêÍ∞ÄÏûÖ Î™®Îã¨ Ïó¥Í∏∞/Îã´Í∏∞
         function openSignupModal() {
             document.getElementById('signupModal').style.display = 'block';
         }
-        
+
         function closeSignupModal() {
             document.getElementById('signupModal').style.display = 'none';
         }
-        
-        // Ω≈√ª ∞·∞˙ ¡∂»∏ ∏¥ﬁ ø≠±‚/¥›±‚
+
+        // Ïã†Ï≤≠ Í≤∞Í≥º Ï°∞Ìöå Î™®Îã¨ Ïó¥Í∏∞/Îã´Í∏∞
         function openResultModal() {
             document.getElementById('resultModal').style.display = 'block';
         }
-        
+
         function closeResultModal() {
             document.getElementById('resultModal').style.display = 'none';
         }
-        
-        // ¿Ã∏ﬁ¿œ ¡˜¡¢¿‘∑¬ ≈‰±€
+
+        // Ïù¥Î©îÏùº ÏßÅÏ†ëÏûÖÎ†• ÌÜ†Í∏Ä
         function toggleEmailDirect() {
             const domainSelect = document.getElementById('signup_email_domain');
             const directInput = document.getElementById('signup_email_direct');
             const localInput = document.getElementById('signup_email_local');
-            
+
             if (domainSelect.value === 'direct') {
                 directInput.style.display = 'block';
                 localInput.style.display = 'none';
@@ -620,11 +642,11 @@
                 localInput.required = true;
             }
         }
-        
-        // ¡ˆ¡° º±≈√ √≥∏Æ
-        document.getElementById('signup_branch').addEventListener('change', function() {
+
+        // ÏßÄÏ†ê ÏÑ†ÌÉù Ï≤òÎ¶¨
+        document.getElementById('signup_branch').addEventListener('change', function () {
             const otherInput = document.getElementById('signup_branch_other');
-            if (this.value === '±‚≈∏') {
+            if (this.value === 'Í∏∞ÌÉÄ') {
                 otherInput.style.display = 'block';
                 otherInput.required = true;
             } else {
@@ -632,92 +654,92 @@
                 otherInput.required = false;
             }
         });
-        
-        // ø¨∂Ù√≥ ¿‘∑¬ ¡¶«— π◊ ¿⁄µø ∆˜ƒøΩ∫ ¿Ãµø
+
+        // Ïó∞ÎùΩÏ≤ò ÏûÖÎ†• Ï†úÌïú Î∞è ÏûêÎèô Ìè¨Ïª§Ïä§ Ïù¥Îèô
         function setupPhoneInputs() {
             const phone1 = document.getElementById('signup_phone1');
             const phone2 = document.getElementById('signup_phone2');
             const phone3 = document.getElementById('signup_phone3');
-            
-            // º˝¿⁄∏∏ ¿‘∑¬ «„øÎ
+
+            // Ïà´ÏûêÎßå ÏûÖÎ†• ÌóàÏö©
             [phone1, phone2, phone3].forEach(input => {
-                input.addEventListener('input', function() {
+                input.addEventListener('input', function () {
                     this.value = this.value.replace(/[^0-9]/g, '');
                 });
             });
-            
-            // ¿⁄µø ∆˜ƒøΩ∫ ¿Ãµø
-            phone1.addEventListener('input', function() {
+
+            // ÏûêÎèô Ìè¨Ïª§Ïä§ Ïù¥Îèô
+            phone1.addEventListener('input', function () {
                 if (this.value.length === 3) {
                     phone2.focus();
                 }
             });
-            
-            phone2.addEventListener('input', function() {
+
+            phone2.addEventListener('input', function () {
                 if (this.value.length === 4) {
                     phone3.focus();
                 }
             });
-            
-            // πÈΩ∫∆‰¿ÃΩ∫∑Œ ¿Ã¿¸ « µÂ∑Œ ¿Ãµø
-            phone2.addEventListener('keydown', function(e) {
+
+            // Î∞±Ïä§ÌéòÏù¥Ïä§Î°ú Ïù¥Ï†Ñ ÌïÑÎìúÎ°ú Ïù¥Îèô
+            phone2.addEventListener('keydown', function (e) {
                 if (e.key === 'Backspace' && this.value === '') {
                     phone1.focus();
                 }
             });
-            
-            phone3.addEventListener('keydown', function(e) {
+
+            phone3.addEventListener('keydown', function (e) {
                 if (e.key === 'Backspace' && this.value === '') {
                     phone2.focus();
                 }
             });
         }
-        
-        // ∆‰¿Ã¡ˆ ∑ŒµÂ Ω√ ø¨∂Ù√≥ ¿‘∑¬ º≥¡§
-        document.addEventListener('DOMContentLoaded', function() {
+
+        // ÌéòÏù¥ÏßÄ Î°úÎìú Ïãú Ïó∞ÎùΩÏ≤ò ÏûÖÎ†• ÏÑ§Ï†ï
+        document.addEventListener('DOMContentLoaded', function () {
             setupPhoneInputs();
         });
-        
-        // »∏ø¯∞°¿‘ ∆˚ ¡¶√‚
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
+
+        // ÌöåÏõêÍ∞ÄÏûÖ Ìèº Ï†úÏ∂ú
+        document.getElementById('signupForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const formData = new FormData(this);
             const data = Object.fromEntries(formData);
-            
-            // ø¨∂Ù√≥ ∞À¡ı
+
+            // Ïó∞ÎùΩÏ≤ò Í≤ÄÏ¶ù
             if (!data.phone1 || !data.phone2 || !data.phone3) {
-                alert('ø¨∂Ù√≥∏¶ ∏µŒ ¿‘∑¬«ÿ¡÷ººø‰.');
+                alert('Ïó∞ÎùΩÏ≤òÎ•º Î™®Îëê ÏûÖÎ†•Ìï¥Ï£ºÏÑ∏Ïöî.');
                 return;
             }
-            
-            // ¿Ã∏ﬁ¿œ √≥∏Æ
+
+            // Ïù¥Î©îÏùº Ï≤òÎ¶¨
             if (data.email_domain === 'direct') {
-                // ¡˜¡¢¿‘∑¬¿Œ ∞ÊøÏ ¿¸√º ¿Ã∏ﬁ¿œ ¡÷º“ ªÁøÎ
+                // ÏßÅÏ†ëÏûÖÎ†•Ïù∏ Í≤ΩÏö∞ Ï†ÑÏ≤¥ Ïù¥Î©îÏùº Ï£ºÏÜå ÏÇ¨Ïö©
                 data.email = data.email_direct;
-                
-                // ¿Ã∏ﬁ¿œ «¸Ωƒ ∞À¡ı
+
+                // Ïù¥Î©îÏùº ÌòïÏãù Í≤ÄÏ¶ù
                 const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
                 if (!emailPattern.test(data.email)) {
-                    alert('ø√πŸ∏• ¿Ã∏ﬁ¿œ ¡÷º“∏¶ ¿‘∑¬«ÿ¡÷ººø‰.');
+                    alert('Ïò¨Î∞îÎ•∏ Ïù¥Î©îÏùº Ï£ºÏÜåÎ•º ÏûÖÎ†•Ìï¥Ï£ºÏÑ∏Ïöî.');
                     return;
                 }
             } else {
-                // µµ∏ﬁ¿Œ º±≈√¿Œ ∞ÊøÏ @ ∆˜«‘ ∞À¡ı
+                // ÎèÑÎ©îÏù∏ ÏÑ†ÌÉùÏù∏ Í≤ΩÏö∞ @ Ìè¨Ìï® Í≤ÄÏ¶ù
                 if (data.email_local.includes('@')) {
-                    alert('¿Ã∏ﬁ¿œ æ∆¿Ãµø°¥¬ @∏¶ ∆˜«‘«“ ºˆ æ¯Ω¿¥œ¥Ÿ. ¡˜¡¢¿‘∑¬¿ª º±≈√«ÿ¡÷ººø‰.');
+                    alert('Ïù¥Î©îÏùº ÏïÑÏù¥ÎîîÏóêÎäî @Î•º Ìè¨Ìï®Ìï† Ïàò ÏóÜÏäµÎãàÎã§. ÏßÅÏ†ëÏûÖÎ†•ÏùÑ ÏÑ†ÌÉùÌï¥Ï£ºÏÑ∏Ïöî.');
                     return;
                 }
                 data.email = data.email_local + '@' + data.email_domain;
             }
-            
-            // ø¨∂Ù√≥ «’ƒ°±‚
+
+            // Ïó∞ÎùΩÏ≤ò Ìï©ÏπòÍ∏∞
             data.phone = data.phone1 + '-' + data.phone2 + '-' + data.phone3;
-            
-            // ª˝≥‚ø˘¿œ «’ƒ°±‚
+
+            // ÏÉùÎÖÑÏõîÏùº Ìï©ÏπòÍ∏∞
             data.birth_date = data.birth_year + '-' + data.birth_month + '-' + data.birth_day;
-            
-            // ∫“« ø‰«— « µÂ ¡¶∞≈ (¡ﬂ∫π ¿¸º€ πÊ¡ˆ)
+
+            // Î∂àÌïÑÏöîÌïú ÌïÑÎìú Ï†úÍ±∞ (Ï§ëÎ≥µ Ï†ÑÏÜ° Î∞©ÏßÄ)
             delete data.email_local;
             delete data.email_domain;
             delete data.email_direct;
@@ -728,19 +750,19 @@
             delete data.birth_month;
             delete data.birth_day;
             delete data.branch;
-            
-            // ¡ˆ¡°∏Ì √≥∏Æ
-            if (data.branch === '±‚≈∏') {
+
+            // ÏßÄÏ†êÎ™Ö Ï≤òÎ¶¨
+            if (data.branch === 'Í∏∞ÌÉÄ') {
                 data.branch_name = data.branch_other;
-                data.branch_code = data.branch_other; // ±‚≈∏¿Œ ∞ÊøÏ ¿‘∑¬«— ∞™¿ª ƒ⁄µÂ∑Œµµ ªÁøÎ
+                data.branch_code = data.branch_other; // Í∏∞ÌÉÄÏù∏ Í≤ΩÏö∞ ÏûÖÎ†•Ìïú Í∞íÏùÑ ÏΩîÎìúÎ°úÎèÑ ÏÇ¨Ïö©
             } else {
                 data.branch_name = data.branch;
-                data.branch_code = data.branch; // º±≈√«— ¡ˆ¡°∏Ì¿ª ƒ⁄µÂ∑Œµµ ªÁøÎ
+                data.branch_code = data.branch; // ÏÑ†ÌÉùÌïú ÏßÄÏ†êÎ™ÖÏùÑ ÏΩîÎìúÎ°úÎèÑ ÏÇ¨Ïö©
             }
-            
-            // µπˆ±◊: ¿¸º€«“ µ•¿Ã≈Õ »Æ¿Œ
-            console.log('¿¸º€«“ µ•¿Ã≈Õ:', data);
-            
+
+            // ÎîîÎ≤ÑÍ∑∏: Ï†ÑÏÜ°Ìï† Îç∞Ïù¥ÌÑ∞ ÌôïÏù∏
+            console.log('Ï†ÑÏÜ°Ìï† Îç∞Ïù¥ÌÑ∞:', data);
+
             fetch('/api/signup-request', {
                 method: 'POST',
                 headers: {
@@ -748,35 +770,35 @@
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    alert('»∏ø¯∞°¿‘ Ω≈√ª¿Ã øœ∑·µ«æ˙Ω¿¥œ¥Ÿ. ∞¸∏Æ¿⁄ Ω¬¿Œ »ƒ ¿ÃøÎ ∞°¥…«’¥œ¥Ÿ.');
-                    closeSignupModal();
-                    this.reset();
-                } else {
-                    alert('ø¿∑˘: ' + result.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Ω≈√ª √≥∏Æ ¡ﬂ ø¿∑˘∞° πﬂª˝«ﬂΩ¿¥œ¥Ÿ.');
-            });
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('ÌöåÏõêÍ∞ÄÏûÖ Ïã†Ï≤≠Ïù¥ ÏôÑÎ£åÎêòÏóàÏäµÎãàÎã§. Í¥ÄÎ¶¨Ïûê ÏäπÏù∏ ÌõÑ Ïù¥Ïö© Í∞ÄÎä•Ìï©ÎãàÎã§.');
+                        closeSignupModal();
+                        this.reset();
+                    } else {
+                        alert('Ïò§Î•ò: ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ïã†Ï≤≠ Ï≤òÎ¶¨ Ï§ë Ïò§Î•òÍ∞Ä Î∞úÏÉùÌñàÏäµÎãàÎã§.');
+                });
         });
-        
-        // Ω≈√ª ∞·∞˙ ¡∂»∏ ∆˚ ¡¶√‚
-        document.getElementById('resultForm').addEventListener('submit', function(e) {
+
+        // Ïã†Ï≤≠ Í≤∞Í≥º Ï°∞Ìöå Ìèº Ï†úÏ∂ú
+        document.getElementById('resultForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const formData = new FormData(this);
             const userId = formData.get('user_id');
             const name = formData.get('name');
-            
+
             if (!userId || !name) {
-                alert('ªÁøÎ¿⁄ IDøÕ ¿Ã∏ß¿ª ∏µŒ ¿‘∑¬«ÿ¡÷ººø‰.');
+                alert('ÏÇ¨Ïö©Ïûê IDÏôÄ Ïù¥Î¶ÑÏùÑ Î™®Îëê ÏûÖÎ†•Ìï¥Ï£ºÏÑ∏Ïöî.');
                 return;
             }
-            
+
             fetch('/api/check-signup-status', {
                 method: 'POST',
                 headers: {
@@ -787,153 +809,153 @@
                     name: name
                 })
             })
-            .then(response => response.json())
-            .then(result => {
-                const resultDisplay = document.getElementById('resultDisplay');
-                
-                if (result.success) {
-                    const request = result.data;
-                    let statusText = '';
-                    let statusColor = '';
-                    
-                    if (request.status === 'PENDING') {
-                        statusText = 'Ω…ªÁ¡ﬂ';
-                        statusColor = '#ffc107';
-                    } else if (request.status === 'APPROVED') {
-                        statusText = 'Ω¬¿Œµ ';
-                        statusColor = '#28a745';
-                    } else if (request.status === 'REJECTED') {
-                        statusText = '∞≈¿˝µ ';
-                        statusColor = '#dc3545';
-                    }
-                    
-                    resultDisplay.innerHTML = `
+                .then(response => response.json())
+                .then(result => {
+                    const resultDisplay = document.getElementById('resultDisplay');
+
+                    if (result.success) {
+                        const request = result.data;
+                        let statusText = '';
+                        let statusColor = '';
+
+                        if (request.status === 'PENDING') {
+                            statusText = 'Ïã¨ÏÇ¨Ï§ë';
+                            statusColor = '#ffc107';
+                        } else if (request.status === 'APPROVED') {
+                            statusText = 'ÏäπÏù∏Îê®';
+                            statusColor = '#28a745';
+                        } else if (request.status === 'REJECTED') {
+                            statusText = 'Í±∞Ï†àÎê®';
+                            statusColor = '#dc3545';
+                        }
+
+                        resultDisplay.innerHTML = `
                         <div style="padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;">
-                            <h3 style="color: ${statusColor}; margin-bottom: 15px;">Ω≈√ª ªÛ≈¬: ${statusText}</h3>
+                            <h3 style="color: ${statusColor}; margin-bottom: 15px;">Ïã†Ï≤≠ ÏÉÅÌÉú: ${statusText}</h3>
                             <div style="color: rgba(255,255,255,0.9);">
-                                <p><strong>Ω≈√ª ID:</strong> ${request.user_id}</p>
-                                <p><strong>¿Ã∏ß:</strong> ${request.name}</p>
-                                <p><strong>ø¨∂Ù√≥:</strong> ${request.phone}</p>
-                                <p><strong>¿Ã∏ﬁ¿œ:</strong> ${request.email}</p>
-                                <p><strong>¡ˆ¡°:</strong> ${request.branch_name}</p>
-                                <p><strong>ª˝≥‚ø˘¿œ:</strong> ${request.birth_date}</p>
-                                <p><strong>Ω≈√ª¿œ:</strong> ${new Date(request.requested_date).toLocaleDateString('ko-KR')}</p>
-                                ${request.processed_date ? `<p><strong>√≥∏Æ¿œ:</strong> ${new Date(request.processed_date).toLocaleDateString('ko-KR')}</p>` : ''}
-                                ${request.status === 'APPROVED' ? `<p style="background: rgba(40, 167, 69, 0.2); padding: 10px; border-radius: 5px; margin-top: 10px;"><strong>¿”Ω√ ∫Òπ–π¯»£:</strong> <span style="font-family: monospace; color: #28a745; font-weight: bold;">password1!</span><br><small style="color: rgba(255,255,255,0.7);">°ÿ ∑Œ±◊¿Œ »ƒ π›µÂΩ√ ∫Òπ–π¯»£∏¶ ∫Ø∞Ê«ÿ¡÷ººø‰.</small></p>` : ''}
-                                ${request.admin_notes ? `<p><strong>∞¸∏Æ¿⁄ ∏ﬁ∏:</strong> ${request.admin_notes}</p>` : ''}
+                                <p><strong>Ïã†Ï≤≠ ID:</strong> ${request.user_id}</p>
+                                <p><strong>Ïù¥Î¶Ñ:</strong> ${request.name}</p>
+                                <p><strong>Ïó∞ÎùΩÏ≤ò:</strong> ${request.phone}</p>
+                                <p><strong>Ïù¥Î©îÏùº:</strong> ${request.email}</p>
+                                <p><strong>ÏßÄÏ†ê:</strong> ${request.branch_name}</p>
+                                <p><strong>ÏÉùÎÖÑÏõîÏùº:</strong> ${request.birth_date}</p>
+                                <p><strong>Ïã†Ï≤≠Ïùº:</strong> ${new Date(request.requested_date).toLocaleDateString('ko-KR')}</p>
+                                ${request.processed_date ? `<p><strong>Ï≤òÎ¶¨Ïùº:</strong> ${new Date(request.processed_date).toLocaleDateString('ko-KR')}</p>` : ''}
+                                ${request.status === 'APPROVED' ? `<p style="background: rgba(40, 167, 69, 0.2); padding: 10px; border-radius: 5px; margin-top: 10px;"><strong>ÏûÑÏãú ÎπÑÎ∞ÄÎ≤àÌò∏:</strong> <span style="font-family: monospace; color: #28a745; font-weight: bold;">password1!</span><br><small style="color: rgba(255,255,255,0.7);">‚Äª Î°úÍ∑∏Ïù∏ ÌõÑ Î∞òÎìúÏãú ÎπÑÎ∞ÄÎ≤àÌò∏Î•º Î≥ÄÍ≤ΩÌï¥Ï£ºÏÑ∏Ïöî.</small></p>` : ''}
+                                ${request.admin_notes ? `<p><strong>Í¥ÄÎ¶¨Ïûê Î©îÎ™®:</strong> ${request.admin_notes}</p>` : ''}
                             </div>
                         </div>
                     `;
-                    resultDisplay.style.display = 'block';
-                } else {
-                    resultDisplay.innerHTML = `
+                        resultDisplay.style.display = 'block';
+                    } else {
+                        resultDisplay.innerHTML = `
                         <div style="padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px; color: #dc3545;">
                             <p>${result.message}</p>
                         </div>
                     `;
-                    resultDisplay.style.display = 'block';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('¡∂»∏ ¡ﬂ ø¿∑˘∞° πﬂª˝«ﬂΩ¿¥œ¥Ÿ.');
-            });
+                        resultDisplay.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ï°∞Ìöå Ï§ë Ïò§Î•òÍ∞Ä Î∞úÏÉùÌñàÏäµÎãàÎã§.');
+                });
         });
-        
-        // ∫Òπ–π¯»£ ∫Ø∞Ê ∏¥ﬁ ø≠±‚/¥›±‚
+
+        // ÎπÑÎ∞ÄÎ≤àÌò∏ Î≥ÄÍ≤Ω Î™®Îã¨ Ïó¥Í∏∞/Îã´Í∏∞
         function openPasswordChangeModal() {
             document.getElementById('passwordChangeModal').style.display = 'block';
         }
-        
+
         function closePasswordChangeModal() {
             document.getElementById('passwordChangeModal').style.display = 'none';
-            // ∆˚∞˙ ∏ﬁΩ√¡ˆ √ ±‚»≠
+            // ÌèºÍ≥º Î©îÏãúÏßÄ Ï¥àÍ∏∞Ìôî
             document.getElementById('passwordChangeForm').reset();
             document.getElementById('password_rules').style.color = 'rgba(255, 255, 255, 0.6)';
-            document.getElementById('password_rules').textContent = '8-20¿⁄, ¥Îº“πÆ¿⁄, º˝¿⁄, ∆ØºˆπÆ¿⁄ ∆˜«‘';
+            document.getElementById('password_rules').textContent = '8-20Ïûê, ÎåÄÏÜåÎ¨∏Ïûê, Ïà´Ïûê, ÌäπÏàòÎ¨∏Ïûê Ìè¨Ìï®';
             document.getElementById('password_match_message').style.display = 'none';
         }
-        
-        // ∫Òπ–π¯»£ ¿Ø»øº∫ ∞ÀªÁ
+
+        // ÎπÑÎ∞ÄÎ≤àÌò∏ Ïú†Ìö®ÏÑ± Í≤ÄÏÇ¨
         function validatePassword(password) {
             const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
             return regex.test(password);
         }
-        
-        // Ω«Ω√∞£ ∫Òπ–π¯»£ ±‘ƒ¢ ∞À¡ı
+
+        // Ïã§ÏãúÍ∞Ñ ÎπÑÎ∞ÄÎ≤àÌò∏ Í∑úÏπô Í≤ÄÏ¶ù
         function validatePasswordRules() {
             const password = document.getElementById('new_password').value;
             const rulesDiv = document.getElementById('password_rules');
-            
+
             if (password.length === 0) {
                 rulesDiv.style.color = 'rgba(255, 255, 255, 0.6)';
-                rulesDiv.textContent = '8-20¿⁄, ¥Îº“πÆ¿⁄, º˝¿⁄, ∆ØºˆπÆ¿⁄ ∆˜«‘';
+                rulesDiv.textContent = '8-20Ïûê, ÎåÄÏÜåÎ¨∏Ïûê, Ïà´Ïûê, ÌäπÏàòÎ¨∏Ïûê Ìè¨Ìï®';
                 return;
             }
-            
+
             if (validatePassword(password)) {
                 rulesDiv.style.color = '#28a745';
-                rulesDiv.textContent = '? ∫Òπ–π¯»£ ±‘ƒ¢¿ª ∏∏¡∑«’¥œ¥Ÿ';
+                rulesDiv.textContent = '? ÎπÑÎ∞ÄÎ≤àÌò∏ Í∑úÏπôÏùÑ ÎßåÏ°±Ìï©ÎãàÎã§';
             } else {
                 rulesDiv.style.color = '#dc3545';
-                rulesDiv.textContent = '? 8-20¿⁄, ¥Îº“πÆ¿⁄, º˝¿⁄, ∆ØºˆπÆ¿⁄∏¶ ∏µŒ ∆˜«‘«ÿæﬂ «’¥œ¥Ÿ';
+                rulesDiv.textContent = '? 8-20Ïûê, ÎåÄÏÜåÎ¨∏Ïûê, Ïà´Ïûê, ÌäπÏàòÎ¨∏ÏûêÎ•º Î™®Îëê Ìè¨Ìï®Ìï¥Ïïº Ìï©ÎãàÎã§';
             }
-            
-            // ∫Òπ–π¯»£ »Æ¿Œ « µÂµµ ¥ŸΩ√ ∞À¡ı
+
+            // ÎπÑÎ∞ÄÎ≤àÌò∏ ÌôïÏù∏ ÌïÑÎìúÎèÑ Îã§Ïãú Í≤ÄÏ¶ù
             validatePasswordMatch();
         }
-        
-        // Ω«Ω√∞£ ∫Òπ–π¯»£ ¿œƒ° ∞À¡ı
+
+        // Ïã§ÏãúÍ∞Ñ ÎπÑÎ∞ÄÎ≤àÌò∏ ÏùºÏπò Í≤ÄÏ¶ù
         function validatePasswordMatch() {
             const password = document.getElementById('new_password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
             const messageDiv = document.getElementById('password_match_message');
-            
+
             if (confirmPassword.length === 0) {
                 messageDiv.style.display = 'none';
                 return;
             }
-            
+
             messageDiv.style.display = 'block';
-            
+
             if (password === confirmPassword) {
                 messageDiv.style.color = '#28a745';
-                messageDiv.textContent = '? ∫Òπ–π¯»£∞° ¿œƒ°«’¥œ¥Ÿ';
+                messageDiv.textContent = '? ÎπÑÎ∞ÄÎ≤àÌò∏Í∞Ä ÏùºÏπòÌï©ÎãàÎã§';
             } else {
                 messageDiv.style.color = '#dc3545';
-                messageDiv.textContent = '? ∫Òπ–π¯»£∞° ¿œƒ°«œ¡ˆ æ Ω¿¥œ¥Ÿ';
+                messageDiv.textContent = '? ÎπÑÎ∞ÄÎ≤àÌò∏Í∞Ä ÏùºÏπòÌïòÏßÄ ÏïäÏäµÎãàÎã§';
             }
         }
-        
-        // ∫Òπ–π¯»£ ∫Ø∞Ê ∆˚ ¡¶√‚
-        document.getElementById('passwordChangeForm').addEventListener('submit', function(e) {
+
+        // ÎπÑÎ∞ÄÎ≤àÌò∏ Î≥ÄÍ≤Ω Ìèº Ï†úÏ∂ú
+        document.getElementById('passwordChangeForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             const newPassword = document.getElementById('new_password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
-            
-            // ∫Òπ–π¯»£ ¿Ø»øº∫ ∞ÀªÁ
+
+            // ÎπÑÎ∞ÄÎ≤àÌò∏ Ïú†Ìö®ÏÑ± Í≤ÄÏÇ¨
             if (!validatePassword(newPassword)) {
-                alert('∫Òπ–π¯»£¥¬ 8-20¿⁄∑Œ ¥Îº“πÆ¿⁄, º˝¿⁄, ∆ØºˆπÆ¿⁄∏¶ ∏µŒ ∆˜«‘«ÿæﬂ «’¥œ¥Ÿ.');
+                alert('ÎπÑÎ∞ÄÎ≤àÌò∏Îäî 8-20ÏûêÎ°ú ÎåÄÏÜåÎ¨∏Ïûê, Ïà´Ïûê, ÌäπÏàòÎ¨∏ÏûêÎ•º Î™®Îëê Ìè¨Ìï®Ìï¥Ïïº Ìï©ÎãàÎã§.');
                 return;
             }
-            
-            // ∫Òπ–π¯»£ »Æ¿Œ
+
+            // ÎπÑÎ∞ÄÎ≤àÌò∏ ÌôïÏù∏
             if (newPassword !== confirmPassword) {
-                alert('ªı ∫Òπ–π¯»£øÕ »Æ¿Œ ∫Òπ–π¯»£∞° ¿œƒ°«œ¡ˆ æ Ω¿¥œ¥Ÿ.');
+                alert('ÏÉà ÎπÑÎ∞ÄÎ≤àÌò∏ÏôÄ ÌôïÏù∏ ÎπÑÎ∞ÄÎ≤àÌò∏Í∞Ä ÏùºÏπòÌïòÏßÄ ÏïäÏäµÎãàÎã§.');
                 return;
             }
-            
-            // √ ±‚ ∫Òπ–π¯»£øÕ µø¿œ«—¡ˆ »Æ¿Œ
+
+            // Ï¥àÍ∏∞ ÎπÑÎ∞ÄÎ≤àÌò∏ÏôÄ ÎèôÏùºÌïúÏßÄ ÌôïÏù∏
             if (newPassword === 'password1!') {
-                alert('√ ±‚ ∫Òπ–π¯»£øÕ ¥Ÿ∏• ∫Òπ–π¯»£∏¶ ¿‘∑¬«ÿ¡÷ººø‰.');
+                alert('Ï¥àÍ∏∞ ÎπÑÎ∞ÄÎ≤àÌò∏ÏôÄ Îã§Î•∏ ÎπÑÎ∞ÄÎ≤àÌò∏Î•º ÏûÖÎ†•Ìï¥Ï£ºÏÑ∏Ïöî.');
                 return;
             }
-            
+
             const formData = {
                 new_password: newPassword
             };
-            
+
             fetch('/api/change-password', {
                 method: 'POST',
                 headers: {
@@ -941,48 +963,49 @@
                 },
                 body: JSON.stringify(formData)
             })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    alert('∫Òπ–π¯»£∞° º∫∞¯¿˚¿∏∑Œ ∫Ø∞Êµ«æ˙Ω¿¥œ¥Ÿ. ¥ŸΩ√ ∑Œ±◊¿Œ«ÿ¡÷ººø‰.');
-                    setTimeout(() => {
-                        closePasswordChangeModal();
-                        window.location.href = '/login';
-                    }, 1500);
-                } else {
-                    alert('ø¿∑˘: ' + result.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('∫Òπ–π¯»£ ∫Ø∞Ê ¡ﬂ ø¿∑˘∞° πﬂª˝«ﬂΩ¿¥œ¥Ÿ.');
-            });
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('ÎπÑÎ∞ÄÎ≤àÌò∏Í∞Ä ÏÑ±Í≥µÏ†ÅÏúºÎ°ú Î≥ÄÍ≤ΩÎêòÏóàÏäµÎãàÎã§. Îã§Ïãú Î°úÍ∑∏Ïù∏Ìï¥Ï£ºÏÑ∏Ïöî.');
+                        setTimeout(() => {
+                            closePasswordChangeModal();
+                            window.location.href = '/login';
+                        }, 1500);
+                    } else {
+                        alert('Ïò§Î•ò: ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('ÎπÑÎ∞ÄÎ≤àÌò∏ Î≥ÄÍ≤Ω Ï§ë Ïò§Î•òÍ∞Ä Î∞úÏÉùÌñàÏäµÎãàÎã§.');
+                });
         });
-        
-        // URL ∆ƒ∂ÛπÃ≈Õø°º≠ √ ±‚ ∫Òπ–π¯»£ ∫Ø∞Ê « ø‰ ø©∫Œ »Æ¿Œ
-        document.addEventListener('DOMContentLoaded', function() {
+
+        // URL ÌååÎùºÎØ∏ÌÑ∞ÏóêÏÑú Ï¥àÍ∏∞ ÎπÑÎ∞ÄÎ≤àÌò∏ Î≥ÄÍ≤Ω ÌïÑÏöî Ïó¨Î∂Ä ÌôïÏù∏
+        document.addEventListener('DOMContentLoaded', function () {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('change_password') === 'true') {
                 setTimeout(() => {
                     openPasswordChangeModal();
-                }, 500); // ∆‰¿Ã¡ˆ ∑ŒµÂ »ƒ æ‡∞£¿« ¡ˆø¨
+                }, 500); // ÌéòÏù¥ÏßÄ Î°úÎìú ÌõÑ ÏïΩÍ∞ÑÏùò ÏßÄÏó∞
             }
         });
-        
-        // ∏¥ﬁ ø‹∫Œ ≈¨∏Ø Ω√ ¥›±‚
-        window.onclick = function(event) {
+
+        // Î™®Îã¨ Ïô∏Î∂Ä ÌÅ¥Î¶≠ Ïãú Îã´Í∏∞
+        window.onclick = function (event) {
             const signupModal = document.getElementById('signupModal');
             const resultModal = document.getElementById('resultModal');
             const passwordChangeModal = document.getElementById('passwordChangeModal');
-            
+
             if (event.target === signupModal) {
                 closeSignupModal();
             }
             if (event.target === resultModal) {
                 closeResultModal();
             }
-            // ∫Òπ–π¯»£ ∫Ø∞Ê ∏¥ﬁ¿∫ ø‹∫Œ ≈¨∏Ø¿∏∑Œ ¥›»˜¡ˆ æ µµ∑œ «‘ (∫∏æ»ªÛ « ºˆ)
+            // ÎπÑÎ∞ÄÎ≤àÌò∏ Î≥ÄÍ≤Ω Î™®Îã¨ÏùÄ Ïô∏Î∂Ä ÌÅ¥Î¶≠ÏúºÎ°ú Îã´ÌûàÏßÄ ÏïäÎèÑÎ°ù Ìï® (Î≥¥ÏïàÏÉÅ ÌïÑÏàò)
         }
     </script>
 </body>
+
 </html>

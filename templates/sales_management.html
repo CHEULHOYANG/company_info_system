@@ -156,13 +156,37 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
+            table-layout: fixed;
         }
         
         th, td {
-            padding: 12px;
+            padding: 8px 12px;
             text-align: left;
             border-bottom: 1px solid #e9ecef;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
+        
+        /* 영업비용/소득관리 테이블 컬럼 너비 */
+        #expenseTable th:nth-child(1), #expenseTable td:nth-child(1) { width: 10%; } /* 사용일자 */
+        #expenseTable th:nth-child(2), #expenseTable td:nth-child(2) { width: 8%; }  /* 비용유형 */
+        #expenseTable th:nth-child(3), #expenseTable td:nth-child(3) { width: 10%; } /* 금액 */
+        #expenseTable th:nth-child(4), #expenseTable td:nth-child(4) { width: 8%; }  /* 결제수단 */
+        #expenseTable th:nth-child(5), #expenseTable td:nth-child(5) { width: 30%; } /* 상세내역 */
+        #expenseTable th:nth-child(6), #expenseTable td:nth-child(6) { width: 8%; }  /* 영수증 */
+        #expenseTable th:nth-child(7), #expenseTable td:nth-child(7) { width: 12%; } /* 등록자 */
+        #expenseTable th:nth-child(8), #expenseTable td:nth-child(8) { width: 14%; } /* 작업 */
+        
+        /* 접촉이력관리 테이블 컬럼 너비 */
+        #contactTable th:nth-child(1), #contactTable td:nth-child(1) { width: 8%; }  /* 날짜/시간 */
+        #contactTable th:nth-child(2), #contactTable td:nth-child(2) { width: 10%; } /* 사업자번호 */
+        #contactTable th:nth-child(3), #contactTable td:nth-child(3) { width: 12%; } /* 기업명 */
+        #contactTable th:nth-child(4), #contactTable td:nth-child(4) { width: 8%; }  /* 접촉유형 */
+        #contactTable th:nth-child(5), #contactTable td:nth-child(5) { width: 8%; }  /* 컨설팅유형 */
+        #contactTable th:nth-child(6), #contactTable td:nth-child(6) { width: 30%; } /* 메모 */
+        #contactTable th:nth-child(7), #contactTable td:nth-child(7) { width: 8%; }  /* 등록자 */
+        #contactTable th:nth-child(8), #contactTable td:nth-child(8) { width: 16%; } /* 작업 */
         
         th {
             background: #f8f9fa;
@@ -525,15 +549,9 @@
                 return;
             }
             
-            // 새 창으로 기업 상세조회 열기
-            const detailUrl = `/company/${bizNo.replace(/-/g, '')}`;
-            const popup = window.open(detailUrl, 'companyDetail', 'width=1200,height=800,scrollbars=yes,resizable=yes');
-            
-            if (popup) {
-                popup.focus();
-            } else {
-                alert('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.');
-            }
+            // 기업 상세조회 페이지를 새 창에서 열기
+            const detailUrl = `/company_detail/${bizNo.replace(/-/g, '')}`;
+            window.open(detailUrl, '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
         }
         
         // 개척대상 기업 관련 함수들

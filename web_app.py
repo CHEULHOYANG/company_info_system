@@ -2481,6 +2481,7 @@ def export_excel():
 
 # ...existing code...
 @app.route('/company/<biz_no>')
+@app.route('/company_detail/<biz_no>')  # 추가 라우트 경로
 def company_detail(biz_no):
     if not session.get('logged_in'): return redirect(url_for('login'))
     

@@ -2,15 +2,18 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-        <title>상세정보 (ych_p110) - 기업 상세 정보</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상세정보 (ych_p110) - 기업 상세 정보</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <header style="display:flex; align-items:center; justify-content:space-between;">
     <div>
         <h1 style="display:inline-block;">상세정보 (ych_p110) - {{ company.basic.company_name }} <span class="header-subtext">상세 정보</span></h1>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
-    <button onclick="openPioneeringModal()" class="pioneering-button" style="background:#28a745; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">개척등록</button>
-    <a href="javascript:window.close();" class="back-button">닫기</a>
+    <button onclick="registerPioneering()" class="pioneering-button" style="background:#28a745; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">개척등록</button>
+    <a href="{{ url_for('index') }}" class="back-button">기업정보 조회로 돌아가기</a>
+    <a href="javascript:history.back();" class="back-button">이전 페이지</a>
     <span id="user-name-header" style="font-weight:bold; color:#333; margin-left:10px;">{{ user_name }}님</span>
     </div>
 </header>
@@ -24,12 +27,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<script>
+// 탭 전환 기능
+function showTab(tabId, element) {
+    console.log('showTab 함수 호출됨:', tabId, element);
+    
+    // 모든 탭 링크에서 active 클래스 제거
+    var tabLinks = document.getElementsByClassName('tab-link');
+    for (var i = 0; i < tabLinks.length; i++) {
+        tabLinks[i].classList.remove('active');
+    }
+    
+    // 모든 탭 컨텐트 숨기기
+    var tabPanes = document.getElementsByClassName('tab-pane');
+    for (var i = 0; i < tabPanes.length; i++) {
+        tabPanes[i].classList.remove('active');
+    }
+    
+    // 선택된 탭 보이기
+    element.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+    
+    // 접촉이력 탭일 때 데이터 로드
+    if (tabId === 'tab2') {
+        loadContactHistory();
+    }
+    
+    console.log('탭 전환 완료:', tabId);
+}
+
+// 개척등록 함수
+function registerPioneering() {
+    console.log('registerPioneering 함수 호출됨');
+    openPioneeringModal();
+}
+</script>
     </div>
 </header>
 
         <div class="tab-nav">
-            <button class="tab-link active" data-tab="tab1">기업 상세 조회</button>
-            <button class="tab-link" data-tab="tab2">접촉이력 관리</button>
+            <button class="tab-link active" data-tab="tab1" onclick="showTab('tab1', this)">기업 상세 조회</button>
+            <button class="tab-link" data-tab="tab3" onclick="showTab('tab3', this)">AI 서치</button>
+            <button class="tab-link" data-tab="tab2" onclick="showTab('tab2', this)">접촉이력 관리</button>
         </div>
 
         <div class="tab-content">
@@ -267,6 +307,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h3>{{ company.basic.company_name }} 접촉이력</h3>
                         <div class="contact-history-list" id="contactHistoryList">
                             <div class="loading">접촉이력을 불러오는 중...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI 서치 탭 -->
+            <div id="tab3" class="tab-pane">
+                <div class="ai-search-section">
+                    <h3>AI 기업 분석</h3>
+                    <div class="ai-analysis-container">
+                        <div class="analysis-status">
+                            <p>AI를 통한 종합적인 기업 분석을 시작하려면 버튼을 클릭하세요.</p>
+                            <button class="analysis-btn" onclick="startAIAnalysis()">AI 분석 시작</button>
+                        </div>
+                        <div class="analysis-results" id="aiAnalysisResults" style="display: none;">
+                            <div class="loading">AI 분석 중...</div>
                         </div>
                     </div>
                 </div>
@@ -602,6 +658,94 @@ document.addEventListener('DOMContentLoaded', function() {
             flex-direction: column;
             gap: 5px;
         }
+    }
+
+    /* AI 분석 스타일 */
+    .ai-search-section {
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .ai-analysis-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .analysis-status {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .analysis-btn {
+        background: linear-gradient(135deg, #2c5aa0, #4a9fd9);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 20px;
+    }
+
+    .analysis-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(44, 90, 160, 0.3);
+    }
+
+    .analysis-results {
+        margin-top: 20px;
+    }
+
+    .ai-analysis-report {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .analysis-section {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .analysis-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .analysis-section h5 {
+        color: #2c5aa0;
+        margin-bottom: 10px;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .analysis-section p {
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        font-size: 16px;
+    }
+
+    .error {
+        text-align: center;
+        padding: 20px;
+        background: #fee;
+        color: #c33;
+        border: 1px solid #fcc;
+        border-radius: 5px;
+        margin: 10px 0;
     }
     </style>
 
@@ -1061,6 +1205,87 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // AI 분석 기능
+    function startAIAnalysis() {
+        const resultsContainer = document.getElementById('aiAnalysisResults');
+        const statusContainer = document.querySelector('.analysis-status');
+        
+        // UI 업데이트
+        statusContainer.style.display = 'none';
+        resultsContainer.style.display = 'block';
+        resultsContainer.innerHTML = '<div class="loading">AI가 기업을 분석 중입니다...</div>';
+        
+        // 기업 정보 가져오기
+        const bizNo = '{{ company.basic.biz_no if company.basic else "" }}';
+        
+        if (!bizNo) {
+            resultsContainer.innerHTML = '<div class="error">기업 정보를 찾을 수 없습니다.</div>';
+            return;
+        }
+        
+        // AI 분석 API 호출
+        fetch('/api/ai_analysis', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                biz_no: bizNo,
+                analysis_type: 'comprehensive'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayAIAnalysis(data.analysis);
+            } else {
+                resultsContainer.innerHTML = '<div class="error">AI 분석 실패: ' + (data.message || '알 수 없는 오류') + '</div>';
+            }
+        })
+        .catch(error => {
+            console.error('AI 분석 오류:', error);
+            resultsContainer.innerHTML = '<div class="error">AI 분석 중 오류가 발생했습니다.</div>';
+        });
+    }
+    
+    function displayAIAnalysis(analysis) {
+        const resultsContainer = document.getElementById('aiAnalysisResults');
+        
+        let html = '<div class="ai-analysis-report">';
+        html += '<h4>AI 종합 분석 결과</h4>';
+        
+        if (analysis.summary) {
+            html += '<div class="analysis-section">';
+            html += '<h5>기업 개요</h5>';
+            html += '<p>' + analysis.summary + '</p>';
+            html += '</div>';
+        }
+        
+        if (analysis.financial_analysis) {
+            html += '<div class="analysis-section">';
+            html += '<h5>재무 분석</h5>';
+            html += '<p>' + analysis.financial_analysis + '</p>';
+            html += '</div>';
+        }
+        
+        if (analysis.risk_assessment) {
+            html += '<div class="analysis-section">';
+            html += '<h5>위험 평가</h5>';
+            html += '<p>' + analysis.risk_assessment + '</p>';
+            html += '</div>';
+        }
+        
+        if (analysis.recommendations) {
+            html += '<div class="analysis-section">';
+            html += '<h5>투자 추천</h5>';
+            html += '<p>' + analysis.recommendations + '</p>';
+            html += '</div>';
+        }
+        
+        html += '</div>';
+        resultsContainer.innerHTML = html;
+    }
     </script>
 </body>
 </html>

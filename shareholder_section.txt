@@ -1,0 +1,90 @@
+1361:                     </div>
+1362:                 </div>
+1363: 
+1364:                 <!-- 주주 정보 -->
+1365:                 <div class="info-panel" style="margin-top: 20px;">
+1366:                     <h3>주주 구성</h3>
+1367:                     <table class="people-table">
+1368:                         <thead>
+1369:                             <tr>
+1370:                                 <th>주주명</th>
+1371:                                 <th>주식수</th>
+1372:                                 <th>지분율</th>
+1373:                                 <th>주식가액</th>
+1374:                                 <th>관계</th>
+1375:                             </tr>
+1376:                         </thead>
+1377:                         <tbody>
+1378:                             {% if shareholders %}
+1379:                                 {% for shareholder in shareholders %}
+1380:                                 <tr>
+1381:                                     <td>{{ shareholder.shareholder_name }}</td>
+1382:                                     <td>{{ "{:,}".format(shareholder.shares) }}주</td>
+1383:                                     <td>
+1384:                                         <div style="display: flex; align-items: center;">
+1385:                                             <div style="width: 100px; height: 20px; background: #e0e0e0; border-radius: 10px; margin-right: 8px; overflow: hidden;">
+1386:                                                 <div style="height: 100%; background: linear-gradient(90deg, #4CAF50, #2196F3); width: {{ shareholder.ownership_percentage }}%; border-radius: 10px;"></div>
+1387:                                             </div>
+1388:                                             <span>{{ "%.2f"|format(shareholder.ownership_percentage) }}%</span>
+1389:                                         </div>
+1390:                                     </td>
+1391:                                     <td>{{ "{:,}".format(shareholder.stock_value|int) }}원</td>
+1392:                                     <td>
+1393:                                         {% if shareholder.relationship == '본인' %}
+1394:                                             <span style="background: #e3f2fd; color: #1976d2; padding: 2px 8px; border-radius: 12px; font-size: 12px;">대표이사</span>
+1395:                                         {% elif shareholder.relationship == '배우자' %}
+1396:                                             <span style="background: #f3e5f5; color: #7b1fa2; padding: 2px 8px; border-radius: 12px; font-size: 12px;">배우자</span>
+1397:                                         {% else %}
+1398:                                             <span style="background: #e8f5e8; color: #388e3c; padding: 2px 8px; border-radius: 12px; font-size: 12px;">{{ shareholder.relationship or '다인' }}</span>
+1399:                                         {% endif %}
+1400:                                     </td>
+1401:                                 </tr>
+1402:                                 {% endfor %}
+1403:                             {% else %}
+1404:                                 <tr>
+1405:                                     <td colspan="5" style="text-align: center; padding: 30px; color: #666;">주주 정보가 없습니다.</td>
+1406:                                 </tr>
+1407:                             {% endif %}
+1408:                         </tbody>
+1409:                     </table>
+1410:                     
+1411:                     <!-- 추가 질문 섹션 -->
+1412:                     <div class="followup-questions" id="followupSection" style="display: none;">
+1413:                         <div class="section-header">
+1414:                             <h4>? 추가 질문하기</h4>
+1415:                             <span class="question-counter">질문 <span id="questionCount">0</span>/5</span>
+1416:                         </div>
+1417:                         
+1418:                         <div class="question-input-container">
+1419:                             <div class="input-group">
+1420:                                 <textarea id="followupQuestion" placeholder="분석 결과에 대해 궁금한 점을 질문해보세요..." rows="3"></textarea>
+1421:                                 <button onclick="askFollowupQuestion()" id="askButton">질문하기</button>
+1422:                             </div>
+1423:                         </div>
+1424:                         
+1425:                         <div class="qa-history" id="qaHistory"></div>
+1426:                         
+1427:                         <div class="question-suggestions">
+1428:                             <h5>? 추천 질문</h5>
+1429:                             <div class="suggestion-buttons">
+1430:                                 <button class="suggestion-btn" onclick="askSuggestion('이 기업의 가업승계 전략은 무엇인가요?')">가업승계 전략</button>
+1431:                                 <button class="suggestion-btn" onclick="askSuggestion('배당 정책은 어떻게 수립해야 하나요?')">배당 정책</button>
+1432:                                 <button class="suggestion-btn" onclick="askSuggestion('대표의 퇴직금 최적화 방안은?')">퇴직금 최적화</button>
+1433:                                 <button class="suggestion-btn" onclick="askSuggestion('향후 5년간 경영 전략은?')">경영 전략</button>
+1434:                                 <button class="suggestion-btn" onclick="askSuggestion('투자 및 확장 계획은?')">투자 계획</button>
+1435:                             </div>
+1436:                         </div>
+1437:                     </div>
+1438:                     
+1439:                     <!-- 7. 스크롤 네비게이션 버튼 -->
+1440:                     <div class="scroll-navigation" style="position: fixed; right: 20px; bottom: 20px; z-index: 1000; display: none;" id="scrollNav">
+1441:                         <button onclick="scrollToTop()" class="scroll-btn" style="display: block; margin-bottom: 10px; background: #007bff; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-size: 18px; transition: all 0.3s ease;" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">↑</button>
+1442:                         <button onclick="scrollToBottom()" class="scroll-btn" style="display: block; background: #007bff; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-size: 18px; transition: all 0.3s ease;" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">↓</button>
+1443:                     </div>
+1444:                 </div>
+1445:             </div>
+1446: 
+1447:             <!-- 개척등록 모달창 -->
+1448:             <div id="pioneeringModal" class="modal" style="display: none;">
+1449:                 <div class="modal-content">
+1450:                     <div class="modal-header">

@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>¸ŞÀÎ ´ë½Ãº¸µå</title>
+    <title>ë©”ì¸ ëŒ€ì‹œë³´ë“œ</title>
     <style>
         * {
             margin: 0;
@@ -159,17 +159,17 @@
         </div>
         
         <div class="login-info">
-            <div class="user-name">{{ user_name }}´Ô ({{ user_level_name }})</div>
-            <div class="status">·Î±×ÀÎµÊ</div>
+            <div class="user-name">{{ user_name }}ë‹˜ ({{ user_level_name }})</div>
+            <div class="status">ë¡œê·¸ì¸ë¨</div>
         </div>
         
         <div class="bottom-nav">
-            <a href="{{ url_for('index') }}" class="nav-btn">? DB Á¶È¸</a>
-            <a href="{{ url_for('history') }}" class="nav-btn">? ¿¬Çõ °Ë»ö</a>
-            <a href="{{ url_for('sales_management') }}" class="nav-btn">? ¿µ¾÷°ü¸®</a>
-            <a href="{{ url_for('gift_tax') }}" class="nav-btn">? ¼¼±İ°è»ê±â</a>
+            <a href="{{ url_for('index') }}" class="nav-btn">? DB ì¡°íšŒ</a>
+            <a href="{{ url_for('history') }}" class="nav-btn">? ì—°í˜ ê²€ìƒ‰</a>
+            <a href="{{ url_for('sales_management') }}" class="nav-btn">? ì˜ì—…ê´€ë¦¬</a>
+            <a href="{{ url_for('gift_tax') }}" class="nav-btn">? ì„¸ê¸ˆê³„ì‚°ê¸°</a>
             {% if can_manage_users %}
-            <a href="{{ url_for('user_management') }}" class="nav-btn">? »ç¿ëÀÚ °ü¸®</a>
+            <a href="{{ url_for('user_management') }}" class="nav-btn">? ì‚¬ìš©ì ê´€ë¦¬</a>
             {% endif %}
         </div>
     </div>

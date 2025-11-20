@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>¸ŞÀÎ ´ë½Ãº¸µå</title>
+    <title>ë©”ì¸ ëŒ€ì‹œë³´ë“œ</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body {
@@ -398,112 +398,112 @@
     </style>
 </head>
 <body>
-    <!-- ÀüÃ¼ È­¸é ÄÁÅ×ÀÌ³Ê -->
+    <!-- ì „ì²´ í™”ë©´ ì»¨í…Œì´ë„ˆ -->
     <div class="full-screen-container">
-        <!-- Çì´õ ÀÌ¹ÌÁö -->
+        <!-- í—¤ë” ì´ë¯¸ì§€ -->
         <div class="header-image">
             <div class="center-content">
                 <div class="main-title">CMS</div>
                 <div class="subtitle">Company Management System</div>
             </div>
             <div class="login-info">
-                <div class="user-name">{{ user_name }}´Ô ({{ user_level_name }})</div>
-                <div class="status">·Î±×ÀÎµÊ</div>
+                <div class="user-name">{{ user_name }}ë‹˜ ({{ user_level_name }})</div>
+                <div class="status">ë¡œê·¸ì¸ë¨</div>
             </div>
             
-            <!-- ÇÏ´Ü ³×ºñ°ÔÀÌ¼Ç -->
+            <!-- í•˜ë‹¨ ë„¤ë¹„ê²Œì´ì…˜ -->
             <div class="bottom-nav">
-                <a href="{{ url_for('index') }}" class="nav-btn">? DB Á¶È¸</a>
-                <a href="{{ url_for('history') }}" class="nav-btn">? ¿¬Çõ °Ë»ö</a>
-                <a href="{{ url_for('sales_management') }}" class="nav-btn">? ¿µ¾÷°ü¸®</a>
-                <a href="{{ url_for('gift_tax') }}" class="nav-btn">? ¼¼±İ°è»ê±â</a>
+                <a href="{{ url_for('index') }}" class="nav-btn">? DB ì¡°íšŒ</a>
+                <a href="{{ url_for('history') }}" class="nav-btn">? ì—°í˜ ê²€ìƒ‰</a>
+                <a href="{{ url_for('sales_management') }}" class="nav-btn">? ì˜ì—…ê´€ë¦¬</a>
+                <a href="{{ url_for('gift_tax') }}" class="nav-btn">? ì„¸ê¸ˆê³„ì‚°ê¸°</a>
                 {% if can_manage_users %}
-                <a href="{{ url_for('user_management') }}" class="nav-btn">? »ç¿ëÀÚ °ü¸®</a>
+                <a href="{{ url_for('user_management') }}" class="nav-btn">? ì‚¬ìš©ì ê´€ë¦¬</a>
                 {% endif %}
             </div>
         </div>
     </div>
     
-    <!-- ¼û°ÜÁø ¸ŞÀÎ ÄÁÅÙÃ÷ -->
+    <!-- ìˆ¨ê²¨ì§„ ë©”ì¸ ì»¨í…ì¸  -->
     <div class="main-content" style="display: none;">
-        <!-- »ç¿ëÀÚ Á¤º¸ ¼½¼Ç -->
+        <!-- ì‚¬ìš©ì ì •ë³´ ì„¹ì…˜ -->
         <div class="user-info">
             <div class="user-details">
-                <div class="user-name">{{ user_name }}´Ô ({{ user_level_name }})</div>
+                <div class="user-name">{{ user_name }}ë‹˜ ({{ user_level_name }})</div>
                 <div class="user-role">{{ branch_name }}</div>
                 {% if subscription_info %}
                     {% if subscription_info.days_remaining > 0 %}
                         <div class="subscription-status" style="color:#28a745; background:rgba(40,167,69,0.2);">
                             {% if subscription_info.subscription_type == 'YEARLY' %}
-                                ¿¬°£ ±¸µ¶ ({{ subscription_info.days_remaining }}ÀÏ ³²À½)
+                                ì—°ê°„ êµ¬ë… ({{ subscription_info.days_remaining }}ì¼ ë‚¨ìŒ)
                             {% elif subscription_info.subscription_type == 'MONTHLY' %}
-                                ¿ù°£ ±¸µ¶ ({{ subscription_info.days_remaining }}ÀÏ ³²À½)
+                                ì›”ê°„ êµ¬ë… ({{ subscription_info.days_remaining }}ì¼ ë‚¨ìŒ)
                             {% else %}
-                                ¹«·á ±¸µ¶ ({{ subscription_info.days_remaining }}ÀÏ ³²À½)
+                                ë¬´ë£Œ êµ¬ë… ({{ subscription_info.days_remaining }}ì¼ ë‚¨ìŒ)
                             {% endif %}
                         </div>
                     {% elif subscription_info.days_remaining == 0 %}
                         <div class="subscription-status" style="color:#dc3545; background:rgba(220,53,69,0.2);">
-                            ¿À´Ã ¸¸·á
+                            ì˜¤ëŠ˜ ë§Œë£Œ
                         </div>
                     {% else %}
                         <div class="subscription-status" style="color:#dc3545; background:rgba(220,53,69,0.2);">
-                            ±¸µ¶ ¸¸·á ({{ subscription_info.days_remaining|abs }}ÀÏ Áö³²)
+                            êµ¬ë… ë§Œë£Œ ({{ subscription_info.days_remaining|abs }}ì¼ ì§€ë‚¨)
                         </div>
                     {% endif %}
                 {% else %}
                     <div class="subscription-status" style="color:#007bff; background:rgba(0,123,255,0.2);">
-                        Ã¹´Ş ¹«·á Ã¼Çè
+                        ì²«ë‹¬ ë¬´ë£Œ ì²´í—˜
                     </div>
                 {% endif %}
             </div>
-            <a href="{{ url_for('logout') }}" class="logout-button-new">·Î±×¾Æ¿ô</a>
+            <a href="{{ url_for('logout') }}" class="logout-button-new">ë¡œê·¸ì•„ì›ƒ</a>
         </div>
 
         <div class="dashboard-container">
-            <!-- ¸ŞÀÎ Å¸ÀÌÆ² -->
+            <!-- ë©”ì¸ íƒ€ì´í‹€ -->
             <h1 class="main-title">CMS</h1>
             <p class="subtitle">Company Management System</p>
             
             {% block content %}{% endblock %}
 
-            <!-- ¸ŞÀÎ ´ë½Ãº¸µå ¹öÆ°µé -->
+            <!-- ë©”ì¸ ëŒ€ì‹œë³´ë“œ ë²„íŠ¼ë“¤ -->
             <div class="main-buttons">
                 <a href="{{ url_for('index') }}" class="main-btn">
                     <div class="main-btn-title">DB</div>
-                    <div>±â¾÷Á¤º¸ Á¶È¸</div>
+                    <div>ê¸°ì—…ì •ë³´ ì¡°íšŒ</div>
                     <div class="main-btn-subtitle">Company Database Search</div>
                 </a>
                 <a href="{{ url_for('history_search') }}" class="main-btn">
                     <div class="main-btn-title">HISTORY</div>
-                    <div>Á¢ÃËÀÌ·ÂÁ¶È¸</div>
+                    <div>ì ‘ì´‰ì´ë ¥ì¡°íšŒ</div>
                     <div class="main-btn-subtitle">Contact History Search</div>
                 </a>
                 <a href="{{ url_for('sales_management') }}" class="main-btn">
                     <div class="main-btn-title">SALES</div>
-                    <div>¿µ¾÷°ü¸®</div>
+                    <div>ì˜ì—…ê´€ë¦¬</div>
                     <div class="main-btn-subtitle">Pioneering Visit Activity</div>
                 </a>
                 {% if can_manage_users %}
                 <a href="{{ url_for('user_management') }}" class="main-btn admin">
                     <div class="main-btn-title">MANAGER</div>
-                    <div>»ç¿ëÀÚ °ü¸®</div>
+                    <div>ì‚¬ìš©ì ê´€ë¦¬</div>
                     <div class="main-btn-subtitle">User & Subscription Management</div>
                 </a>
                 {% endif %}
             </div>
 
-            <!-- ÀÛÀº ¼¼±İ °è»ê±â ¼­ºê ¹öÆ°µé -->
+            <!-- ì‘ì€ ì„¸ê¸ˆ ê³„ì‚°ê¸° ì„œë¸Œ ë²„íŠ¼ë“¤ -->
             <div class="sub-buttons">
-                <h3 class="sub-title">¼¼±İ °è»ê±â</h3>
+                <h3 class="sub-title">ì„¸ê¸ˆ ê³„ì‚°ê¸°</h3>
                 <div class="sub-button-grid">
-                    <a href="{{ url_for('gift_tax') }}" class="sub-btn">Áõ¿©¼¼</a>
-                    <a href="{{ url_for('transfer_tax') }}" class="sub-btn">¾çµµ¼¼</a>
-                    <a href="{{ url_for('income_tax') }}" class="sub-btn">Á¾ÇÕ¼Òµæ¼¼</a>
-                    <a href="{{ url_for('social_ins_tax') }}" class="sub-btn">4´ëº¸Çè</a>
-                    <a href="{{ url_for('acquisition_tax') }}" class="sub-btn">Ãëµæ¼¼</a>
-                    <a href="{{ url_for('retirement_pay') }}" class="sub-btn">ÅğÁ÷±İ</a>
-                    <a href="{{ url_for('industrial_accident') }}" class="sub-btn">»êÀçº¸»ó</a>
+                    <a href="{{ url_for('gift_tax') }}" class="sub-btn">ì¦ì—¬ì„¸</a>
+                    <a href="{{ url_for('transfer_tax') }}" class="sub-btn">ì–‘ë„ì„¸</a>
+                    <a href="{{ url_for('income_tax') }}" class="sub-btn">ì¢…í•©ì†Œë“ì„¸</a>
+                    <a href="{{ url_for('social_ins_tax') }}" class="sub-btn">4ëŒ€ë³´í—˜</a>
+                    <a href="{{ url_for('acquisition_tax') }}" class="sub-btn">ì·¨ë“ì„¸</a>
+                    <a href="{{ url_for('retirement_pay') }}" class="sub-btn">í‡´ì§ê¸ˆ</a>
+                    <a href="{{ url_for('industrial_accident') }}" class="sub-btn">ì‚°ì¬ë³´ìƒ</a>
                 </div>
             </div>
         </div>

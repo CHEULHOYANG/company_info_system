@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Á¢ÃËÀÌ·Â Á¶È¸ (ych_m020)</title>
+    <title>ì ‘ì´‰ì´ë ¥ ì¡°íšŒ (ych_m020)</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body {
@@ -284,54 +284,54 @@
 <body>
     <div class="container">
         <header>
-                            <h1>Á¢ÃËÀÌ·Â Á¶È¸ (ych_m020)</h1>
+                            <h1>ì ‘ì´‰ì´ë ¥ ì¡°íšŒ (ych_m020)</h1>
             <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
-                <a href="{{ url_for('index') }}" class="back-button">±â¾÷Á¤º¸Á¶È¸</a>
-                <a href="{{ url_for('main') }}" class="back-button">¸ŞÀÎÀ¸·Î</a>
-                <span style="font-weight:bold; color:#333;">{{ user_name }}´Ô</span>
-                <a href="{{ url_for('logout') }}" class="logout-button-new">·Î±×¾Æ¿ô</a>
+                <a href="{{ url_for('index') }}" class="back-button">ê¸°ì—…ì •ë³´ì¡°íšŒ</a>
+                <a href="{{ url_for('main') }}" class="back-button">ë©”ì¸ìœ¼ë¡œ</a>
+                <span style="font-weight:bold; color:#333;">{{ user_name }}ë‹˜</span>
+                <a href="{{ url_for('logout') }}" class="logout-button-new">ë¡œê·¸ì•„ì›ƒ</a>
             </div>
         </header>
 
         <div class="main-actions">
-            <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">ÃÊ±âÈ­</button>
-            <button type="button" id="search-button" class="action-button search-button">°Ë»ö</button>
+            <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">ì´ˆê¸°í™”</button>
+            <button type="button" id="search-button" class="action-button search-button">ê²€ìƒ‰</button>
             {% if session.get('user_id') in ['ct0001','ct0002'] %}
-            <button type="button" id="download-csv" class="action-button csv-button-dark">CSV ³»¸®±â</button>
-            <label for="upload-csv" class="action-button csv-button-dark" style="display:inline-block;cursor:pointer;">CSV ¿Ã¸®±â</label>
+            <button type="button" id="download-csv" class="action-button csv-button-dark">CSV ë‚´ë¦¬ê¸°</button>
+            <label for="upload-csv" class="action-button csv-button-dark" style="display:inline-block;cursor:pointer;">CSV ì˜¬ë¦¬ê¸°</label>
             <input type="file" id="upload-csv" accept=".csv" style="display:none;">
             {% else %}
-            <button type="button" class="action-button csv-button-dark" disabled style="opacity:0.45;cursor:not-allowed;">CSV ³»¸®±â</button>
-            <button type="button" class="action-button csv-button-dark" disabled style="opacity:0.45;cursor:not-allowed;margin-left:8px;">CSV ¿Ã¸®±â</button>
+            <button type="button" class="action-button csv-button-dark" disabled style="opacity:0.45;cursor:not-allowed;">CSV ë‚´ë¦¬ê¸°</button>
+            <button type="button" class="action-button csv-button-dark" disabled style="opacity:0.45;cursor:not-allowed;margin-left:8px;">CSV ì˜¬ë¦¬ê¸°</button>
             {% endif %}
         </div>
 
         <div class="search-container">
             <form id="search-form" class="search-grid" onsubmit="return false;">
-                <input type="text" id="registered_by" name="registered_by" placeholder="´ã´çÀÚ ID">
+                <input type="text" id="registered_by" name="registered_by" placeholder="ë‹´ë‹¹ì ID">
                 <input type="date" id="start_date" name="start_date">
                 <input type="date" id="end_date" name="end_date">
-                <input type="text" id="biz_no" name="biz_no" placeholder="»ç¾÷ÀÚ¹øÈ£">
+                <input type="text" id="biz_no" name="biz_no" placeholder="ì‚¬ì—…ìë²ˆí˜¸">
             </form>
         </div>
 
         <div class="search-results-info">
-            <span id="results-count" style="font-weight: bold; color: #333;">Á¶È¸°Ç¼ö : 0°Ç</span>
+            <span id="results-count" style="font-weight: bold; color: #333;">ì¡°íšŒê±´ìˆ˜ : 0ê±´</span>
         </div>
 
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th>¼ø¹ø</th>
-                        <th>Á¢ÃËÀÏ½Ã</th>
-                        <th>±â¾÷¸í</th>
-                        <th>»ç¾÷ÀÚ¹øÈ£</th>
-                        <th>Á¢ÃËÀ¯Çü</th>
-                        <th>±â¾÷´ã´çÀÚ</th>
-                        <th style="width: 30%;">³»¿ë</th>
-                        <th>ÀÛ¼ºÀÚ</th>
-                        <th>»èÁ¦</th>
+                        <th>ìˆœë²ˆ</th>
+                        <th>ì ‘ì´‰ì¼ì‹œ</th>
+                        <th>ê¸°ì—…ëª…</th>
+                        <th>ì‚¬ì—…ìë²ˆí˜¸</th>
+                        <th>ì ‘ì´‰ìœ í˜•</th>
+                        <th>ê¸°ì—…ë‹´ë‹¹ì</th>
+                        <th style="width: 30%;">ë‚´ìš©</th>
+                        <th>ì‘ì„±ì</th>
+                        <th>ì‚­ì œ</th>
                     </tr>
                 </thead>
                 <tbody id="history-list">
@@ -341,21 +341,21 @@
     </div>
 
     <div class="scroll-buttons">
-        <button id="scroll-top">¡ã</button>
-        <button id="scroll-bottom">¡å</button>
+        <button id="scroll-top">â–²</button>
+        <button id="scroll-bottom">â–¼</button>
     </div>
 
     <script>
-    // CSV ³»¸®±â
+    // CSV ë‚´ë¦¬ê¸°
     document.getElementById('download-csv')?.addEventListener('click', function() {
         const formData = new FormData(document.getElementById('search-form'));
         const params = new URLSearchParams(formData);
         window.location.href = `/api/contact_history_csv?${params.toString()}`;
     });
 
-    // CSV ¿Ã¸®±â
+    // CSV ì˜¬ë¦¬ê¸°
     document.getElementById('upload-csv')?.addEventListener('change', function(e) {
-        if (!confirm('CSV¸¦ ¾÷·ÎµåÇÏ¸é ±âÁ¸ ÀÌ·Â µ¥ÀÌÅÍ°¡ ¸ğµÎ »èÁ¦µÇ°í, »õ ÆÄÀÏ·Î ´ëÃ¼µË´Ï´Ù. ÁøÇàÇÏ½Ã°Ú½À´Ï±î?')) return;
+        if (!confirm('CSVë¥¼ ì—…ë¡œë“œí•˜ë©´ ê¸°ì¡´ ì´ë ¥ ë°ì´í„°ê°€ ëª¨ë‘ ì‚­ì œë˜ê³ , ìƒˆ íŒŒì¼ë¡œ ëŒ€ì²´ë©ë‹ˆë‹¤. ì§„í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?')) return;
         const file = e.target.files[0];
         if (!file) return;
         const formData = new FormData();
@@ -367,13 +367,13 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert('CSV ¾÷·Îµå ¹× ¹İ¿µ ¿Ï·á!');
+                alert('CSV ì—…ë¡œë“œ ë° ë°˜ì˜ ì™„ë£Œ!');
                 location.reload();
             } else {
-                alert('¾÷·Îµå ½ÇÆĞ: ' + (data.message || '¿À·ù'));
+                alert('ì—…ë¡œë“œ ì‹¤íŒ¨: ' + (data.message || 'ì˜¤ë¥˜'));
             }
         })
-        .catch(() => alert('¾÷·Îµå Áß ¿À·ù ¹ß»ı'));
+        .catch(() => alert('ì—…ë¡œë“œ ì¤‘ ì˜¤ë¥˜ ë°œìƒ'));
     });
 
     function openCompanyPopup(bizNo) {
@@ -389,24 +389,24 @@
         const historyList = document.getElementById('history-list');
         const resultsCountSpan = document.getElementById('results-count');
 
-        // DOM ¿ä¼Ò Á¸Àç È®ÀÎ
+        // DOM ìš”ì†Œ ì¡´ì¬ í™•ì¸
         if (!searchButton || !resetButton || !searchForm || !historyList) {
-            console.error('ÇÊ¼ö DOM ¿ä¼Ò¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.');
+            console.error('í•„ìˆ˜ DOM ìš”ì†Œë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.');
             return;
         }
 
-        // °Ë»öÀÌ ½ÇÇà ÁßÀÎÁö È®ÀÎÇÏ´Â ÇÃ·¡±×
+        // ê²€ìƒ‰ì´ ì‹¤í–‰ ì¤‘ì¸ì§€ í™•ì¸í•˜ëŠ” í”Œë˜ê·¸
         let isSearching = false;
 
-        // °Ë»ö ½ÇÇà ÇÔ¼ö
+        // ê²€ìƒ‰ ì‹¤í–‰ í•¨ìˆ˜
         function performSearch(event) {
-            // ÀÌº¥Æ®°¡ ÀÖ´Ù¸é ±âº» µ¿ÀÛ ¹æÁö
+            // ì´ë²¤íŠ¸ê°€ ìˆë‹¤ë©´ ê¸°ë³¸ ë™ì‘ ë°©ì§€
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
             }
             
-            // ÀÌ¹Ì °Ë»ö ÁßÀÌ¸é Áßº¹ ½ÇÇà ¹æÁö
+            // ì´ë¯¸ ê²€ìƒ‰ ì¤‘ì´ë©´ ì¤‘ë³µ ì‹¤í–‰ ë°©ì§€
             if (isSearching) {
                 return;
             }
@@ -415,10 +415,10 @@
             
             try {
                 if (historyList) {
-                    historyList.innerHTML = '<tr><td colspan="9" class="loading">°Ë»ö Áß...</td></tr>';
+                    historyList.innerHTML = '<tr><td colspan="9" class="loading">ê²€ìƒ‰ ì¤‘...</td></tr>';
                 }
                 
-                // Æû µ¥ÀÌÅÍ¸¦ ¸í½ÃÀûÀ¸·Î ¼öÁı
+                // í¼ ë°ì´í„°ë¥¼ ëª…ì‹œì ìœ¼ë¡œ ìˆ˜ì§‘
                 const formData = {
                     registered_by: document.getElementById('registered_by').value || '',
                     start_date: document.getElementById('start_date').value || '',
@@ -440,12 +440,12 @@
                             historyList.innerHTML = '';
                         }
                         if (resultsCountSpan) {
-                            resultsCountSpan.textContent = `Á¶È¸°Ç¼ö : ${data.length.toLocaleString()}°Ç`;
+                            resultsCountSpan.textContent = `ì¡°íšŒê±´ìˆ˜ : ${data.length.toLocaleString()}ê±´`;
                         }
 
                         if (data.length === 0) {
                             if (historyList) {
-                                historyList.innerHTML = '<tr><td colspan="9">°Ë»ö °á°ú°¡ ¾ø½À´Ï´Ù.</td></tr>';
+                                historyList.innerHTML = '<tr><td colspan="9">ê²€ìƒ‰ ê²°ê³¼ê°€ ì—†ìŠµë‹ˆë‹¤.</td></tr>';
                             }
                             return;
                         }
@@ -453,22 +453,22 @@
                         data.forEach((item, index) => {
                             const row = document.createElement('tr');
                             
-                            // °¢ ¼¿À» ¾ÈÀüÇÏ°Ô »ı¼º
+                            // ê° ì…€ì„ ì•ˆì „í•˜ê²Œ ìƒì„±
                             const cells = [
                                 index + 1,
                                 item.contact_datetime || '',
-                                '', // È¸»ç¸í ¸µÅ©´Â º°µµ Ã³¸®
+                                '', // íšŒì‚¬ëª… ë§í¬ëŠ” ë³„ë„ ì²˜ë¦¬
                                 item.biz_no || '',
                                 item.contact_type || '',
                                 item.contact_person || '',
                                 item.memo || '',
                                 item.registered_by || '',
-                                '' // »èÁ¦ ¹öÆ°Àº º°µµ Ã³¸®
+                                '' // ì‚­ì œ ë²„íŠ¼ì€ ë³„ë„ ì²˜ë¦¬
                             ];
                             
                             cells.forEach((cellData, cellIndex) => {
                                 const td = document.createElement('td');
-                                if (cellIndex === 2) { // È¸»ç¸í ¸µÅ©
+                                if (cellIndex === 2) { // íšŒì‚¬ëª… ë§í¬
                                     if (item.company_name) {
                                         const link = document.createElement('a');
                                         link.href = '#';
@@ -480,17 +480,17 @@
                                         };
                                         td.appendChild(link);
                                     }
-                                } else if (cellIndex === 8) { // »èÁ¦ ¹öÆ°
+                                } else if (cellIndex === 8) { // ì‚­ì œ ë²„íŠ¼
                                     const btn = document.createElement('button');
                                     btn.className = 'delete-btn';
-                                    btn.textContent = '»èÁ¦';
+                                    btn.textContent = 'ì‚­ì œ';
                                     btn.dataset.id = item.history_id;
                                     btn.onclick = function(e) { 
                                         e.preventDefault();
                                         deleteHistory(this); 
                                     };
                                     td.appendChild(btn);
-                                } else if (cellIndex === 6) { // ¸Ş¸ğ ¼¿
+                                } else if (cellIndex === 6) { // ë©”ëª¨ ì…€
                                     td.className = 'memo-cell';
                                     td.textContent = cellData;
                                 } else {
@@ -505,24 +505,24 @@
                         });
                     })
                     .catch(error => {
-                        console.error('»ó¼¼ ¿¡·¯:', error);
+                        console.error('ìƒì„¸ ì—ëŸ¬:', error);
                         if (historyList) {
-                            historyList.innerHTML = '<tr><td colspan="9">µ¥ÀÌÅÍ Á¶È¸ Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù: ' + error.message + '</td></tr>';
+                            historyList.innerHTML = '<tr><td colspan="9">ë°ì´í„° ì¡°íšŒ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤: ' + error.message + '</td></tr>';
                         }
                     })
                     .finally(() => {
                         isSearching = false;
                     });
             } catch (error) {
-                console.error('°Ë»ö ÇÔ¼ö ½ÇÇà Áß ¿À·ù:', error);
+                console.error('ê²€ìƒ‰ í•¨ìˆ˜ ì‹¤í–‰ ì¤‘ ì˜¤ë¥˜:', error);
                 if (historyList) {
-                    historyList.innerHTML = '<tr><td colspan="9">°Ë»ö Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.</td></tr>';
+                    historyList.innerHTML = '<tr><td colspan="9">ê²€ìƒ‰ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.</td></tr>';
                 }
                 isSearching = false;
             }
         }
 
-        // ÀÌº¥Æ® ¸®½º³Ê µî·Ï (ÇÑ ¹ø¸¸)
+        // ì´ë²¤íŠ¸ ë¦¬ìŠ¤ë„ˆ ë“±ë¡ (í•œ ë²ˆë§Œ)
         searchButton.addEventListener('click', function(e) {
             e.preventDefault();
             performSearch(e);
@@ -534,53 +534,53 @@
             performSearch(e);
         });
 
-        // Æû Á¦Ãâ ÀÌº¥Æ® ¹æÁö
+        // í¼ ì œì¶œ ì´ë²¤íŠ¸ ë°©ì§€
         searchForm.addEventListener('submit', function(e) {
             e.preventDefault();
             performSearch(e);
         });
 
-        // ÆäÀÌÁö ·Îµå ½Ã ÇÑ ¹ø¸¸ ÀüÃ¼ ³»¿ª Á¶È¸
+        // í˜ì´ì§€ ë¡œë“œ ì‹œ í•œ ë²ˆë§Œ ì „ì²´ ë‚´ì—­ ì¡°íšŒ
         setTimeout(() => {
             performSearch();
         }, 100);
 
-        // »èÁ¦ ¹öÆ° ±â´É
+        // ì‚­ì œ ë²„íŠ¼ ê¸°ëŠ¥
         window.deleteHistory = function(btn) {
             try {
                 const historyId = btn.getAttribute('data-id');
                 if (!historyId) {
-                    alert('»èÁ¦ÇÒ ÀÌ·Â ID°¡ ¾ø½À´Ï´Ù.');
+                    alert('ì‚­ì œí•  ì´ë ¥ IDê°€ ì—†ìŠµë‹ˆë‹¤.');
                     return;
                 }
-                if (!confirm('Á¤¸» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?')) return;
+                if (!confirm('ì •ë§ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?')) return;
                 
                 fetch(`/api/contact_history/${historyId}`, { method: 'DELETE' })
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            alert('»èÁ¦µÇ¾ú½À´Ï´Ù!');
-                            // °Ë»ö ÇÔ¼ö°¡ Á¤ÀÇµÇ¾î ÀÖ´ÂÁö È®ÀÎ ÈÄ È£Ãâ
+                            alert('ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤!');
+                            // ê²€ìƒ‰ í•¨ìˆ˜ê°€ ì •ì˜ë˜ì–´ ìˆëŠ”ì§€ í™•ì¸ í›„ í˜¸ì¶œ
                             if (typeof performSearch === 'function') {
                                 performSearch();
                             } else {
                                 location.reload();
                             }
                         } else {
-                            alert('»èÁ¦ ½ÇÆĞ: ' + (data.message || '¿À·ù'));
+                            alert('ì‚­ì œ ì‹¤íŒ¨: ' + (data.message || 'ì˜¤ë¥˜'));
                         }
                     })
                     .catch(error => {
-                        console.error('»èÁ¦ ¿À·ù:', error);
-                        alert('»èÁ¦ Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.');
+                        console.error('ì‚­ì œ ì˜¤ë¥˜:', error);
+                        alert('ì‚­ì œ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.');
                     });
             } catch (error) {
-                console.error('»èÁ¦ ÇÔ¼ö ¿À·ù:', error);
-                alert('»èÁ¦ Ã³¸® Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.');
+                console.error('ì‚­ì œ í•¨ìˆ˜ ì˜¤ë¥˜:', error);
+                alert('ì‚­ì œ ì²˜ë¦¬ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.');
             }
         }
     });
     </script>
-    <!-- Ä³½Ã ¹«È¿È­ : 20251021_clean -->
+    <!-- ìºì‹œ ë¬´íš¨í™” : 20251021_clean -->
 </body>
 </html>

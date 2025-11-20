@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
-    <title>∏ﬁ¿Œ ¥ÎΩ√∫∏µÂ</title>
+    <title>Î©îÏù∏ ÎåÄÏãúÎ≥¥Îìú</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
         }
-        
+
         .full-screen-container {
             position: fixed;
             top: 0;
@@ -27,7 +28,7 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .header-image {
             position: absolute;
             top: 0;
@@ -39,7 +40,7 @@
             border-radius: 0 0 30px 30px;
             overflow: hidden;
         }
-        
+
         .header-image::before {
             content: '';
             position: absolute;
@@ -47,10 +48,10 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(10,31,59,0.6), rgba(74,159,217,0.4));
+            background: linear-gradient(135deg, rgba(10, 31, 59, 0.6), rgba(74, 159, 217, 0.4));
             border-radius: 0 0 30px 30px;
         }
-        
+
         .header-content {
             position: absolute;
             top: 40px;
@@ -60,23 +61,23 @@
             text-align: center;
             color: white;
         }
-        
+
         .main-title {
             font-size: 4em;
             font-weight: 300;
             margin: 0 0 10px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
             letter-spacing: 4px;
         }
-        
+
         .subtitle {
             font-size: 1.2em;
             margin: 0;
             opacity: 0.9;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
             letter-spacing: 1px;
         }
-        
+
         .main-buttons {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -86,7 +87,7 @@
             z-index: 3;
             position: relative;
         }
-        
+
         .main-btn {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -103,61 +104,69 @@
             justify-content: center;
             align-items: center;
         }
-        
+
         .main-btn:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
-        
-        /* ∞¢ πˆ∆∞∫∞ ¬˜∫∞»≠µ» ªˆªÛ */
+
+        /* Í∞Å Î≤ÑÌäºÎ≥Ñ Ï∞®Î≥ÑÌôîÎêú ÏÉâÏÉÅ */
         .main-btn:nth-child(1) {
-            background: rgba(70, 130, 180, 0.15); /* Ω∫∆ø ∫Ì∑Á - DB */
+            background: rgba(70, 130, 180, 0.15);
+            /* Ïä§Ìã∏ Î∏îÎ£® - DB */
         }
+
         .main-btn:nth-child(1):hover {
             background: rgba(70, 130, 180, 0.25);
         }
-        
+
         .main-btn:nth-child(2) {
-            background: rgba(60, 179, 113, 0.15); /* πÃµæˆ Ω√ ±◊∏∞ - HISTORY */
+            background: rgba(60, 179, 113, 0.15);
+            /* ÎØ∏ÎîîÏóÑ Ïãú Í∑∏Î¶∞ - HISTORY */
         }
+
         .main-btn:nth-child(2):hover {
             background: rgba(60, 179, 113, 0.25);
         }
-        
+
         .main-btn:nth-child(3) {
-            background: rgba(255, 140, 0, 0.15); /* ¥Ÿ≈© ø¿∑ª¡ˆ - SALES */
+            background: rgba(255, 140, 0, 0.15);
+            /* Îã§ÌÅ¨ Ïò§Î†åÏßÄ - SALES */
         }
+
         .main-btn:nth-child(3):hover {
             background: rgba(255, 140, 0, 0.25);
         }
-        
+
         .manager-btn {
-            background: rgba(220, 20, 60, 0.15) !important; /* ≈©∏≤Ωº - MANAGER */
+            background: rgba(220, 20, 60, 0.15) !important;
+            /* ÌÅ¨Î¶ºÏä® - MANAGER */
         }
+
         .manager-btn:hover {
             background: rgba(220, 20, 60, 0.25) !important;
         }
-        
+
         .main-btn-title {
             font-size: 1.4em;
             font-weight: 600;
             margin-bottom: 8px;
             letter-spacing: 2px;
         }
-        
+
         .main-btn-korean {
             font-size: 1.1em;
             margin-bottom: 5px;
             opacity: 0.9;
         }
-        
+
         .main-btn-subtitle {
             font-size: 0.85em;
             opacity: 0.7;
             line-height: 1.2;
         }
-        
+
         .tax-buttons {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -169,7 +178,7 @@
             padding-top: 25px;
             margin-top: 30px;
         }
-        
+
         .tax-title {
             grid-column: 1 / -1;
             text-align: center;
@@ -179,7 +188,7 @@
             margin-bottom: 10px;
             opacity: 0.9;
         }
-        
+
         .tax-btn {
             background: rgba(255, 255, 255, 0.18);
             backdrop-filter: blur(8px);
@@ -193,13 +202,13 @@
             transition: all 0.3s ease;
             font-weight: 500;
         }
-        
+
         .tax-btn:hover {
             background: rgba(255, 255, 255, 0.28);
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
         }
-        
+
         .login-info {
             position: absolute;
             top: 20px;
@@ -212,23 +221,23 @@
             z-index: 4;
             text-align: center;
             min-width: 220px;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .user-name {
             font-size: 16px;
             font-weight: 500;
             margin-bottom: 8px;
             color: white;
         }
-        
+
         .user-level {
             font-size: 14px;
             margin-bottom: 8px;
             color: #4a9fd9;
             font-weight: 500;
         }
-        
+
         .subscription-info {
             background: #28a745;
             color: white;
@@ -239,19 +248,19 @@
             display: inline-block;
             margin-bottom: 8px;
         }
-        
+
         .subscription-info.expired {
             background: #dc3545;
         }
-        
+
         .subscription-info.warning {
             background: #ffc107;
             color: #000;
         }
-        
+
         .logout-btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
             padding: 4px 12px;
             border-radius: 12px;
@@ -259,37 +268,42 @@
             text-decoration: none;
             transition: all 0.3s ease;
         }
-        
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        
 
-        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+
+
         @media (max-width: 768px) {
             .main-title {
                 font-size: 3em;
                 letter-spacing: 2px;
             }
+
             .subtitle {
                 font-size: 1em;
                 letter-spacing: 0.5px;
             }
+
             .login-info {
                 top: 10px;
                 right: 10px;
                 padding: 10px 15px;
                 min-width: 160px;
             }
+
             .user-name {
                 font-size: 14px;
             }
+
             .main-buttons {
                 grid-template-columns: 1fr;
                 width: 90vw;
                 max-width: 400px;
                 gap: 15px;
             }
+
             .tax-buttons {
                 grid-template-columns: repeat(2, 1fr);
                 width: 90vw;
@@ -298,9 +312,11 @@
                 margin-top: 25px;
                 padding-top: 20px;
             }
+
             .header-content {
                 top: 30px;
             }
+
             .header-image {
                 height: 15vh;
             }
@@ -308,82 +324,83 @@
     </style>
     <script src="{{ url_for('static', filename='js/auto-logout.js') }}"></script>
 </head>
+
 <body>
     <div class="full-screen-container">
-        <!-- ªÛ¥‹ ¿ÃπÃ¡ˆ øµø™ -->
+        <!-- ÏÉÅÎã® Ïù¥ÎØ∏ÏßÄ ÏòÅÏó≠ -->
         <div class="header-image"></div>
-        
-        <!-- «Ï¥ı ƒ¡≈Ÿ√˜ -->
+
+        <!-- Ìó§Îçî Ïª®ÌÖêÏ∏† -->
         <div class="header-content">
             <div class="main-title">CMS</div>
-            <div class="subtitle">Company Management System</div>
+            <div class="subtitle">Í∏∞ÏóÖ Í¥ÄÎ¶¨ ÏãúÏä§ÌÖú</div>
         </div>
-        
-        <!-- ªÁøÎ¿⁄ ¡§∫∏ -->
+
+        <!-- ÏÇ¨Ïö©Ïûê Ï†ïÎ≥¥ -->
         <div class="login-info">
-            <div class="user-name">{{ user_name }}¥‘</div>
+            <div class="user-name">{{ user_name }}Îãò</div>
             <div class="user-level">{{ user_level_name }}</div>
             {% if subscription_info %}
-                {% if subscription_info.days_remaining > 0 %}
-                    {% if subscription_info.days_remaining <= 7 %}
-                        <div class="subscription-info warning">
-                            {{ subscription_info.days_remaining }}¿œ ≥≤¿Ω
-                        </div>
-                    {% else %}
-                        <div class="subscription-info">
-                            {{ subscription_info.days_remaining }}¿œ ≥≤¿Ω
-                        </div>
-                    {% endif %}
-                {% else %}
-                    <div class="subscription-info expired">
-                        ±∏µ∂ ∏∏∑·
-                    </div>
-                {% endif %}
-            {% else %}
-                <div class="subscription-info">
-                    π´∑· √º«Ë
-                </div>
-            {% endif %}
-            <div><a href="{{ url_for('logout') }}" class="logout-btn">∑Œ±◊æ∆øÙ</a></div>
+            {% if subscription_info.days_remaining > 0 %}
+            {% if subscription_info.days_remaining <= 7 %} <div class="subscription-info warning">
+                {{ subscription_info.days_remaining }}Ïùº ÎÇ®Ïùå
         </div>
-        
-        <!-- ∏ﬁ¿Œ πˆ∆∞ ±◊∏ÆµÂ -->
-        <div class="main-buttons">
-            <a href="/" class="main-btn">
-                <div class="main-btn-title">DB</div>
-                <div class="main-btn-korean">±‚æ˜¡§∫∏ ¡∂»∏</div>
-                <div class="main-btn-subtitle">Company Database Search</div>
-            </a>
-            <a href="/history" class="main-btn">
-                <div class="main-btn-title">HISTORY</div>
-                <div class="main-btn-korean">¡¢√À¿Ã∑¬¡∂»∏</div>
-                <div class="main-btn-subtitle">Contact History Search</div>
-            </a>
-            <a href="/sales_management" class="main-btn">
-                <div class="main-btn-title">SALES</div>
-                <div class="main-btn-korean">øµæ˜∞¸∏Æ</div>
-                <div class="main-btn-subtitle">Pioneering Visit Activity</div>
-            </a>
-            {% if can_manage_users %}
-            <a href="/user_management" class="main-btn manager-btn">
-                <div class="main-btn-title">MANAGER</div>
-                <div class="main-btn-korean">ªÁøÎ¿⁄ ∞¸∏Æ</div>
-                <div class="main-btn-subtitle">User & Subscription Management</div>
-            </a>
-            {% endif %}
+        {% else %}
+        <div class="subscription-info">
+            {{ subscription_info.days_remaining }}Ïùº ÎÇ®Ïùå
         </div>
-        
-        <!-- ºº±› ∞ËªÍ±‚ πˆ∆∞µÈ -->
-        <div class="tax-buttons">
-            <div class="tax-title">ºº±› ∞ËªÍ±‚</div>
-            <a href="/gift_tax" class="tax-btn">¡ıø©ºº</a>
-            <a href="/transfer_tax" class="tax-btn">æÁµµºº</a>
-            <a href="/income_tax" class="tax-btn">¡æ«’º“µÊºº</a>
-            <a href="/social_ins_tax" class="tax-btn">4¥Î∫∏«Ë</a>
-            <a href="/acquisition_tax" class="tax-btn">√ÎµÊºº</a>
-            <a href="/retirement_pay" class="tax-btn">≈¡˜±›</a>
-            <a href="/industrial_accident" class="tax-btn">ªÍ¿Á∫∏ªÛ</a>
+        {% endif %}
+        {% else %}
+        <div class="subscription-info expired">
+            Íµ¨ÎèÖ ÎßåÎ£å
         </div>
+        {% endif %}
+        {% else %}
+        <div class="subscription-info">
+            Î¨¥Î£å Ï≤¥Ìóò
+        </div>
+        {% endif %}
+        <div><a href="{{ url_for('logout') }}" class="logout-btn">Î°úÍ∑∏ÏïÑÏõÉ</a></div>
+    </div>
+
+    <!-- Î©îÏù∏ Î≤ÑÌäº Í∑∏Î¶¨Îìú -->
+    <div class="main-buttons">
+        <a href="/" class="main-btn">
+            <div class="main-btn-title">DB</div>
+            <div class="main-btn-korean">Í∏∞ÏóÖÏ†ïÎ≥¥ Ï°∞Ìöå</div>
+            <div class="main-btn-subtitle">Í∏∞ÏóÖ Îç∞Ïù¥ÌÑ∞Î≤†Ïù¥Ïä§ Í≤ÄÏÉâ</div>
+        </a>
+        <a href="/history" class="main-btn">
+            <div class="main-btn-title">HISTORY</div>
+            <div class="main-btn-korean">Ï†ëÏ¥âÏù¥Î†•Ï°∞Ìöå</div>
+            <div class="main-btn-subtitle">Ï†ëÏ¥â Ïù¥Î†• Í≤ÄÏÉâ</div>
+        </a>
+        <a href="/sales_management" class="main-btn">
+            <div class="main-btn-title">SALES</div>
+            <div class="main-btn-korean">ÏòÅÏóÖÍ¥ÄÎ¶¨</div>
+            <div class="main-btn-subtitle">Í∞úÏ≤ô Î∞©Î¨∏ ÌôúÎèô</div>
+        </a>
+        {% if can_manage_users %}
+        <a href="/user_management" class="main-btn manager-btn">
+            <div class="main-btn-title">Í¥ÄÎ¶¨Ïûê</div>
+            <div class="main-btn-korean">ÏÇ¨Ïö©Ïûê Í¥ÄÎ¶¨</div>
+            <div class="main-btn-subtitle">ÏÇ¨Ïö©Ïûê Î∞è Íµ¨ÎèÖ Í¥ÄÎ¶¨</div>
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- ÏÑ∏Í∏à Í≥ÑÏÇ∞Í∏∞ Î≤ÑÌäºÎì§ -->
+    <div class="tax-buttons">
+        <div class="tax-title">ÏÑ∏Í∏à Í≥ÑÏÇ∞Í∏∞</div>
+        <a href="/gift_tax" class="tax-btn">Ï¶ùÏó¨ÏÑ∏</a>
+        <a href="/transfer_tax" class="tax-btn">ÏñëÎèÑÏÑ∏</a>
+        <a href="/income_tax" class="tax-btn">Ï¢ÖÌï©ÏÜåÎìùÏÑ∏</a>
+        <a href="/social_ins_tax" class="tax-btn">4ÎåÄÎ≥¥Ìóò</a>
+        <a href="/acquisition_tax" class="tax-btn">Ï∑®ÎìùÏÑ∏</a>
+        <a href="/retirement_pay" class="tax-btn">Ìá¥ÏßÅÍ∏à</a>
+        <a href="/industrial_accident" class="tax-btn">ÏÇ∞Ïû¨Î≥¥ÏÉÅ</a>
+    </div>
     </div>
 </body>
+
 </html>

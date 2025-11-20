@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>4´ëº¸Çè·á °è»ê±â</title>
+    <title>4ëŒ€ë³´í—˜ë£Œ ê³„ì‚°ê¸°</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body { 
@@ -195,80 +195,80 @@
 <body>
     <div class="ins-tax-container">
         <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">? ¸ŞÀÎÀ¸·Î</a>
+            <a href="{{ url_for('main') }}" class="main-btn">? ë©”ì¸ìœ¼ë¡œ</a>
         </div>
         
-        <div class="ins-tax-title">?? 4´ëº¸Çè·á °è»ê±â</div>
+        <div class="ins-tax-title">?? 4ëŒ€ë³´í—˜ë£Œ ê³„ì‚°ê¸°</div>
         
         <form class="ins-tax-form" id="insTaxForm" onsubmit="return false;">
             <div class="form-group">
-                <label>? ±Ş¿©¾×</label>
+                <label>? ê¸‰ì—¬ì•¡</label>
                 <div class="radio-group">
-                    <label><input type="radio" name="salaryType" value="month" checked> ¿ù±Ş</label>
-                    <label><input type="radio" name="salaryType" value="year"> ¿¬ºÀ</label>
+                    <label><input type="radio" name="salaryType" value="month" checked> ì›”ê¸‰</label>
+                    <label><input type="radio" name="salaryType" value="year"> ì—°ë´‰</label>
                 </div>
             </div>
             
             <div class="form-group">
-                <label>? ±Ş¿© ±İ¾× (¿ø)</label>
+                <label>? ê¸‰ì—¬ ê¸ˆì•¡ (ì›)</label>
                 <div class="input-icon" data-icon="?">
-                    <input type="text" id="salary" required pattern="[0-9,]*" placeholder="¿¹: 3,000,000">
+                    <input type="text" id="salary" required pattern="[0-9,]*" placeholder="ì˜ˆ: 3,000,000">
                 </div>
-                <div class="help-text">ºñ°ú¼¼ ±Ş¿©¸¦ Æ÷ÇÔÇÑ ÃÑ ±Ş¿©¾×À» ÀÔ·ÂÇÏ¼¼¿ä</div>
+                <div class="help-text">ë¹„ê³¼ì„¸ ê¸‰ì—¬ë¥¼ í¬í•¨í•œ ì´ ê¸‰ì—¬ì•¡ì„ ì…ë ¥í•˜ì„¸ìš”</div>
             </div>
             
             <div class="form-group">
-                <label>?? ºñ°ú¼¼ ±Ş¿© (¿ø)</label>
+                <label>?? ë¹„ê³¼ì„¸ ê¸‰ì—¬ (ì›)</label>
                 <div class="input-icon" data-icon="??">
-                    <input type="text" id="taxFree" value="0" required pattern="[0-9,]*" placeholder="¿¹: 200,000">
+                    <input type="text" id="taxFree" value="0" required pattern="[0-9,]*" placeholder="ì˜ˆ: 200,000">
                 </div>
-                <div class="help-text">½Ä´ë, ÀÚ°¡¿îÀü º¸Á¶±İ, À°¾Æ¼ö´ç µî ºñ°ú¼¼ Ç×¸ñ</div>
+                <div class="help-text">ì‹ëŒ€, ìê°€ìš´ì „ ë³´ì¡°ê¸ˆ, ìœ¡ì•„ìˆ˜ë‹¹ ë“± ë¹„ê³¼ì„¸ í•­ëª©</div>
             </div>
             
             <div class="form-group">
-                <label>??????? ºÎ¾ç°¡Á·¼ö (º»ÀÎ Æ÷ÇÔ)</label>
+                <label>??????? ë¶€ì–‘ê°€ì¡±ìˆ˜ (ë³¸ì¸ í¬í•¨)</label>
                 <select id="familyCount">
-                    <option value="1">1¸í (º»ÀÎ¸¸)</option>
-                    <option value="2">2¸í</option>
-                    <option value="3">3¸í</option>
-                    <option value="4">4¸í</option>
-                    <option value="5">5¸í</option>
-                    <option value="6">6¸í ÀÌ»ó</option>
+                    <option value="1">1ëª… (ë³¸ì¸ë§Œ)</option>
+                    <option value="2">2ëª…</option>
+                    <option value="3">3ëª…</option>
+                    <option value="4">4ëª…</option>
+                    <option value="5">5ëª…</option>
+                    <option value="6">6ëª… ì´ìƒ</option>
                 </select>
-                <div class="help-text">¼Òµæ¼¼ °è»ê ½Ã °í·ÁµÇ´Â ºÎ¾ç°¡Á· ¼ö</div>
+                <div class="help-text">ì†Œë“ì„¸ ê³„ì‚° ì‹œ ê³ ë ¤ë˜ëŠ” ë¶€ì–‘ê°€ì¡± ìˆ˜</div>
             </div>
             
             <div class="form-group">
-                <label>? 8¼¼ ÀÌ»ó 20¼¼ ÀÌÇÏ ÀÚ³à¼ö</label>
+                <label>? 8ì„¸ ì´ìƒ 20ì„¸ ì´í•˜ ìë…€ìˆ˜</label>
                 <select id="childCount">
-                    <option value="0">0¸í</option>
-                    <option value="1">1¸í</option>
-                    <option value="2">2¸í</option>
-                    <option value="3">3¸í</option>
-                    <option value="4">4¸í</option>
-                    <option value="5">5¸í ÀÌ»ó</option>
+                    <option value="0">0ëª…</option>
+                    <option value="1">1ëª…</option>
+                    <option value="2">2ëª…</option>
+                    <option value="3">3ëª…</option>
+                    <option value="4">4ëª…</option>
+                    <option value="5">5ëª… ì´ìƒ</option>
                 </select>
-                <div class="help-text">¿¬°£ ¼Òµæ 100¸¸¿ø ÀÌÇÏÀÎ ÀÚ³à¸¸ ÇØ´ç (¼¼¾×°øÁ¦ ´ë»ó)</div>
+                <div class="help-text">ì—°ê°„ ì†Œë“ 100ë§Œì› ì´í•˜ì¸ ìë…€ë§Œ í•´ë‹¹ (ì„¸ì•¡ê³µì œ ëŒ€ìƒ)</div>
             </div>
             
-            <button type="submit" class="submit-btn">? °è»êÇÏ±â</button>
+            <button type="submit" class="submit-btn">? ê³„ì‚°í•˜ê¸°</button>
         </form>
         
         <div class="result-box" id="resultBox" style="display:none;"></div>
         
         <div style="background:rgba(108, 117, 125, 0.1);border-radius:12px;padding:20px;margin-top:25px;">
-            <h4 style="color:#495057;margin-bottom:15px;">? 2025³â 4´ëº¸Çè ¿äÀ²</h4>
+            <h4 style="color:#495057;margin-bottom:15px;">? 2025ë…„ 4ëŒ€ë³´í—˜ ìš”ìœ¨</h4>
             <div style="font-size:0.95em;color:#6c757d;line-height:1.6;">
-                <p><strong>? °Ç°­º¸Çè:</strong> 7.09% (±Ù·ÎÀÚ 3.545%, »ç¾÷ÁÖ 3.545%)</p>
-                <p><strong>? Àå±â¿ä¾çº¸Çè:</strong> °Ç°­º¸Çè·áÀÇ 12.95%</p>
-                <p><strong>?? ±¹¹Î¿¬±İ:</strong> 9.0% (±Ù·ÎÀÚ 4.5%, »ç¾÷ÁÖ 4.5%)</p>
-                <p><strong>? °í¿ëº¸Çè:</strong> ±Ù·ÎÀÚ 0.8%, »ç¾÷ÁÖ 0.9%</p>
-                <p><strong>?? »êÀçº¸Çè:</strong> »ç¾÷ÁÖ Àü¾× ºÎ´ã (¾÷Á¾º° 0.25%~34%)</p>
+                <p><strong>? ê±´ê°•ë³´í—˜:</strong> 7.09% (ê·¼ë¡œì 3.545%, ì‚¬ì—…ì£¼ 3.545%)</p>
+                <p><strong>? ì¥ê¸°ìš”ì–‘ë³´í—˜:</strong> ê±´ê°•ë³´í—˜ë£Œì˜ 12.95%</p>
+                <p><strong>?? êµ­ë¯¼ì—°ê¸ˆ:</strong> 9.0% (ê·¼ë¡œì 4.5%, ì‚¬ì—…ì£¼ 4.5%)</p>
+                <p><strong>? ê³ ìš©ë³´í—˜:</strong> ê·¼ë¡œì 0.8%, ì‚¬ì—…ì£¼ 0.9%</p>
+                <p><strong>?? ì‚°ì¬ë³´í—˜:</strong> ì‚¬ì—…ì£¼ ì „ì•¡ ë¶€ë‹´ (ì—…ì¢…ë³„ 0.25%~34%)</p>
             </div>
         </div>
     </div>
     <script>
-    // 3ÀÚ¸® ÄŞ¸¶
+    // 3ìë¦¬ ì½¤ë§ˆ
     function addComma(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
@@ -276,7 +276,7 @@
         return str.replace(/,/g, '');
     }
     
-    // ÀÔ·Â¶õ ÄŞ¸¶ ÀÚµ¿
+    // ì…ë ¥ë€ ì½¤ë§ˆ ìë™
     ['salary','taxFree'].forEach(id => {
         const el = document.getElementById(id);
         el.addEventListener('input', function(e) {
@@ -285,10 +285,10 @@
         });
     });
     
-    // ¶óµğ¿À ¹öÆ° ¼±ÅÃ È¿°ú
+    // ë¼ë””ì˜¤ ë²„íŠ¼ ì„ íƒ íš¨ê³¼
     document.querySelectorAll('input[type="radio"]').forEach(radio => {
         radio.addEventListener('change', function() {
-            // °°Àº nameÀÇ ´Ù¸¥ ¶óº§µé ½ºÅ¸ÀÏ ÃÊ±âÈ­
+            // ê°™ì€ nameì˜ ë‹¤ë¥¸ ë¼ë²¨ë“¤ ìŠ¤íƒ€ì¼ ì´ˆê¸°í™”
             document.querySelectorAll(`input[name="${this.name}"]`).forEach(r => {
                 const label = r.closest('label');
                 if (label) {
@@ -297,7 +297,7 @@
                 }
             });
             
-            // ¼±ÅÃµÈ ¶óº§ ½ºÅ¸ÀÏ Àû¿ë
+            // ì„ íƒëœ ë¼ë²¨ ìŠ¤íƒ€ì¼ ì ìš©
             const selectedLabel = this.closest('label');
             if (selectedLabel) {
                 selectedLabel.style.borderColor = '#667eea';
@@ -306,18 +306,18 @@
         });
     });
     
-    // 2025³â 4´ëº¸Çè ¿äÀ²
+    // 2025ë…„ 4ëŒ€ë³´í—˜ ìš”ìœ¨
     const RATES = {
-        health: 0.0709, // °Ç°­º¸Çè (±Ù·ÎÀÚ + »ç¾÷ÁÖ)
-        health_worker: 0.03545, // °Ç°­º¸Çè (±Ù·ÎÀÚ ºÎºĞ)
-        health_employer: 0.03545, // °Ç°­º¸Çè (»ç¾÷ÁÖ ºÎºĞ)
-        longterm: 0.1295, // Àå±â¿ä¾çº¸Çè(°Ç°­º¸Çè·áÀÇ 12.95%)
-        pension: 0.090, // ±¹¹Î¿¬±İ (ÀüÃ¼)
-        pension_worker: 0.045, // ±¹¹Î¿¬±İ (±Ù·ÎÀÚ ºÎºĞ)
-        pension_employer: 0.045, // ±¹¹Î¿¬±İ (»ç¾÷ÁÖ ºÎºĞ)
-        employment_worker: 0.008, // °í¿ëº¸Çè (±Ù·ÎÀÚ)
-        employment_employer: 0.009, // °í¿ëº¸Çè (»ç¾÷ÁÖ)
-        industrial: 0.0065 // »êÀçº¸Çè(»ç¾÷ÁÖ Àü¾×, ÀÏ¹İÀûÀÎ ¿äÀ²)
+        health: 0.0709, // ê±´ê°•ë³´í—˜ (ê·¼ë¡œì + ì‚¬ì—…ì£¼)
+        health_worker: 0.03545, // ê±´ê°•ë³´í—˜ (ê·¼ë¡œì ë¶€ë¶„)
+        health_employer: 0.03545, // ê±´ê°•ë³´í—˜ (ì‚¬ì—…ì£¼ ë¶€ë¶„)
+        longterm: 0.1295, // ì¥ê¸°ìš”ì–‘ë³´í—˜(ê±´ê°•ë³´í—˜ë£Œì˜ 12.95%)
+        pension: 0.090, // êµ­ë¯¼ì—°ê¸ˆ (ì „ì²´)
+        pension_worker: 0.045, // êµ­ë¯¼ì—°ê¸ˆ (ê·¼ë¡œì ë¶€ë¶„)
+        pension_employer: 0.045, // êµ­ë¯¼ì—°ê¸ˆ (ì‚¬ì—…ì£¼ ë¶€ë¶„)
+        employment_worker: 0.008, // ê³ ìš©ë³´í—˜ (ê·¼ë¡œì)
+        employment_employer: 0.009, // ê³ ìš©ë³´í—˜ (ì‚¬ì—…ì£¼)
+        industrial: 0.0065 // ì‚°ì¬ë³´í—˜(ì‚¬ì—…ì£¼ ì „ì•¡, ì¼ë°˜ì ì¸ ìš”ìœ¨)
     };
     
     document.getElementById('insTaxForm').addEventListener('submit', function() {
@@ -327,34 +327,34 @@
         const familyCount = parseInt(document.getElementById('familyCount').value);
         const childCount = parseInt(document.getElementById('childCount').value);
         
-        // ¿¬ºÀ ÀÔ·Â ½Ã ¿ùÈ¯»ê
+        // ì—°ë´‰ ì…ë ¥ ì‹œ ì›”í™˜ì‚°
         if(salaryType==='year') {
             salary = Math.floor(salary/12);
         }
         
-        // 4´ëº¸Çè °è»ê ±âÁØ ±İ¾× (ºñ°ú¼¼ 20¸¸¿ø ÃÊ°úºĞ¸¸ Á¦¿Ü)
+        // 4ëŒ€ë³´í—˜ ê³„ì‚° ê¸°ì¤€ ê¸ˆì•¡ (ë¹„ê³¼ì„¸ 20ë§Œì› ì´ˆê³¼ë¶„ë§Œ ì œì™¸)
         const salaryForIns = salary - Math.max(taxFree-200000, 0);
         
-        // °Ç°­º¸Çè (±Ù·ÎÀÚ ºÎ´ã)
+        // ê±´ê°•ë³´í—˜ (ê·¼ë¡œì ë¶€ë‹´)
         const healthWorker = Math.floor(salaryForIns * RATES.health_worker);
-        // °Ç°­º¸Çè (»ç¾÷ÁÖ ºÎ´ã)
+        // ê±´ê°•ë³´í—˜ (ì‚¬ì—…ì£¼ ë¶€ë‹´)
         const healthEmployer = Math.floor(salaryForIns * RATES.health_employer);
-        // Àå±â¿ä¾çº¸Çè (±Ù·ÎÀÚ ºÎ´ã)
+        // ì¥ê¸°ìš”ì–‘ë³´í—˜ (ê·¼ë¡œì ë¶€ë‹´)
         const longtermWorker = Math.floor(healthWorker * RATES.longterm);
-        // Àå±â¿ä¾çº¸Çè (»ç¾÷ÁÖ ºÎ´ã)
+        // ì¥ê¸°ìš”ì–‘ë³´í—˜ (ì‚¬ì—…ì£¼ ë¶€ë‹´)
         const longtermEmployer = Math.floor(healthEmployer * RATES.longterm);
-        // ±¹¹Î¿¬±İ (±Ù·ÎÀÚ ºÎ´ã)
+        // êµ­ë¯¼ì—°ê¸ˆ (ê·¼ë¡œì ë¶€ë‹´)
         const pensionWorker = Math.floor(salaryForIns * RATES.pension_worker);
-        // ±¹¹Î¿¬±İ (»ç¾÷ÁÖ ºÎ´ã)
+        // êµ­ë¯¼ì—°ê¸ˆ (ì‚¬ì—…ì£¼ ë¶€ë‹´)
         const pensionEmployer = Math.floor(salaryForIns * RATES.pension_employer);
-        // °í¿ëº¸Çè(±Ù·ÎÀÚ)
+        // ê³ ìš©ë³´í—˜(ê·¼ë¡œì)
         const employmentWorker = Math.floor(salaryForIns * RATES.employment_worker);
-        // °í¿ëº¸Çè(»ç¾÷ÁÖ)
+        // ê³ ìš©ë³´í—˜(ì‚¬ì—…ì£¼)
         const employmentEmployer = Math.floor(salaryForIns * RATES.employment_employer);
-        // »êÀçº¸Çè(»ç¾÷ÁÖ Àü¾×)
+        // ì‚°ì¬ë³´í—˜(ì‚¬ì—…ì£¼ ì „ì•¡)
         const industrial = Math.floor(salaryForIns * RATES.industrial);
         
-        // ÃÑ º¸Çè·á °è»ê
+        // ì´ ë³´í—˜ë£Œ ê³„ì‚°
         const totalWorker = healthWorker + longtermWorker + pensionWorker + employmentWorker;
         const totalEmployer = healthEmployer + longtermEmployer + pensionEmployer + employmentEmployer + industrial;
         const grandTotal = totalWorker + totalEmployer;
@@ -363,82 +363,82 @@
         resultBox.style.display = 'block';
         resultBox.innerHTML =
             `<div style='text-align:center;margin-bottom:20px;'>
-                <h4 style='color:#2c3e50;margin-bottom:15px;'>?? 4´ëº¸Çè·á °è»ê °á°ú</h4>
+                <h4 style='color:#2c3e50;margin-bottom:15px;'>?? 4ëŒ€ë³´í—˜ë£Œ ê³„ì‚° ê²°ê³¼</h4>
                 <div style='background:rgba(255,255,255,0.8);padding:15px;border-radius:10px;margin-bottom:15px;'>
-                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>°è»ê ±âÁØ ±Ş¿©</div>
-                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(salaryForIns)}¿ø (${salaryType==='year'?'¿¬ºÀÀ» ¿ù È¯»ê':'¿ù±Ş'})</div>
+                    <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>ê³„ì‚° ê¸°ì¤€ ê¸‰ì—¬</div>
+                    <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(salaryForIns)}ì› (${salaryType==='year'?'ì—°ë´‰ì„ ì›” í™˜ì‚°':'ì›”ê¸‰'})</div>
                 </div>
             </div>
             
             <div style='display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;'>
-                <!-- ±Ù·ÎÀÚ ºÎ´ã -->
+                <!-- ê·¼ë¡œì ë¶€ë‹´ -->
                 <div style='background:rgba(40,167,69,0.1);border:2px solid rgba(40,167,69,0.3);padding:20px;border-radius:12px;'>
-                    <h5 style='text-align:center;color:#155724;margin-bottom:15px;'>? ±Ù·ÎÀÚ ºÎ´ã</h5>
+                    <h5 style='text-align:center;color:#155724;margin-bottom:15px;'>? ê·¼ë¡œì ë¶€ë‹´</h5>
                     <div style='display:grid;gap:10px;'>
                         <div style='background:rgba(255,255,255,0.8);padding:10px;border-radius:8px;display:flex;justify-content:space-between;'>
-                            <span style='font-size:0.9em;'>? °Ç°­º¸Çè</span>
-                            <span style='font-weight:600;color:#28a745;'>${addComma(healthWorker)}¿ø</span>
+                            <span style='font-size:0.9em;'>? ê±´ê°•ë³´í—˜</span>
+                            <span style='font-weight:600;color:#28a745;'>${addComma(healthWorker)}ì›</span>
                         </div>
                         <div style='background:rgba(255,255,255,0.8);padding:10px;border-radius:8px;display:flex;justify-content:space-between;'>
-                            <span style='font-size:0.9em;'>? Àå±â¿ä¾ç</span>
-                            <span style='font-weight:600;color:#28a745;'>${addComma(longtermWorker)}¿ø</span>
+                            <span style='font-size:0.9em;'>? ì¥ê¸°ìš”ì–‘</span>
+                            <span style='font-weight:600;color:#28a745;'>${addComma(longtermWorker)}ì›</span>
                         </div>
                         <div style='background:rgba(255,255,255,0.8);padding:10px;border-radius:8px;display:flex;justify-content:space-between;'>
-                            <span style='font-size:0.9em;'>?? ±¹¹Î¿¬±İ</span>
-                            <span style='font-weight:600;color:#28a745;'>${addComma(pensionWorker)}¿ø</span>
+                            <span style='font-size:0.9em;'>?? êµ­ë¯¼ì—°ê¸ˆ</span>
+                            <span style='font-weight:600;color:#28a745;'>${addComma(pensionWorker)}ì›</span>
                         </div>
                         <div style='background:rgba(255,255,255,0.8);padding:10px;border-radius:8px;display:flex;justify-content:space-between;'>
-                            <span style='font-size:0.9em;'>? °í¿ëº¸Çè</span>
-                            <span style='font-weight:600;color:#28a745;'>${addComma(employmentWorker)}¿ø</span>
+                            <span style='font-size:0.9em;'>? ê³ ìš©ë³´í—˜</span>
+                            <span style='font-weight:600;color:#28a745;'>${addComma(employmentWorker)}ì›</span>
                         </div>
                         <div style='background:rgba(40,167,69,0.2);padding:12px;border-radius:8px;text-align:center;margin-top:10px;'>
-                            <div style='font-size:0.9em;color:#155724;'>ÃÑ ºÎ´ã¾×</div>
-                            <div style='font-size:1.3em;font-weight:700;color:#28a745;'>${addComma(totalWorker)}¿ø</div>
+                            <div style='font-size:0.9em;color:#155724;'>ì´ ë¶€ë‹´ì•¡</div>
+                            <div style='font-size:1.3em;font-weight:700;color:#28a745;'>${addComma(totalWorker)}ì›</div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- »ç¾÷ÁÖ ºÎ´ã -->
+                <!-- ì‚¬ì—…ì£¼ ë¶€ë‹´ -->
                 <div style='background:rgba(255,193,7,0.1);border:2px solid rgba(255,193,7,0.3);padding:20px;border-radius:12px;'>
-                    <h5 style='text-align:center;color:#856404;margin-bottom:15px;'>? »ç¾÷ÁÖ ºÎ´ã</h5>
+                    <h5 style='text-align:center;color:#856404;margin-bottom:15px;'>? ì‚¬ì—…ì£¼ ë¶€ë‹´</h5>
                     <div style='display:grid;gap:10px;'>
                         <div style='background:rgba(255,255,255,0.8);padding:10px;border-radius:8px;display:flex;justify-content:space-between;'>
-                            <span style='font-size:0.9em;'>? °Ç°­º¸Çè</span>
-                            <span style='font-weight:600;color:#856404;'>${addComma(healthEmployer)}¿ø</span>
+                            <span style='font-size:0.9em;'>? ê±´ê°•ë³´í—˜</span>
+                            <span style='font-weight:600;color:#856404;'>${addComma(healthEmployer)}ì›</span>
                         </div>
                         <div style='background:rgba(255,255,255,0.8);padding:10px;border-radius:8px;display:flex;justify-content:space-between;'>
-                            <span style='font-size:0.9em;'>? Àå±â¿ä¾ç</span>
-                            <span style='font-weight:600;color:#856404;'>${addComma(longtermEmployer)}¿ø</span>
+                            <span style='font-size:0.9em;'>? ì¥ê¸°ìš”ì–‘</span>
+                            <span style='font-weight:600;color:#856404;'>${addComma(longtermEmployer)}ì›</span>
                         </div>
                         <div style='background:rgba(255,255,255,0.8);padding:10px;border-radius:8px;display:flex;justify-content:space-between;'>
-                            <span style='font-size:0.9em;'>?? ±¹¹Î¿¬±İ</span>
-                            <span style='font-weight:600;color:#856404;'>${addComma(pensionEmployer)}¿ø</span>
+                            <span style='font-size:0.9em;'>?? êµ­ë¯¼ì—°ê¸ˆ</span>
+                            <span style='font-weight:600;color:#856404;'>${addComma(pensionEmployer)}ì›</span>
                         </div>
                         <div style='background:rgba(255,255,255,0.8);padding:10px;border-radius:8px;display:flex;justify-content:space-between;'>
-                            <span style='font-size:0.9em;'>? °í¿ëº¸Çè</span>
-                            <span style='font-weight:600;color:#856404;'>${addComma(employmentEmployer)}¿ø</span>
+                            <span style='font-size:0.9em;'>? ê³ ìš©ë³´í—˜</span>
+                            <span style='font-weight:600;color:#856404;'>${addComma(employmentEmployer)}ì›</span>
                         </div>
                         <div style='background:rgba(255,255,255,0.8);padding:10px;border-radius:8px;display:flex;justify-content:space-between;'>
-                            <span style='font-size:0.9em;'>?? »êÀçº¸Çè</span>
-                            <span style='font-weight:600;color:#856404;'>${addComma(industrial)}¿ø</span>
+                            <span style='font-size:0.9em;'>?? ì‚°ì¬ë³´í—˜</span>
+                            <span style='font-weight:600;color:#856404;'>${addComma(industrial)}ì›</span>
                         </div>
                         <div style='background:rgba(255,193,7,0.2);padding:12px;border-radius:8px;text-align:center;margin-top:10px;'>
-                            <div style='font-size:0.9em;color:#856404;'>ÃÑ ºÎ´ã¾×</div>
-                            <div style='font-size:1.3em;font-weight:700;color:#856404;'>${addComma(totalEmployer)}¿ø</div>
+                            <div style='font-size:0.9em;color:#856404;'>ì´ ë¶€ë‹´ì•¡</div>
+                            <div style='font-size:1.3em;font-weight:700;color:#856404;'>${addComma(totalEmployer)}ì›</div>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div style='background:rgba(102, 126, 234, 0.1);border:2px solid rgba(102, 126, 234, 0.3);padding:20px;border-radius:12px;text-align:center;'>
-                <div style='font-size:1.1em;color:#495057;margin-bottom:8px;'>? ÃÑ 4´ëº¸Çè·á (±Ù·ÎÀÚ + »ç¾÷ÁÖ)</div>
-                <div style='font-size:2em;font-weight:700;color:#667eea;'>${addComma(grandTotal)}¿ø</div>
+                <div style='font-size:1.1em;color:#495057;margin-bottom:8px;'>? ì´ 4ëŒ€ë³´í—˜ë£Œ (ê·¼ë¡œì + ì‚¬ì—…ì£¼)</div>
+                <div style='font-size:2em;font-weight:700;color:#667eea;'>${addComma(grandTotal)}ì›</div>
                 <div style='font-size:0.9em;color:#6c757d;margin-top:10px;'>
-                    ½Ç¼ö·É¾× = ±Ş¿© - ±Ù·ÎÀÚºÎ´ã º¸Çè·á (${addComma(salary - totalWorker)}¿ø)
+                    ì‹¤ìˆ˜ë ¹ì•¡ = ê¸‰ì—¬ - ê·¼ë¡œìë¶€ë‹´ ë³´í—˜ë£Œ (${addComma(salary - totalWorker)}ì›)
                 </div>
             </div>`;
             
-        // °á°ú ¹Ú½º·Î ½ºÅ©·Ñ
+        // ê²°ê³¼ ë°•ìŠ¤ë¡œ ìŠ¤í¬ë¡¤
         resultBox.scrollIntoView({ behavior: 'smooth' });
     });
     </script>

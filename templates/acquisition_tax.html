@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Ãëµæ¼¼ °è»ê±â</title>
+    <title>ì·¨ë“ì„¸ ê³„ì‚°ê¸°</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body { 
@@ -206,111 +206,111 @@
 <body>
     <div class="acq-tax-container">
         <div class="top-bar">
-            <a href="{{ url_for('main') }}" class="main-btn">? ¸ÞÀÎÀ¸·Î</a>
-            <button type="button" id="showTaxRateBtn" class="tax-rate-btn">? Ãëµæ¼¼À² º¸±â</button>
+            <a href="{{ url_for('main') }}" class="main-btn">? ë©”ì¸ìœ¼ë¡œ</a>
+            <button type="button" id="showTaxRateBtn" class="tax-rate-btn">? ì·¨ë“ì„¸ìœ¨ ë³´ê¸°</button>
         </div>
         
-        <div class="acq-tax-title">? Ãëµæ¼¼ °è»ê±â</div>
+        <div class="acq-tax-title">? ì·¨ë“ì„¸ ê³„ì‚°ê¸°</div>
         
         <form class="acq-tax-form" id="acqTaxForm" onsubmit="return false;">
             <div class="form-group">
-                <label>?? Ãëµæ¹°°ÇÁ¾·ù</label>
+                <label>?? ì·¨ë“ë¬¼ê±´ì¢…ë¥˜</label>
                 <div class="radio-group">
-                    <label><input type="radio" name="itemType" value="ÁÖÅÃ" checked><span>ÁÖÅÃ</span></label>
-                    <label><input type="radio" name="itemType" value="°ÇÃà¹°"><span>°ÇÃà¹°</span></label>
-                    <label><input type="radio" name="itemType" value="ÅäÁö"><span>ÅäÁö</span></label>
+                    <label><input type="radio" name="itemType" value="ì£¼íƒ" checked><span>ì£¼íƒ</span></label>
+                    <label><input type="radio" name="itemType" value="ê±´ì¶•ë¬¼"><span>ê±´ì¶•ë¬¼</span></label>
+                    <label><input type="radio" name="itemType" value="í† ì§€"><span>í† ì§€</span></label>
                 </div>
             </div>
             
             <div class="form-group">
-                <label>? Ãëµæ±¸ºÐ</label>
+                <label>? ì·¨ë“êµ¬ë¶„</label>
                 <div class="radio-group">
-                    <label><input type="radio" name="acqType" value="¸Å¸Å" checked><span>¸Å¸Å</span></label>
-                    <label><input type="radio" name="acqType" value="½ÅÃà"><span>½ÅÃà</span></label>
-                    <label><input type="radio" name="acqType" value="Áõ¿©"><span>Áõ¿©</span></label>
-                    <label><input type="radio" name="acqType" value="»ó¼Ó"><span>»ó¼Ó</span></label>
+                    <label><input type="radio" name="acqType" value="ë§¤ë§¤" checked><span>ë§¤ë§¤</span></label>
+                    <label><input type="radio" name="acqType" value="ì‹ ì¶•"><span>ì‹ ì¶•</span></label>
+                    <label><input type="radio" name="acqType" value="ì¦ì—¬"><span>ì¦ì—¬</span></label>
+                    <label><input type="radio" name="acqType" value="ìƒì†"><span>ìƒì†</span></label>
                 </div>
             </div>
             
             <div class="form-group">
-                <label>? ÁÖÅÃº¸À¯¼ö</label>
+                <label>? ì£¼íƒë³´ìœ ìˆ˜</label>
                 <select id="houseCount">
-                    <option value="1">Á¶Á¤´ë»óÁö¿ª 1ÁÖÅÃ / ºñÁ¶Á¤´ë»óÁö¿ª 2ÁÖÅÃ ÀÌÇÏ</option>
-                    <option value="2">Á¶Á¤´ë»óÁö¿ª 2ÁÖÅÃ / ºñÁ¶Á¤´ë»óÁö¿ª 3ÁÖÅÃ</option>
-                    <option value="3">Á¶Á¤´ë»óÁö¿ª 3ÁÖÅÃ ÀÌ»ó / ºñÁ¶Á¤´ë»óÁö¿ª 4ÁÖÅÃ ÀÌ»ó</option>
+                    <option value="1">ì¡°ì •ëŒ€ìƒì§€ì—­ 1ì£¼íƒ / ë¹„ì¡°ì •ëŒ€ìƒì§€ì—­ 2ì£¼íƒ ì´í•˜</option>
+                    <option value="2">ì¡°ì •ëŒ€ìƒì§€ì—­ 2ì£¼íƒ / ë¹„ì¡°ì •ëŒ€ìƒì§€ì—­ 3ì£¼íƒ</option>
+                    <option value="3">ì¡°ì •ëŒ€ìƒì§€ì—­ 3ì£¼íƒ ì´ìƒ / ë¹„ì¡°ì •ëŒ€ìƒì§€ì—­ 4ì£¼íƒ ì´ìƒ</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label>? Àü¿ë¸éÀû 85§³ ÃÊ°ú ¿©ºÎ</label>
+                <label>? ì „ìš©ë©´ì  85ãŽ¡ ì´ˆê³¼ ì—¬ë¶€</label>
                 <div class="radio-group">
-                    <label><input type="radio" name="over85" value="no" checked><span>85§³ ÀÌÇÏ</span></label>
-                    <label><input type="radio" name="over85" value="yes"><span>85§³ ÃÊ°ú</span></label>
+                    <label><input type="radio" name="over85" value="no" checked><span>85ãŽ¡ ì´í•˜</span></label>
+                    <label><input type="radio" name="over85" value="yes"><span>85ãŽ¡ ì´ˆê³¼</span></label>
                 </div>
             </div>
             
             <div class="form-group">
-                <label>? Ãëµæ°¡¾× (¿ø)</label>
-                <input type="text" id="acqPrice" required pattern="[0-9,]*" placeholder="¿¹: 300,000,000">
-                <div class="help-text">½ÇÁ¦ °Å·¡°¡°Ý ¶Ç´Â °ÇÃàºñ¿ëÀ» ÀÔ·ÂÇÏ¼¼¿ä</div>
+                <label>? ì·¨ë“ê°€ì•¡ (ì›)</label>
+                <input type="text" id="acqPrice" required pattern="[0-9,]*" placeholder="ì˜ˆ: 300,000,000">
+                <div class="help-text">ì‹¤ì œ ê±°ëž˜ê°€ê²© ë˜ëŠ” ê±´ì¶•ë¹„ìš©ì„ ìž…ë ¥í•˜ì„¸ìš”</div>
             </div>
             
             <div class="form-group">
-                <label>?? °ø½ÃÁö°¡ (¿ø)</label>
-                <input type="text" id="officialPrice" required pattern="[0-9,]*" placeholder="¿¹: 250,000,000">
-                <div class="help-text">±¹Åä±³ÅëºÎ¿¡¼­ ¹ßÇ¥ÇÏ´Â °ø½ÃÁö°¡¸¦ ÀÔ·ÂÇÏ¼¼¿ä</div>
+                <label>?? ê³µì‹œì§€ê°€ (ì›)</label>
+                <input type="text" id="officialPrice" required pattern="[0-9,]*" placeholder="ì˜ˆ: 250,000,000">
+                <div class="help-text">êµ­í† êµí†µë¶€ì—ì„œ ë°œí‘œí•˜ëŠ” ê³µì‹œì§€ê°€ë¥¼ ìž…ë ¥í•˜ì„¸ìš”</div>
             </div>
             
-            <button type="submit" class="submit-btn">? °è»êÇÏ±â</button>
+            <button type="submit" class="submit-btn">? ê³„ì‚°í•˜ê¸°</button>
         </form>
 
         <div class="result-box" id="resultBox" style="display:none;"></div>
         
         <div style="background:rgba(108, 117, 125, 0.1);border-radius:12px;padding:20px;margin-top:25px;">
-            <h4 style="color:#495057;margin-bottom:15px;">? ¾È³»»çÇ×</h4>
+            <h4 style="color:#495057;margin-bottom:15px;">? ì•ˆë‚´ì‚¬í•­</h4>
             <div style="font-size:0.95em;color:#6c757d;line-height:1.6;">
-                <p><strong>? Á¶Á¤´ë»óÁö¿ª:</strong> ¼­¿ï, ºÎ»ê, ´ë±¸, ÀÎÃµ, ±¤ÁÖ, ´ëÀü, ¿ï»ê, ¼¼Á¾, °æ±â ÀÏºÎ µî</p>
-                <p><strong>? Ãëµæ¼¼À²:</strong> ÁÖÅÃ 1~3%, °ÇÃà¹°/ÅäÁö 4% + ³óÆ¯¼¼/±³À°¼¼</p>
-                <p><strong>?? ÁÖÀÇ:</strong> ½ÇÁ¦ ¼¼À²Àº Áö¿ª, Ãëµæ½Ã±â, °³ÀÎ »óÈ²¿¡ µû¶ó ´Ù¸¦ ¼ö ÀÖ½À´Ï´Ù</p>
+                <p><strong>? ì¡°ì •ëŒ€ìƒì§€ì—­:</strong> ì„œìš¸, ë¶€ì‚°, ëŒ€êµ¬, ì¸ì²œ, ê´‘ì£¼, ëŒ€ì „, ìš¸ì‚°, ì„¸ì¢…, ê²½ê¸° ì¼ë¶€ ë“±</p>
+                <p><strong>? ì·¨ë“ì„¸ìœ¨:</strong> ì£¼íƒ 1~3%, ê±´ì¶•ë¬¼/í† ì§€ 4% + ë†íŠ¹ì„¸/êµìœ¡ì„¸</p>
+                <p><strong>?? ì£¼ì˜:</strong> ì‹¤ì œ ì„¸ìœ¨ì€ ì§€ì—­, ì·¨ë“ì‹œê¸°, ê°œì¸ ìƒí™©ì— ë”°ë¼ ë‹¤ë¥¼ ìˆ˜ ìžˆìŠµë‹ˆë‹¤</p>
             </div>
         </div>
 
-        <!-- Ãëµæ¼¼À² ¾È³» ¸ð´Þ -->
+        <!-- ì·¨ë“ì„¸ìœ¨ ì•ˆë‚´ ëª¨ë‹¬ -->
         <div id="taxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px);">
             <div style="background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);max-width:700px;margin:60px auto;padding:32px 28px;border-radius:20px;position:relative;box-shadow:0 20px 50px rgba(0,0,0,0.2);">
-                <button id="closeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;color:#6c757d;width:40px;height:40px;border-radius:50%;transition:all 0.3s ease;">¡¿</button>
-                <h3 style="color:#2c3e50;font-size:1.5em;margin-bottom:20px;text-align:center;">? Ãëµæ¼¼À²/³óÆ¯¼¼/±³À°¼¼ ¾È³»</h3>
+                <button id="closeTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;color:#6c757d;width:40px;height:40px;border-radius:50%;transition:all 0.3s ease;">Ã—</button>
+                <h3 style="color:#2c3e50;font-size:1.5em;margin-bottom:20px;text-align:center;">? ì·¨ë“ì„¸ìœ¨/ë†íŠ¹ì„¸/êµìœ¡ì„¸ ì•ˆë‚´</h3>
                 <div style="overflow-x:auto;">
                     <table style="width:100%;border-collapse:collapse;text-align:center;background:rgba(255,255,255,0.9);border-radius:12px;overflow:hidden;">
                         <thead>
                             <tr style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">
-                                <th style="padding:15px;font-weight:600;">±¸ºÐ</th>
-                                <th style="padding:15px;font-weight:600;">Ãëµæ¼¼</th>
-                                <th style="padding:15px;font-weight:600;">³óÆ¯¼¼</th>
-                                <th style="padding:15px;font-weight:600;">±³À°¼¼</th>
+                                <th style="padding:15px;font-weight:600;">êµ¬ë¶„</th>
+                                <th style="padding:15px;font-weight:600;">ì·¨ë“ì„¸</th>
+                                <th style="padding:15px;font-weight:600;">ë†íŠ¹ì„¸</th>
+                                <th style="padding:15px;font-weight:600;">êµìœ¡ì„¸</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr style="border-bottom:1px solid rgba(0,0,0,0.1);">
-                                <td style="padding:12px;font-weight:600;">ÁÖÅÃ(1ÁÖÅÃ)</td>
+                                <td style="padding:12px;font-weight:600;">ì£¼íƒ(1ì£¼íƒ)</td>
                                 <td style="padding:12px;color:#28a745;font-weight:600;">1%</td>
                                 <td style="padding:12px;color:#6c757d;">-</td>
                                 <td style="padding:12px;color:#6c757d;">-</td>
                             </tr>
                             <tr style="border-bottom:1px solid rgba(0,0,0,0.1);">
-                                <td style="padding:12px;font-weight:600;">ÁÖÅÃ(2ÁÖÅÃ)</td>
+                                <td style="padding:12px;font-weight:600;">ì£¼íƒ(2ì£¼íƒ)</td>
                                 <td style="padding:12px;color:#fd7e14;font-weight:600;">2%</td>
                                 <td style="padding:12px;color:#6c757d;">-</td>
                                 <td style="padding:12px;color:#6c757d;">-</td>
                             </tr>
                             <tr style="border-bottom:1px solid rgba(0,0,0,0.1);">
-                                <td style="padding:12px;font-weight:600;">ÁÖÅÃ(3ÁÖÅÃ ÀÌ»ó)</td>
+                                <td style="padding:12px;font-weight:600;">ì£¼íƒ(3ì£¼íƒ ì´ìƒ)</td>
                                 <td style="padding:12px;color:#dc3545;font-weight:600;">3%</td>
                                 <td style="padding:12px;color:#e83e8c;font-weight:600;">0.2%</td>
                                 <td style="padding:12px;color:#6c757d;">-</td>
                             </tr>
                             <tr>
-                                <td style="padding:12px;font-weight:600;">°ÇÃà¹°/ÅäÁö</td>
+                                <td style="padding:12px;font-weight:600;">ê±´ì¶•ë¬¼/í† ì§€</td>
                                 <td style="padding:12px;color:#6f42c1;font-weight:600;">4%</td>
                                 <td style="padding:12px;color:#e83e8c;font-weight:600;">0.2%</td>
                                 <td style="padding:12px;color:#fd7e14;font-weight:600;">0.4%</td>
@@ -319,13 +319,13 @@
                     </table>
                 </div>
                 <div style="font-size:0.95em;color:#6c757d;margin-top:15px;text-align:center;background:rgba(108, 117, 125, 0.1);padding:10px;border-radius:8px;">
-                    ?? ½ÇÁ¦ ¼¼À²Àº Áö¿ª, ±Ý¾×, Á¶°Ç¿¡ µû¶ó ´Ù¸¦ ¼ö ÀÖ½À´Ï´Ù.
+                    ?? ì‹¤ì œ ì„¸ìœ¨ì€ ì§€ì—­, ê¸ˆì•¡, ì¡°ê±´ì— ë”°ë¼ ë‹¤ë¥¼ ìˆ˜ ìžˆìŠµë‹ˆë‹¤.
                 </div>
             </div>
         </div>
     </div>
     <script>
-    // 3ÀÚ¸® ÄÞ¸¶
+    // 3ìžë¦¬ ì½¤ë§ˆ
     function addComma(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
@@ -333,7 +333,7 @@
         return str.replace(/,/g, '');
     }
     
-    // ÀÔ·Â¶õ ÄÞ¸¶ ÀÚµ¿
+    // ìž…ë ¥ëž€ ì½¤ë§ˆ ìžë™
     ['acqPrice','officialPrice'].forEach(id => {
         const el = document.getElementById(id);
         el.addEventListener('input', function(e) {
@@ -342,10 +342,10 @@
         });
     });
     
-    // ¶óµð¿À ¹öÆ° ¼±ÅÃ È¿°ú
+    // ë¼ë””ì˜¤ ë²„íŠ¼ ì„ íƒ íš¨ê³¼
     document.querySelectorAll('input[type="radio"]').forEach(radio => {
         radio.addEventListener('change', function() {
-            // °°Àº nameÀÇ ´Ù¸¥ ¶óº§µé ½ºÅ¸ÀÏ ÃÊ±âÈ­
+            // ê°™ì€ nameì˜ ë‹¤ë¥¸ ë¼ë²¨ë“¤ ìŠ¤íƒ€ì¼ ì´ˆê¸°í™”
             document.querySelectorAll(`input[name="${this.name}"]`).forEach(r => {
                 const label = r.closest('label');
                 if (label) {
@@ -354,7 +354,7 @@
                 }
             });
             
-            // ¼±ÅÃµÈ ¶óº§ ½ºÅ¸ÀÏ Àû¿ë
+            // ì„ íƒëœ ë¼ë²¨ ìŠ¤íƒ€ì¼ ì ìš©
             const selectedLabel = this.closest('label');
             if (selectedLabel) {
                 selectedLabel.style.borderColor = '#667eea';
@@ -363,10 +363,10 @@
         });
     });
     
-    // ´Ü¼ø ¿¹½Ã: ÁÖÅÃ/°ÇÃà¹°/ÅäÁöº° ±âº» Ãëµæ¼¼À²/³óÆ¯¼¼/±³À°¼¼À² Àû¿ë
+    // ë‹¨ìˆœ ì˜ˆì‹œ: ì£¼íƒ/ê±´ì¶•ë¬¼/í† ì§€ë³„ ê¸°ë³¸ ì·¨ë“ì„¸ìœ¨/ë†íŠ¹ì„¸/êµìœ¡ì„¸ìœ¨ ì ìš©
     function getTaxRates(itemType, acqType, houseCount, over85) {
-        // ½ÇÁ¦ ¼¼À²Àº º¹ÀâÇÏ¹Ç·Î ¿¹½Ã(ÁÖÅÃ: 1~3%, °ÇÃà¹°/ÅäÁö: 4%)
-        if(itemType==='ÁÖÅÃ') {
+        // ì‹¤ì œ ì„¸ìœ¨ì€ ë³µìž¡í•˜ë¯€ë¡œ ì˜ˆì‹œ(ì£¼íƒ: 1~3%, ê±´ì¶•ë¬¼/í† ì§€: 4%)
+        if(itemType==='ì£¼íƒ') {
             if(houseCount==='1') return {tax:0.01, nt:0, edu:0};
             if(houseCount==='2') return {tax:0.02, nt:0, edu:0};
             if(houseCount==='3') return {tax:0.03, nt:0.002, edu:0};
@@ -392,71 +392,71 @@
         resultBox.style.display = 'block';
         resultBox.innerHTML =
             `<div style='text-align:center;margin-bottom:20px;'>
-                <h4 style='color:#2c3e50;margin-bottom:15px;'>? Ãëµæ¼¼ °è»ê °á°ú</h4>
+                <h4 style='color:#2c3e50;margin-bottom:15px;'>? ì·¨ë“ì„¸ ê³„ì‚° ê²°ê³¼</h4>
             </div>
             <div style='background:rgba(255,255,255,0.8);padding:20px;border-radius:12px;margin-bottom:15px;'>
                 <div style='display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;'>
                     <div style='text-align:center;'>
-                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>Ãëµæ¹°°Ç</div>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>ì·¨ë“ë¬¼ê±´</div>
                         <div style='font-weight:600;color:#495057;'>${itemType}</div>
                     </div>
                     <div style='text-align:center;'>
-                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>Ãëµæ±¸ºÐ</div>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>ì·¨ë“êµ¬ë¶„</div>
                         <div style='font-weight:600;color:#495057;'>${acqType}</div>
                     </div>
                 </div>
                 <div style='display:grid;grid-template-columns:1fr 1fr;gap:15px;'>
                     <div style='text-align:center;'>
-                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>ÁÖÅÃº¸À¯¼ö</div>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>ì£¼íƒë³´ìœ ìˆ˜</div>
                         <div style='font-weight:600;color:#495057;'>${houseCount}</div>
                     </div>
                     <div style='text-align:center;'>
-                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>85§³ ÃÊ°ú</div>
-                        <div style='font-weight:600;color:#495057;'>${over85==='yes'?'¿¹':'¾Æ´Ï¿À'}</div>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>85ãŽ¡ ì´ˆê³¼</div>
+                        <div style='font-weight:600;color:#495057;'>${over85==='yes'?'ì˜ˆ':'ì•„ë‹ˆì˜¤'}</div>
                     </div>
                 </div>
             </div>
             <div style='background:rgba(255,255,255,0.8);padding:20px;border-radius:12px;margin-bottom:15px;'>
                 <div style='display:grid;grid-template-columns:1fr 1fr;gap:15px;'>
                     <div style='text-align:center;'>
-                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>Ãëµæ°¡¾×</div>
-                        <div style='font-weight:600;color:#495057;'>${addComma(acqPrice)}¿ø</div>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>ì·¨ë“ê°€ì•¡</div>
+                        <div style='font-weight:600;color:#495057;'>${addComma(acqPrice)}ì›</div>
                     </div>
                     <div style='text-align:center;'>
-                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>°ø½ÃÁö°¡</div>
-                        <div style='font-weight:600;color:#495057;'>${addComma(officialPrice)}¿ø</div>
+                        <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>ê³µì‹œì§€ê°€</div>
+                        <div style='font-weight:600;color:#495057;'>${addComma(officialPrice)}ì›</div>
                     </div>
                 </div>
             </div>
             <div style='background:rgba(40,167,69,0.1);border:2px solid rgba(40,167,69,0.3);padding:20px;border-radius:12px;'>
                 <div style='text-align:center;margin-bottom:15px;'>
-                    <div style='font-size:1.1em;color:#155724;margin-bottom:8px;'>? ¼¼±Ý °è»ê °á°ú</div>
+                    <div style='font-size:1.1em;color:#155724;margin-bottom:8px;'>? ì„¸ê¸ˆ ê³„ì‚° ê²°ê³¼</div>
                 </div>
                 <div style='display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:15px;'>
                     <div style='background:rgba(255,255,255,0.8);padding:12px;border-radius:8px;text-align:center;'>
-                        <div style='font-size:0.8em;color:#6c757d;'>Ãëµæ¼¼</div>
-                        <div style='font-weight:600;color:#28a745;'>${addComma(tax)}¿ø</div>
+                        <div style='font-size:0.8em;color:#6c757d;'>ì·¨ë“ì„¸</div>
+                        <div style='font-weight:600;color:#28a745;'>${addComma(tax)}ì›</div>
                     </div>
                     <div style='background:rgba(255,255,255,0.8);padding:12px;border-radius:8px;text-align:center;'>
-                        <div style='font-size:0.8em;color:#6c757d;'>³óÆ¯¼¼</div>
-                        <div style='font-weight:600;color:#fd7e14;'>${addComma(ntax)}¿ø</div>
+                        <div style='font-size:0.8em;color:#6c757d;'>ë†íŠ¹ì„¸</div>
+                        <div style='font-weight:600;color:#fd7e14;'>${addComma(ntax)}ì›</div>
                     </div>
                     <div style='background:rgba(255,255,255,0.8);padding:12px;border-radius:8px;text-align:center;'>
-                        <div style='font-size:0.8em;color:#6c757d;'>±³À°¼¼</div>
-                        <div style='font-weight:600;color:#e83e8c;'>${addComma(edutax)}¿ø</div>
+                        <div style='font-size:0.8em;color:#6c757d;'>êµìœ¡ì„¸</div>
+                        <div style='font-weight:600;color:#e83e8c;'>${addComma(edutax)}ì›</div>
                     </div>
                 </div>
                 <div style='text-align:center;padding:15px;background:rgba(255,255,255,0.9);border-radius:10px;'>
-                    <div style='font-size:1em;color:#155724;margin-bottom:5px;'>? ÃÑ ³³ºÎ¼¼¾×</div>
-                    <div style='font-size:1.8em;font-weight:700;color:#28a745;'>${addComma(totalTax)}¿ø</div>
+                    <div style='font-size:1em;color:#155724;margin-bottom:5px;'>? ì´ ë‚©ë¶€ì„¸ì•¡</div>
+                    <div style='font-size:1.8em;font-weight:700;color:#28a745;'>${addComma(totalTax)}ì›</div>
                 </div>
             </div>`;
             
-        // °á°ú ¹Ú½º·Î ½ºÅ©·Ñ
+        // ê²°ê³¼ ë°•ìŠ¤ë¡œ ìŠ¤í¬ë¡¤
         resultBox.scrollIntoView({ behavior: 'smooth' });
     });
 
-    // Ãëµæ¼¼À² ¾È³» ¸ð´Þ
+    // ì·¨ë“ì„¸ìœ¨ ì•ˆë‚´ ëª¨ë‹¬
     const showBtn = document.getElementById('showTaxRateBtn');
     const modal = document.getElementById('taxRateModal');
     const closeBtn = document.getElementById('closeTaxRateModal');
@@ -477,7 +477,7 @@
         }, 300);
     };
 
-    // ¸ð´Þ ¹è°æ Å¬¸¯½Ã ´Ý±â
+    // ëª¨ë‹¬ ë°°ê²½ í´ë¦­ì‹œ ë‹«ê¸°
     modal.onclick = function(e) {
         if(e.target === modal) {
             closeBtn.onclick();

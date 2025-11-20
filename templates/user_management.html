@@ -2,20 +2,50 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>사용자 관리 - 기업정보시스템</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 25%, #3498db 50%, #2980b9 75%, #1e3a5f 100%);
+            background-attachment: fixed;
+            position: relative;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(52, 152, 219, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(41, 128, 185, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(44, 62, 80, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
         .user-management {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 20px auto;
             padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
         }
         .user-form {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .form-group {
             margin-bottom: 15px;
@@ -27,9 +57,25 @@
         }
         .form-group input, .form-group select {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
         }
         .form-row {
             display: flex;
@@ -42,34 +88,93 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         .user-table th, .user-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #e0e6ed;
+            padding: 12px 8px;
             text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+            vertical-align: middle;
         }
         .user-table th {
-            background-color: #f4f4f4;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .user-table tbody tr {
+            transition: all 0.3s ease;
+        }
+        .user-table tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(41, 128, 185, 0.3);
+        }
+        .user-table tbody tr:nth-child(even) {
+            background-color: #fafbff;
         }
         .btn {
-            padding: 8px 15px;
-            margin: 5px;
+            padding: 8px 16px;
+            margin: 2px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 13px;
         }
-        .btn-primary { background: #007bff; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-warning { background: #ffc107; color: black; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-sm { padding: 4px 8px; font-size: 12px; }
-        .status-active { color: green; font-weight: bold; }
-        .status-inactive { color: red; font-weight: bold; }
-        .level-v { background: #dc3545; color: white; padding: 2px 6px; border-radius: 3px; }
-        .level-s { background: #fd7e14; color: white; padding: 2px 6px; border-radius: 3px; }
-        .level-m { background: #20c997; color: white; padding: 2px 6px; border-radius: 3px; }
-        .level-n { background: #6c757d; color: white; padding: 2px 6px; border-radius: 3px; }
-        .status-pending { color: orange; font-weight: bold; }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, #2980b9 0%, #3498db 100%); 
+            color: white; 
+        }
+        .btn-success { 
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); 
+            color: white; 
+        }
+        .btn-warning { 
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); 
+            color: white; 
+        }
+        .btn-danger { 
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
+            color: white; 
+        }
+        .btn-info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+        .btn-sm { padding: 6px 10px; font-size: 11px; }
+        .tab-btn {
+            margin: 0 5px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .active-tab {
+            border: 2px solid #2980b9 !important;
+            box-shadow: 0 0 10px rgba(41, 128, 185, 0.4);
+            transform: scale(1.05);
+        }
+        .status-active { color: #11998e; font-weight: bold; }
+        .status-inactive { color: #667eea; font-weight: bold; }
+        .level-v { background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); color: white; padding: 2px 8px; border-radius: 15px; font-size: 11px; }
+        .level-s { background: linear-gradient(135deg, #2980b9 0%, #3498db 100%); color: white; padding: 2px 8px; border-radius: 15px; font-size: 11px; }
+        .level-m { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; padding: 2px 8px; border-radius: 15px; font-size: 11px; }
+        .level-n { background: linear-gradient(135deg, #95a5a6 0%, #bdc3c7 100%); color: #2c3e50; padding: 2px 8px; border-radius: 15px; font-size: 11px; }
+        .status-pending { color: #3498db; font-weight: bold; }
+        .status-approved { color: #27ae60; font-weight: bold; }
+        .status-rejected { color: #e74c3c; font-weight: bold; }
         @keyframes blink {
             0%, 50% { opacity: 1; }
             51%, 100% { opacity: 0.5; }
@@ -181,11 +286,11 @@
         <!-- 사용자 목록 -->
         <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3>사용자 목록</h3>
+                <h3 id="current-tab-title" style="color: #2980b9; font-weight: bold;">사용자 관리</h3>
                 <div>
-                    <button class="btn btn-primary" onclick="showTab('users')">사용자 관리</button>
-                    <button class="btn btn-warning" onclick="showTab('requests')" id="requestsTabBtn">가입 신청 관리</button>
-                    <button class="btn btn-success" onclick="showTab('subscriptions')">구독 관리</button>
+                    <button class="btn btn-primary tab-btn active-tab" id="usersTabBtn" onclick="showTab('users')">사용자 관리</button>
+                    <button class="btn btn-warning tab-btn" onclick="showTab('requests')" id="requestsTabBtn">가입 신청 관리</button>
+                    <button class="btn btn-success tab-btn" onclick="showTab('subscriptions')" id="subscriptionsTabBtn">구독 관리</button>
                 </div>
             </div>
             
@@ -194,17 +299,17 @@
                 <table class="user-table" id="user-table">
                 <thead>
                     <tr>
-                        <th>사용자ID</th>
-                        <th>이름</th>
-                        <th>비밀번호</th>
-                        <th>권한</th>
-                        <th>지점</th>
-                        <th>연락처</th>
-                        <th>성별</th>
-                        <th>생년월일</th>
-                        <th>상태</th>
-                        <th>마지막로그인</th>
-                        <th>관리</th>
+                        <th style="width: 100px;">사용자ID</th>
+                        <th style="width: 80px;">이름</th>
+                        <th style="width: 156px;">비밀번호</th>
+                        <th style="width: 72px;">권한</th>
+                        <th style="width: 64px;">지점</th>
+                        <th style="width: 120px;">연락처</th>
+                        <th style="width: 40px;">성별</th>
+                        <th style="width: 90px;">생년월일</th>
+                        <th style="width: 56px;">상태</th>
+                        <th style="width: 130px;">마지막로그인</th>
+                        <th style="width: 200px;">관리</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -218,18 +323,18 @@
             <table class="user-table" id="requests-table">
                 <thead>
                     <tr>
-                        <th>신청일</th>
-                        <th>아이디</th>
-                        <th>이름</th>
-                        <th>연락처</th>
-                        <th>이메일</th>
-                        <th>생년월일</th>
-                        <th>성별</th>
-                        <th>직책</th>
-                        <th>소속지점</th>
-                        <th>이용목적</th>
-                        <th>상태</th>
-                        <th>관리</th>
+                        <th style="width: 120px;">신청일</th>
+                        <th style="width: 100px;">아이디</th>
+                        <th style="width: 80px;">이름</th>
+                        <th style="width: 120px;">연락처</th>
+                        <th style="width: 150px;">이메일</th>
+                        <th style="width: 90px;">생년월일</th>
+                        <th style="width: 50px;">성별</th>
+                        <th style="width: 80px;">직책</th>
+                        <th style="width: 80px;">소속지점</th>
+                        <th style="width: 100px;">이용목적</th>
+                        <th style="width: 70px;">상태</th>
+                        <th style="width: 120px;">관리</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -481,27 +586,27 @@
                         const row = document.createElement('tr');
                         const maskedPassword = '*'.repeat(Math.min(user.password ? user.password.length : 8, 12));
                         row.innerHTML = `
-                            <td>${user.user_id}</td>
-                            <td>${user.name}</td>
-                            <td>
-                                <span id="pwd_${user.user_id}" style="font-family: monospace;">${maskedPassword}</span>
-                                <button class="btn" onclick="togglePassword('${user.user_id}', '${user.password || ''}')" 
-                                        style="padding: 2px 6px; font-size: 12px; margin-left: 5px;">??</button>
-                                <button class="btn btn-danger" onclick="resetPassword('${user.user_id}')" 
-                                        style="padding: 2px 6px; font-size: 12px; margin-left: 5px;">초기화</button>
+                            <td title="${user.user_id}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.user_id}</td>
+                            <td title="${user.name}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.name}</td>
+                            <td style="white-space: nowrap;">
+                                <span id="pwd_${user.user_id}" style="font-family: monospace; display: inline-block; width: 80px; overflow: hidden;">${maskedPassword}</span>
+                                <br>
+                                <button class="btn btn-sm" onclick="togglePassword('${user.user_id}', '${user.password || ''}')" 
+                                        style="padding: 1px 4px; font-size: 10px; margin: 1px;" title="비밀번호 보기/숨기기">보기</button>
+                                <button class="btn btn-warning btn-sm" onclick="resetPassword('${user.user_id}')" 
+                                        style="padding: 1px 4px; font-size: 10px; margin: 1px;" title="비밀번호를 'password1!'로 초기화">초기화</button>
                             </td>
-                            <td><span class="level-${user.user_level.toLowerCase()}">${user.user_level_name}</span></td>
-                            <td>${user.branch_name}</td>
-                            <td>${user.phone}</td>
-                            <td>${user.gender === 'M' ? '남성' : user.gender === 'F' ? '여성' : ''}</td>
-                            <td>${user.birth_date || ''}</td>
-                            <td><span class="status-${user.status.toLowerCase()}">${user.status}</span></td>
-                            <td>${user.last_login ? new Date(user.last_login).toLocaleString() : ''}</td>
-                            <td>
-                                <button class="btn btn-primary" onclick="editUser('${user.user_id}')">수정</button>
-                                <button class="btn btn-warning" onclick="openPasswordModal('${user.user_id}')">비밀번호</button>
-                                <button class="btn btn-danger" onclick="deleteUser('${user.user_id}', '${user.name}')" 
-                                        style="margin-left: 5px;">삭제</button>
+                            <td style="white-space: nowrap;"><span class="level-${user.user_level.toLowerCase()}" style="font-size: 11px;">${user.user_level_name}</span></td>
+                            <td title="${user.branch_name}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.branch_name}</td>
+                            <td title="${user.phone}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${user.phone}</td>
+                            <td style="text-align: center;">${user.gender === 'M' ? '남' : user.gender === 'F' ? '여' : '-'}</td>
+                            <td style="white-space: nowrap;">${user.birth_date || '-'}</td>
+                            <td><span class="status-${user.status.toLowerCase()}" style="font-size: 11px;">${user.status}</span></td>
+                            <td style="white-space: nowrap; font-size: 11px;" title="${user.last_login ? new Date(user.last_login).toLocaleString() : '없음'}">${user.last_login ? new Date(user.last_login).toLocaleDateString() : '-'}</td>
+                            <td style="white-space: nowrap;">
+                                <button class="btn btn-primary btn-sm" onclick="editUser('${user.user_id}')" style="margin: 1px; font-size: 10px;">수정</button>
+                                <button class="btn btn-info btn-sm" onclick="openPasswordModal('${user.user_id}')" style="margin: 1px; font-size: 10px;">비번변경</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteUser('${user.user_id}', '${user.name}')" style="margin: 1px; font-size: 10px;">삭제</button>
                             </td>
                         `;
                         tbody.appendChild(row);
@@ -573,6 +678,10 @@
                         document.getElementById('position').value = user.position || '';
                         document.getElementById('email').value = user.email || '';
                         document.getElementById('status').value = user.status;
+                        
+                        // 수정 모드일 때 화면 맨 위로 스크롤
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        document.getElementById('user-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
         }
@@ -716,14 +825,25 @@
             document.getElementById('requestsTab').style.display = 'none';
             document.getElementById('subscriptionsTab').style.display = 'none';
             
+            // 모든 탭 버튼 비활성화
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active-tab'));
+            
+            const titleElement = document.getElementById('current-tab-title');
+            
             if (tabName === 'users') {
                 document.getElementById('usersTab').style.display = 'block';
+                document.getElementById('usersTabBtn').classList.add('active-tab');
+                titleElement.innerHTML = '사용자 관리';
                 loadUsers();
             } else if (tabName === 'requests') {
                 document.getElementById('requestsTab').style.display = 'block';
+                document.getElementById('requestsTabBtn').classList.add('active-tab');
+                titleElement.innerHTML = '가입 신청 관리';
                 loadSignupRequests();
             } else if (tabName === 'subscriptions') {
                 document.getElementById('subscriptionsTab').style.display = 'block';
+                document.getElementById('subscriptionsTabBtn').classList.add('active-tab');
+                titleElement.innerHTML = '구독 관리';
                 loadSubscriptions();
                 loadUserOptions();
             }
@@ -739,7 +859,7 @@
                     requests.forEach(req => {
                         const row = document.createElement('tr');
                         const statusClass = req.status === 'PENDING' ? 'status-pending' : 
-                                          req.status === 'APPROVED' ? 'status-active' : 'status-inactive';
+                                          req.status === 'APPROVED' ? 'status-approved' : 'status-rejected';
                         const statusText = req.status === 'PENDING' ? '대기중' : 
                                          req.status === 'APPROVED' ? '승인됨' : '거절됨';
                         
@@ -749,21 +869,26 @@
                                 <button class="btn btn-success" onclick="processRequest(${req.id}, 'approve')">승인</button>
                                 <button class="btn btn-danger" onclick="processRequest(${req.id}, 'reject')">거절</button>
                             `;
+                        } else {
+                            // 승인되었거나 거절된 건에 대해 삭제 버튼 추가
+                            actionButtons = `
+                                <button class="btn btn-danger btn-sm" onclick="deleteSignupRequest(${req.id}, '${req.user_id}', '${req.status}')">삭제</button>
+                            `;
                         }
                         
                         row.innerHTML = `
-                            <td>${new Date(req.requested_date).toLocaleString()}</td>
-                            <td>${req.user_id}</td>
-                            <td>${req.name}</td>
-                            <td>${req.phone}</td>
-                            <td>${req.email}</td>
-                            <td>${req.birth_date || '-'}</td>
-                            <td>${req.gender === 'M' ? '남성' : req.gender === 'F' ? '여성' : '-'}</td>
-                            <td>${req.position || '-'}</td>
-                            <td>${req.branch_name || ''}</td>
-                            <td title="${req.purpose}">${req.purpose ? req.purpose.substring(0, 20) + '...' : ''}</td>
-                            <td><span class="${statusClass}">${statusText}</span></td>
-                            <td>${actionButtons}</td>
+                            <td style="white-space: nowrap; font-size: 11px;">${new Date(req.requested_date).toLocaleString().substring(0, 16)}</td>
+                            <td title="${req.user_id}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${req.user_id}</td>
+                            <td title="${req.name}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${req.name}</td>
+                            <td title="${req.phone}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${req.phone}</td>
+                            <td title="${req.email}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${req.email}</td>
+                            <td style="white-space: nowrap;">${req.birth_date || '-'}</td>
+                            <td style="text-align: center;">${req.gender === 'M' ? '남' : req.gender === 'F' ? '여' : '-'}</td>
+                            <td title="${req.position}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${req.position || '-'}</td>
+                            <td title="${req.branch_name}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${req.branch_name || '-'}</td>
+                            <td title="${req.purpose}" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${req.purpose ? req.purpose.substring(0, 15) + '...' : '-'}</td>
+                            <td><span class="${statusClass}" style="font-size: 11px;">${statusText}</span></td>
+                            <td style="white-space: nowrap;">${actionButtons}</td>
                         `;
                         tbody.appendChild(row);
                     });
@@ -1012,8 +1137,8 @@
                 .then(data => {
                     if (data.success) {
                         alert('결제 이력이 삭제되었습니다.');
-                        // 사용자 목록과 결제 이력을 다시 로드
                         loadUsers();
+                        loadSubscriptions();
                     } else {
                         alert('오류: ' + data.message);
                     }
@@ -1022,6 +1147,35 @@
                     console.error('Error deleting payment:', error);
                     alert('결제 이력 삭제 중 오류가 발생했습니다.');
                 });
+            }
+        }
+
+        // 가입 신청 삭제 함수
+        function deleteSignupRequest(requestId, userId, status) {
+            const statusText = status === 'APPROVED' ? '승인된' : '거절된';
+            if (confirm(`정말로 "${userId}"의 ${statusText} 가입 신청을 삭제하시겠습니까?\n\n삭제된 신청은 복구할 수 없습니다.`)) {
+                if (confirm('최종 확인: 가입 신청을 삭제하시겠습니까?')) {
+                    fetch(`/api/signup-requests/${requestId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('가입 신청이 성공적으로 삭제되었습니다.');
+                            loadSignupRequests();
+                            checkPendingRequests();
+                        } else {
+                            alert('오류: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting signup request:', error);
+                        alert('가입 신청 삭제 중 오류가 발생했습니다.');
+                    });
+                }
             }
         }
     </script>
