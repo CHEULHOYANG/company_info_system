@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>ë©”ì¸ ëŒ€ì‹œë³´ë“œ</title>
+    <title>¸ŞÀÎ ´ë½Ãº¸µå</title>
     <style>
         * {
             margin: 0;
@@ -111,10 +111,10 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
-        /* ê° ë²„íŠ¼ë³„ ì°¨ë³„í™”ëœ ìƒ‰ìƒ */
+        /* °¢ ¹öÆ°º° Â÷º°È­µÈ »ö»ó */
         .main-btn:nth-child(1) {
             background: rgba(70, 130, 180, 0.15);
-            /* ìŠ¤í‹¸ ë¸”ë£¨ - DB */
+            /* ½ºÆ¿ ºí·ç - DB */
         }
 
         .main-btn:nth-child(1):hover {
@@ -123,7 +123,7 @@
 
         .main-btn:nth-child(2) {
             background: rgba(60, 179, 113, 0.15);
-            /* ë¯¸ë””ì—„ ì‹œ ê·¸ë¦° - HISTORY */
+            /* ¹Ìµğ¾ö ¾¾ ±×¸° - HISTORY */
         }
 
         .main-btn:nth-child(2):hover {
@@ -132,7 +132,7 @@
 
         .main-btn:nth-child(3) {
             background: rgba(255, 140, 0, 0.15);
-            /* ë‹¤í¬ ì˜¤ë Œì§€ - SALES */
+            /* ´ÙÅ© ¿À·»Áö - SALES */
         }
 
         .main-btn:nth-child(3):hover {
@@ -141,7 +141,7 @@
 
         .manager-btn {
             background: rgba(220, 20, 60, 0.15) !important;
-            /* í¬ë¦¼ìŠ¨ - MANAGER */
+            /* Å©¸²½¼ - MANAGER */
         }
 
         .manager-btn:hover {
@@ -258,6 +258,30 @@
             color: #000;
         }
 
+        .db-management-section {
+            margin: 8px 0;
+        }
+
+        .db-management-btn {
+            background: rgba(138, 43, 226, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .db-management-btn:hover {
+            background: rgba(148, 0, 211, 0.9);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+        }
+
         .logout-btn {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -272,8 +296,6 @@
         .logout-btn:hover {
             background: rgba(255, 255, 255, 0.2);
         }
-
-
 
         @media (max-width: 768px) {
             .main-title {
@@ -323,83 +345,105 @@
         }
     </style>
     <script src="{{ url_for('static', filename='js/auto-logout.js') }}"></script>
+    <script>
+        function openDbManagementPopup() {
+            // ÆË¾÷Ã¢À¸·Î DB °ü¸® È­¸é ¿­±â
+            const popup = window.open(
+                '{{ url_for("db_management_popup") }}',
+                'dbManagementPopup',
+                'width=800,height=600,scrollbars=yes,resizable=yes,centerscreen=yes'
+            );
+            
+            if (popup) {
+                popup.focus();
+            } else {
+                alert('ÆË¾÷ Â÷´Ü±â°¡ È°¼ºÈ­µÇ¾î ÀÖ½À´Ï´Ù. ÆË¾÷À» Çã¿ëÇØÁÖ¼¼¿ä.');
+            }
+        }
+    </script>
 </head>
 
 <body>
     <div class="full-screen-container">
-        <!-- ìƒë‹¨ ì´ë¯¸ì§€ ì˜ì—­ -->
+        <!-- »ó´Ü ÀÌ¹ÌÁö ¿µ¿ª -->
         <div class="header-image"></div>
 
-        <!-- í—¤ë” ì»¨í…ì¸  -->
+        <!-- Çì´õ ÄÜÅÙÃ÷ -->
         <div class="header-content">
             <div class="main-title">CMS</div>
-            <div class="subtitle">ê¸°ì—… ê´€ë¦¬ ì‹œìŠ¤í…œ</div>
+            <div class="subtitle">±â¾÷ °ü¸® ½Ã½ºÅÛ</div>
         </div>
 
-        <!-- ì‚¬ìš©ì ì •ë³´ -->
+        <!-- »ç¿ëÀÚ Á¤º¸ -->
         <div class="login-info">
-            <div class="user-name">{{ user_name }}ë‹˜</div>
+            <div class="user-name">{{ user_name }}´Ô</div>
             <div class="user-level">{{ user_level_name }}</div>
             {% if subscription_info %}
             {% if subscription_info.days_remaining > 0 %}
-            {% if subscription_info.days_remaining <= 7 %} <div class="subscription-info warning">
-                {{ subscription_info.days_remaining }}ì¼ ë‚¨ìŒ
+            {% if subscription_info.days_remaining <= 7 %}
+            <div class="subscription-info warning">
+                {{ subscription_info.days_remaining }}ÀÏ ³²À½
+            </div>
+            {% else %}
+            <div class="subscription-info">
+                {{ subscription_info.days_remaining }}ÀÏ ³²À½
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="subscription-info expired">
+                ±¸µ¶ ¸¸·á
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="subscription-info">
+                ¹«·á Ã¼Çè
+            </div>
+            {% endif %}
+            {% if can_manage_users %}
+            <div class="db-management-section">
+                <button onclick="openDbManagementPopup()" class="db-management-btn">? DB °ü¸®</button>
+            </div>
+            {% endif %}
+            <div><a href="{{ url_for('logout') }}" class="logout-btn">·Î±×¾Æ¿ô</a></div>
         </div>
-        {% else %}
-        <div class="subscription-info">
-            {{ subscription_info.days_remaining }}ì¼ ë‚¨ìŒ
-        </div>
-        {% endif %}
-        {% else %}
-        <div class="subscription-info expired">
-            êµ¬ë… ë§Œë£Œ
-        </div>
-        {% endif %}
-        {% else %}
-        <div class="subscription-info">
-            ë¬´ë£Œ ì²´í—˜
-        </div>
-        {% endif %}
-        <div><a href="{{ url_for('logout') }}" class="logout-btn">ë¡œê·¸ì•„ì›ƒ</a></div>
-    </div>
 
-    <!-- ë©”ì¸ ë²„íŠ¼ ê·¸ë¦¬ë“œ -->
-    <div class="main-buttons">
-        <a href="/" class="main-btn">
-            <div class="main-btn-title">DB</div>
-            <div class="main-btn-korean">ê¸°ì—…ì •ë³´ ì¡°íšŒ</div>
-            <div class="main-btn-subtitle">ê¸°ì—… ë°ì´í„°ë² ì´ìŠ¤ ê²€ìƒ‰</div>
-        </a>
-        <a href="/history" class="main-btn">
-            <div class="main-btn-title">HISTORY</div>
-            <div class="main-btn-korean">ì ‘ì´‰ì´ë ¥ì¡°íšŒ</div>
-            <div class="main-btn-subtitle">ì ‘ì´‰ ì´ë ¥ ê²€ìƒ‰</div>
-        </a>
-        <a href="/sales_management" class="main-btn">
-            <div class="main-btn-title">SALES</div>
-            <div class="main-btn-korean">ì˜ì—…ê´€ë¦¬</div>
-            <div class="main-btn-subtitle">ê°œì²™ ë°©ë¬¸ í™œë™</div>
-        </a>
-        {% if can_manage_users %}
-        <a href="/user_management" class="main-btn manager-btn">
-            <div class="main-btn-title">ê´€ë¦¬ì</div>
-            <div class="main-btn-korean">ì‚¬ìš©ì ê´€ë¦¬</div>
-            <div class="main-btn-subtitle">ì‚¬ìš©ì ë° êµ¬ë… ê´€ë¦¬</div>
-        </a>
-        {% endif %}
-    </div>
+        <!-- ¸ŞÀÎ ¹öÆ° ±×¸®µå -->
+        <div class="main-buttons">
+            <a href="/" class="main-btn">
+                <div class="main-btn-title">DB</div>
+                <div class="main-btn-korean">±â¾÷Á¤º¸ Á¶È¸</div>
+                <div class="main-btn-subtitle">±â¾÷ µ¥ÀÌÅÍº£ÀÌ½º °Ë»ö</div>
+            </a>
+            <a href="/history" class="main-btn">
+                <div class="main-btn-title">HISTORY</div>
+                <div class="main-btn-korean">Á¢ÃËÀÌ·ÂÁ¶È¸</div>
+                <div class="main-btn-subtitle">Á¢ÃË ÀÌ·Â °Ë»ö</div>
+            </a>
+            <a href="/sales_management" class="main-btn">
+                <div class="main-btn-title">SALES</div>
+                <div class="main-btn-korean">¿µ¾÷°ü¸®</div>
+                <div class="main-btn-subtitle">°³Ã´ ¹æ¹® È°µ¿</div>
+            </a>
+            {% if can_manage_users %}
+            <a href="/user_management" class="main-btn manager-btn">
+                <div class="main-btn-title">°ü¸®ÀÚ</div>
+                <div class="main-btn-korean">»ç¿ëÀÚ °ü¸®</div>
+                <div class="main-btn-subtitle">»ç¿ëÀÚ ¹× ±¸µ¶ °ü¸®</div>
+            </a>
+            {% endif %}
+        </div>
 
-    <!-- ì„¸ê¸ˆ ê³„ì‚°ê¸° ë²„íŠ¼ë“¤ -->
-    <div class="tax-buttons">
-        <div class="tax-title">ì„¸ê¸ˆ ê³„ì‚°ê¸°</div>
-        <a href="/gift_tax" class="tax-btn">ì¦ì—¬ì„¸</a>
-        <a href="/transfer_tax" class="tax-btn">ì–‘ë„ì„¸</a>
-        <a href="/income_tax" class="tax-btn">ì¢…í•©ì†Œë“ì„¸</a>
-        <a href="/social_ins_tax" class="tax-btn">4ëŒ€ë³´í—˜</a>
-        <a href="/acquisition_tax" class="tax-btn">ì·¨ë“ì„¸</a>
-        <a href="/retirement_pay" class="tax-btn">í‡´ì§ê¸ˆ</a>
-        <a href="/industrial_accident" class="tax-btn">ì‚°ì¬ë³´ìƒ</a>
-    </div>
+        <!-- ¼¼±İ °è»ê±â ¹öÆ°µé -->
+        <div class="tax-buttons">
+            <div class="tax-title">¼¼±İ °è»ê±â</div>
+            <a href="/gift_tax" class="tax-btn">Áõ¿©¼¼</a>
+            <a href="/transfer_tax" class="tax-btn">¾çµµ¼¼</a>
+            <a href="/income_tax" class="tax-btn">Á¾ÇÕ¼Òµæ¼¼</a>
+            <a href="/social_ins_tax" class="tax-btn">4´ëº¸Çè</a>
+            <a href="/acquisition_tax" class="tax-btn">Ãëµæ¼¼</a>
+            <a href="/retirement_pay" class="tax-btn">ÅğÁ÷±İ</a>
+            <a href="/industrial_accident" class="tax-btn">»êÀçº¸»ó</a>
+        </div>
     </div>
 </body>
 

@@ -2054,6 +2054,311 @@ def download_database_page():
     from flask import Response
     return Response(html_content, content_type='text/html; charset=utf-8')
 
+@app.route('/db_management_popup')
+def db_management_popup():
+    """팝업용 DB 관리 페이지"""
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
+    user_level = session.get('user_level', 'N')
+    if not check_permission(user_level, 'S'):
+        return "접근 권한이 없습니다.", 403
+    
+    html_content = '''<!DOCTYPE html>
+    <html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>데이터베이스 관리</title>
+        <style>
+            body { 
+                font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                margin: 0; padding: 20px; min-height: 100vh;
+            }
+            .container { 
+                max-width: 750px; margin: 20px auto; 
+                background: rgba(255,255,255,0.95);
+                border-radius: 15px; padding: 30px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            }
+            .header {
+                display: flex; justify-content: space-between; align-items: center;
+                margin-bottom: 30px; padding-bottom: 15px;
+                border-bottom: 2px solid #667eea;
+            }
+            h2 { color: #333; margin: 0; }
+            .close-btn {
+                background: #dc3545; color: white; border: none;
+                padding: 8px 16px; border-radius: 5px; cursor: pointer;
+                font-weight: bold; font-size: 14px;
+            }
+            .close-btn:hover { background: #c82333; }
+            .info-card {
+                background: #f8f9fa; padding: 20px; border-radius: 10px;
+                margin: 20px 0; border-left: 4px solid #667eea;
+            }
+            .table-grid {
+                display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 10px; margin: 15px 0;
+            }
+            .table-item {
+                background: white; padding: 10px; border-radius: 5px;
+                border: 1px solid #e0e0e0; font-size: 14px;
+            }
+            .action-area {
+                text-align: center; padding: 30px; margin: 20px 0;
+                background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
+                border-radius: 10px; border: 2px dashed #667eea;
+            }
+            .btn {
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                color: white; border: none; padding: 12px 24px;
+                border-radius: 25px; cursor: pointer; font-size: 14px;
+                transition: all 0.3s ease; text-decoration: none;
+                display: inline-block; margin: 8px;
+            }
+            .btn:hover { 
+                transform: translateY(-2px); 
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
+                color: white; text-decoration: none;
+            }
+            .btn-success { background: linear-gradient(45deg, #4CAF50, #45a049); }
+            .btn-primary { background: linear-gradient(45deg, #2196F3, #1976D2); }
+            .btn-secondary { background: linear-gradient(45deg, #78909c, #546e7a); }
+            .loading { display: none; margin: 20px 0; text-align: center; }
+            .status { margin: 20px 0; padding: 15px; border-radius: 8px; }
+            .status.success { background: #e8f5e8; color: #2e7d32; }
+            .status.error { background: #ffebee; color: #c62828; }
+            .stats { 
+                display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+                gap: 15px; margin: 20px 0;
+            }
+            .stat-item { 
+                text-align: center; padding: 15px; background: white; 
+                border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .stat-number { font-size: 24px; font-weight: bold; color: #667eea; }
+            .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+            .upload-section {
+                background: #fff3cd; padding: 20px; border-radius: 10px;
+                margin: 20px 0; border-left: 4px solid #ffc107;
+            }
+            .file-input {
+                margin: 10px 0; padding: 10px; 
+                border: 2px dashed #ccc; border-radius: 8px;
+                background: #f9f9f9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2>? 데이터베이스 관리</h2>
+                <button class="close-btn" onclick="window.close()">닫기</button>
+            </div>
+            
+            <!-- 백업 섹션 -->
+            <div class="info-card">
+                <h3>? 백업 다운로드</h3>
+                <ul>
+                    <li><strong>완전백업 (권장)</strong>: 데이터베이스 + 첨부파일(영수증 등)을 ZIP으로 압축</li>
+                    <li><strong>DB만 백업</strong>: 데이터베이스 파일만 다운로드 (첨부파일 제외)</li>
+                    <li>파일명에 타임스탬프가 자동으로 포함됩니다</li>
+                </ul>
+            </div>
+            
+            <div id="loading" class="loading">
+                <p>데이터베이스 정보를 조회 중...</p>
+            </div>
+            
+            <div id="dbInfo" style="display: none;">
+                <div class="stats" id="stats"></div>
+                
+                <div class="info-card">
+                    <h4>? 테이블별 레코드 수</h4>
+                    <div class="table-grid" id="tableGrid"></div>
+                </div>
+                
+                <div class="action-area">
+                    <h3>?? 백업 다운로드</h3>
+                    <button class="btn btn-success" onclick="downloadFullBackup()">
+                        ? 완전백업 (DB + 첨부파일)
+                    </button>
+                    <button class="btn btn-primary" onclick="downloadDatabaseOnly()">
+                        ?? DB만 백업
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 업로드 섹션 -->
+            <div class="upload-section">
+                <h3>?? 데이터베이스 복원</h3>
+                <p>백업된 데이터베이스 파일을 업로드하여 시스템을 복원할 수 있습니다.</p>
+                <div class="file-input">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <input type="file" id="dbFile" name="database" accept=".db,.zip" required>
+                        <button type="submit" class="btn btn-secondary">? 업로드 & 복원</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="status" class="status" style="display: none;"></div>
+        </div>
+        
+        <script>
+            // 페이지 로드 시 데이터베이스 정보 조회
+            window.addEventListener('load', async () => {
+                await loadDatabaseInfo();
+            });
+            
+            async function loadDatabaseInfo() {
+                const loading = document.getElementById('loading');
+                const dbInfo = document.getElementById('dbInfo');
+                const status = document.getElementById('status');
+                
+                loading.style.display = 'block';
+                dbInfo.style.display = 'none';
+                status.style.display = 'none';
+                
+                try {
+                    const response = await fetch('/download_info');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        displayDatabaseInfo(data);
+                        dbInfo.style.display = 'block';
+                    } else {
+                        showStatus('error', `? ${data.message}`);
+                    }
+                } catch (error) {
+                    showStatus('error', `? 정보 조회 실패: ${error.message}`);
+                } finally {
+                    loading.style.display = 'none';
+                }
+            }
+            
+            function displayDatabaseInfo(data) {
+                const stats = document.getElementById('stats');
+                const tableGrid = document.getElementById('tableGrid');
+                
+                // 통계 정보 표시
+                stats.innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-number">${data.file_info.size_mb}</div>
+                        <div class="stat-label">MB</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${data.file_info.total_tables}</div>
+                        <div class="stat-label">테이블</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">${data.file_info.total_records.toLocaleString()}</div>
+                        <div class="stat-label">레코드</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" style="font-size: 14px;">${data.file_info.modified_date}</div>
+                        <div class="stat-label">최종 수정</div>
+                    </div>
+                `;
+                
+                // 테이블 정보 표시
+                tableGrid.innerHTML = '';
+                for (const [tableName, recordCount] of Object.entries(data.table_info)) {
+                    const tableItem = document.createElement('div');
+                    tableItem.className = 'table-item';
+                    tableItem.innerHTML = `
+                        <strong>${tableName}</strong><br>
+                        <span style="color: #666;">${recordCount.toLocaleString()}개 레코드</span>
+                    `;
+                    tableGrid.appendChild(tableItem);
+                }
+            }
+            
+            async function downloadFullBackup() {
+                showStatus('success', '? 완전백업 다운로드를 시작합니다...');
+                
+                try {
+                    const link = document.createElement('a');
+                    link.href = '/download_database';
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showStatus('success', '? 완전백업이 시작되었습니다. ZIP 파일에 DB와 첨부파일이 모두 포함됩니다.');
+                } catch (error) {
+                    showStatus('error', `? 완전백업 실패: ${error.message}`);
+                }
+            }
+            
+            async function downloadDatabaseOnly() {
+                showStatus('success', '? DB 다운로드를 시작합니다...');
+                
+                try {
+                    const link = document.createElement('a');
+                    link.href = '/download_database_only';
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showStatus('success', '? DB 다운로드가 시작되었습니다. 첨부파일은 포함되지 않습니다.');
+                } catch (error) {
+                    showStatus('error', `? DB 다운로드 실패: ${error.message}`);
+                }
+            }
+            
+            // 파일 업로드 처리
+            document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const fileInput = document.getElementById('dbFile');
+                const file = fileInput.files[0];
+                
+                if (!file) {
+                    showStatus('error', '? 파일을 선택해주세요.');
+                    return;
+                }
+                
+                showStatus('success', '? 파일을 업로드하고 있습니다...');
+                
+                const formData = new FormData();
+                formData.append('database', file);
+                
+                try {
+                    const response = await fetch('/upload_database', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        showStatus('success', '? 데이터베이스가 성공적으로 복원되었습니다.');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        const errorText = await response.text();
+                        showStatus('error', `? 업로드 실패: ${errorText}`);
+                    }
+                } catch (error) {
+                    showStatus('error', `? 업로드 오류: ${error.message}`);
+                }
+            });
+            
+            function showStatus(type, message) {
+                const status = document.getElementById('status');
+                status.className = `status ${type}`;
+                status.innerHTML = message;
+                status.style.display = 'block';
+            }
+        </script>
+    </body>
+    </html>
+    '''
+    
+    return Response(html_content, content_type='text/html; charset=utf-8')
+
 # 간단한 다운로드 경로들 추가
 @app.route('/download')
 def simple_download():
