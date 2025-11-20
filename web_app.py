@@ -520,6 +520,76 @@ def init_user_tables():
     finally:
         conn.close()
 
+# 영업 파이프라인 테이블 초기화 함수
+def init_pipeline_tables():
+    """영업 파이프라인 관리 테이블 초기화"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # 관심 기업 관리 테이블
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS managed_companies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            biz_reg_no TEXT NOT NULL,
+            manager_id TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'prospect' CHECK (status IN ('prospect', 'contacted', 'proposal', 'negotiation', 'contract', 'hold')),
+            keyman_name TEXT NOT NULL,
+            keyman_phone TEXT,
+            keyman_position TEXT,
+            keyman_email TEXT,
+            registration_reason TEXT,
+            next_contact_date DATE,
+            last_contact_date DATE,
+            notes TEXT,
+            expected_amount INTEGER DEFAULT 0,
+            priority_level INTEGER DEFAULT 1 CHECK (priority_level BETWEEN 1 AND 5),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        # 접촉 이력 테이블
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS contact_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            managed_company_id INTEGER NOT NULL,
+            contact_date DATE NOT NULL,
+            contact_type TEXT NOT NULL CHECK (contact_type IN ('phone', 'visit', 'email', 'message', 'gift', 'consulting', 'meeting', 'proposal', 'contract')),
+            content TEXT NOT NULL,
+            cost INTEGER DEFAULT 0,
+            attachment TEXT,
+            follow_up_required BOOLEAN DEFAULT 0,
+            follow_up_date DATE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (managed_company_id) REFERENCES managed_companies(id) ON DELETE CASCADE
+        )
+        ''')
+        
+        # 인덱스 생성
+        indexes = [
+            'CREATE INDEX IF NOT EXISTS idx_managed_companies_biz_no ON managed_companies(biz_reg_no)',
+            'CREATE INDEX IF NOT EXISTS idx_managed_companies_manager ON managed_companies(manager_id)',
+            'CREATE INDEX IF NOT EXISTS idx_managed_companies_status ON managed_companies(status)',
+            'CREATE INDEX IF NOT EXISTS idx_managed_companies_next_contact ON managed_companies(next_contact_date)',
+            'CREATE INDEX IF NOT EXISTS idx_managed_companies_last_contact ON managed_companies(last_contact_date)',
+            'CREATE INDEX IF NOT EXISTS idx_contact_history_company ON contact_history(managed_company_id)',
+            'CREATE INDEX IF NOT EXISTS idx_contact_history_date ON contact_history(contact_date)'
+        ]
+        
+        for index_sql in indexes:
+            cursor.execute(index_sql)
+        
+        conn.commit()
+        print("영업 파이프라인 테이블 초기화 완료")
+        
+    except Exception as e:
+        print(f"영업 파이프라인 테이블 초기화 실패: {e}")
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
 # 메인 비즈니스 테이블 초기화 함수
 def init_business_tables():
     """메인 비즈니스 테이블들을 초기화합니다. (기존 데이터 보존)"""
@@ -5151,6 +5221,332 @@ def api_change_password():
     finally:
         conn.close()
 
+# ==========================================
+# 영업 파이프라인 관리 시스템
+# ==========================================
+
+@app.route('/pipeline')
+def sales_pipeline():
+    """영업 파이프라인 대시보드"""
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    
+    user_id = session.get('user_id')
+    user_level = session.get('user_level', 'N')
+    
+    return render_template('pipeline.html', 
+                         user_id=user_id,
+                         user_level=user_level,
+                         user_name=session.get('user_name', ''))
+
+@app.route('/api/pipeline/dashboard')
+def pipeline_dashboard_data():
+    """파이프라인 대시보드 데이터 API"""
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
+    
+    user_id = session.get('user_id')
+    conn = get_db_connection()
+    
+    try:
+        cursor = conn.cursor()
+        
+        # 오늘 연락해야 할 기업
+        today = datetime.now().strftime('%Y-%m-%d')
+        today_contacts_query = '''
+            SELECT mc.*, cb.company_name, cb.representative_name 
+            FROM managed_companies mc
+            LEFT JOIN Company_Basic cb ON mc.biz_reg_no = cb.biz_no
+            WHERE mc.manager_id = ? AND mc.next_contact_date = ?
+            ORDER BY mc.priority_level DESC
+        '''
+        cursor.execute(today_contacts_query, (user_id, today))
+        today_contacts = cursor.fetchall()
+        
+        # 관리 소홀 기업 (상태별 알림 주기 적용)
+        urgent_companies = []
+        status_periods = {
+            'prospect': 14, 'contacted': 7, 'proposal': 3, 
+            'negotiation': 2, 'contract': 30, 'hold': 30
+        }
+        
+        for status, days in status_periods.items():
+            threshold_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
+            urgent_query = '''
+                SELECT mc.*, cb.company_name, cb.representative_name 
+                FROM managed_companies mc
+                LEFT JOIN Company_Basic cb ON mc.biz_reg_no = cb.biz_no
+                WHERE mc.manager_id = ? AND mc.status = ? 
+                AND (mc.last_contact_date IS NULL OR mc.last_contact_date < ?)
+                ORDER BY mc.last_contact_date ASC NULLS FIRST
+            '''
+            cursor.execute(urgent_query, (user_id, status, threshold_date))
+            urgent_for_status = cursor.fetchall()
+            urgent_companies.extend(urgent_for_status)
+        
+        # 전체 관리 기업 현황
+        total_query = '''
+            SELECT mc.*, cb.company_name, cb.representative_name 
+            FROM managed_companies mc
+            LEFT JOIN Company_Basic cb ON mc.biz_reg_no = cb.biz_no
+            WHERE mc.manager_id = ?
+            ORDER BY mc.updated_at DESC
+        '''
+        cursor.execute(total_query, (user_id,))
+        all_companies = cursor.fetchall()
+        
+        # 상태별 통계
+        stats_query = '''
+            SELECT status, COUNT(*) as count, 
+                   COALESCE(SUM(expected_amount), 0) as total_amount
+            FROM managed_companies 
+            WHERE manager_id = ?
+            GROUP BY status
+        '''
+        cursor.execute(stats_query, (user_id,))
+        status_stats = {row[0]: {'count': row[1], 'amount': row[2]} for row in cursor.fetchall()}
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "today_contacts": [dict(row) for row in today_contacts],
+                "urgent_companies": [dict(row) for row in urgent_companies],
+                "all_companies": [dict(row) for row in all_companies],
+                "status_stats": status_stats
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/pipeline/company', methods=['POST'])
+def add_managed_company():
+    """관심 기업 등록"""
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
+    
+    user_id = session.get('user_id')
+    data = request.get_json()
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 기업 정보 확인
+        cursor.execute('SELECT biz_no, company_name FROM Company_Basic WHERE biz_no = ?', (data['biz_reg_no'],))
+        company = cursor.fetchone()
+        if not company:
+            return jsonify({"success": False, "message": "존재하지 않는 기업입니다"}), 400
+        
+        # 중복 등록 확인
+        cursor.execute('SELECT id FROM managed_companies WHERE biz_reg_no = ? AND manager_id = ?', 
+                      (data['biz_reg_no'], user_id))
+        if cursor.fetchone():
+            return jsonify({"success": False, "message": "이미 관리 중인 기업입니다"}), 400
+        
+        # 새 관심 기업 등록
+        insert_query = '''
+            INSERT INTO managed_companies 
+            (biz_reg_no, manager_id, status, keyman_name, keyman_phone, keyman_position, 
+             keyman_email, registration_reason, next_contact_date, notes, expected_amount, priority_level)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        '''
+        
+        cursor.execute(insert_query, (
+            data['biz_reg_no'], user_id, data.get('status', 'prospect'),
+            data['keyman_name'], data.get('keyman_phone'), data.get('keyman_position'),
+            data.get('keyman_email'), data.get('registration_reason'),
+            data.get('next_contact_date'), data.get('notes'),
+            data.get('expected_amount', 0), data.get('priority_level', 1)
+        ))
+        
+        company_id = cursor.lastrowid
+        conn.commit()
+        
+        return jsonify({"success": True, "message": "관심 기업이 등록되었습니다", "company_id": company_id})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/pipeline/company/<int:company_id>', methods=['PUT'])
+def update_managed_company(company_id):
+    """관심 기업 정보 수정"""
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
+    
+    user_id = session.get('user_id')
+    data = request.get_json()
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 권한 확인
+        cursor.execute('SELECT manager_id FROM managed_companies WHERE id = ?', (company_id,))
+        result = cursor.fetchone()
+        if not result or result[0] != user_id:
+            return jsonify({"success": False, "message": "수정 권한이 없습니다"}), 403
+        
+        # 정보 업데이트
+        update_query = '''
+            UPDATE managed_companies SET
+                status = ?, keyman_name = ?, keyman_phone = ?, keyman_position = ?,
+                keyman_email = ?, next_contact_date = ?, notes = ?, 
+                expected_amount = ?, priority_level = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        '''
+        
+        cursor.execute(update_query, (
+            data.get('status'), data.get('keyman_name'), data.get('keyman_phone'),
+            data.get('keyman_position'), data.get('keyman_email'),
+            data.get('next_contact_date'), data.get('notes'),
+            data.get('expected_amount', 0), data.get('priority_level', 1),
+            company_id
+        ))
+        
+        conn.commit()
+        return jsonify({"success": True, "message": "기업 정보가 수정되었습니다"})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/pipeline/contact', methods=['POST'])
+def add_contact_history():
+    """접촉 이력 등록"""
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
+    
+    user_id = session.get('user_id')
+    data = request.get_json()
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 관리 권한 확인
+        cursor.execute('SELECT manager_id FROM managed_companies WHERE id = ?', 
+                      (data['managed_company_id'],))
+        result = cursor.fetchone()
+        if not result or result[0] != user_id:
+            return jsonify({"success": False, "message": "접촉 이력을 등록할 권한이 없습니다"}), 403
+        
+        # 접촉 이력 등록
+        insert_query = '''
+            INSERT INTO contact_history 
+            (managed_company_id, contact_date, contact_type, content, cost, 
+             follow_up_required, follow_up_date, attachment)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        '''
+        
+        cursor.execute(insert_query, (
+            data['managed_company_id'], data['contact_date'], data['contact_type'],
+            data['content'], data.get('cost', 0), data.get('follow_up_required', 0),
+            data.get('follow_up_date'), data.get('attachment')
+        ))
+        
+        # 부모 테이블의 last_contact_date 자동 업데이트
+        cursor.execute('''
+            UPDATE managed_companies 
+            SET last_contact_date = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (data['contact_date'], data['managed_company_id']))
+        
+        # 후속 약속이 있으면 next_contact_date도 업데이트
+        if data.get('follow_up_date'):
+            cursor.execute('''
+                UPDATE managed_companies 
+                SET next_contact_date = ?
+                WHERE id = ?
+            ''', (data['follow_up_date'], data['managed_company_id']))
+        
+        conn.commit()
+        return jsonify({"success": True, "message": "접촉 이력이 등록되었습니다"})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/pipeline/contact/<int:company_id>')
+def get_contact_history(company_id):
+    """특정 기업의 접촉 이력 조회"""
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
+    
+    user_id = session.get('user_id')
+    conn = get_db_connection()
+    
+    try:
+        cursor = conn.cursor()
+        
+        # 관리 권한 확인
+        cursor.execute('SELECT manager_id FROM managed_companies WHERE id = ?', (company_id,))
+        result = cursor.fetchone()
+        if not result or result[0] != user_id:
+            return jsonify({"success": False, "message": "조회 권한이 없습니다"}), 403
+        
+        # 접촉 이력 조회
+        history_query = '''
+            SELECT * FROM contact_history 
+            WHERE managed_company_id = ?
+            ORDER BY contact_date DESC, created_at DESC
+        '''
+        cursor.execute(history_query, (company_id,))
+        history = [dict(row) for row in cursor.fetchall()]
+        
+        return jsonify({"success": True, "data": history})
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/companies/search')
+def search_companies_for_pipeline():
+    """파이프라인 등록용 기업 검색"""
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
+    
+    query = request.args.get('q', '').strip()
+    if len(query) < 2:
+        return jsonify({"success": True, "data": []})
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 기업 검색 (이미 관리중인 기업 제외)
+        search_query = '''
+            SELECT cb.biz_no, cb.company_name, cb.representative_name, cb.address
+            FROM Company_Basic cb
+            LEFT JOIN managed_companies mc ON cb.biz_no = mc.biz_reg_no 
+                AND mc.manager_id = ?
+            WHERE (cb.company_name LIKE ? OR cb.representative_name LIKE ? OR cb.biz_no LIKE ?)
+                AND mc.id IS NULL
+            ORDER BY cb.company_name
+            LIMIT 10
+        '''
+        
+        search_term = f'%{query}%'
+        cursor.execute(search_query, (session.get('user_id'), search_term, search_term, search_term))
+        companies = [dict(row) for row in cursor.fetchall()]
+        
+        return jsonify({"success": True, "data": companies})
+        
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
 if __name__ == '__main__':
     print("=== 애플리케이션 시작 ===")
     print(f"Flask 앱 디렉터리: {app_dir}")
@@ -5178,6 +5574,12 @@ if __name__ == '__main__':
         print("? 비즈니스 테이블 초기화 완료")
     except Exception as e:
         print(f"? 비즈니스 테이블 초기화 실패: {e}")
+    
+    try:
+        init_pipeline_tables()
+        print("? 영업 파이프라인 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? 영업 파이프라인 테이블 초기화 실패: {e}")
     
     # 서버 시작
     port = int(os.environ.get('PORT', 5000))

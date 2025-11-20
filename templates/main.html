@@ -274,6 +274,7 @@
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
+            /* 캐시 무효화 v2 */
         }
 
         .db-management-btn:hover {
@@ -401,7 +402,7 @@
             {% endif %}
             {% if can_manage_users %}
             <div class="db-management-section">
-                <button onclick="openDbManagementPopup()" class="db-management-btn">? DB 관리</button>
+                <button onclick="openDbManagementPopup()" class="db-management-btn">DB 관리</button>
             </div>
             {% endif %}
             <div><a href="{{ url_for('logout') }}" class="logout-btn">로그아웃</a></div>
@@ -419,10 +420,10 @@
                 <div class="main-btn-korean">접촉이력조회</div>
                 <div class="main-btn-subtitle">접촉 이력 검색</div>
             </a>
-            <a href="/sales_management" class="main-btn">
-                <div class="main-btn-title">SALES</div>
-                <div class="main-btn-korean">영업관리</div>
-                <div class="main-btn-subtitle">개척 방문 활동</div>
+            <a href="/pipeline" class="main-btn">
+                <div class="main-btn-title">PIPELINE</div>
+                <div class="main-btn-korean">영업 파이프라인</div>
+                <div class="main-btn-subtitle">관심 기업 관리</div>
             </a>
             {% if can_manage_users %}
             <a href="/user_management" class="main-btn manager-btn">
