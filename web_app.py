@@ -2155,7 +2155,6 @@ def db_management_popup():
         <div class="container">
             <div class="header">
                 <h2>? 데이터베이스 관리</h2>
-                <button class="close-btn" onclick="window.close()">닫기</button>
             </div>
             
             <!-- 백업 섹션 -->
@@ -2353,6 +2352,11 @@ def db_management_popup():
                 status.style.display = 'block';
             }
         </script>
+        
+        <!-- 닫기 버튼 -->
+        <div style="text-align: center; margin: 30px 0; padding: 20px; border-top: 1px solid #eee;">
+            <button onclick="window.close()" style="background: #dc3545; color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 500; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">닫기</button>
+        </div>
     </body>
     </html>
     '''
