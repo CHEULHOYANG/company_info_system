@@ -1608,7 +1608,73 @@ def upload_database():
 
 @app.route('/download_database')
 def download_database():
-    """데이터베이스 파일 다운로드 (직접 다운로드)"""
+    """완전 백업: 데이터베이스 + 첨부파일을 압축하여 다운로드"""
+    import zipfile
+    import tempfile
+    try:
+        db_path = DB_PATH
+        uploads_path = app.config['UPLOAD_FOLDER']
+        
+        if not os.path.exists(db_path):
+            return jsonify({
+                "success": False, 
+                "message": "데이터베이스 파일이 존재하지 않습니다."
+            }), 404
+        
+        # 현재 시간으로 파일명 생성
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # 임시 ZIP 파일 생성
+        temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
+        temp_zip.close()
+        
+        with zipfile.ZipFile(temp_zip.name, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            # 데이터베이스 파일 추가
+            zipf.write(db_path, f"company_database_{timestamp}.db")
+            
+            # uploads 폴더의 모든 파일 추가 (있는 경우)
+            if os.path.exists(uploads_path):
+                for root, dirs, files in os.walk(uploads_path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        # ZIP 내부에서의 상대 경로 설정
+                        arcname = os.path.join('uploads', os.path.relpath(file_path, uploads_path))
+                        zipf.write(file_path, arcname)
+        
+        download_filename = f"company_system_backup_{timestamp}.zip"
+        
+        # ZIP 파일을 응답으로 전송하고 임시 파일 삭제
+        def remove_temp_file(response):
+            try:
+                os.unlink(temp_zip.name)
+            except:
+                pass
+            return response
+        
+        response = send_file(
+            temp_zip.name,
+            as_attachment=True,
+            download_name=download_filename,
+            mimetype='application/zip'
+        )
+        
+        # 응답 완료 후 임시 파일 삭제를 위한 후처리
+        response.call_on_close(lambda: os.unlink(temp_zip.name) if os.path.exists(temp_zip.name) else None)
+        
+        return response
+        
+    except Exception as e:
+        error_response = jsonify({
+            "success": False, 
+            "message": f"백업 다운로드 실패: {str(e)}"
+        })
+        error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return error_response, 500
+
+@app.route('/download_database_only')
+def download_database_only():
+    """데이터베이스 파일만 다운로드 (기존 기능)"""
     try:
         db_path = DB_PATH
         
@@ -1830,12 +1896,13 @@ def download_database_page():
             <h2>? 데이터베이스 다운로드</h2>
             
             <div class="info-card">
-                <h3>? 다운로드 안내</h3>
+                <h3>? 백업 다운로드 안내</h3>
                 <ul>
-                    <li>현재 서버의 데이터베이스 파일을 로컬로 다운로드합니다</li>
+                    <li><strong>완전백업 (권장)</strong>: 데이터베이스 + 첫부파일(영수증 등)을 ZIP으로 압축하여 다운로드</li>
+                    <li><strong>DB만 백업</strong>: 데이터베이스 파일만 다운로드 (첫부파일 제외)</li>
                     <li>다운로드된 파일은 타임스탬프가 포함된 이름으로 저장됩니다</li>
-                    <li>파일 형식: <code>company_database_YYYYMMDD_HHMMSS.db</code></li>
-                    <li>다운로드 전에 현재 데이터베이스 상태를 확인하세요</li>
+                    <li>완전백업 형식: <code>company_system_backup_YYYYMMDD_HHMMSS.zip</code></li>
+                    <li>DB만 백업 형식: <code>company_database_YYYYMMDD_HHMMSS.db</code></li>
                 </ul>
             </div>
             
@@ -1854,8 +1921,11 @@ def download_database_page():
                 <div class="download-area">
                     <h3>?? 다운로드 실행</h3>
                     <p>위 정보를 확인한 후 다운로드를 진행하세요</p>
-                    <button class="btn" onclick="downloadDatabase()">
-                        ? 데이터베이스 다운로드
+                    <button class="btn" onclick="downloadFullBackup()" style="background: linear-gradient(45deg, #4CAF50, #45a049);">
+                        ? 완전백업 (DB + 첫부파일)
+                    </button>
+                    <button class="btn" onclick="downloadDatabaseOnly()" style="background: linear-gradient(45deg, #2196F3, #1976D2);">
+                        ? DB만 백업
                     </button>
                     <a href="/upload_database" class="btn btn-secondary">
                         ? 업로드 페이지로
@@ -1935,11 +2005,10 @@ def download_database_page():
                 }
             }
             
-            async function downloadDatabase() {
-                showStatus('success', '? 다운로드를 시작합니다...');
+            async function downloadFullBackup() {
+                showStatus('success', '? 완전백업 다운로드를 시작합니다...');
                 
                 try {
-                    // 다운로드 링크 생성 및 클릭
                     const link = document.createElement('a');
                     link.href = '/download_database';
                     link.style.display = 'none';
@@ -1947,9 +2016,26 @@ def download_database_page():
                     link.click();
                     document.body.removeChild(link);
                     
-                    showStatus('success', '? 다운로드가 시작되었습니다. 브라우저의 다운로드 폴더를 확인하세요.');
+                    showStatus('success', '? 완전백업이 시작되었습니다. ZIP 파일에 DB와 첫부파일이 모두 포함됩니다.');
                 } catch (error) {
-                    showStatus('error', `? 다운로드 실패: ${error.message}`);
+                    showStatus('error', `? 완전백업 실패: ${error.message}`);
+                }
+            }
+            
+            async function downloadDatabaseOnly() {
+                showStatus('success', '? DB 다운로드를 시작합니다...');
+                
+                try {
+                    const link = document.createElement('a');
+                    link.href = '/download_database_only';
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showStatus('success', '? DB 다운로드가 시작되었습니다. 첫부파일은 포함되지 않습니다.');
+                } catch (error) {
+                    showStatus('error', `? DB 다운로드 실패: ${error.message}`);
                 }
             }
             
