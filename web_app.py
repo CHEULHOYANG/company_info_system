@@ -2154,12 +2154,12 @@ def db_management_popup():
     <body>
         <div class="container">
             <div class="header">
-                <h2>? 데이터베이스 관리</h2>
+                <h2>데이터베이스 관리</h2>
             </div>
             
             <!-- 백업 섹션 -->
             <div class="info-card">
-                <h3>? 백업 다운로드</h3>
+                <h3>백업 다운로드</h3>
                 <ul>
                     <li><strong>완전백업 (권장)</strong>: 데이터베이스 + 첨부파일(영수증 등)을 ZIP으로 압축</li>
                     <li><strong>DB만 백업</strong>: 데이터베이스 파일만 다운로드 (첨부파일 제외)</li>
@@ -2175,29 +2175,29 @@ def db_management_popup():
                 <div class="stats" id="stats"></div>
                 
                 <div class="info-card">
-                    <h4>? 테이블별 레코드 수</h4>
+                    <h4>테이블별 레코드 수</h4>
                     <div class="table-grid" id="tableGrid"></div>
                 </div>
                 
                 <div class="action-area">
-                    <h3>?? 백업 다운로드</h3>
+                    <h3>백업 다운로드</h3>
                     <button class="btn btn-success" onclick="downloadFullBackup()">
-                        ? 완전백업 (DB + 첨부파일)
+                        완전백업 (DB + 첨부파일)
                     </button>
                     <button class="btn btn-primary" onclick="downloadDatabaseOnly()">
-                        ?? DB만 백업
+                        DB만 백업
                     </button>
                 </div>
             </div>
             
             <!-- 업로드 섹션 -->
             <div class="upload-section">
-                <h3>?? 데이터베이스 복원</h3>
+                <h3>데이터베이스 복원</h3>
                 <p>백업된 데이터베이스 파일을 업로드하여 시스템을 복원할 수 있습니다.</p>
                 <div class="file-input">
                     <form id="uploadForm" enctype="multipart/form-data">
                         <input type="file" id="dbFile" name="database" accept=".db,.zip" required>
-                        <button type="submit" class="btn btn-secondary">? 업로드 & 복원</button>
+                        <button type="submit" class="btn btn-secondary">업로드 & 복원</button>
                     </form>
                 </div>
             </div>
