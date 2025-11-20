@@ -12,8 +12,20 @@
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
     <button onclick="registerPioneering()" class="pioneering-button" style="background:#28a745; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">개척등록</button>
-    <a href="{{ url_for('index') }}" class="back-button">기업정보 조회로 돌아가기</a>
-    <a href="javascript:history.back();" class="back-button">이전 페이지</a>
+    
+    {% set source = request.args.get('source', '') %}
+    {% if source == 'popup' or source == 'history_popup' %}
+        <!-- 팝업으로 열린 경우: 닫기 버튼만 표시 -->
+        <a href="javascript:window.close();" class="back-button" style="background:#dc3545;">닫기</a>
+    {% elif source == 'main' %}
+        <!-- 기업정보 조회에서 온 경우: 이전 페이지 버튼만 표시 -->
+        <a href="javascript:history.back();" class="back-button">이전 페이지</a>
+    {% else %}
+        <!-- 기본: 모든 버튼 표시 -->
+        <a href="{{ url_for('index') }}" class="back-button">기업정보 조회로 돌아가기</a>
+        <a href="javascript:history.back();" class="back-button">이전 페이지</a>
+    {% endif %}
+    
     <span id="user-name-header" style="font-weight:bold; color:#333; margin-left:10px;">{{ user_name }}님</span>
     </div>
 </header>

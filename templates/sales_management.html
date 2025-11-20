@@ -550,7 +550,7 @@
             }
             
             // 기업 상세조회 페이지를 새 창에서 열기
-            const detailUrl = `/company_detail/${bizNo.replace(/-/g, '')}`;
+            const detailUrl = `/company_detail/${bizNo.replace(/-/g, '')}?source=popup`;
             window.open(detailUrl, '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
         }
         

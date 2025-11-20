@@ -484,7 +484,7 @@
                             
                             // 사업자번호에서 하이픈 제거하여 정확한 라우팅 보장
                             const cleanBizNo = company.biz_no.replace(/-/g, '');
-                            const detailUrl = `/company_detail/${cleanBizNo}`;
+                            const detailUrl = `/company_detail/${cleanBizNo}?source=main`;
                             
                             console.log('기업 클릭:', company.company_name, '사업자번호:', cleanBizNo, 'URL:', detailUrl);
                             
