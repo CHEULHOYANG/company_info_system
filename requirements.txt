@@ -4,3 +4,4 @@ gunicorn
 xlsxwriter
 google-generativeai
 python-dotenv
+openai
