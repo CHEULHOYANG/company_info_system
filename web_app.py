@@ -5517,6 +5517,7 @@ def search_companies_for_pipeline():
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
     
     query = request.args.get('q', '').strip()
+    print(f"Search request: '{query}'")  # Debug log
     if len(query) < 2:
         return jsonify({"success": True, "data": []})
     
@@ -5526,7 +5527,7 @@ def search_companies_for_pipeline():
         
         # 기업 검색 (이미 관리중인 기업 제외)
         search_query = '''
-            SELECT cb.biz_no, cb.company_name, cb.representative_name, cb.address
+            SELECT cb.biz_no, cb.company_name, cb.representative_name, cb.region
             FROM Company_Basic cb
             LEFT JOIN managed_companies mc ON cb.biz_no = mc.biz_reg_no 
                 AND mc.manager_id = ?
@@ -5537,12 +5538,15 @@ def search_companies_for_pipeline():
         '''
         
         search_term = f'%{query}%'
+        print(f"Executing query with term: {search_term}, user_id: {session.get('user_id')}") # Debug log
         cursor.execute(search_query, (session.get('user_id'), search_term, search_term, search_term))
         companies = [dict(row) for row in cursor.fetchall()]
+        print(f"Found {len(companies)} companies") # Debug log
         
         return jsonify({"success": True, "data": companies})
         
     except Exception as e:
+        print(f"Search error: {e}") # Debug log
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
