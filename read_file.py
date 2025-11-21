@@ -19,4 +19,4 @@ with open(output_path, 'w', encoding='utf-8') as out:
     # JS section likely starts after HTML
     start = 1600
     for i in range(start, len(lines)):
-        out.write(f"{i+1}: {lines[i]}")
+        out.write(f"{i+1}:  {lines[i]}")
