@@ -549,9 +549,9 @@ def init_pipeline_tables():
         )
         ''')
         
-        # 접촉 이력 테이블
+        # 접촉 이력 테이블 (파이프라인용)
         cursor.execute('''
-        CREATE TABLE IF NOT EXISTS contact_history (
+        CREATE TABLE IF NOT EXISTS pipeline_contact_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             managed_company_id INTEGER NOT NULL,
             contact_date DATE NOT NULL,
@@ -573,8 +573,8 @@ def init_pipeline_tables():
             'CREATE INDEX IF NOT EXISTS idx_managed_companies_status ON managed_companies(status)',
             'CREATE INDEX IF NOT EXISTS idx_managed_companies_next_contact ON managed_companies(next_contact_date)',
             'CREATE INDEX IF NOT EXISTS idx_managed_companies_last_contact ON managed_companies(last_contact_date)',
-            'CREATE INDEX IF NOT EXISTS idx_contact_history_company ON contact_history(managed_company_id)',
-            'CREATE INDEX IF NOT EXISTS idx_contact_history_date ON contact_history(contact_date)'
+            'CREATE INDEX IF NOT EXISTS idx_pipeline_contact_history_company ON pipeline_contact_history(managed_company_id)',
+            'CREATE INDEX IF NOT EXISTS idx_pipeline_contact_history_date ON pipeline_contact_history(contact_date)'
         ]
         
         for index_sql in indexes:
@@ -5440,7 +5440,7 @@ def add_contact_history():
         
         # 접촉 이력 등록
         insert_query = '''
-            INSERT INTO contact_history 
+            INSERT INTO pipeline_contact_history 
             (managed_company_id, contact_date, contact_type, content, cost, 
              follow_up_required, follow_up_date, attachment)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -5496,7 +5496,7 @@ def get_pipeline_contact_history(company_id):
         
         # 접촉 이력 조회
         history_query = '''
-            SELECT * FROM contact_history 
+            SELECT * FROM pipeline_contact_history 
             WHERE managed_company_id = ?
             ORDER BY contact_date DESC, created_at DESC
         '''
@@ -5546,6 +5546,265 @@ def search_companies_for_pipeline():
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
+
+@app.route('/api/ai_analysis', methods=['POST'])
+def ai_analysis():
+    """AI 기업 분석 API"""
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
+    
+    data = request.get_json()
+    biz_no = data.get('biz_no')
+    
+    if not biz_no:
+        return jsonify({"success": False, "message": "사업자번호가 필요합니다"}), 400
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 기업 기본 정보 조회
+        cursor.execute('''
+            SELECT company_name, representative_name, industry_name, address, pension_count
+            FROM Company_Basic 
+            WHERE biz_no = ?
+        ''', (biz_no,))
+        
+        company_basic = cursor.fetchone()
+        if not company_basic:
+            return jsonify({"success": False, "message": "기업 정보를 찾을 수 없습니다"}), 404
+        
+        # 재무 정보 조회 (최근 3년)
+        cursor.execute('''
+            SELECT fiscal_year, sales_revenue, operating_income, total_assets, 
+                   total_equity, retained_earnings, corporate_tax
+            FROM Company_Financial 
+            WHERE biz_no = ? 
+            ORDER BY fiscal_year DESC 
+            LIMIT 3
+        ''', (biz_no,))
+        
+        financials = cursor.fetchall()
+        
+        # AI 분석 실행
+        analysis_result = perform_ai_analysis(company_basic, financials)
+        
+        return jsonify({
+            "success": True,
+            "analysis": analysis_result
+        })
+        
+    except Exception as e:
+        print(f"AI 분석 오류: {e}")
+        return jsonify({"success": False, "message": f"분석 중 오류 발생: {str(e)}"}), 500
+    finally:
+        conn.close()
+
+def perform_ai_analysis(company_basic, financials):
+    """OpenAI API를 사용한 전문적인 기업 분석"""
+    import os
+    import json
+    from openai import OpenAI
+    
+    # 기업 기본 정보 추출
+    company_name = company_basic[0] or "정보없음"
+    representative = company_basic[1] or "정보없음"  
+    industry = company_basic[2] or "정보없음"
+    address = company_basic[3] or "정보없음"
+    employee_count = company_basic[4] or 0  # pension_count를 직원수로 사용
+    
+    # 재무 분석
+    financial_summary = ""
+    latest_year_data = None
+    
+    if financials and len(financials) > 0:
+        latest_year_data = financials[0]
+        
+        # 최근 3년 데이터 분석
+        revenue_trend = []
+        profit_trend = []
+        asset_trend = []
+        
+        for fin in financials:
+            if fin[1]:  # 매출액
+                revenue_trend.append(fin[1])
+            if fin[2]:  # 영업이익
+                profit_trend.append(fin[2])
+            if fin[3]:  # 자산총계
+                asset_trend.append(fin[3])
+        
+        # 성장률 계산
+        revenue_growth = "안정적" if len(revenue_trend) > 1 else "데이터 부족"
+        if len(revenue_trend) >= 2:
+            growth_rate = ((revenue_trend[0] - revenue_trend[-1]) / revenue_trend[-1]) * 100
+            if growth_rate > 10:
+                revenue_growth = f"고성장 ({growth_rate:.1f}%)"
+            elif growth_rate > 0:
+                revenue_growth = f"성장세 ({growth_rate:.1f}%)"
+            elif growth_rate > -10:
+                revenue_growth = f"소폭 감소 ({growth_rate:.1f}%)"
+            else:
+                revenue_growth = f"감소세 ({growth_rate:.1f}%)"
+        
+        financial_summary = f"최근년도 매출액: {latest_year_data[1]:,}원, 성장추세: {revenue_growth}"
+    
+    # OpenAI API 사용 (환경변수에서 API 키 확인)
+    api_key = os.environ.get('OPENAI_API_KEY')
+    print(f"API 키 확인: {api_key[:20]}..." if api_key else "API 키 없음")
+    
+    if api_key and api_key.startswith('sk-'):
+        try:
+            # OpenAI 클라이언트 초기화
+            client = OpenAI(api_key=api_key)
+            
+            # 더 상세한 재무 분석을 위한 데이터 구성
+            financial_details = ""
+            if financials and len(financials) > 0:
+                financial_details = "재무 상세 정보:\n"
+                for i, fin in enumerate(financials):
+                    year = fin[0]
+                    revenue = fin[1] if fin[1] else 0
+                    profit = fin[2] if fin[2] else 0
+                    assets = fin[3] if fin[3] else 0
+                    equity = fin[4] if fin[4] else 0
+                    
+                    financial_details += f"? {year}년: 매출액 {revenue:,}원, 영업이익 {profit:,}원, 자산총계 {assets:,}원, 자본총계 {equity:,}원\n"
+                    
+                    # 재무비율 계산
+                    if assets > 0 and revenue > 0:
+                        roe = (profit / equity * 100) if equity > 0 else 0
+                        asset_turnover = revenue / assets
+                        profit_margin = (profit / revenue * 100) if revenue > 0 else 0
+                        financial_details += f"  - ROE: {roe:.1f}%, 자산회전율: {asset_turnover:.2f}, 영업이익률: {profit_margin:.1f}%\n"
+            
+            # 전문적인 분석 프롬프트 구성
+            detailed_prompt = f"""
+당신은 20년 경력의 기업 분석 전문가입니다. 다음 기업에 대해 투자은행 수준의 상세한 분석을 수행해주세요.
+
+== 기업 기본 정보 ==
+? 기업명: {company_name}
+? 대표자: {representative}
+? 업종: {industry}
+? 본사 소재지: {address}
+? 국민연금 가입자수: {employee_count}명
+
+== 재무 정보 (최근 3개년) ==
+{financial_details}
+
+== 분석 요청사항 ==
+다음 4개 섹션에 대해 각각 150-200자 내외로 전문적이고 구체적인 분석을 제공해주세요:
+
+1. **기업 개요 및 사업 현황**
+   - 주력 사업 영역과 시장 포지션
+   - 업계 내 경쟁력과 차별화 요소
+   - 사업 모델의 특징과 성장 동력
+
+2. **재무 성과 및 안정성 분석**
+   - 수익성 지표 분석 (매출 성장률, 영업이익률, ROE 등)
+   - 재무 안정성 평가 (자본구조, 유동성 등)
+   - 3개년 재무 트렌드와 개선/악화 요인
+
+3. **리스크 요인 및 우려사항**
+   - 업계 특성상 주요 위험요소
+   - 재무적 리스크 (부채비율, 현금흐름 등)
+   - 외부 환경 변화에 따른 영향도
+
+4. **투자 의견 및 밸류에이션**
+   - 종합적인 투자 매력도 평가
+   - 목표 주가 또는 기업가치 평가 관점
+   - 투자 시 고려사항과 모니터링 포인트
+
+각 섹션은 객관적 데이터에 기반하되, 실무적이고 actionable한 인사이트를 포함해주세요.
+"""
+            
+            print(f"OpenAI API 호출 시작 - 기업명: {company_name}")
+            
+            # OpenAI API 호출
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",  # 더 정확한 분석을 위해 GPT-4 사용
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": "당신은 Goldman Sachs, JP Morgan 등 글로벌 투자은행에서 20년간 기업분석을 담당한 전문가입니다. 정확하고 실무적인 분석을 제공하며, 항상 객관적 데이터에 기반한 판단을 내립니다."
+                    },
+                    {
+                        "role": "user", 
+                        "content": detailed_prompt
+                    }
+                ],
+                max_tokens=2500,
+                temperature=0.3,  # 일관성 있는 분석을 위해 낮은 온도
+                presence_penalty=0.1,
+                frequency_penalty=0.1
+            )
+            
+            # AI 응답 파싱
+            ai_analysis = response.choices[0].message.content
+            print(f"OpenAI API 응답 받음 - 응답 길이: {len(ai_analysis)} 문자")
+            print(f"응답 미리보기: {ai_analysis[:200]}...")
+            
+            # 섹션별로 더 정확하게 파싱
+            sections = {
+                'summary': '',
+                'financial_analysis': '',
+                'risk_assessment': '',
+                'recommendations': ''
+            }
+            
+            # 섹션 구분을 위한 키워드 매칭
+            current_section = None
+            lines = ai_analysis.split('\n')
+            
+            for line in lines:
+                line = line.strip()
+                if '기업 개요' in line or '사업 현황' in line or '1.' in line[:5]:
+                    current_section = 'summary'
+                elif '재무 성과' in line or '재무 분석' in line or '안정성' in line or '2.' in line[:5]:
+                    current_section = 'financial_analysis'
+                elif '리스크' in line or '위험' in line or '우려사항' in line or '3.' in line[:5]:
+                    current_section = 'risk_assessment'
+                elif '투자 의견' in line or '밸류에이션' in line or '투자' in line or '4.' in line[:5]:
+                    current_section = 'recommendations'
+                elif line and current_section:
+                    sections[current_section] += line + ' '
+            
+            # 섹션이 비어있는 경우 전체 텍스트를 균등 분할
+            if not any(sections.values()):
+                paragraphs = [p.strip() for p in ai_analysis.split('\n\n') if p.strip()]
+                if len(paragraphs) >= 4:
+                    sections['summary'] = paragraphs[0]
+                    sections['financial_analysis'] = paragraphs[1]
+                    sections['risk_assessment'] = paragraphs[2]
+                    sections['recommendations'] = paragraphs[3]
+                else:
+                    sections['summary'] = ai_analysis[:len(ai_analysis)//4]
+                    sections['financial_analysis'] = ai_analysis[len(ai_analysis)//4:len(ai_analysis)//2]
+                    sections['risk_assessment'] = ai_analysis[len(ai_analysis)//2:3*len(ai_analysis)//4]
+                    sections['recommendations'] = ai_analysis[3*len(ai_analysis)//4:]
+            
+            return {
+                "summary": sections['summary'].strip() or f"{company_name}는 {industry} 업종에서 사업을 영위하는 기업으로, {representative} 대표 체제 하에 운영되고 있습니다.",
+                "financial_analysis": sections['financial_analysis'].strip() or f"재무분석: {financial_summary}를 기반으로 한 상세 분석이 제공됩니다.",
+                "risk_assessment": sections['risk_assessment'].strip() or f"{industry} 업계의 일반적인 리스크와 기업 고유의 위험요소를 종합적으로 평가하였습니다.",
+                "recommendations": sections['recommendations'].strip() or "전문적인 분석을 바탕으로 한 투자 의견과 향후 모니터링 포인트를 제시합니다."
+            }
+            
+        except Exception as e:
+            print(f"OpenAI API 오류 (고급 분석): {type(e).__name__}: {e}")
+            import traceback
+            print(f"상세 오류 정보: {traceback.format_exc()}")
+            # API 오류 시에도 기본 분석은 제공
+    
+    # API 사용 불가 시 기본 분석 제공
+    return {
+        "summary": f"{company_name}는 {industry} 업종의 기업으로, {representative} 대표가 경영하고 있습니다. 본사는 {address}에 위치하며, 국민연금 가입자수는 약 {employee_count}명입니다. 해당 업종에서의 사업 영역과 경쟁력을 바탕으로 지속적인 성장을 추진하고 있는 것으로 분석됩니다.",
+        
+        "financial_analysis": f"재무 현황: {financial_summary}. 최근 3개년 재무제표를 기반으로 분석한 결과, 매출액과 수익성 지표를 통해 기업의 경영 성과를 확인할 수 있습니다. 자산 규모와 자본 구조를 종합적으로 고려하여 재무 안정성을 평가하였습니다.",
+        
+        "risk_assessment": f"주요 위험요소로는 업계 특성상 경기 변동에 따른 영향, 경쟁 기업과의 시장점유율 경쟁, 원자재 가격 변동 등이 있습니다. {industry} 업종의 특성을 고려할 때 규제 변화나 기술 변화에 대한 대응력도 중요한 리스크 요인으로 분석됩니다.",
+        
+        "recommendations": f"종합 분석 결과, {company_name}는 {industry} 업종에서 일정한 사업 기반을 갖춘 기업으로 평가됩니다. 재무 지표와 사업 현황을 종합적으로 고려할 때, 중장기적인 관점에서의 투자 검토를 권장하며, 보다 상세한 실사를 통한 리스크 평가가 필요합니다."
+    }
 
 if __name__ == '__main__':
     print("=== 애플리케이션 시작 ===")

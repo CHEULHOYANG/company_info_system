@@ -12,6 +12,7 @@
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
     <button onclick="registerPioneering()" class="pioneering-button" style="background:#28a745; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">개척등록</button>
+    <button onclick="registerToPipeline()" class="pipeline-button" style="background:#007bff; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500; margin-left:5px;">+ 관심기업 등록</button>
     
     {% set source = request.args.get('source', '') %}
     {% if source == 'popup' or source == 'history_popup' %}
@@ -73,6 +74,23 @@ function showTab(tabId, element) {
 function registerPioneering() {
     console.log('registerPioneering 함수 호출됨');
     openPioneeringModal();
+}
+
+// 관심기업 등록 함수
+function registerToPipeline() {
+    console.log('관심기업 등록 함수 호출됨');
+    
+    const companyData = {
+        biz_no: '{{ company.basic.biz_no }}',
+        company_name: '{{ company.basic.company_name }}',
+        representative_name: '{{ company.basic.representative_name }}'
+    };
+    
+    // 같은 창에서 파이프라인 페이지로 이동 (기업 정보 포함하여 자동 등록 모달 열기)
+    const pipelineUrl = `/pipeline?register=true&biz_no=${encodeURIComponent(companyData.biz_no)}&company_name=${encodeURIComponent(companyData.company_name)}&representative=${encodeURIComponent(companyData.representative_name)}`;
+    
+    console.log('파이프라인 페이지로 이동:', pipelineUrl);
+    window.location.href = pipelineUrl;
 }
 </script>
     </div>
@@ -192,14 +210,23 @@ function registerPioneering() {
                                     <tr><td>매출액</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.sales_revenue) if fin.sales_revenue is not none else '' }}</td> {% endfor %}</tr>
                                     <tr><td>당기순이익</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.operating_income) if fin.operating_income is not none else '' }}</td> {% endfor %}</tr>
                                     <tr><td>자산총계</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.total_assets) if fin.total_assets is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>자본총계</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.total_equity * 1000) if fin.total_equity is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>이익잉여금</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.retained_earnings) if fin.retained_earnings is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>미처분이익잉여금</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.undistributed_retained_earnings) if fin.undistributed_retained_earnings is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr class="financial-separator"><td>자본총계</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.total_equity * 1000) if fin.total_equity is not none else '' }}</td> {% endfor %}</tr>
                                     <tr><td>법인세비용</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.corporate_tax) if fin.corporate_tax is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>가지급금</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.advances_paid) if fin.advances_paid is not none else '' }}</td> {% endfor %}</tr>
-                                    <tr><td>가수금</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.advances_received) if fin.advances_received is not none else '' }}</td> {% endfor %}</tr>
                                 </tbody>
                             </table>
+                            
+                            <!-- 핵심 재무 지표 (최근년도) -->
+                            <div style="margin-top: 30px;">
+                                <h4>핵심 재무 지표 ({{ company.financials[0].fiscal_year }}년 기준)</h4>
+                                <table class="results-table">
+                                    <tbody>
+                                        <tr><td><strong>자산총계</strong></td><td class="text-right"><strong>{{ "{:,.0f}".format(company.financials[0].total_assets) if company.financials[0].total_assets is not none else '' }}</strong></td></tr>
+                                        <tr><td><strong>이익잉여금</strong></td><td class="text-right"><strong>{{ "{:,.0f}".format(company.financials[0].retained_earnings) if company.financials[0].retained_earnings is not none else '' }}</strong></td></tr>
+                                        <tr><td>가지급금</td><td class="text-right">{{ "{:,.0f}".format(company.financials[0].advances_paid) if company.financials[0].advances_paid is not none else '' }}</td></tr>
+                                        <tr><td>가수금</td><td class="text-right">{{ "{:,.0f}".format(company.financials[0].advances_received) if company.financials[0].advances_received is not none else '' }}</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                             {% else %}<p>재무 정보가 없습니다.</p>{% endif %}
                         </div>
                         <div class="detail-card">
@@ -330,11 +357,22 @@ function registerPioneering() {
                     <h3>AI 기업 분석</h3>
                     <div class="ai-analysis-container">
                         <div class="analysis-status">
-                            <p>AI를 통한 종합적인 기업 분석을 시작하려면 버튼을 클릭하세요.</p>
-                            <button class="analysis-btn" onclick="startAIAnalysis()">AI 분석 시작</button>
+                            <h4>AI 기업 분석 서비스</h4>
+                            <p>OpenAI GPT-4를 활용한 전문가 수준의 기업 분석을 제공합니다.</p>
+                            <div class="analysis-features">
+                                <div class="feature-item">- 투자은행 수준의 재무 분석</div>
+                                <div class="feature-item">- 업계 전문가 관점의 리스크 평가</div>
+                                <div class="feature-item">- 데이터 기반 투자 의견 제시</div>
+                            </div>
+                            <button class="analysis-btn" onclick="startAIAnalysis()">
+                                전문 AI 분석 시작
+                            </button>
                         </div>
                         <div class="analysis-results" id="aiAnalysisResults" style="display: none;">
-                            <div class="loading">AI 분석 중...</div>
+                            <div class="loading">
+                                <div class="loading-spinner"></div>
+                                <div>AI가 기업 데이터를 분석하고 있습니다...<br><small>투자은행 수준의 전문 분석을 생성 중입니다.</small></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -386,6 +424,12 @@ function registerPioneering() {
     </div>
 
     <style>
+    /* 재무제표 스타일 */
+    .financial-separator td {
+        border-bottom: 2px solid #333 !important;
+        font-weight: bold;
+    }
+    
     /* 접촉이력 관리 스타일 */
     .contact-history-container {
         padding: 20px;
@@ -735,6 +779,67 @@ function registerPioneering() {
         margin-bottom: 10px;
         font-size: 18px;
         font-weight: 600;
+    }
+    
+    .analysis-section p {
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        font-size: 16px;
+    }
+    
+    .error {
+        text-align: center;
+        padding: 40px;
+        color: #e74c3c;
+        font-size: 16px;
+        background: #ffe6e6;
+        border-radius: 5px;
+    }
+    
+    .analysis-features {
+        margin: 20px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .feature-item {
+        color: #2c5aa0;
+        font-weight: 500;
+        font-size: 14px;
+    }
+    
+    .btn-icon {
+        margin-right: 8px;
+        font-size: 18px;
+    }
+    
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #2c5aa0;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .loading small {
+        color: #666;
+        font-size: 12px;
+    }
     }
 
     .analysis-section p {

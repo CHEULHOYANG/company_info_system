@@ -238,7 +238,12 @@
     <div x-show="showAddCompanyModal" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
         <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
             <div class="mt-3">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">관심 기업 등록</h3>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">관심 기업 등록</h3>
+                    <button @click="closeAddCompanyModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
                 
                 <!-- 기업 검색 -->
                 <div class="mb-4">
@@ -609,6 +614,28 @@
                 // 초기화
                 init() {
                     this.loadDashboardData();
+                    this.checkAutoRegister();
+                },
+
+                // URL 파라미터로 자동 등록 모드 체크
+                checkAutoRegister() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('register') === 'true') {
+                        const bizNo = urlParams.get('biz_no');
+                        const companyName = urlParams.get('company_name');
+                        const representative = urlParams.get('representative');
+                        
+                        if (bizNo && companyName) {
+                            // 자동으로 기업 선택 및 모달 열기
+                            this.selectedCompany = {
+                                biz_no: bizNo,
+                                company_name: companyName,
+                                representative_name: representative
+                            };
+                            this.companySearch = companyName;
+                            this.showAddCompanyModal = true;
+                        }
+                    }
                 },
 
                 // 대시보드 데이터 로드
