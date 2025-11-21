@@ -14,6 +14,38 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
+            background-color: #000;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: url('{{ url_for("static", filename="images/maserati_silver.jpg") }}') no-repeat center center;
+            background-size: cover;
+            /* 초기 상태: 약간 확대되어 있음 */
+            transform: scale(1.2);
+            /* 애니메이션: 3초간 부릉부릉 떨리다가 -> 1초간 뒤로 줌아웃(멀어지는 효과) */
+            animation: vroomAndGo 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes vroomAndGo {
+            0% { transform: scale(1.2) translate(1px, 1px); }
+            10% { transform: scale(1.2) translate(-1px, -2px); }
+            20% { transform: scale(1.2) translate(-3px, 0px); }
+            30% { transform: scale(1.2) translate(3px, 2px); }
+            40% { transform: scale(1.2) translate(1px, -1px); }
+            50% { transform: scale(1.2) translate(-1px, 2px); }
+            60% { transform: scale(1.2) translate(-3px, 1px); }
+            70% { transform: scale(1.2) translate(3px, 1px); }
+            80% { transform: scale(1.2) translate(-1px, -1px); }
+            /* 80%까지는 떨림 (부릉부릉) */
+            
+            /* 80% ~ 100%: 멀어짐 (줌아웃) */
+            100% { transform: scale(1.0) translate(0, 0); }
         }
 
         .full-screen-container {
@@ -22,7 +54,8 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(135deg, #0a1f3b 0%, #4a9fd9 100%);
+            /* 배경을 투명하게 하여 뒤의 자동차가 보이도록 함 */
+            background: linear-gradient(135deg, rgba(10, 31, 59, 0.85) 0%, rgba(74, 159, 217, 0.75) 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -365,6 +398,7 @@
 </head>
 
 <body>
+    <div class="bg-animation"></div>
     <div class="full-screen-container">
         <!-- 상단 이미지 영역 -->
         <div class="header-image"></div>
