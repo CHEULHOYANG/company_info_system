@@ -1,4 +1,4 @@
-# -*- coding: cp949 -*-
+# -*- coding: utf-8 -*-
 # Company Management System
 import os
 import sqlite3
@@ -13,29 +13,29 @@ import csv
 from werkzeug.utils import secure_filename
 from jinja2 import FileSystemLoader, TemplateNotFound
 
-# ÇÑ±¹ ½Ã°£´ë ¼³Á¤
+# í•œêµ­ ì‹œê°„ëŒ€ ì„¤ì •
 KST = pytz.timezone('Asia/Seoul')
 
 def get_kst_now():
-    """ÇÑ±¹ ½Ã°£ ÇöÀç ½Ã°¢À» ¹İÈ¯ÇÕ´Ï´Ù."""
+    """í•œêµ­ ì‹œê°„ í˜„ì¬ ì‹œê°ì„ ë°˜í™˜í•©ë‹ˆë‹¤."""
     return datetime.now(KST)
 import pytz
 from datetime import timezone, timedelta
 
-# --- Ä¿½ºÅÒ ÅÛÇÃ¸´ ·Î´õ (UTF-8 ¿ì¼±, CP949 Æú¹é) ---
+# --- ì»¤ìŠ¤í…€ í…œí”Œë¦¿ ë¡œë” (UTF-8 ìš°ì„ , CP949 í´ë°±) ---
 class UTF8FileSystemLoader(FileSystemLoader):
     def get_source(self, environment, template):
-        # ÆÄÀÏ °æ·Î Ã£±â
+        # íŒŒì¼ ê²½ë¡œ ì°¾ê¸°
         for searchpath in self.searchpath:
             filename = os.path.join(searchpath, template)
             if os.path.exists(filename):
-                # UTF-8·Î ¸ÕÀú ½Ãµµ, ½ÇÆĞÇÏ¸é CP949·Î ½Ãµµ
+                # UTF-8ë¡œ ë¨¼ì € ì‹œë„, ì‹¤íŒ¨í•˜ë©´ CP949ë¡œ ì‹œë„
                 source = None
                 for encoding in ['utf-8', 'cp949']:
                     try:
                         with open(filename, 'r', encoding=encoding) as f:
                             source = f.read()
-                        break  # ¼º°øÇÏ¸é ·çÇÁ Á¾·á
+                        break  # ì„±ê³µí•˜ë©´ ë£¨í”„ ì¢…ë£Œ
                     except UnicodeDecodeError:
                         continue
                 
@@ -52,23 +52,23 @@ class UTF8FileSystemLoader(FileSystemLoader):
         
         raise TemplateNotFound(template)
 
-# --- ±âº» ¼³Á¤ ---
+# --- ê¸°ë³¸ ì„¤ì • ---
 app = Flask(__name__)
 app.secret_key = 'your_very_secret_key_12345'
 
-# ÇÑ±Û ÀÎÄÚµù ¼³Á¤ - JSON ÀÀ´ä¿¡¼­ ÇÑ±Û ±úÁü ¹æÁö
+# í•œê¸€ ì¸ì½”ë”© ì„¤ì • - JSON ì‘ë‹µì—ì„œ í•œê¸€ ê¹¨ì§ ë°©ì§€
 app.config['JSON_AS_ASCII'] = False
 app.config['JSONIFY_MIMETYPE'] = 'application/json; charset=utf-8'
 
-# ¸ğµç ÀÀ´ä¿¡ UTF-8 °­Á¦ ¼³Á¤
+# ëª¨ë“  ì‘ë‹µì— UTF-8 ê°•ì œ ì„¤ì •
 @app.before_request
 def before_request():
-    """¸ğµç ¿äÃ» Àü¿¡ ½ÇÇà"""
+    """ëª¨ë“  ìš”ì²­ ì „ì— ì‹¤í–‰"""
     pass
 
 @app.after_request
 def after_request(response):
-    """¸ğµç ÀÀ´ä ÈÄ¿¡ UTF-8 Çì´õ¸¦ °­Á¦·Î ¼³Á¤"""
+    """ëª¨ë“  ì‘ë‹µ í›„ì— UTF-8 í—¤ë”ë¥¼ ê°•ì œë¡œ ì„¤ì •"""
     if response.content_type.startswith('text/html'):
         response.headers['Content-Type'] = 'text/html; charset=utf-8'
     elif response.content_type.startswith('application/json'):
@@ -77,67 +77,67 @@ def after_request(response):
         response.headers['Content-Type'] = response.content_type + '; charset=utf-8'
     return response
 
-# ¾÷·Îµå Æú´õ ¼³Á¤
+# ì—…ë¡œë“œ í´ë” ì„¤ì •
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-# ÇÑ±¹ ½Ã°£´ë ¼³Á¤
+# í•œêµ­ ì‹œê°„ëŒ€ ì„¤ì •
 KST = pytz.timezone('Asia/Seoul')
 
-# ÇöÀç ÇÑ±¹ ½Ã°£À» ¹İÈ¯ÇÏ´Â ÇÔ¼ö
+# í˜„ì¬ í•œêµ­ ì‹œê°„ì„ ë°˜í™˜í•˜ëŠ” í•¨ìˆ˜
 def get_kst_now():
-    """ÇöÀç ÇÑ±¹ ½Ã°£À» ¹İÈ¯ÇÕ´Ï´Ù."""
+    """í˜„ì¬ í•œêµ­ ì‹œê°„ì„ ë°˜í™˜í•©ë‹ˆë‹¤."""
     return datetime.now(KST)
 
 def format_kst_datetime(dt_str=None):
-    """ÇÑ±¹ ½Ã°£´ë·Î Æ÷¸ËÆÃµÈ ÇöÀç ½Ã°£ ¹®ÀÚ¿­À» ¹İÈ¯ÇÕ´Ï´Ù."""
+    """í•œêµ­ ì‹œê°„ëŒ€ë¡œ í¬ë§·íŒ…ëœ í˜„ì¬ ì‹œê°„ ë¬¸ìì—´ì„ ë°˜í™˜í•©ë‹ˆë‹¤."""
     if dt_str:
-        # ÀÔ·ÂµÈ ½Ã°£ÀÌ ÀÖÀ¸¸é ÇÑ±¹ ½Ã°£´ë·Î º¯È¯
+        # ì…ë ¥ëœ ì‹œê°„ì´ ìˆìœ¼ë©´ í•œêµ­ ì‹œê°„ëŒ€ë¡œ ë³€í™˜
         try:
             if isinstance(dt_str, str):
-                # ISO Çü½Ä ¹®ÀÚ¿­ ÆÄ½Ì
+                # ISO í˜•ì‹ ë¬¸ìì—´ íŒŒì‹±
                 if 'T' in dt_str:
                     dt = datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
                 else:
                     dt = datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S')
                     dt = dt.replace(tzinfo=pytz.UTC)
                 
-                # UTC¿¡¼­ KST·Î º¯È¯
+                # UTCì—ì„œ KSTë¡œ ë³€í™˜
                 kst_dt = dt.astimezone(KST)
                 return kst_dt.strftime('%Y-%m-%d %H:%M:%S')
             return dt_str
         except:
             return dt_str
     else:
-        # ÇöÀç ÇÑ±¹ ½Ã°£ ¹İÈ¯
+        # í˜„ì¬ í•œêµ­ ì‹œê°„ ë°˜í™˜
         return get_kst_now().strftime('%Y-%m-%d %H:%M:%S')
 
-# Ä¿½ºÅÒ ÅÛÇÃ¸´ ·Î´õ ¼³Á¤
+# ì»¤ìŠ¤í…€ í…œí”Œë¦¿ ë¡œë” ì„¤ì •
 template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app.jinja_loader = UTF8FileSystemLoader(template_dir)
 
-# DB °æ·Î ¼³Á¤ (Render Persistent Disk »ç¿ë)
+# DB ê²½ë¡œ ì„¤ì • (Render Persistent Disk ì‚¬ìš©)
 app_dir = os.path.dirname(os.path.abspath(__file__))
 
-# render.com¿¡¼­´Â È¯°æº¯¼ö RENDER°¡ ¼³Á¤µÊ
+# render.comì—ì„œëŠ” í™˜ê²½ë³€ìˆ˜ RENDERê°€ ì„¤ì •ë¨
 if os.environ.get('RENDER'):
-    # render.com ¼­¹ö È¯°æ - ´Ù¾çÇÑ °æ·Î È®ÀÎ
-    print("=== RENDER ¼­¹ö È¯°æ °¨Áö ===")
-    print(f"ÇöÀç ÀÛ¾÷ µğ·ºÅÍ¸®: {os.getcwd()}")
-    print(f"¾Û µğ·ºÅÍ¸®: {app_dir}")
-    print(f"HOME È¯°æº¯¼ö: {os.environ.get('HOME', 'N/A')}")
-    print(f"USER È¯°æº¯¼ö: {os.environ.get('USER', 'N/A')}")
+    # render.com ì„œë²„ í™˜ê²½ - ë‹¤ì–‘í•œ ê²½ë¡œ í™•ì¸
+    print("=== RENDER ì„œë²„ í™˜ê²½ ê°ì§€ ===")
+    print(f"í˜„ì¬ ì‘ì—… ë””ë ‰í„°ë¦¬: {os.getcwd()}")
+    print(f"ì•± ë””ë ‰í„°ë¦¬: {app_dir}")
+    print(f"HOME í™˜ê²½ë³€ìˆ˜: {os.environ.get('HOME', 'N/A')}")
+    print(f"USER í™˜ê²½ë³€ìˆ˜: {os.environ.get('USER', 'N/A')}")
     
-    # ·çÆ® µğ·ºÅÍ¸® È®ÀÎ
-    print("\n=== ·çÆ® µğ·ºÅÍ¸® ±¸Á¶ È®ÀÎ ===")
+    # ë£¨íŠ¸ ë””ë ‰í„°ë¦¬ í™•ì¸
+    print("\n=== ë£¨íŠ¸ ë””ë ‰í„°ë¦¬ êµ¬ì¡° í™•ì¸ ===")
     try:
         root_items = os.listdir('/')
-        print(f"/ µğ·ºÅÍ¸® ³»¿ë: {root_items}")
+        print(f"/ ë””ë ‰í„°ë¦¬ ë‚´ìš©: {root_items}")
     except Exception as e:
-        print(f"·çÆ® µğ·ºÅÍ¸® È®ÀÎ ½ÇÆĞ: {e}")
+        print(f"ë£¨íŠ¸ ë””ë ‰í„°ë¦¬ í™•ì¸ ì‹¤íŒ¨: {e}")
     
-    # °¡´ÉÇÑ °æ·Îµé È®ÀÎ
+    # ê°€ëŠ¥í•œ ê²½ë¡œë“¤ í™•ì¸
     possible_paths = [
         '/var/data',
         '/opt/render/project/data', 
@@ -148,76 +148,76 @@ if os.environ.get('RENDER'):
         os.path.join(app_dir, 'data')
     ]
     
-    print(f"\n=== °¡´ÉÇÑ µ¥ÀÌÅÍ °æ·Îµé È®ÀÎ ===")
+    print(f"\n=== ê°€ëŠ¥í•œ ë°ì´í„° ê²½ë¡œë“¤ í™•ì¸ ===")
     persistent_disk_path = None
     for path in possible_paths:
-        print(f"°æ·Î È®ÀÎ Áß: {path}")
+        print(f"ê²½ë¡œ í™•ì¸ ì¤‘: {path}")
         if os.path.exists(path):
-            print(f"? ¹ß°ß: {path}")
+            print(f"? ë°œê²¬: {path}")
             
-            # µğ·ºÅÍ¸® ³»¿ë È®ÀÎ
+            # ë””ë ‰í„°ë¦¬ ë‚´ìš© í™•ì¸
             try:
                 contents = os.listdir(path)
-                print(f"  ³»¿ë: {contents}")
+                print(f"  ë‚´ìš©: {contents}")
             except Exception as e:
-                print(f"  ³»¿ë È®ÀÎ ½ÇÆĞ: {e}")
+                print(f"  ë‚´ìš© í™•ì¸ ì‹¤íŒ¨: {e}")
             
-            # µğ·ºÅÍ¸®¿¡ ¾²±â ±ÇÇÑÀÌ ÀÖ´ÂÁö È®ÀÎ
+            # ë””ë ‰í„°ë¦¬ì— ì“°ê¸° ê¶Œí•œì´ ìˆëŠ”ì§€ í™•ì¸
             try:
                 test_file = os.path.join(path, 'test_write.tmp')
                 with open(test_file, 'w') as f:
                     f.write('test')
                 os.remove(test_file)
                 persistent_disk_path = path
-                print(f"? ¾²±â ±ÇÇÑ È®ÀÎ: {path}")
+                print(f"? ì“°ê¸° ê¶Œí•œ í™•ì¸: {path}")
                 break
             except Exception as e:
-                print(f"? ¾²±â ±ÇÇÑ ¾øÀ½: {path} - {e}")
+                print(f"? ì“°ê¸° ê¶Œí•œ ì—†ìŒ: {path} - {e}")
         else:
-            print(f"? ¾øÀ½: {path}")
+            print(f"? ì—†ìŒ: {path}")
     
-    # Persistent Disk µğ·ºÅÍ¸® È®ÀÎ ¹× »ı¼º
+    # Persistent Disk ë””ë ‰í„°ë¦¬ í™•ì¸ ë° ìƒì„±
     if persistent_disk_path:
-        # Persistent Disk°¡ ¸¶¿îÆ®µÈ °æ¿ì
+        # Persistent Diskê°€ ë§ˆìš´íŠ¸ëœ ê²½ìš°
         DB_PATH = os.path.join(persistent_disk_path, 'company_database.db')
-        print(f"\n? »ç¿ëÇÒ DB °æ·Î: {DB_PATH}")
+        print(f"\n? ì‚¬ìš©í•  DB ê²½ë¡œ: {DB_PATH}")
         
-        # ±âÁ¸ DB ÆÄÀÏ È®ÀÎ
+        # ê¸°ì¡´ DB íŒŒì¼ í™•ì¸
         if os.path.exists(DB_PATH):
-            print(f"? ±âÁ¸ DB ÆÄÀÏ ¹ß°ß: {DB_PATH}")
+            print(f"? ê¸°ì¡´ DB íŒŒì¼ ë°œê²¬: {DB_PATH}")
         else:
-            print(f"»õ DB ÆÄÀÏ »ı¼º ¿¹Á¤: {DB_PATH}")
+            print(f"ìƒˆ DB íŒŒì¼ ìƒì„± ì˜ˆì •: {DB_PATH}")
         
-        # µğ·ºÅÍ¸® »ı¼º ½Ãµµ
+        # ë””ë ‰í„°ë¦¬ ìƒì„± ì‹œë„
         try:
             os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-            print(f"? DB µğ·ºÅÍ¸® ÁØºñ ¿Ï·á: {os.path.dirname(DB_PATH)}")
+            print(f"? DB ë””ë ‰í„°ë¦¬ ì¤€ë¹„ ì™„ë£Œ: {os.path.dirname(DB_PATH)}")
         except Exception as e:
-            print(f"? DB µğ·ºÅÍ¸® »ı¼º ½ÇÆĞ: {e}")
+            print(f"? DB ë””ë ‰í„°ë¦¬ ìƒì„± ì‹¤íŒ¨: {e}")
     else:
-        print("\n? »ç¿ë °¡´ÉÇÑ Persistent Disk °æ·Î¸¦ Ã£À» ¼ö ¾øÀ½")
-        # Persistent Disk°¡ ¾ø´Â °æ¿ì (±âÁ¸ ·ÎÁ÷ À¯Áö)
-        # 1¼øÀ§: ±âÁ¸ DB ÆÄÀÏÀÌ ÀÖÀ¸¸é °è¼Ó »ç¿ë (µ¥ÀÌÅÍ º¸Á¸)
+        print("\n? ì‚¬ìš© ê°€ëŠ¥í•œ Persistent Disk ê²½ë¡œë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŒ")
+        # Persistent Diskê°€ ì—†ëŠ” ê²½ìš° (ê¸°ì¡´ ë¡œì§ ìœ ì§€)
+        # 1ìˆœìœ„: ê¸°ì¡´ DB íŒŒì¼ì´ ìˆìœ¼ë©´ ê³„ì† ì‚¬ìš© (ë°ì´í„° ë³´ì¡´)
         existing_db = os.path.join(app_dir, 'company_database.db')
         if os.path.exists(existing_db):
             DB_PATH = existing_db
             print(f"Using existing DB (no persistent disk): {DB_PATH}")
         else:
-            # 2¼øÀ§: ±âÁ¸ DB°¡ ¾øÀ¸¸é data Æú´õ¿¡ »õ·Î »ı¼º
+            # 2ìˆœìœ„: ê¸°ì¡´ DBê°€ ì—†ìœ¼ë©´ data í´ë”ì— ìƒˆë¡œ ìƒì„±
             db_dir = os.path.join(app_dir, 'data')
             os.makedirs(db_dir, exist_ok=True)
             DB_PATH = os.path.join(db_dir, 'company_info.db')
             print(f"Creating new DB (no persistent disk): {DB_PATH}")
 else:
-    # ·ÎÄÃ °³¹ß È¯°æ - ±âÁ¸ ÆÄÀÏ »ç¿ë
+    # ë¡œì»¬ ê°œë°œ í™˜ê²½ - ê¸°ì¡´ íŒŒì¼ ì‚¬ìš©
     DB_PATH = os.path.join(app_dir, 'company_database.db')
     print(f"Local DB: {DB_PATH}")
 
-# --- DB ¿¬°á ÇÔ¼ö ¹× »ç¿ëÀÚ °èÁ¤ ---
+# --- DB ì—°ê²° í•¨ìˆ˜ ë° ì‚¬ìš©ì ê³„ì • ---
 def get_db_connection():
-    """µ¥ÀÌÅÍº£ÀÌ½º ¿¬°áÀ» ¹İÈ¯ÇÕ´Ï´Ù. Persistent Disk Áö¿ø"""
+    """ë°ì´í„°ë² ì´ìŠ¤ ì—°ê²°ì„ ë°˜í™˜í•©ë‹ˆë‹¤. Persistent Disk ì§€ì›"""
     try:
-        # µ¥ÀÌÅÍº£ÀÌ½º µğ·ºÅÍ¸®°¡ ¾øÀ¸¸é »ı¼º
+        # ë°ì´í„°ë² ì´ìŠ¤ ë””ë ‰í„°ë¦¬ê°€ ì—†ìœ¼ë©´ ìƒì„±
         db_dir = os.path.dirname(DB_PATH)
         if db_dir and not os.path.exists(db_dir):
             os.makedirs(db_dir, exist_ok=True)
@@ -226,7 +226,7 @@ def get_db_connection():
         conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         
-        # ¿¬°á Å×½ºÆ® ¹× ±âº» Å×ÀÌºí È®ÀÎ
+        # ì—°ê²° í…ŒìŠ¤íŠ¸ ë° ê¸°ë³¸ í…Œì´ë¸” í™•ì¸
         try:
             conn.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1").fetchone()
             return conn
@@ -239,23 +239,23 @@ def get_db_connection():
         print(f"Database connection error: {e}")
         print(f"DB_PATH was: {DB_PATH}")
         
-        # ¿¬°á ½ÇÆĞ ½Ã °­Á¦·Î »õ DB »ı¼º ½Ãµµ
+        # ì—°ê²° ì‹¤íŒ¨ ì‹œ ê°•ì œë¡œ ìƒˆ DB ìƒì„± ì‹œë„
         try:
-            # ÀÓ½Ã DB °æ·Î·Î Àç½Ãµµ
+            # ì„ì‹œ DB ê²½ë¡œë¡œ ì¬ì‹œë„
             temp_db_path = os.path.join(app_dir, 'emergency_database.db')
             print(f"Attempting emergency DB creation at: {temp_db_path}")
             
             conn = sqlite3.connect(temp_db_path, check_same_thread=False)
             conn.row_factory = sqlite3.Row
             
-            # ±âº» Å×ÀÌºíµé »ı¼º
+            # ê¸°ë³¸ í…Œì´ë¸”ë“¤ ìƒì„±
             init_emergency_database(conn)
             
             return conn
             
         except Exception as emergency_error:
             print(f"Emergency DB creation failed: {emergency_error}")
-            # ÃÖÈÄÀÇ ¼ö´Ü: ¸Ş¸ğ¸® DB + ±âº» Å×ÀÌºí »ı¼º
+            # ìµœí›„ì˜ ìˆ˜ë‹¨: ë©”ëª¨ë¦¬ DB + ê¸°ë³¸ í…Œì´ë¸” ìƒì„±
             print("Using in-memory database with basic tables")
             conn = sqlite3.connect(':memory:', check_same_thread=False)
             conn.row_factory = sqlite3.Row
@@ -263,18 +263,18 @@ def get_db_connection():
             return conn
 
 def init_emergency_database(conn):
-    """ÀÀ±Ş »óÈ²¿ë ±âº» µ¥ÀÌÅÍº£ÀÌ½º Å×ÀÌºíµéÀ» »ı¼ºÇÕ´Ï´Ù."""
+    """ì‘ê¸‰ ìƒí™©ìš© ê¸°ë³¸ ë°ì´í„°ë² ì´ìŠ¤ í…Œì´ë¸”ë“¤ì„ ìƒì„±í•©ë‹ˆë‹¤."""
     try:
-        # Users Å×ÀÌºí »ı¼º
+        # Users í…Œì´ë¸” ìƒì„±
         conn.execute('''
             CREATE TABLE IF NOT EXISTS Users (
                 user_id TEXT PRIMARY KEY,
                 password TEXT NOT NULL,
                 name TEXT NOT NULL,
                 user_level TEXT NOT NULL DEFAULT 'N',
-                user_level_name TEXT NOT NULL DEFAULT 'ÀÏ¹İ´ã´çÀÚ',
+                user_level_name TEXT NOT NULL DEFAULT 'ì¼ë°˜ë‹´ë‹¹ì',
                 branch_code TEXT NOT NULL DEFAULT 'DEFAULT',
-                branch_name TEXT NOT NULL DEFAULT '±âº»ÁöÁ¡',
+                branch_name TEXT NOT NULL DEFAULT 'ê¸°ë³¸ì§€ì ',
                 phone TEXT,
                 email TEXT,
                 status TEXT NOT NULL DEFAULT 'ACTIVE',
@@ -283,14 +283,14 @@ def init_emergency_database(conn):
             )
         ''')
         
-        # ±âº» °ü¸®ÀÚ °èÁ¤ »ğÀÔ (ÇÏµåÄÚµùµÈ °Í°ú º°µµ·Î)
+        # ê¸°ë³¸ ê´€ë¦¬ì ê³„ì • ì‚½ì… (í•˜ë“œì½”ë”©ëœ ê²ƒê³¼ ë³„ë„ë¡œ)
         conn.execute('''
             INSERT OR IGNORE INTO Users 
             (user_id, password, name, user_level, user_level_name, branch_code, branch_name, phone)
-            VALUES ('admin', 'admin123!', '½Ã½ºÅÛ°ü¸®ÀÚ', 'V', '¸ŞÀÎ°ü¸®ÀÚ', 'SYSTEM', '½Ã½ºÅÛ', '010-0000-0000')
+            VALUES ('admin', 'admin123!', 'ì‹œìŠ¤í…œê´€ë¦¬ì', 'V', 'ë©”ì¸ê´€ë¦¬ì', 'SYSTEM', 'ì‹œìŠ¤í…œ', '010-0000-0000')
         ''')
         
-        # ±âº»ÀûÀÎ ´Ù¸¥ Å×ÀÌºíµéµµ »ı¼º
+        # ê¸°ë³¸ì ì¸ ë‹¤ë¥¸ í…Œì´ë¸”ë“¤ë„ ìƒì„±
         conn.execute('''
             CREATE TABLE IF NOT EXISTS Company_Basic (
                 biz_no TEXT PRIMARY KEY,
@@ -322,9 +322,9 @@ def init_emergency_database(conn):
     except Exception as e:
         print(f"Error creating emergency database: {e}")
 
-# ±¸µ¶ Á¤º¸ Á¶È¸ ÇÔ¼ö
+# êµ¬ë… ì •ë³´ ì¡°íšŒ í•¨ìˆ˜
 def get_user_subscription_info(user_id):
-    """»ç¿ëÀÚÀÇ ±¸µ¶ Á¤º¸¸¦ Á¶È¸ÇÕ´Ï´Ù."""
+    """ì‚¬ìš©ìì˜ êµ¬ë… ì •ë³´ë¥¼ ì¡°íšŒí•©ë‹ˆë‹¤."""
     conn = get_db_connection()
     try:
         subscription = conn.execute('''
@@ -337,7 +337,7 @@ def get_user_subscription_info(user_id):
             from datetime import datetime
             import pytz
             
-            # ÇÑ±¹ ½Ã°£´ë·Î ÇöÀç ³¯Â¥ °è»ê
+            # í•œêµ­ ì‹œê°„ëŒ€ë¡œ í˜„ì¬ ë‚ ì§œ ê³„ì‚°
             korea_tz = pytz.timezone('Asia/Seoul')
             now = datetime.now(korea_tz)
             end_date = datetime.strptime(subscription['subscription_end_date'], '%Y-%m-%d')
@@ -356,23 +356,23 @@ def get_user_subscription_info(user_id):
     finally:
         conn.close()
 
-# »ç¿ëÀÚ Å×ÀÌºí ÃÊ±âÈ­ ÇÔ¼ö
+# ì‚¬ìš©ì í…Œì´ë¸” ì´ˆê¸°í™” í•¨ìˆ˜
 def init_user_tables():
-    """»ç¿ëÀÚ °ü¸® Å×ÀÌºíµéÀ» ÃÊ±âÈ­ÇÕ´Ï´Ù. (±âÁ¸ µ¥ÀÌÅÍ º¸Á¸)"""
+    """ì‚¬ìš©ì ê´€ë¦¬ í…Œì´ë¸”ë“¤ì„ ì´ˆê¸°í™”í•©ë‹ˆë‹¤. (ê¸°ì¡´ ë°ì´í„° ë³´ì¡´)"""
     conn = get_db_connection()
     try:
-        # ±âÁ¸ Users Å×ÀÌºí Á¸Àç ¿©ºÎ È®ÀÎ
+        # ê¸°ì¡´ Users í…Œì´ë¸” ì¡´ì¬ ì—¬ë¶€ í™•ì¸
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Users';")
         users_exists = cursor.fetchone()
         
         if users_exists:
-            # ±âÁ¸ »ç¿ëÀÚ µ¥ÀÌÅÍ°¡ ÀÖ´ÂÁö È®ÀÎ
+            # ê¸°ì¡´ ì‚¬ìš©ì ë°ì´í„°ê°€ ìˆëŠ”ì§€ í™•ì¸
             cursor.execute("SELECT COUNT(*) FROM Users")
             user_count = cursor.fetchone()[0]
             if user_count > 0:
                 print("User tables already exist with data - skipping initialization")
-                # Signup_Requests¿Í Password_History Å×ÀÌºí¸¸ »ı¼º (¾ø´Â °æ¿ì)
+                # Signup_Requestsì™€ Password_History í…Œì´ë¸”ë§Œ ìƒì„± (ì—†ëŠ” ê²½ìš°)
                 conn.execute('''
                     CREATE TABLE IF NOT EXISTS Signup_Requests (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -384,7 +384,7 @@ def init_user_tables():
                         branch_name TEXT NOT NULL,
                         birth_date TEXT,
                         gender TEXT CHECK (gender IN ('M', 'F')),
-                        position TEXT DEFAULT 'ÆÀÀå',
+                        position TEXT DEFAULT 'íŒ€ì¥',
                         purpose TEXT,
                         status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
                         requested_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -404,7 +404,7 @@ def init_user_tables():
                     )
                 ''')
                 
-                # ±¸µ¶ °ü¸® Å×ÀÌºí »ı¼º
+                # êµ¬ë… ê´€ë¦¬ í…Œì´ë¸” ìƒì„±
                 conn.execute('''
                     CREATE TABLE IF NOT EXISTS User_Subscriptions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -420,7 +420,7 @@ def init_user_tables():
                     )
                 ''')
                 
-                # °áÁ¦ ÀÌ·Â Å×ÀÌºí »ı¼º
+                # ê²°ì œ ì´ë ¥ í…Œì´ë¸” ìƒì„±
                 conn.execute('''
                     CREATE TABLE IF NOT EXISTS Payment_History (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -438,19 +438,19 @@ def init_user_tables():
                 print("User tables initialized successfully")
                 return
         
-        # SQL ÆÄÀÏÀÌ ÀÖÀ¸¸é »ç¿ë, ¾øÀ¸¸é ±âº» Å×ÀÌºí »ı¼º
+        # SQL íŒŒì¼ì´ ìˆìœ¼ë©´ ì‚¬ìš©, ì—†ìœ¼ë©´ ê¸°ë³¸ í…Œì´ë¸” ìƒì„±
         sql_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'create_user_table.sql')
         if os.path.exists(sql_file_path):
             try:
-                # CP949 ÀÎÄÚµùÀ¸·Î ¸ÕÀú ½Ãµµ
+                # CP949 ì¸ì½”ë”©ìœ¼ë¡œ ë¨¼ì € ì‹œë„
                 with open(sql_file_path, 'r', encoding='cp949') as f:
                     sql_script = f.read()
             except UnicodeDecodeError:
-                # UTF-8·Î Àç½Ãµµ
+                # UTF-8ë¡œ ì¬ì‹œë„
                 with open(sql_file_path, 'r', encoding='utf-8') as f:
                     sql_script = f.read()
             
-            # °¢ SQL ¹®À» ºĞ¸®ÇÏ¿© ½ÇÇà
+            # ê° SQL ë¬¸ì„ ë¶„ë¦¬í•˜ì—¬ ì‹¤í–‰
             for statement in sql_script.split(';'):
                 statement = statement.strip()
                 if statement and not statement.startswith('--'):
@@ -462,7 +462,7 @@ def init_user_tables():
             print("User tables initialized successfully")
         else:
             print("SQL file not found, creating minimal user tables")
-            # ±âº» Å×ÀÌºíµé »ı¼º (±âÁ¸ µ¥ÀÌÅÍ º¸Á¸)
+            # ê¸°ë³¸ í…Œì´ë¸”ë“¤ ìƒì„± (ê¸°ì¡´ ë°ì´í„° ë³´ì¡´)
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS Users (
                     user_id TEXT PRIMARY KEY,
@@ -503,7 +503,7 @@ def init_user_tables():
                     branch_name TEXT NOT NULL,
                     birth_date TEXT,
                     gender TEXT CHECK (gender IN ('M', 'F')),
-                    position TEXT DEFAULT 'ÆÀÀå',
+                    position TEXT DEFAULT 'íŒ€ì¥',
                     purpose TEXT,
                     status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
                     requested_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -520,14 +520,14 @@ def init_user_tables():
     finally:
         conn.close()
 
-# ¿µ¾÷ ÆÄÀÌÇÁ¶óÀÎ Å×ÀÌºí ÃÊ±âÈ­ ÇÔ¼ö
+# ì˜ì—… íŒŒì´í”„ë¼ì¸ í…Œì´ë¸” ì´ˆê¸°í™” í•¨ìˆ˜
 def init_pipeline_tables():
-    """¿µ¾÷ ÆÄÀÌÇÁ¶óÀÎ °ü¸® Å×ÀÌºí ÃÊ±âÈ­"""
+    """ì˜ì—… íŒŒì´í”„ë¼ì¸ ê´€ë¦¬ í…Œì´ë¸” ì´ˆê¸°í™”"""
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
-        # °ü½É ±â¾÷ °ü¸® Å×ÀÌºí
+        # ê´€ì‹¬ ê¸°ì—… ê´€ë¦¬ í…Œì´ë¸”
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS managed_companies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -549,7 +549,7 @@ def init_pipeline_tables():
         )
         ''')
         
-        # Á¢ÃË ÀÌ·Â Å×ÀÌºí (ÆÄÀÌÇÁ¶óÀÎ¿ë)
+        # ì ‘ì´‰ ì´ë ¥ í…Œì´ë¸” (íŒŒì´í”„ë¼ì¸ìš©)
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS pipeline_contact_history (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -566,7 +566,7 @@ def init_pipeline_tables():
         )
         ''')
         
-        # ÀÎµ¦½º »ı¼º
+        # ì¸ë±ìŠ¤ ìƒì„±
         indexes = [
             'CREATE INDEX IF NOT EXISTS idx_managed_companies_biz_no ON managed_companies(biz_reg_no)',
             'CREATE INDEX IF NOT EXISTS idx_managed_companies_manager ON managed_companies(manager_id)',
@@ -581,21 +581,21 @@ def init_pipeline_tables():
             cursor.execute(index_sql)
         
         conn.commit()
-        print("¿µ¾÷ ÆÄÀÌÇÁ¶óÀÎ Å×ÀÌºí ÃÊ±âÈ­ ¿Ï·á")
+        print("ì˜ì—… íŒŒì´í”„ë¼ì¸ í…Œì´ë¸” ì´ˆê¸°í™” ì™„ë£Œ")
         
     except Exception as e:
-        print(f"¿µ¾÷ ÆÄÀÌÇÁ¶óÀÎ Å×ÀÌºí ÃÊ±âÈ­ ½ÇÆĞ: {e}")
+        print(f"ì˜ì—… íŒŒì´í”„ë¼ì¸ í…Œì´ë¸” ì´ˆê¸°í™” ì‹¤íŒ¨: {e}")
         conn.rollback()
         raise e
     finally:
         conn.close()
 
-# ¸ŞÀÎ ºñÁî´Ï½º Å×ÀÌºí ÃÊ±âÈ­ ÇÔ¼ö
+# ë©”ì¸ ë¹„ì¦ˆë‹ˆìŠ¤ í…Œì´ë¸” ì´ˆê¸°í™” í•¨ìˆ˜
 def init_business_tables():
-    """¸ŞÀÎ ºñÁî´Ï½º Å×ÀÌºíµéÀ» ÃÊ±âÈ­ÇÕ´Ï´Ù. (±âÁ¸ µ¥ÀÌÅÍ º¸Á¸)"""
+    """ë©”ì¸ ë¹„ì¦ˆë‹ˆìŠ¤ í…Œì´ë¸”ë“¤ì„ ì´ˆê¸°í™”í•©ë‹ˆë‹¤. (ê¸°ì¡´ ë°ì´í„° ë³´ì¡´)"""
     conn = get_db_connection()
     try:
-        # ±âÁ¸ Å×ÀÌºí Á¸Àç ¿©ºÎ È®ÀÎ
+        # ê¸°ì¡´ í…Œì´ë¸” ì¡´ì¬ ì—¬ë¶€ í™•ì¸
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Company_Basic';")
         company_basic_exists = cursor.fetchone()
@@ -604,10 +604,10 @@ def init_business_tables():
             print("Business tables already exist with data - skipping initialization")
             return
         
-        # Å×ÀÌºíÀÌ ¾ø´Â °æ¿ì¿¡¸¸ »ı¼º
+        # í…Œì´ë¸”ì´ ì—†ëŠ” ê²½ìš°ì—ë§Œ ìƒì„±
         print("Creating new business tables...")
         
-        # ±â¾÷Á¤º¸ Å×ÀÌºí »ı¼º
+        # ê¸°ì—…ì •ë³´ í…Œì´ë¸” ìƒì„±
         conn.execute('''
             CREATE TABLE IF NOT EXISTS Companies (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -632,7 +632,7 @@ def init_business_tables():
             )
         ''')
         
-        # ¿¬¶ôÃ³ Å×ÀÌºí »ı¼º
+        # ì—°ë½ì²˜ í…Œì´ë¸” ìƒì„±
         conn.execute('''
             CREATE TABLE IF NOT EXISTS Contacts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -652,7 +652,7 @@ def init_business_tables():
             )
         ''')
         
-        # ºñ¿ëµî·Ï Å×ÀÌºí »ı¼º
+        # ë¹„ìš©ë“±ë¡ í…Œì´ë¸” ìƒì„±
         conn.execute('''
             CREATE TABLE IF NOT EXISTS Expenses (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -669,7 +669,7 @@ def init_business_tables():
             )
         ''')
         
-        # C-Level °³Ã´°ü¸® Å×ÀÌºí »ı¼º
+        # C-Level ê°œì²™ê´€ë¦¬ í…Œì´ë¸” ìƒì„±
         conn.execute('''
             CREATE TABLE IF NOT EXISTS CLevel_Targets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -688,7 +688,7 @@ def init_business_tables():
             )
         ''')
         
-        # °³Ã´´ë»ó ±â¾÷ Å×ÀÌºí »ı¼º
+        # ê°œì²™ëŒ€ìƒ ê¸°ì—… í…Œì´ë¸” ìƒì„±
         conn.execute('''
             CREATE TABLE IF NOT EXISTS Pioneering_Targets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -706,14 +706,14 @@ def init_business_tables():
             )
         ''')
         
-        # ¿µ¾÷ºñ¿ë Å×ÀÌºí »ı¼º
+        # ì˜ì—…ë¹„ìš© í…Œì´ë¸” ìƒì„±
         conn.execute('''
             CREATE TABLE IF NOT EXISTS Sales_Expenses (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 expense_date DATE NOT NULL,
-                expense_type TEXT NOT NULL CHECK (expense_type IN ('½Ä´ë', '±³Åëºñ', 'ÁÖÂ÷ºñ', '°æÁ¶»ç', '¿ìÆí·á', '±âÅ¸')),
+                expense_type TEXT NOT NULL CHECK (expense_type IN ('ì‹ëŒ€', 'êµí†µë¹„', 'ì£¼ì°¨ë¹„', 'ê²½ì¡°ì‚¬', 'ìš°í¸ë£Œ', 'ê¸°íƒ€')),
                 amount INTEGER NOT NULL,
-                payment_method TEXT NOT NULL CHECK (payment_method IN ('¹ıÀÎÄ«µå', '°³ÀÎÄ«µå', 'Çö±İ')),
+                payment_method TEXT NOT NULL CHECK (payment_method IN ('ë²•ì¸ì¹´ë“œ', 'ê°œì¸ì¹´ë“œ', 'í˜„ê¸ˆ')),
                 description TEXT,
                 receipt_file TEXT,
                 registered_by TEXT NOT NULL,
@@ -731,46 +731,46 @@ def init_business_tables():
     finally:
         conn.close()
 
-# ÆĞ½º¿öµå ±ÔÄ¢ °ËÁõ ÇÔ¼ö
+# íŒ¨ìŠ¤ì›Œë“œ ê·œì¹™ ê²€ì¦ í•¨ìˆ˜
 def validate_password(password):
     """
-    ÆĞ½º¿öµå ±ÔÄ¢À» °ËÁõÇÕ´Ï´Ù.
-    ±ÔÄ¢: 8ÀÚ ÀÌ»ó, ¿µ¹® ´ë/¼Ò¹®ÀÚ, ¼ıÀÚ, Æ¯¼ö¹®ÀÚ Á¶ÇÕ
+    íŒ¨ìŠ¤ì›Œë“œ ê·œì¹™ì„ ê²€ì¦í•©ë‹ˆë‹¤.
+    ê·œì¹™: 8ì ì´ìƒ, ì˜ë¬¸ ëŒ€/ì†Œë¬¸ì, ìˆ«ì, íŠ¹ìˆ˜ë¬¸ì ì¡°í•©
     """
     import re
     
     if len(password) < 8:
-        return False, "ºñ¹Ğ¹øÈ£´Â 8ÀÚ ÀÌ»óÀÌ¾î¾ß ÇÕ´Ï´Ù."
+        return False, "ë¹„ë°€ë²ˆí˜¸ëŠ” 8ì ì´ìƒì´ì–´ì•¼ í•©ë‹ˆë‹¤."
     
     if len(password) > 20:
-        return False, "ºñ¹Ğ¹øÈ£´Â 20ÀÚ ÀÌÇÏ¿©¾ß ÇÕ´Ï´Ù."
+        return False, "ë¹„ë°€ë²ˆí˜¸ëŠ” 20ì ì´í•˜ì—¬ì•¼ í•©ë‹ˆë‹¤."
     
-    # ¿µ¹® ´ë¹®ÀÚ Æ÷ÇÔ ¿©ºÎ
+    # ì˜ë¬¸ ëŒ€ë¬¸ì í¬í•¨ ì—¬ë¶€
     if not re.search(r'[A-Z]', password):
-        return False, "ºñ¹Ğ¹øÈ£¿¡ ¿µ¹® ´ë¹®ÀÚ°¡ Æ÷ÇÔµÇ¾î¾ß ÇÕ´Ï´Ù."
+        return False, "ë¹„ë°€ë²ˆí˜¸ì— ì˜ë¬¸ ëŒ€ë¬¸ìê°€ í¬í•¨ë˜ì–´ì•¼ í•©ë‹ˆë‹¤."
     
-    # ¿µ¹® ¼Ò¹®ÀÚ Æ÷ÇÔ ¿©ºÎ
+    # ì˜ë¬¸ ì†Œë¬¸ì í¬í•¨ ì—¬ë¶€
     if not re.search(r'[a-z]', password):
-        return False, "ºñ¹Ğ¹øÈ£¿¡ ¿µ¹® ¼Ò¹®ÀÚ°¡ Æ÷ÇÔµÇ¾î¾ß ÇÕ´Ï´Ù."
+        return False, "ë¹„ë°€ë²ˆí˜¸ì— ì˜ë¬¸ ì†Œë¬¸ìê°€ í¬í•¨ë˜ì–´ì•¼ í•©ë‹ˆë‹¤."
     
-    # ¼ıÀÚ Æ÷ÇÔ ¿©ºÎ
+    # ìˆ«ì í¬í•¨ ì—¬ë¶€
     if not re.search(r'[0-9]', password):
-        return False, "ºñ¹Ğ¹øÈ£¿¡ ¼ıÀÚ°¡ Æ÷ÇÔµÇ¾î¾ß ÇÕ´Ï´Ù."
+        return False, "ë¹„ë°€ë²ˆí˜¸ì— ìˆ«ìê°€ í¬í•¨ë˜ì–´ì•¼ í•©ë‹ˆë‹¤."
     
-    # Æ¯¼ö¹®ÀÚ Æ÷ÇÔ ¿©ºÎ
+    # íŠ¹ìˆ˜ë¬¸ì í¬í•¨ ì—¬ë¶€
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-        return False, "ºñ¹Ğ¹øÈ£¿¡ Æ¯¼ö¹®ÀÚ(!@#$%^&*(),.?\":{}|<>)°¡ Æ÷ÇÔµÇ¾î¾ß ÇÕ´Ï´Ù."
+        return False, "ë¹„ë°€ë²ˆí˜¸ì— íŠ¹ìˆ˜ë¬¸ì(!@#$%^&*(),.?\":{}|<>)ê°€ í¬í•¨ë˜ì–´ì•¼ í•©ë‹ˆë‹¤."
     
-    return True, "À¯È¿ÇÑ ºñ¹Ğ¹øÈ£ÀÔ´Ï´Ù."
+    return True, "ìœ íš¨í•œ ë¹„ë°€ë²ˆí˜¸ì…ë‹ˆë‹¤."
 
-# ÆĞ½º¿öµå ÀÌ·Â È®ÀÎ ÇÔ¼ö
+# íŒ¨ìŠ¤ì›Œë“œ ì´ë ¥ í™•ì¸ í•¨ìˆ˜
 def check_password_history(user_id, new_password, history_count=5):
     """
-    »ç¿ëÀÚÀÇ ÃÖ±Ù ÆĞ½º¿öµå ÀÌ·ÂÀ» È®ÀÎÇÏ¿© Áßº¹ »ç¿ëÀ» ¹æÁöÇÕ´Ï´Ù.
+    ì‚¬ìš©ìì˜ ìµœê·¼ íŒ¨ìŠ¤ì›Œë“œ ì´ë ¥ì„ í™•ì¸í•˜ì—¬ ì¤‘ë³µ ì‚¬ìš©ì„ ë°©ì§€í•©ë‹ˆë‹¤.
     """
     conn = get_db_connection()
     try:
-        # ÃÖ±Ù »ç¿ëÇÑ ÆĞ½º¿öµå Á¶È¸ (ÃÖ´ë history_count°³)
+        # ìµœê·¼ ì‚¬ìš©í•œ íŒ¨ìŠ¤ì›Œë“œ ì¡°íšŒ (ìµœëŒ€ history_countê°œ)
         recent_passwords = conn.execute('''
             SELECT password FROM Password_History 
             WHERE user_id = ? 
@@ -778,30 +778,30 @@ def check_password_history(user_id, new_password, history_count=5):
             LIMIT ?
         ''', (user_id, history_count)).fetchall()
         
-        # ÇöÀç »ç¿ë ÁßÀÎ ÆĞ½º¿öµåµµ È®ÀÎ
+        # í˜„ì¬ ì‚¬ìš© ì¤‘ì¸ íŒ¨ìŠ¤ì›Œë“œë„ í™•ì¸
         current_password = conn.execute('''
             SELECT password FROM Users WHERE user_id = ?
         ''', (user_id,)).fetchone()
         
         if current_password and current_password['password'] == new_password:
-            return False, "ÇöÀç »ç¿ë ÁßÀÎ ºñ¹Ğ¹øÈ£¿Í µ¿ÀÏÇÕ´Ï´Ù."
+            return False, "í˜„ì¬ ì‚¬ìš© ì¤‘ì¸ ë¹„ë°€ë²ˆí˜¸ì™€ ë™ì¼í•©ë‹ˆë‹¤."
         
         for row in recent_passwords:
             if row['password'] == new_password:
-                return False, f"ÃÖ±Ù {history_count}°³ÀÇ ºñ¹Ğ¹øÈ£ Áß ÀÌ¹Ì »ç¿ëÇÑ ºñ¹Ğ¹øÈ£ÀÔ´Ï´Ù."
+                return False, f"ìµœê·¼ {history_count}ê°œì˜ ë¹„ë°€ë²ˆí˜¸ ì¤‘ ì´ë¯¸ ì‚¬ìš©í•œ ë¹„ë°€ë²ˆí˜¸ì…ë‹ˆë‹¤."
         
-        return True, "»ç¿ë °¡´ÉÇÑ ºñ¹Ğ¹øÈ£ÀÔ´Ï´Ù."
+        return True, "ì‚¬ìš© ê°€ëŠ¥í•œ ë¹„ë°€ë²ˆí˜¸ì…ë‹ˆë‹¤."
     finally:
         conn.close()
 
-# ÆĞ½º¿öµå ÀÌ·Â ÀúÀå ÇÔ¼ö
+# íŒ¨ìŠ¤ì›Œë“œ ì´ë ¥ ì €ì¥ í•¨ìˆ˜
 def save_password_history(user_id, password):
     """
-    ÆĞ½º¿öµå º¯°æ ½Ã ÀÌ·ÂÀ» ÀúÀåÇÕ´Ï´Ù.
+    íŒ¨ìŠ¤ì›Œë“œ ë³€ê²½ ì‹œ ì´ë ¥ì„ ì €ì¥í•©ë‹ˆë‹¤.
     """
     conn = get_db_connection()
     try:
-        # ÇöÀç ÆĞ½º¿öµå¸¦ ÀÌ·Â¿¡ ÀúÀå
+        # í˜„ì¬ íŒ¨ìŠ¤ì›Œë“œë¥¼ ì´ë ¥ì— ì €ì¥
         current_password = conn.execute('''
             SELECT password FROM Users WHERE user_id = ?
         ''', (user_id,)).fetchone()
@@ -812,7 +812,7 @@ def save_password_history(user_id, password):
                 VALUES (?, ?)
             ''', (user_id, current_password['password']))
         
-        # ¿À·¡µÈ ÀÌ·Â Á¤¸® (ÃÖ±Ù 10°³¸¸ À¯Áö)
+        # ì˜¤ë˜ëœ ì´ë ¥ ì •ë¦¬ (ìµœê·¼ 10ê°œë§Œ ìœ ì§€)
         conn.execute('''
             DELETE FROM Password_History 
             WHERE user_id = ? AND id NOT IN (
@@ -830,9 +830,9 @@ def save_password_history(user_id, password):
     finally:
         conn.close()
 
-# »ç¿ëÀÚ ÀÎÁõ ÇÔ¼ö
+# ì‚¬ìš©ì ì¸ì¦ í•¨ìˆ˜
 def authenticate_user(user_id, password):
-    """»ç¿ëÀÚ ÀÎÁõÀ» ¼öÇàÇÕ´Ï´Ù."""
+    """ì‚¬ìš©ì ì¸ì¦ì„ ìˆ˜í–‰í•©ë‹ˆë‹¤."""
     conn = get_db_connection()
     try:
         user = conn.execute(
@@ -841,7 +841,7 @@ def authenticate_user(user_id, password):
         ).fetchone()
         
         if user and user['password'] == password:
-            # ¸¶Áö¸· ·Î±×ÀÎ ½Ã°£ ¾÷µ¥ÀÌÆ®
+            # ë§ˆì§€ë§‰ ë¡œê·¸ì¸ ì‹œê°„ ì—…ë°ì´íŠ¸
             conn.execute(
                 "UPDATE Users SET last_login = CURRENT_TIMESTAMP WHERE user_id = ?",
                 (user_id,)
@@ -855,9 +855,9 @@ def authenticate_user(user_id, password):
     finally:
         conn.close()
 
-# »ç¿ëÀÚ Á¤º¸ Á¶È¸ ÇÔ¼ö
+# ì‚¬ìš©ì ì •ë³´ ì¡°íšŒ í•¨ìˆ˜
 def get_user_info(user_id):
-    """»ç¿ëÀÚ Á¤º¸¸¦ Á¶È¸ÇÕ´Ï´Ù."""
+    """ì‚¬ìš©ì ì •ë³´ë¥¼ ì¡°íšŒí•©ë‹ˆë‹¤."""
     conn = get_db_connection()
     try:
         user = conn.execute(
@@ -871,25 +871,25 @@ def get_user_info(user_id):
     finally:
         conn.close()
 
-# ±ÇÇÑ È®ÀÎ ÇÔ¼ö
+# ê¶Œí•œ í™•ì¸ í•¨ìˆ˜
 def check_permission(user_level, required_level):
-    """»ç¿ëÀÚ ±ÇÇÑÀ» È®ÀÎÇÕ´Ï´Ù."""
+    """ì‚¬ìš©ì ê¶Œí•œì„ í™•ì¸í•©ë‹ˆë‹¤."""
     level_hierarchy = {'V': 4, 'S': 3, 'M': 2, 'N': 1}
     return level_hierarchy.get(user_level, 0) >= level_hierarchy.get(required_level, 0)
 
-# ¾Û ½ÃÀÛ ½Ã µ¥ÀÌÅÍº£ÀÌ½º ¹× »ç¿ëÀÚ Å×ÀÌºí ÃÊ±âÈ­
+# ì•± ì‹œì‘ ì‹œ ë°ì´í„°ë² ì´ìŠ¤ ë° ì‚¬ìš©ì í…Œì´ë¸” ì´ˆê¸°í™”
 def initialize_application():
-    """¾ÖÇÃ¸®ÄÉÀÌ¼Ç ÃÊ±âÈ­ ÇÔ¼ö"""
+    """ì• í”Œë¦¬ì¼€ì´ì…˜ ì´ˆê¸°í™” í•¨ìˆ˜"""
     print("=== Application Initialization ===")
     print(f"Environment: {'Render' if os.environ.get('RENDER') else 'Local'}")
     print(f"Database Path: {DB_PATH}")
     
-    # Render È¯°æ¿¡¼­ Persistent Disk »óÅÂ È®ÀÎ
+    # Render í™˜ê²½ì—ì„œ Persistent Disk ìƒíƒœ í™•ì¸
     if os.environ.get('RENDER'):
         persistent_disk_path = '/var/data'
         if os.path.exists(persistent_disk_path):
             print("? Persistent Disk detected and mounted")
-            # µğ½ºÅ© ¿ë·® È®ÀÎ
+            # ë””ìŠ¤í¬ ìš©ëŸ‰ í™•ì¸
             try:
                 import shutil
                 total, used, free = shutil.disk_usage(persistent_disk_path)
@@ -899,11 +899,11 @@ def initialize_application():
         else:
             print("? Persistent Disk not found - using fallback storage")
     
-    # µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ Á¸Àç ¿©ºÎ È®ÀÎ
+    # ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ ì¡´ì¬ ì—¬ë¶€ í™•ì¸
     if os.path.exists(DB_PATH):
         print(f"? Database file exists: {DB_PATH}")
         try:
-            # µ¥ÀÌÅÍº£ÀÌ½º ¿¬°á Å×½ºÆ®
+            # ë°ì´í„°ë² ì´ìŠ¤ ì—°ê²° í…ŒìŠ¤íŠ¸
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1;")
@@ -914,22 +914,22 @@ def initialize_application():
     else:
         print(f"Creating new database: {DB_PATH}")
     
-    # »ç¿ëÀÚ Å×ÀÌºí ÃÊ±âÈ­
+    # ì‚¬ìš©ì í…Œì´ë¸” ì´ˆê¸°í™”
     init_user_tables()
     print("=== Initialization Complete ===")
 
-# ¾Û ½ÃÀÛ ½Ã ÃÊ±âÈ­ ½ÇÇà
+# ì•± ì‹œì‘ ì‹œ ì´ˆê¸°í™” ì‹¤í–‰
 initialize_application()
 
-# --- ºñ»óÀå ÁÖ½Ä °¡Ä¡ °è»ê ---
+# --- ë¹„ìƒì¥ ì£¼ì‹ ê°€ì¹˜ ê³„ì‚° ---
 def calculate_unlisted_stock_value(financial_data):
     """
-    ÇÊ¿äÇÑ Àç¹« Ç×¸ñ:
-    - total_assets: ÀÚ»êÃÑ°è
-    - total_liabilities: ºÎÃ¤ÃÑ°è
-    - net_income: ¼øÀÌÀÍ(ÃÖ±Ù 3³â Æò±Õ)
-    - shares_issued_count: ¹ßÇàÁÖ½Ä¼ö(¾øÀ¸¸é ÀÚº»±İ/5000)
-    - capital_stock_value: ÀÚº»±İ
+    í•„ìš”í•œ ì¬ë¬´ í•­ëª©:
+    - total_assets: ìì‚°ì´ê³„
+    - total_liabilities: ë¶€ì±„ì´ê³„
+    - net_income: ìˆœì´ìµ(ìµœê·¼ 3ë…„ í‰ê· )
+    - shares_issued_count: ë°œí–‰ì£¼ì‹ìˆ˜(ì—†ìœ¼ë©´ ìë³¸ê¸ˆ/5000)
+    - capital_stock_value: ìë³¸ê¸ˆ
     """
     if not financial_data:
         return {}
@@ -942,7 +942,7 @@ def calculate_unlisted_stock_value(financial_data):
     total_assets = float(latest_data.get('total_assets') or 0)
     total_liabilities = float(latest_data.get('total_liabilities') or 0)
 
-    # ÃÖ±Ù 3³â Æò±Õ ¼øÀÌÀÍ
+    # ìµœê·¼ 3ë…„ í‰ê·  ìˆœì´ìµ
     net_income_3y_avg = pd.to_numeric(df_financial['net_income'], errors='coerce').mean()
     if pd.isna(net_income_3y_avg):
         net_income_3y_avg = 0
@@ -952,12 +952,12 @@ def calculate_unlisted_stock_value(financial_data):
 
     calculated_value = (asset_value * 2 + profit_value * 3) / 5
 
-    # ÁÖ½Ä¼ö °è»ê - °èÃşÀû fallback Àû¿ë
+    # ì£¼ì‹ìˆ˜ ê³„ì‚° - ê³„ì¸µì  fallback ì ìš©
     total_shares = float(latest_data.get('shares_issued_count') or 0)
     
-    # 1´Ü°è: shares_issued_count°¡ ¾ø°Å³ª 1 ÀÌÇÏÀÎ °æ¿ì
+    # 1ë‹¨ê³„: shares_issued_countê°€ ì—†ê±°ë‚˜ 1 ì´í•˜ì¸ ê²½ìš°
     if total_shares <= 1:
-        # 2´Ü°è: ÁÖÁÖ ¼ÒÀ¯ ÁÖ½Ä¼ö ÇÕ°è ½Ãµµ
+        # 2ë‹¨ê³„: ì£¼ì£¼ ì†Œìœ  ì£¼ì‹ìˆ˜ í•©ê³„ ì‹œë„
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
@@ -972,15 +972,15 @@ def calculate_unlisted_stock_value(financial_data):
             if total_owned_shares and total_owned_shares > 0:
                 total_shares = total_owned_shares
             else:
-                # 3´Ü°è: ÀÚº»±İ/5000 °è»ê
+                # 3ë‹¨ê³„: ìë³¸ê¸ˆ/5000 ê³„ì‚°
                 capital_stock = float(latest_data.get('capital_stock_value') or 0)
                 if capital_stock > 0:
                     total_shares = capital_stock / 5000
                 else:
                     total_shares = 1
         except Exception as e:
-            print(f"ÁÖÁÖ ¼ÒÀ¯ ÁÖ½Ä¼ö ÇÕ°è °è»ê ¿À·ù: {e}")
-            # 3´Ü°è: ÀÚº»±İ/5000 °è»ê
+            print(f"ì£¼ì£¼ ì†Œìœ  ì£¼ì‹ìˆ˜ í•©ê³„ ê³„ì‚° ì˜¤ë¥˜: {e}")
+            # 3ë‹¨ê³„: ìë³¸ê¸ˆ/5000 ê³„ì‚°
             capital_stock = float(latest_data.get('capital_stock_value') or 0)
             if capital_stock > 0:
                 total_shares = capital_stock / 5000
@@ -1000,7 +1000,7 @@ def calculate_unlisted_stock_value(financial_data):
         "estimated_stock_value": stock_value
     }
 
-# --- ±â¾÷Á¤º¸ µ¥ÀÌÅÍ Á¶È¸ ÇÔ¼ö Ãß°¡ ---
+# --- ê¸°ì—…ì •ë³´ ë°ì´í„° ì¡°íšŒ í•¨ìˆ˜ ì¶”ê°€ ---
 def query_companies_data(args):
     conn = get_db_connection()
     query = """
@@ -1030,16 +1030,16 @@ def query_companies_data(args):
     if args.get('industry_name'):
         filters.append("b.industry_name LIKE ?")
         params.append(f"%{args.get('industry_name')}%")
-    if args.get('company_size') and args.get('company_size') != 'ÀüÃ¼':
+    if args.get('company_size') and args.get('company_size') != 'ì „ì²´':
         filters.append("b.company_size = ?")
         params.append(args.get('company_size'))
-    # Áö¿ª(ÁÖ¼Ò) °Ë»ö: ¸ğµç Å°¿öµå°¡ Æ÷ÇÔµÇ¾î¾ß ÇÔ
+    # ì§€ì—­(ì£¼ì†Œ) ê²€ìƒ‰: ëª¨ë“  í‚¤ì›Œë“œê°€ í¬í•¨ë˜ì–´ì•¼ í•¨
     if args.get('region'):
         region_keywords = [kw.strip() for kw in args.get('region').split() if kw.strip()]
         for kw in region_keywords:
             filters.append("b.address LIKE ?")
             params.append(f"%{kw}%")
-    # ÀÌÀÍÀ×¿©±İ min/max (retained_earnings, ¹é¸¸´ÜÀ§ ÀÔ·Â°ªÀ» ½ÇÁ¦ ´ÜÀ§·Î º¯È¯)
+    # ì´ìµì‰ì—¬ê¸ˆ min/max (retained_earnings, ë°±ë§Œë‹¨ìœ„ ì…ë ¥ê°’ì„ ì‹¤ì œ ë‹¨ìœ„ë¡œ ë³€í™˜)
     if args.get('ret_min'):
         try:
             ret_min_val = int(args.get('ret_min')) * 1000000
@@ -1061,21 +1061,21 @@ def query_companies_data(args):
     conn.close()
     return df
 
-# --- ·Î±×¾Æ¿ô ¶ó¿ìÆ® Ãß°¡ ---
+# --- ë¡œê·¸ì•„ì›ƒ ë¼ìš°íŠ¸ ì¶”ê°€ ---
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
     session.pop('user_id', None)
     return redirect(url_for('login'))
 
-# --- Á¢ÃËÀÌ·Â Á¶È¸ ¶ó¿ìÆ® Ãß°¡ ---
+# --- ì ‘ì´‰ì´ë ¥ ì¡°íšŒ ë¼ìš°íŠ¸ ì¶”ê°€ ---
 @app.route('/history')
 def history_search():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     return render_template('history.html', user_name=session.get('user_name'))
 
-# --- ·Î±×ÀÎ ¶ó¿ìÆ® Ãß°¡ ---
+# --- ë¡œê·¸ì¸ ë¼ìš°íŠ¸ ì¶”ê°€ ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -1083,7 +1083,7 @@ def login():
         user_id = request.form['user_id']
         password = request.form['password']
         
-        # DB ±â¹İ »ç¿ëÀÚ ÀÎÁõ
+        # DB ê¸°ë°˜ ì‚¬ìš©ì ì¸ì¦
         user_info = authenticate_user(user_id, password)
         if user_info:
             session['logged_in'] = True
@@ -1095,13 +1095,13 @@ def login():
             session['branch_name'] = user_info['branch_name']
             session['phone'] = user_info['phone']
             
-            # ÀÓ½Ã ºñ¹Ğ¹øÈ£(password1!) Ã¼Å©
+            # ì„ì‹œ ë¹„ë°€ë²ˆí˜¸(password1!) ì²´í¬
             if password == 'password1!':
                 return redirect(url_for('change_password_first_time'))
             
             return redirect(url_for('main'))
         else:
-            error = '¾ÆÀÌµğ ¶Ç´Â ºñ¹Ğ¹øÈ£°¡ ¿Ã¹Ù¸£Áö ¾Ê½À´Ï´Ù.'
+            error = 'ì•„ì´ë”” ë˜ëŠ” ë¹„ë°€ë²ˆí˜¸ê°€ ì˜¬ë°”ë¥´ì§€ ì•ŠìŠµë‹ˆë‹¤.'
     return render_template('login.html', error=error)
 
 @app.route('/change-password-first-time', methods=['GET', 'POST'])
@@ -1114,35 +1114,35 @@ def change_password_first_time():
         new_password = request.form.get('new_password')
         confirm_password = request.form.get('confirm_password')
         
-        # ÇöÀç ºñ¹Ğ¹øÈ£°¡ ÀÓ½Ã ºñ¹Ğ¹øÈ£ÀÎÁö È®ÀÎ
+        # í˜„ì¬ ë¹„ë°€ë²ˆí˜¸ê°€ ì„ì‹œ ë¹„ë°€ë²ˆí˜¸ì¸ì§€ í™•ì¸
         if current_password != 'password1!':
             return render_template('change_password_first.html', 
-                                 error='ÇöÀç ºñ¹Ğ¹øÈ£°¡ ¿Ã¹Ù¸£Áö ¾Ê½À´Ï´Ù.')
+                                 error='í˜„ì¬ ë¹„ë°€ë²ˆí˜¸ê°€ ì˜¬ë°”ë¥´ì§€ ì•ŠìŠµë‹ˆë‹¤.')
         
-        # »õ ºñ¹Ğ¹øÈ£ È®ÀÎ
+        # ìƒˆ ë¹„ë°€ë²ˆí˜¸ í™•ì¸
         if new_password != confirm_password:
             return render_template('change_password_first.html', 
-                                 error='»õ ºñ¹Ğ¹øÈ£°¡ ÀÏÄ¡ÇÏÁö ¾Ê½À´Ï´Ù.')
+                                 error='ìƒˆ ë¹„ë°€ë²ˆí˜¸ê°€ ì¼ì¹˜í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.')
         
-        # ºñ¹Ğ¹øÈ£ º¹Àâ¼º °ËÁõ
+        # ë¹„ë°€ë²ˆí˜¸ ë³µì¡ì„± ê²€ì¦
         if not validate_password(new_password):
             return render_template('change_password_first.html', 
-                                 error='ºñ¹Ğ¹øÈ£´Â 8-20ÀÚ¸®ÀÌ¸ç, ´ë¹®ÀÚ, ¼Ò¹®ÀÚ, ¼ıÀÚ, Æ¯¼ö¹®ÀÚ¸¦ °¢°¢ ÇÏ³ª ÀÌ»ó Æ÷ÇÔÇØ¾ß ÇÕ´Ï´Ù.')
+                                 error='ë¹„ë°€ë²ˆí˜¸ëŠ” 8-20ìë¦¬ì´ë©°, ëŒ€ë¬¸ì, ì†Œë¬¸ì, ìˆ«ì, íŠ¹ìˆ˜ë¬¸ìë¥¼ ê°ê° í•˜ë‚˜ ì´ìƒ í¬í•¨í•´ì•¼ í•©ë‹ˆë‹¤.')
         
-        # ÀÓ½Ã ºñ¹Ğ¹øÈ£¿Í °°À¸¸é ¾ÈµÊ
+        # ì„ì‹œ ë¹„ë°€ë²ˆí˜¸ì™€ ê°™ìœ¼ë©´ ì•ˆë¨
         if new_password == 'password1!':
             return render_template('change_password_first.html', 
-                                 error='ÀÓ½Ã ºñ¹Ğ¹øÈ£¿Í °°Àº ºñ¹Ğ¹øÈ£´Â »ç¿ëÇÒ ¼ö ¾ø½À´Ï´Ù.')
+                                 error='ì„ì‹œ ë¹„ë°€ë²ˆí˜¸ì™€ ê°™ì€ ë¹„ë°€ë²ˆí˜¸ëŠ” ì‚¬ìš©í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.')
         
         user_id = session.get('user_id')
         
-        # ºñ¹Ğ¹øÈ£ º¯°æ
+        # ë¹„ë°€ë²ˆí˜¸ ë³€ê²½
         conn = get_db_connection()
         try:
-            # ÆĞ½º¿öµå ÀÌ·Â ÀúÀå
+            # íŒ¨ìŠ¤ì›Œë“œ ì´ë ¥ ì €ì¥
             save_password_history(user_id, new_password)
             
-            # ºñ¹Ğ¹øÈ£ ¾÷µ¥ÀÌÆ®
+            # ë¹„ë°€ë²ˆí˜¸ ì—…ë°ì´íŠ¸
             conn.execute('''
                 UPDATE Users SET 
                     password=?, 
@@ -1156,40 +1156,40 @@ def change_password_first_time():
         except Exception as e:
             conn.rollback()
             return render_template('change_password_first.html', 
-                                 error=f'ºñ¹Ğ¹øÈ£ º¯°æ Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù: {str(e)}')
+                                 error=f'ë¹„ë°€ë²ˆí˜¸ ë³€ê²½ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤: {str(e)}')
         finally:
             conn.close()
     
     return render_template('change_password_first.html')
 
-# --- index(È¨) ÆäÀÌÁö ¶ó¿ìÆ® Ãß°¡ ---
+# --- index(í™ˆ) í˜ì´ì§€ ë¼ìš°íŠ¸ ì¶”ê°€ ---
 
-# --- ±¸µ¶ Á¤º¸ Á¶È¸ ÇÔ¼ö ---
+# --- êµ¬ë… ì •ë³´ ì¡°íšŒ í•¨ìˆ˜ ---
 def get_user_subscription_info(user_id):
-    """»ç¿ëÀÚÀÇ ±¸µ¶ Á¤º¸¸¦ Á¶È¸ÇÏ°í ³²Àº ³¯Â¥¸¦ °è»êÇÏ¿© ¹İÈ¯"""
+    """ì‚¬ìš©ìì˜ êµ¬ë… ì •ë³´ë¥¼ ì¡°íšŒí•˜ê³  ë‚¨ì€ ë‚ ì§œë¥¼ ê³„ì‚°í•˜ì—¬ ë°˜í™˜"""
     if not user_id:
         return None
     
     conn = get_db_connection()
     try:
-        # ¸ÕÀú User_Subscriptions Å×ÀÌºíÀÌ Á¸ÀçÇÏ´ÂÁö È®ÀÎ
+        # ë¨¼ì € User_Subscriptions í…Œì´ë¸”ì´ ì¡´ì¬í•˜ëŠ”ì§€ í™•ì¸
         table_exists = conn.execute('''
             SELECT name FROM sqlite_master 
             WHERE type='table' AND name='User_Subscriptions'
         ''').fetchone()
         
         if not table_exists:
-            # Å×ÀÌºíÀÌ ¾øÀ¸¸é ±âº»°ª ¹İÈ¯
-            print(f"User_Subscriptions Å×ÀÌºíÀÌ ¾ø½À´Ï´Ù. ±âº» ±¸µ¶ Á¤º¸¸¦ ¹İÈ¯ÇÕ´Ï´Ù.")
+            # í…Œì´ë¸”ì´ ì—†ìœ¼ë©´ ê¸°ë³¸ê°’ ë°˜í™˜
+            print(f"User_Subscriptions í…Œì´ë¸”ì´ ì—†ìŠµë‹ˆë‹¤. ê¸°ë³¸ êµ¬ë… ì •ë³´ë¥¼ ë°˜í™˜í•©ë‹ˆë‹¤.")
             return {
                 'subscription_type': 'Basic',
                 'start_date': None,
                 'end_date': None,
-                'days_remaining': 365,  # ±âº» 1³â
+                'days_remaining': 365,  # ê¸°ë³¸ 1ë…„
                 'status': 'Active'
             }
         
-        # »ç¿ëÀÚ ±¸µ¶ Á¤º¸ Á¶È¸ (½ÇÁ¦ Å×ÀÌºí ½ºÅ°¸¶ »ç¿ë)
+        # ì‚¬ìš©ì êµ¬ë… ì •ë³´ ì¡°íšŒ (ì‹¤ì œ í…Œì´ë¸” ìŠ¤í‚¤ë§ˆ ì‚¬ìš©)
         subscription_info = conn.execute('''
             SELECT subscription_type, subscription_start_date, subscription_end_date, created_date
             FROM User_Subscriptions 
@@ -1213,18 +1213,18 @@ def get_user_subscription_info(user_id):
                     'status': 'Active' if days_remaining > 0 else 'Expired'
                 }
         
-        # ±¸µ¶ Á¤º¸°¡ ¾øÀ¸¸é ±âº»°ª ¹İÈ¯
+        # êµ¬ë… ì •ë³´ê°€ ì—†ìœ¼ë©´ ê¸°ë³¸ê°’ ë°˜í™˜
         return {
             'subscription_type': 'Basic',
             'start_date': None,
             'end_date': None,
-            'days_remaining': 365,  # ±âº» 1³â
+            'days_remaining': 365,  # ê¸°ë³¸ 1ë…„
             'status': 'Active'
         }
         
     except Exception as e:
-        print(f"±¸µ¶ Á¤º¸ Á¶È¸ ¿À·ù: {e}")
-        # ¿À·ù ¹ß»ı ½Ã ±âº»°ª ¹İÈ¯
+        print(f"êµ¬ë… ì •ë³´ ì¡°íšŒ ì˜¤ë¥˜: {e}")
+        # ì˜¤ë¥˜ ë°œìƒ ì‹œ ê¸°ë³¸ê°’ ë°˜í™˜
         return {
             'subscription_type': 'Basic',
             'start_date': None,
@@ -1235,18 +1235,18 @@ def get_user_subscription_info(user_id):
     finally:
         conn.close()
 
-# --- DB °ü¸® ¹× Áø´Ü ¶ó¿ìÆ® ---
+# --- DB ê´€ë¦¬ ë° ì§„ë‹¨ ë¼ìš°íŠ¸ ---
 @app.route('/db_info')
 def db_info():
-    """µ¥ÀÌÅÍº£ÀÌ½º Á¤º¸ È®ÀÎ"""
+    """ë°ì´í„°ë² ì´ìŠ¤ ì •ë³´ í™•ì¸"""
     try:
         conn = get_db_connection()
         
-        # Å×ÀÌºí ¸ñ·Ï È®ÀÎ
+        # í…Œì´ë¸” ëª©ë¡ í™•ì¸
         tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").fetchall()
         table_names = [table[0] for table in tables]
         
-        # DB ÆÄÀÏ Á¤º¸
+        # DB íŒŒì¼ ì •ë³´
         import os
         db_path = DB_PATH
         db_exists = os.path.exists(db_path)
@@ -1267,12 +1267,12 @@ def db_info():
 
 @app.route('/check_tables')
 def check_tables():
-    """°¢ Å×ÀÌºíÀÇ Á¸Àç ¿©ºÎ¿Í µ¥ÀÌÅÍ °³¼ö È®ÀÎ"""
+    """ê° í…Œì´ë¸”ì˜ ì¡´ì¬ ì—¬ë¶€ì™€ ë°ì´í„° ê°œìˆ˜ í™•ì¸"""
     try:
         conn = get_db_connection()
         results = {}
         
-        # È®ÀÎÇÒ Å×ÀÌºí ¸ñ·Ï
+        # í™•ì¸í•  í…Œì´ë¸” ëª©ë¡
         tables_to_check = [
             'Users', 'User_Subscriptions', 'Company_Basic', 
             'Contact_History', 'Signup_Requests', 'Pioneering_Targets', 
@@ -1281,14 +1281,14 @@ def check_tables():
         
         for table_name in tables_to_check:
             try:
-                # Å×ÀÌºí Á¸Àç ¿©ºÎ È®ÀÎ
+                # í…Œì´ë¸” ì¡´ì¬ ì—¬ë¶€ í™•ì¸
                 table_exists = conn.execute('''
                     SELECT name FROM sqlite_master 
                     WHERE type='table' AND name=?
                 ''', (table_name,)).fetchone()
                 
                 if table_exists:
-                    # µ¥ÀÌÅÍ °³¼ö È®ÀÎ
+                    # ë°ì´í„° ê°œìˆ˜ í™•ì¸
                     count = conn.execute(f'SELECT COUNT(*) FROM {table_name}').fetchone()[0]
                     results[table_name] = {
                         "exists": True,
@@ -1318,20 +1318,20 @@ def check_tables():
         
     except Exception as e:
         return jsonify({
-            "error": f"Å×ÀÌºí È®ÀÎ ½ÇÆĞ: {str(e)}"
+            "error": f"í…Œì´ë¸” í™•ì¸ ì‹¤íŒ¨: {str(e)}"
         }), 500
 
 @app.route('/fix_db')
 def fix_db():
-    """Render ¼­¹ö¿¡¼­ ´©¶ôµÈ Å×ÀÌºíµéÀ» »ı¼º"""
+    """Render ì„œë²„ì—ì„œ ëˆ„ë½ëœ í…Œì´ë¸”ë“¤ì„ ìƒì„±"""
     if not os.environ.get('RENDER'):
-        return jsonify({"error": "ÀÌ ±â´ÉÀº Render ¼­¹ö¿¡¼­¸¸ »ç¿ë °¡´ÉÇÕ´Ï´Ù."}), 403
+        return jsonify({"error": "ì´ ê¸°ëŠ¥ì€ Render ì„œë²„ì—ì„œë§Œ ì‚¬ìš© ê°€ëŠ¥í•©ë‹ˆë‹¤."}), 403
     
     try:
         conn = get_db_connection()
         results = []
         
-        # ´©¶ôµÈ Å×ÀÌºíµé »ı¼º
+        # ëˆ„ë½ëœ í…Œì´ë¸”ë“¤ ìƒì„±
         tables_to_create = [
             ("Users", '''
                 CREATE TABLE IF NOT EXISTS Users (
@@ -1339,9 +1339,9 @@ def fix_db():
                     password TEXT NOT NULL,
                     name TEXT NOT NULL,
                     user_level TEXT NOT NULL DEFAULT 'N',
-                    user_level_name TEXT NOT NULL DEFAULT 'ÀÏ¹İ´ã´çÀÚ',
+                    user_level_name TEXT NOT NULL DEFAULT 'ì¼ë°˜ë‹´ë‹¹ì',
                     branch_code TEXT NOT NULL DEFAULT 'DEFAULT',
-                    branch_name TEXT NOT NULL DEFAULT '±âº»ÁöÁ¡',
+                    branch_name TEXT NOT NULL DEFAULT 'ê¸°ë³¸ì§€ì ',
                     phone TEXT,
                     gender TEXT,
                     birth_date TEXT,
@@ -1435,35 +1435,35 @@ def fix_db():
         for table_name, create_sql in tables_to_create:
             try:
                 conn.execute(create_sql)
-                results.append(f"? {table_name} Å×ÀÌºí »ı¼º ¿Ï·á")
+                results.append(f"? {table_name} í…Œì´ë¸” ìƒì„± ì™„ë£Œ")
             except Exception as e:
-                results.append(f"? {table_name} Å×ÀÌºí »ı¼º ½ÇÆĞ: {str(e)}")
+                results.append(f"? {table_name} í…Œì´ë¸” ìƒì„± ì‹¤íŒ¨: {str(e)}")
         
         conn.commit()
         conn.close()
         
         return jsonify({
             "status": "success",
-            "message": "µ¥ÀÌÅÍº£ÀÌ½º ¼öÁ¤ ¿Ï·á",
+            "message": "ë°ì´í„°ë² ì´ìŠ¤ ìˆ˜ì • ì™„ë£Œ",
             "results": results
         })
         
     except Exception as e:
         return jsonify({
             "status": "error", 
-            "message": f"µ¥ÀÌÅÍº£ÀÌ½º ¼öÁ¤ ½ÇÆĞ: {str(e)}"
+            "message": f"ë°ì´í„°ë² ì´ìŠ¤ ìˆ˜ì • ì‹¤íŒ¨: {str(e)}"
         }), 500
 
 @app.route('/upload_database', methods=['GET', 'POST'])
 def upload_database():
-    """µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ ¾÷·Îµå"""
+    """ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ ì—…ë¡œë“œ"""
     if request.method == 'GET':
         html_content = '''<!DOCTYPE html>
         <html lang="ko">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>µ¥ÀÌÅÍº£ÀÌ½º ¾÷·Îµå</title>
+            <title>ë°ì´í„°ë² ì´ìŠ¤ ì—…ë¡œë“œ</title>
             <style>
                 body { 
                     font-family: 'Malgun Gothic', sans-serif; 
@@ -1507,37 +1507,37 @@ def upload_database():
         </head>
         <body>
             <div class="container">
-                <h2>µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ ¾÷·Îµå</h2>
+                <h2>ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ ì—…ë¡œë“œ</h2>
                 
                 <div class="info">
-                    <strong>¾÷·Îµå ¾È³»:</strong><br>
-                    ? ·ÎÄÃ <code>company_database.db</code> ÆÄÀÏÀ» ¼±ÅÃÇÏ¼¼¿ä<br>
-                    ? ÆÄÀÏ Å©±â: ¾à 75MB (66¸¸+ ·¹ÄÚµå)<br>
-                    ? ¾÷·Îµå ÈÄ ±âÁ¸ µ¥ÀÌÅÍº£ÀÌ½º´Â ÀÚµ¿ ¹é¾÷µË´Ï´Ù
+                    <strong>ì—…ë¡œë“œ ì•ˆë‚´:</strong><br>
+                    ? ë¡œì»¬ <code>company_database.db</code> íŒŒì¼ì„ ì„ íƒí•˜ì„¸ìš”<br>
+                    ? íŒŒì¼ í¬ê¸°: ì•½ 75MB (66ë§Œ+ ë ˆì½”ë“œ)<br>
+                    ? ì—…ë¡œë“œ í›„ ê¸°ì¡´ ë°ì´í„°ë² ì´ìŠ¤ëŠ” ìë™ ë°±ì—…ë©ë‹ˆë‹¤
                 </div>
                 
                 <div class="warning">
-                    <strong>ÁÖÀÇ»çÇ×:</strong><br>
-                    ? ¾÷·Îµå Áß¿¡´Â ÆäÀÌÁö¸¦ »õ·Î°íÄ§ÇÏÁö ¸¶¼¼¿ä<br>
-                    ? ³×Æ®¿öÅ© »óÅÂ°¡ ¾ÈÁ¤ÀûÀÎ °÷¿¡¼­ ÁøÇàÇÏ¼¼¿ä<br>
-                    ? ±âÁ¸ µ¥ÀÌÅÍ´Â .backup ÆÄÀÏ·Î ¹é¾÷µË´Ï´Ù
+                    <strong>ì£¼ì˜ì‚¬í•­:</strong><br>
+                    ? ì—…ë¡œë“œ ì¤‘ì—ëŠ” í˜ì´ì§€ë¥¼ ìƒˆë¡œê³ ì¹¨í•˜ì§€ ë§ˆì„¸ìš”<br>
+                    ? ë„¤íŠ¸ì›Œí¬ ìƒíƒœê°€ ì•ˆì •ì ì¸ ê³³ì—ì„œ ì§„í–‰í•˜ì„¸ìš”<br>
+                    ? ê¸°ì¡´ ë°ì´í„°ëŠ” .backup íŒŒì¼ë¡œ ë°±ì—…ë©ë‹ˆë‹¤
                 </div>
                 
                 <form id="uploadForm" method="post" enctype="multipart/form-data">
                     <div class="upload-area" id="uploadArea">
-                        <p>ÆÄÀÏÀ» ¿©±â¿¡ µå·¡±×ÇÏ°Å³ª Å¬¸¯ÇÏ¿© ¼±ÅÃÇÏ¼¼¿ä</p>
+                        <p>íŒŒì¼ì„ ì—¬ê¸°ì— ë“œë˜ê·¸í•˜ê±°ë‚˜ í´ë¦­í•˜ì—¬ ì„ íƒí•˜ì„¸ìš”</p>
                         <input type="file" name="database" accept=".db" required id="fileInput">
                         <p id="fileName" style="color: #666; margin-top: 10px;"></p>
                     </div>
                     
                     <div id="progress">
-                        <p>¾÷·Îµå Áß...</p>
+                        <p>ì—…ë¡œë“œ ì¤‘...</p>
                         <div class="progress-bar">
                             <div class="progress-fill" id="progressFill"></div>
                         </div>
                     </div>
                     
-                    <button type="submit">¾÷·Îµå & º¹¿ø</button>
+                    <button type="submit">ì—…ë¡œë“œ & ë³µì›</button>
                 </form>
                 
                 <div id="result" style="margin-top: 20px;"></div>
@@ -1551,7 +1551,7 @@ def upload_database():
                 const progress = document.getElementById('progress');
                 const result = document.getElementById('result');
                 
-                // µå·¡±× ¾Ø µå·Ó ÀÌº¥Æ®
+                // ë“œë˜ê·¸ ì•¤ ë“œë¡­ ì´ë²¤íŠ¸
                 uploadArea.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     uploadArea.classList.add('dragover');
@@ -1577,16 +1577,16 @@ def upload_database():
                 function updateFileName() {
                     if (fileInput.files.length > 0) {
                         const file = fileInput.files[0];
-                        fileName.textContent = `¼±ÅÃµÈ ÆÄÀÏ: ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)`;
+                        fileName.textContent = `ì„ íƒëœ íŒŒì¼: ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)`;
                     }
                 }
                 
-                // Æû Á¦Ãâ Ã³¸®
+                // í¼ ì œì¶œ ì²˜ë¦¬
                 uploadForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     
                     if (!fileInput.files.length) {
-                        alert('ÆÄÀÏÀ» ¼±ÅÃÇØÁÖ¼¼¿ä.');
+                        alert('íŒŒì¼ì„ ì„ íƒí•´ì£¼ì„¸ìš”.');
                         return;
                     }
                     
@@ -1608,7 +1608,7 @@ def upload_database():
                             result.innerHTML = `
                                 <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; color: #2e7d32;">
                                     <strong>? ${data.message}</strong><br>
-                                    »ı¼ºµÈ Å×ÀÌºí: ${data.tables.join(', ')}
+                                    ìƒì„±ëœ í…Œì´ë¸”: ${data.tables.join(', ')}
                                 </div>
                             `;
                         } else {
@@ -1621,7 +1621,7 @@ def upload_database():
                     } catch (error) {
                         result.innerHTML = `
                             <div style="background: #ffebee; padding: 15px; border-radius: 8px; color: #c62828;">
-                                <strong>¾÷·Îµå ½ÇÆĞ: ${error.message}</strong>
+                                <strong>ì—…ë¡œë“œ ì‹¤íŒ¨: ${error.message}</strong>
                             </div>
                         `;
                     } finally {
@@ -1633,19 +1633,19 @@ def upload_database():
         </html>
         '''
         
-        # ÇÑ±Û ÀÎÄÚµù ¹®Á¦ ÇØ°áÀ» À§ÇØ ÀÀ´ä Çì´õ ¼³Á¤
+        # í•œê¸€ ì¸ì½”ë”© ë¬¸ì œ í•´ê²°ì„ ìœ„í•´ ì‘ë‹µ í—¤ë” ì„¤ì •
         from flask import Response
         return Response(html_content, content_type='text/html; charset=utf-8')
     
     if 'database' not in request.files:
-        return jsonify({"success": False, "message": "ÆÄÀÏÀÌ ¼±ÅÃµÇÁö ¾Ê¾Ò½À´Ï´Ù"})
+        return jsonify({"success": False, "message": "íŒŒì¼ì´ ì„ íƒë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤"})
     
     file = request.files['database']
     if file.filename == '':
-        return jsonify({"success": False, "message": "ÆÄÀÏÀÌ ¼±ÅÃµÇÁö ¾Ê¾Ò½À´Ï´Ù"})
+        return jsonify({"success": False, "message": "íŒŒì¼ì´ ì„ íƒë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤"})
     
     try:
-        # ±âÁ¸ µ¥ÀÌÅÍº£ÀÌ½º ¹é¾÷
+        # ê¸°ì¡´ ë°ì´í„°ë² ì´ìŠ¤ ë°±ì—…
         db_path = DB_PATH
         backup_path = db_path + '.backup'
         
@@ -1653,10 +1653,10 @@ def upload_database():
         if os.path.exists(db_path):
             shutil.copy2(db_path, backup_path)
         
-        # »õ µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ ÀúÀå
+        # ìƒˆ ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ ì €ì¥
         file.save(db_path)
         
-        # ¾÷·ÎµåµÈ ÆÄÀÏ °ËÁõ
+        # ì—…ë¡œë“œëœ íŒŒì¼ ê²€ì¦
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -1665,20 +1665,20 @@ def upload_database():
         
         success_response = jsonify({
             "success": True, 
-            "message": f"µ¥ÀÌÅÍº£ÀÌ½º ¾÷·Îµå ¿Ï·á. {len(tables)}°³ Å×ÀÌºí È®ÀÎµÊ",
+            "message": f"ë°ì´í„°ë² ì´ìŠ¤ ì—…ë¡œë“œ ì™„ë£Œ. {len(tables)}ê°œ í…Œì´ë¸” í™•ì¸ë¨",
             "tables": [table[0] for table in tables]
         })
         success_response.headers['Content-Type'] = 'application/json; charset=utf-8'
         return success_response
         
     except Exception as e:
-        error_response = jsonify({"success": False, "message": f"¾÷·Îµå ½ÇÆĞ: {str(e)}"})
+        error_response = jsonify({"success": False, "message": f"ì—…ë¡œë“œ ì‹¤íŒ¨: {str(e)}"})
         error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
         return error_response
 
 @app.route('/download_database')
 def download_database():
-    """¿ÏÀü ¹é¾÷: µ¥ÀÌÅÍº£ÀÌ½º + Ã·ºÎÆÄÀÏÀ» ¾ĞÃàÇÏ¿© ´Ù¿î·Îµå"""
+    """ì™„ì „ ë°±ì—…: ë°ì´í„°ë² ì´ìŠ¤ + ì²¨ë¶€íŒŒì¼ì„ ì••ì¶•í•˜ì—¬ ë‹¤ìš´ë¡œë“œ"""
     import zipfile
     import tempfile
     try:
@@ -1688,33 +1688,33 @@ def download_database():
         if not os.path.exists(db_path):
             return jsonify({
                 "success": False, 
-                "message": "µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù."
+                "message": "ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤."
             }), 404
         
-        # ÇöÀç ½Ã°£À¸·Î ÆÄÀÏ¸í »ı¼º
+        # í˜„ì¬ ì‹œê°„ìœ¼ë¡œ íŒŒì¼ëª… ìƒì„±
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
-        # ÀÓ½Ã ZIP ÆÄÀÏ »ı¼º
+        # ì„ì‹œ ZIP íŒŒì¼ ìƒì„±
         temp_zip = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
         temp_zip.close()
         
         with zipfile.ZipFile(temp_zip.name, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            # µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ Ãß°¡
+            # ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ ì¶”ê°€
             zipf.write(db_path, f"company_database_{timestamp}.db")
             
-            # uploads Æú´õÀÇ ¸ğµç ÆÄÀÏ Ãß°¡ (ÀÖ´Â °æ¿ì)
+            # uploads í´ë”ì˜ ëª¨ë“  íŒŒì¼ ì¶”ê°€ (ìˆëŠ” ê²½ìš°)
             if os.path.exists(uploads_path):
                 for root, dirs, files in os.walk(uploads_path):
                     for file in files:
                         file_path = os.path.join(root, file)
-                        # ZIP ³»ºÎ¿¡¼­ÀÇ »ó´ë °æ·Î ¼³Á¤
+                        # ZIP ë‚´ë¶€ì—ì„œì˜ ìƒëŒ€ ê²½ë¡œ ì„¤ì •
                         arcname = os.path.join('uploads', os.path.relpath(file_path, uploads_path))
                         zipf.write(file_path, arcname)
         
         download_filename = f"company_system_backup_{timestamp}.zip"
         
-        # ZIP ÆÄÀÏÀ» ÀÀ´äÀ¸·Î Àü¼ÛÇÏ°í ÀÓ½Ã ÆÄÀÏ »èÁ¦
+        # ZIP íŒŒì¼ì„ ì‘ë‹µìœ¼ë¡œ ì „ì†¡í•˜ê³  ì„ì‹œ íŒŒì¼ ì‚­ì œ
         def remove_temp_file(response):
             try:
                 os.unlink(temp_zip.name)
@@ -1729,7 +1729,7 @@ def download_database():
             mimetype='application/zip'
         )
         
-        # ÀÀ´ä ¿Ï·á ÈÄ ÀÓ½Ã ÆÄÀÏ »èÁ¦¸¦ À§ÇÑ ÈÄÃ³¸®
+        # ì‘ë‹µ ì™„ë£Œ í›„ ì„ì‹œ íŒŒì¼ ì‚­ì œë¥¼ ìœ„í•œ í›„ì²˜ë¦¬
         response.call_on_close(lambda: os.unlink(temp_zip.name) if os.path.exists(temp_zip.name) else None)
         
         return response
@@ -1737,24 +1737,24 @@ def download_database():
     except Exception as e:
         error_response = jsonify({
             "success": False, 
-            "message": f"¹é¾÷ ´Ù¿î·Îµå ½ÇÆĞ: {str(e)}"
+            "message": f"ë°±ì—… ë‹¤ìš´ë¡œë“œ ì‹¤íŒ¨: {str(e)}"
         })
         error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
         return error_response, 500
 
 @app.route('/download_database_only')
 def download_database_only():
-    """µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ¸¸ ´Ù¿î·Îµå (±âÁ¸ ±â´É)"""
+    """ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ë§Œ ë‹¤ìš´ë¡œë“œ (ê¸°ì¡´ ê¸°ëŠ¥)"""
     try:
         db_path = DB_PATH
         
         if not os.path.exists(db_path):
             return jsonify({
                 "success": False, 
-                "message": "µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù."
+                "message": "ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤."
             }), 404
         
-        # ÇöÀç ½Ã°£À¸·Î ÆÄÀÏ¸í »ı¼º
+        # í˜„ì¬ ì‹œê°„ìœ¼ë¡œ íŒŒì¼ëª… ìƒì„±
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         download_filename = f"company_database_{timestamp}.db"
@@ -1769,32 +1769,32 @@ def download_database_only():
     except Exception as e:
         error_response = jsonify({
             "success": False, 
-            "message": f"´Ù¿î·Îµå ½ÇÆĞ: {str(e)}"
+            "message": f"ë‹¤ìš´ë¡œë“œ ì‹¤íŒ¨: {str(e)}"
         })
         error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
         return error_response, 500
 
 @app.route('/download')
 def download_page():
-    """µ¥ÀÌÅÍº£ÀÌ½º ´Ù¿î·Îµå ÆäÀÌÁö (¸ŞÀÎ)"""
+    """ë°ì´í„°ë² ì´ìŠ¤ ë‹¤ìš´ë¡œë“œ í˜ì´ì§€ (ë©”ì¸)"""
     try:
         db_path = DB_PATH
         
         if not os.path.exists(db_path):
             error_response = jsonify({
                 "success": False, 
-                "message": "µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù."
+                "message": "ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤."
             })
             error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
             return error_response, 404
         
-        # µ¥ÀÌÅÍº£ÀÌ½º Á¤º¸ È®ÀÎ
+        # ë°ì´í„°ë² ì´ìŠ¤ ì •ë³´ í™•ì¸
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tables = cursor.fetchall()
         
-        # ÁÖ¿ä Å×ÀÌºíÀÇ ·¹ÄÚµå ¼ö È®ÀÎ
+        # ì£¼ìš” í…Œì´ë¸”ì˜ ë ˆì½”ë“œ ìˆ˜ í™•ì¸
         table_info = {}
         for table in tables:
             try:
@@ -1806,11 +1806,11 @@ def download_page():
         
         conn.close()
         
-        # ÆÄÀÏ Å©±â Á¤º¸
+        # íŒŒì¼ í¬ê¸° ì •ë³´
         file_size = os.path.getsize(db_path)
         file_size_mb = round(file_size / (1024 * 1024), 2)
         
-        # ÇöÀç ½Ã°£À¸·Î ÆÄÀÏ¸í »ı¼º
+        # í˜„ì¬ ì‹œê°„ìœ¼ë¡œ íŒŒì¼ëª… ìƒì„±
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         download_filename = f"company_database_{timestamp}.db"
@@ -1825,30 +1825,30 @@ def download_page():
     except Exception as e:
         error_response = jsonify({
             "success": False, 
-            "message": f"´Ù¿î·Îµå ½ÇÆĞ: {str(e)}"
+            "message": f"ë‹¤ìš´ë¡œë“œ ì‹¤íŒ¨: {str(e)}"
         })
         error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
         return error_response, 500
 
 @app.route('/download_info')
 def download_database_info():
-    """´Ù¿î·Îµå Àü µ¥ÀÌÅÍº£ÀÌ½º Á¤º¸ È®ÀÎ (API)"""
+    """ë‹¤ìš´ë¡œë“œ ì „ ë°ì´í„°ë² ì´ìŠ¤ ì •ë³´ í™•ì¸ (API)"""
     try:
         db_path = DB_PATH
         
         if not os.path.exists(db_path):
             return jsonify({
                 "success": False, 
-                "message": "µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.",
+                "message": "ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.",
                 "file_exists": False
             })
         
-        # ÆÄÀÏ Á¤º¸
+        # íŒŒì¼ ì •ë³´
         file_size = os.path.getsize(db_path)
         file_size_mb = round(file_size / (1024 * 1024), 2)
         file_modified = datetime.fromtimestamp(os.path.getmtime(db_path)).strftime("%Y-%m-%d %H:%M:%S")
         
-        # µ¥ÀÌÅÍº£ÀÌ½º Å×ÀÌºí Á¤º¸
+        # ë°ì´í„°ë² ì´ìŠ¤ í…Œì´ë¸” ì •ë³´
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -1881,7 +1881,7 @@ def download_database_info():
             "table_info": table_info
         }
         
-        # JSON ÀÀ´ä¿¡¼­ ÇÑ±Û ÀÎÄÚµù ¹®Á¦ ÇØ°á
+        # JSON ì‘ë‹µì—ì„œ í•œê¸€ ì¸ì½”ë”© ë¬¸ì œ í•´ê²°
         response = jsonify(response_data)
         response.headers['Content-Type'] = 'application/json; charset=utf-8'
         return response
@@ -1889,20 +1889,20 @@ def download_database_info():
     except Exception as e:
         error_response = jsonify({
             "success": False, 
-            "message": f"Á¤º¸ Á¶È¸ ½ÇÆĞ: {str(e)}"
+            "message": f"ì •ë³´ ì¡°íšŒ ì‹¤íŒ¨: {str(e)}"
         })
         error_response.headers['Content-Type'] = 'application/json; charset=utf-8'
         return error_response, 500
 
 @app.route('/download_database_page')
 def download_database_page():
-    """µ¥ÀÌÅÍº£ÀÌ½º ´Ù¿î·Îµå ÆäÀÌÁö"""
+    """ë°ì´í„°ë² ì´ìŠ¤ ë‹¤ìš´ë¡œë“œ í˜ì´ì§€"""
     html_content = '''<!DOCTYPE html>
     <html lang="ko">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>µ¥ÀÌÅÍº£ÀÌ½º ´Ù¿î·Îµå</title>
+        <title>ë°ì´í„°ë² ì´ìŠ¤ ë‹¤ìš´ë¡œë“œ</title>
         <style>
             body { 
                 font-family: 'Malgun Gothic', sans-serif; 
@@ -1963,42 +1963,42 @@ def download_database_page():
     </head>
     <body>
         <div class="container">
-            <h2>µ¥ÀÌÅÍº£ÀÌ½º °ü¸®</h2>
+            <h2>ë°ì´í„°ë² ì´ìŠ¤ ê´€ë¦¬</h2>
             
             <div class="info-card">
-                <h3>¹é¾÷ ´Ù¿î·Îµå ¾È³»</h3>
+                <h3>ë°±ì—… ë‹¤ìš´ë¡œë“œ ì•ˆë‚´</h3>
                 <ul>
-                    <li><strong>¿ÏÀü¹é¾÷ (±ÇÀå)</strong>: µ¥ÀÌÅÍº£ÀÌ½º + Ã¹ºÎÆÄÀÏ(¿µ¼öÁõ µî)À» ZIPÀ¸·Î ¾ĞÃàÇÏ¿© ´Ù¿î·Îµå</li>
-                    <li><strong>DB¸¸ ¹é¾÷</strong>: µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ¸¸ ´Ù¿î·Îµå (Ã¹ºÎÆÄÀÏ Á¦¿Ü)</li>
-                    <li>´Ù¿î·ÎµåµÈ ÆÄÀÏÀº Å¸ÀÓ½ºÅÆÇÁ°¡ Æ÷ÇÔµÈ ÀÌ¸§À¸·Î ÀúÀåµË´Ï´Ù</li>
-                    <li>¿ÏÀü¹é¾÷ Çü½Ä: <code>company_system_backup_YYYYMMDD_HHMMSS.zip</code></li>
-                    <li>DB¸¸ ¹é¾÷ Çü½Ä: <code>company_database_YYYYMMDD_HHMMSS.db</code></li>
+                    <li><strong>ì™„ì „ë°±ì—… (ê¶Œì¥)</strong>: ë°ì´í„°ë² ì´ìŠ¤ + ì²«ë¶€íŒŒì¼(ì˜ìˆ˜ì¦ ë“±)ì„ ZIPìœ¼ë¡œ ì••ì¶•í•˜ì—¬ ë‹¤ìš´ë¡œë“œ</li>
+                    <li><strong>DBë§Œ ë°±ì—…</strong>: ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ë§Œ ë‹¤ìš´ë¡œë“œ (ì²«ë¶€íŒŒì¼ ì œì™¸)</li>
+                    <li>ë‹¤ìš´ë¡œë“œëœ íŒŒì¼ì€ íƒ€ì„ìŠ¤íƒ¬í”„ê°€ í¬í•¨ëœ ì´ë¦„ìœ¼ë¡œ ì €ì¥ë©ë‹ˆë‹¤</li>
+                    <li>ì™„ì „ë°±ì—… í˜•ì‹: <code>company_system_backup_YYYYMMDD_HHMMSS.zip</code></li>
+                    <li>DBë§Œ ë°±ì—… í˜•ì‹: <code>company_database_YYYYMMDD_HHMMSS.db</code></li>
                 </ul>
             </div>
             
             <div id="loading" class="loading">
-                <p>µ¥ÀÌÅÍº£ÀÌ½º Á¤º¸¸¦ Á¶È¸ Áß...</p>
+                <p>ë°ì´í„°ë² ì´ìŠ¤ ì •ë³´ë¥¼ ì¡°íšŒ ì¤‘...</p>
             </div>
             
             <div id="dbInfo" style="display: none;">
                 <div class="stats" id="stats"></div>
                 
                 <div class="info-card">
-                    <h4>Å×ÀÌºíº° ·¹ÄÚµå ¼ö</h4>
+                    <h4>í…Œì´ë¸”ë³„ ë ˆì½”ë“œ ìˆ˜</h4>
                     <div class="table-grid" id="tableGrid"></div>
                 </div>
                 
                 <div class="download-area">
-                    <h3>¹é¾÷ ´Ù¿î·Îµå</h3>
-                    <p>À§ Á¤º¸¸¦ È®ÀÎÇÑ ÈÄ ´Ù¿î·Îµå¸¦ ÁøÇàÇÏ¼¼¿ä</p>
+                    <h3>ë°±ì—… ë‹¤ìš´ë¡œë“œ</h3>
+                    <p>ìœ„ ì •ë³´ë¥¼ í™•ì¸í•œ í›„ ë‹¤ìš´ë¡œë“œë¥¼ ì§„í–‰í•˜ì„¸ìš”</p>
                     <button class="btn" onclick="downloadFullBackup()" style="background: linear-gradient(45deg, #4CAF50, #45a049);">
-                        ¿ÏÀü¹é¾÷ (DB + Ã¹ºÎÆÄÀÏ)
+                        ì™„ì „ë°±ì—… (DB + ì²«ë¶€íŒŒì¼)
                     </button>
                     <button class="btn" onclick="downloadDatabaseOnly()" style="background: linear-gradient(45deg, #2196F3, #1976D2);">
-                        DB¸¸ ¹é¾÷
+                        DBë§Œ ë°±ì—…
                     </button>
                     <a href="/upload_database" class="btn btn-secondary">
-                        µ¥ÀÌÅÍº£ÀÌ½º º¹¿ø
+                        ë°ì´í„°ë² ì´ìŠ¤ ë³µì›
                     </a>
                 </div>
             </div>
@@ -2007,7 +2007,7 @@ def download_database_page():
         </div>
         
         <script>
-            // ÆäÀÌÁö ·Îµå ½Ã µ¥ÀÌÅÍº£ÀÌ½º Á¤º¸ Á¶È¸
+            // í˜ì´ì§€ ë¡œë“œ ì‹œ ë°ì´í„°ë² ì´ìŠ¤ ì •ë³´ ì¡°íšŒ
             window.addEventListener('load', async () => {
                 await loadDatabaseInfo();
             });
@@ -2032,7 +2032,7 @@ def download_database_page():
                         showStatus('error', `${data.message}`);
                     }
                 } catch (error) {
-                    showStatus('error', `Á¤º¸ Á¶È¸ ½ÇÆĞ: ${error.message}`);
+                    showStatus('error', `ì •ë³´ ì¡°íšŒ ì‹¤íŒ¨: ${error.message}`);
                 } finally {
                     loading.style.display = 'none';
                 }
@@ -2042,7 +2042,7 @@ def download_database_page():
                 const stats = document.getElementById('stats');
                 const tableGrid = document.getElementById('tableGrid');
                 
-                // Åë°è Á¤º¸ Ç¥½Ã
+                // í†µê³„ ì •ë³´ í‘œì‹œ
                 stats.innerHTML = `
                     <div class="stat-item">
                         <div class="stat-number">${data.file_info.size_mb}</div>
@@ -2050,33 +2050,33 @@ def download_database_page():
                     </div>
                     <div class="stat-item">
                         <div class="stat-number">${data.file_info.total_tables}</div>
-                        <div class="stat-label">Å×ÀÌºí</div>
+                        <div class="stat-label">í…Œì´ë¸”</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-number">${data.file_info.total_records.toLocaleString()}</div>
-                        <div class="stat-label">·¹ÄÚµå</div>
+                        <div class="stat-label">ë ˆì½”ë“œ</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-number" style="font-size: 14px;">${data.file_info.modified_date}</div>
-                        <div class="stat-label">ÃÖÁ¾ ¼öÁ¤</div>
+                        <div class="stat-label">ìµœì¢… ìˆ˜ì •</div>
                     </div>
                 `;
                 
-                // Å×ÀÌºí Á¤º¸ Ç¥½Ã
+                // í…Œì´ë¸” ì •ë³´ í‘œì‹œ
                 tableGrid.innerHTML = '';
                 for (const [tableName, recordCount] of Object.entries(data.table_info)) {
                     const tableItem = document.createElement('div');
                     tableItem.className = 'table-item';
                     tableItem.innerHTML = `
                         <strong>${tableName}</strong><br>
-                        <span style="color: #666;">${recordCount.toLocaleString()}°³ ·¹ÄÚµå</span>
+                        <span style="color: #666;">${recordCount.toLocaleString()}ê°œ ë ˆì½”ë“œ</span>
                     `;
                     tableGrid.appendChild(tableItem);
                 }
             }
             
             async function downloadFullBackup() {
-                showStatus('success', '¿ÏÀü¹é¾÷ ´Ù¿î·Îµå¸¦ ½ÃÀÛÇÕ´Ï´Ù...');
+                showStatus('success', 'ì™„ì „ë°±ì—… ë‹¤ìš´ë¡œë“œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤...');
                 
                 try {
                     const link = document.createElement('a');
@@ -2086,14 +2086,14 @@ def download_database_page():
                     link.click();
                     document.body.removeChild(link);
                     
-                    showStatus('success', '¿ÏÀü¹é¾÷ÀÌ ½ÃÀÛµÇ¾ú½À´Ï´Ù. ZIP ÆÄÀÏ¿¡ DB¿Í Ã¹ºÎÆÄÀÏÀÌ ¸ğµÎ Æ÷ÇÔµË´Ï´Ù.');
+                    showStatus('success', 'ì™„ì „ë°±ì—…ì´ ì‹œì‘ë˜ì—ˆìŠµë‹ˆë‹¤. ZIP íŒŒì¼ì— DBì™€ ì²«ë¶€íŒŒì¼ì´ ëª¨ë‘ í¬í•¨ë©ë‹ˆë‹¤.');
                 } catch (error) {
-                    showStatus('error', `¿ÏÀü¹é¾÷ ½ÇÆĞ: ${error.message}`);
+                    showStatus('error', `ì™„ì „ë°±ì—… ì‹¤íŒ¨: ${error.message}`);
                 }
             }
             
             async function downloadDatabaseOnly() {
-                showStatus('success', 'DB ´Ù¿î·Îµå¸¦ ½ÃÀÛÇÕ´Ï´Ù...');
+                showStatus('success', 'DB ë‹¤ìš´ë¡œë“œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤...');
                 
                 try {
                     const link = document.createElement('a');
@@ -2103,9 +2103,9 @@ def download_database_page():
                     link.click();
                     document.body.removeChild(link);
                     
-                    showStatus('success', 'DB ´Ù¿î·Îµå°¡ ½ÃÀÛµÇ¾ú½À´Ï´Ù. Ã¹ºÎÆÄÀÏÀº Æ÷ÇÔµÇÁö ¾Ê½À´Ï´Ù.');
+                    showStatus('success', 'DB ë‹¤ìš´ë¡œë“œê°€ ì‹œì‘ë˜ì—ˆìŠµë‹ˆë‹¤. ì²«ë¶€íŒŒì¼ì€ í¬í•¨ë˜ì§€ ì•ŠìŠµë‹ˆë‹¤.');
                 } catch (error) {
-                    showStatus('error', `DB ´Ù¿î·Îµå ½ÇÆĞ: ${error.message}`);
+                    showStatus('error', `DB ë‹¤ìš´ë¡œë“œ ì‹¤íŒ¨: ${error.message}`);
                 }
             }
             
@@ -2120,26 +2120,26 @@ def download_database_page():
     </html>
     '''
     
-    # ÇÑ±Û ÀÎÄÚµù ¹®Á¦ ÇØ°áÀ» À§ÇØ ÀÀ´ä Çì´õ ¼³Á¤
+    # í•œê¸€ ì¸ì½”ë”© ë¬¸ì œ í•´ê²°ì„ ìœ„í•´ ì‘ë‹µ í—¤ë” ì„¤ì •
     from flask import Response
     return Response(html_content, content_type='text/html; charset=utf-8')
 
 @app.route('/db_management_popup')
 def db_management_popup():
-    """ÆË¾÷¿ë DB °ü¸® ÆäÀÌÁö"""
+    """íŒì—…ìš© DB ê´€ë¦¬ í˜ì´ì§€"""
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     
     user_level = session.get('user_level', 'N')
     if not check_permission(user_level, 'S'):
-        return "Á¢±Ù ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.", 403
+        return "ì ‘ê·¼ ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤.", 403
     
     html_content = '''<!DOCTYPE html>
     <html lang="ko">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>µ¥ÀÌÅÍº£ÀÌ½º °ü¸®</title>
+        <title>ë°ì´í„°ë² ì´ìŠ¤ ê´€ë¦¬</title>
         <style>
             body { 
                 font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
@@ -2224,50 +2224,50 @@ def db_management_popup():
     <body>
         <div class="container">
             <div class="header">
-                <h2>µ¥ÀÌÅÍº£ÀÌ½º °ü¸®</h2>
+                <h2>ë°ì´í„°ë² ì´ìŠ¤ ê´€ë¦¬</h2>
             </div>
             
-            <!-- ¹é¾÷ ¼½¼Ç -->
+            <!-- ë°±ì—… ì„¹ì…˜ -->
             <div class="info-card">
-                <h3>¹é¾÷ ´Ù¿î·Îµå</h3>
+                <h3>ë°±ì—… ë‹¤ìš´ë¡œë“œ</h3>
                 <ul>
-                    <li><strong>¿ÏÀü¹é¾÷ (±ÇÀå)</strong>: µ¥ÀÌÅÍº£ÀÌ½º + Ã·ºÎÆÄÀÏ(¿µ¼öÁõ µî)À» ZIPÀ¸·Î ¾ĞÃà</li>
-                    <li><strong>DB¸¸ ¹é¾÷</strong>: µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ¸¸ ´Ù¿î·Îµå (Ã·ºÎÆÄÀÏ Á¦¿Ü)</li>
-                    <li>ÆÄÀÏ¸í¿¡ Å¸ÀÓ½ºÅÆÇÁ°¡ ÀÚµ¿À¸·Î Æ÷ÇÔµË´Ï´Ù</li>
+                    <li><strong>ì™„ì „ë°±ì—… (ê¶Œì¥)</strong>: ë°ì´í„°ë² ì´ìŠ¤ + ì²¨ë¶€íŒŒì¼(ì˜ìˆ˜ì¦ ë“±)ì„ ZIPìœ¼ë¡œ ì••ì¶•</li>
+                    <li><strong>DBë§Œ ë°±ì—…</strong>: ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ë§Œ ë‹¤ìš´ë¡œë“œ (ì²¨ë¶€íŒŒì¼ ì œì™¸)</li>
+                    <li>íŒŒì¼ëª…ì— íƒ€ì„ìŠ¤íƒ¬í”„ê°€ ìë™ìœ¼ë¡œ í¬í•¨ë©ë‹ˆë‹¤</li>
                 </ul>
             </div>
             
             <div id="loading" class="loading">
-                <p>µ¥ÀÌÅÍº£ÀÌ½º Á¤º¸¸¦ Á¶È¸ Áß...</p>
+                <p>ë°ì´í„°ë² ì´ìŠ¤ ì •ë³´ë¥¼ ì¡°íšŒ ì¤‘...</p>
             </div>
             
             <div id="dbInfo" style="display: none;">
                 <div class="stats" id="stats"></div>
                 
                 <div class="info-card">
-                    <h4>Å×ÀÌºíº° ·¹ÄÚµå ¼ö</h4>
+                    <h4>í…Œì´ë¸”ë³„ ë ˆì½”ë“œ ìˆ˜</h4>
                     <div class="table-grid" id="tableGrid"></div>
                 </div>
                 
                 <div class="action-area">
-                    <h3>¹é¾÷ ´Ù¿î·Îµå</h3>
+                    <h3>ë°±ì—… ë‹¤ìš´ë¡œë“œ</h3>
                     <button class="btn btn-success" onclick="downloadFullBackup()">
-                        ¿ÏÀü¹é¾÷ (DB + Ã·ºÎÆÄÀÏ)
+                        ì™„ì „ë°±ì—… (DB + ì²¨ë¶€íŒŒì¼)
                     </button>
                     <button class="btn btn-primary" onclick="downloadDatabaseOnly()">
-                        DB¸¸ ¹é¾÷
+                        DBë§Œ ë°±ì—…
                     </button>
                 </div>
             </div>
             
-            <!-- ¾÷·Îµå ¼½¼Ç -->
+            <!-- ì—…ë¡œë“œ ì„¹ì…˜ -->
             <div class="upload-section">
-                <h3>µ¥ÀÌÅÍº£ÀÌ½º º¹¿ø</h3>
-                <p>¹é¾÷µÈ µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏÀ» ¾÷·ÎµåÇÏ¿© ½Ã½ºÅÛÀ» º¹¿øÇÒ ¼ö ÀÖ½À´Ï´Ù.</p>
+                <h3>ë°ì´í„°ë² ì´ìŠ¤ ë³µì›</h3>
+                <p>ë°±ì—…ëœ ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ì„ ì—…ë¡œë“œí•˜ì—¬ ì‹œìŠ¤í…œì„ ë³µì›í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.</p>
                 <div class="file-input">
                     <form id="uploadForm" enctype="multipart/form-data">
                         <input type="file" id="dbFile" name="database" accept=".db,.zip" required>
-                        <button type="submit" class="btn btn-secondary">¾÷·Îµå & º¹¿ø</button>
+                        <button type="submit" class="btn btn-secondary">ì—…ë¡œë“œ & ë³µì›</button>
                     </form>
                 </div>
             </div>
@@ -2276,7 +2276,7 @@ def db_management_popup():
         </div>
         
         <script>
-            // ÆäÀÌÁö ·Îµå ½Ã µ¥ÀÌÅÍº£ÀÌ½º Á¤º¸ Á¶È¸
+            // í˜ì´ì§€ ë¡œë“œ ì‹œ ë°ì´í„°ë² ì´ìŠ¤ ì •ë³´ ì¡°íšŒ
             window.addEventListener('load', async () => {
                 await loadDatabaseInfo();
             });
@@ -2301,7 +2301,7 @@ def db_management_popup():
                         showStatus('error', `? ${data.message}`);
                     }
                 } catch (error) {
-                    showStatus('error', `? Á¤º¸ Á¶È¸ ½ÇÆĞ: ${error.message}`);
+                    showStatus('error', `? ì •ë³´ ì¡°íšŒ ì‹¤íŒ¨: ${error.message}`);
                 } finally {
                     loading.style.display = 'none';
                 }
@@ -2311,7 +2311,7 @@ def db_management_popup():
                 const stats = document.getElementById('stats');
                 const tableGrid = document.getElementById('tableGrid');
                 
-                // Åë°è Á¤º¸ Ç¥½Ã
+                // í†µê³„ ì •ë³´ í‘œì‹œ
                 stats.innerHTML = `
                     <div class="stat-item">
                         <div class="stat-number">${data.file_info.size_mb}</div>
@@ -2319,33 +2319,33 @@ def db_management_popup():
                     </div>
                     <div class="stat-item">
                         <div class="stat-number">${data.file_info.total_tables}</div>
-                        <div class="stat-label">Å×ÀÌºí</div>
+                        <div class="stat-label">í…Œì´ë¸”</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-number">${data.file_info.total_records.toLocaleString()}</div>
-                        <div class="stat-label">·¹ÄÚµå</div>
+                        <div class="stat-label">ë ˆì½”ë“œ</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-number" style="font-size: 14px;">${data.file_info.modified_date}</div>
-                        <div class="stat-label">ÃÖÁ¾ ¼öÁ¤</div>
+                        <div class="stat-label">ìµœì¢… ìˆ˜ì •</div>
                     </div>
                 `;
                 
-                // Å×ÀÌºí Á¤º¸ Ç¥½Ã
+                // í…Œì´ë¸” ì •ë³´ í‘œì‹œ
                 tableGrid.innerHTML = '';
                 for (const [tableName, recordCount] of Object.entries(data.table_info)) {
                     const tableItem = document.createElement('div');
                     tableItem.className = 'table-item';
                     tableItem.innerHTML = `
                         <strong>${tableName}</strong><br>
-                        <span style="color: #666;">${recordCount.toLocaleString()}°³ ·¹ÄÚµå</span>
+                        <span style="color: #666;">${recordCount.toLocaleString()}ê°œ ë ˆì½”ë“œ</span>
                     `;
                     tableGrid.appendChild(tableItem);
                 }
             }
             
             async function downloadFullBackup() {
-                showStatus('success', '? ¿ÏÀü¹é¾÷ ´Ù¿î·Îµå¸¦ ½ÃÀÛÇÕ´Ï´Ù...');
+                showStatus('success', '? ì™„ì „ë°±ì—… ë‹¤ìš´ë¡œë“œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤...');
                 
                 try {
                     const link = document.createElement('a');
@@ -2355,14 +2355,14 @@ def db_management_popup():
                     link.click();
                     document.body.removeChild(link);
                     
-                    showStatus('success', '? ¿ÏÀü¹é¾÷ÀÌ ½ÃÀÛµÇ¾ú½À´Ï´Ù. ZIP ÆÄÀÏ¿¡ DB¿Í Ã·ºÎÆÄÀÏÀÌ ¸ğµÎ Æ÷ÇÔµË´Ï´Ù.');
+                    showStatus('success', '? ì™„ì „ë°±ì—…ì´ ì‹œì‘ë˜ì—ˆìŠµë‹ˆë‹¤. ZIP íŒŒì¼ì— DBì™€ ì²¨ë¶€íŒŒì¼ì´ ëª¨ë‘ í¬í•¨ë©ë‹ˆë‹¤.');
                 } catch (error) {
-                    showStatus('error', `? ¿ÏÀü¹é¾÷ ½ÇÆĞ: ${error.message}`);
+                    showStatus('error', `? ì™„ì „ë°±ì—… ì‹¤íŒ¨: ${error.message}`);
                 }
             }
             
             async function downloadDatabaseOnly() {
-                showStatus('success', '? DB ´Ù¿î·Îµå¸¦ ½ÃÀÛÇÕ´Ï´Ù...');
+                showStatus('success', '? DB ë‹¤ìš´ë¡œë“œë¥¼ ì‹œì‘í•©ë‹ˆë‹¤...');
                 
                 try {
                     const link = document.createElement('a');
@@ -2372,13 +2372,13 @@ def db_management_popup():
                     link.click();
                     document.body.removeChild(link);
                     
-                    showStatus('success', '? DB ´Ù¿î·Îµå°¡ ½ÃÀÛµÇ¾ú½À´Ï´Ù. Ã·ºÎÆÄÀÏÀº Æ÷ÇÔµÇÁö ¾Ê½À´Ï´Ù.');
+                    showStatus('success', '? DB ë‹¤ìš´ë¡œë“œê°€ ì‹œì‘ë˜ì—ˆìŠµë‹ˆë‹¤. ì²¨ë¶€íŒŒì¼ì€ í¬í•¨ë˜ì§€ ì•ŠìŠµë‹ˆë‹¤.');
                 } catch (error) {
-                    showStatus('error', `? DB ´Ù¿î·Îµå ½ÇÆĞ: ${error.message}`);
+                    showStatus('error', `? DB ë‹¤ìš´ë¡œë“œ ì‹¤íŒ¨: ${error.message}`);
                 }
             }
             
-            // ÆÄÀÏ ¾÷·Îµå Ã³¸®
+            // íŒŒì¼ ì—…ë¡œë“œ ì²˜ë¦¬
             document.getElementById('uploadForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
@@ -2386,11 +2386,11 @@ def db_management_popup():
                 const file = fileInput.files[0];
                 
                 if (!file) {
-                    showStatus('error', '? ÆÄÀÏÀ» ¼±ÅÃÇØÁÖ¼¼¿ä.');
+                    showStatus('error', '? íŒŒì¼ì„ ì„ íƒí•´ì£¼ì„¸ìš”.');
                     return;
                 }
                 
-                showStatus('success', '? ÆÄÀÏÀ» ¾÷·ÎµåÇÏ°í ÀÖ½À´Ï´Ù...');
+                showStatus('success', '? íŒŒì¼ì„ ì—…ë¡œë“œí•˜ê³  ìˆìŠµë‹ˆë‹¤...');
                 
                 const formData = new FormData();
                 formData.append('database', file);
@@ -2402,16 +2402,16 @@ def db_management_popup():
                     });
                     
                     if (response.ok) {
-                        showStatus('success', '? µ¥ÀÌÅÍº£ÀÌ½º°¡ ¼º°øÀûÀ¸·Î º¹¿øµÇ¾ú½À´Ï´Ù.');
+                        showStatus('success', '? ë°ì´í„°ë² ì´ìŠ¤ê°€ ì„±ê³µì ìœ¼ë¡œ ë³µì›ë˜ì—ˆìŠµë‹ˆë‹¤.');
                         setTimeout(() => {
                             window.location.reload();
                         }, 2000);
                     } else {
                         const errorText = await response.text();
-                        showStatus('error', `? ¾÷·Îµå ½ÇÆĞ: ${errorText}`);
+                        showStatus('error', `? ì—…ë¡œë“œ ì‹¤íŒ¨: ${errorText}`);
                     }
                 } catch (error) {
-                    showStatus('error', `? ¾÷·Îµå ¿À·ù: ${error.message}`);
+                    showStatus('error', `? ì—…ë¡œë“œ ì˜¤ë¥˜: ${error.message}`);
                 }
             });
             
@@ -2423,9 +2423,9 @@ def db_management_popup():
             }
         </script>
         
-        <!-- ´İ±â ¹öÆ° -->
+        <!-- ë‹«ê¸° ë²„íŠ¼ -->
         <div style="text-align: center; margin: 30px 0; padding: 20px; border-top: 1px solid #eee;">
-            <button onclick="window.close()" style="background: #dc3545; color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 500; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">´İ±â</button>
+            <button onclick="window.close()" style="background: #dc3545; color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 500; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">ë‹«ê¸°</button>
         </div>
     </body>
     </html>
@@ -2433,20 +2433,20 @@ def db_management_popup():
     
     return Response(html_content, content_type='text/html; charset=utf-8')
 
-# °£´ÜÇÑ ´Ù¿î·Îµå °æ·Îµé Ãß°¡
+# ê°„ë‹¨í•œ ë‹¤ìš´ë¡œë“œ ê²½ë¡œë“¤ ì¶”ê°€
 @app.route('/download')
 def simple_download():
-    """°£´ÜÇÑ ´Ù¿î·Îµå ÆäÀÌÁö °æ·Î"""
+    """ê°„ë‹¨í•œ ë‹¤ìš´ë¡œë“œ í˜ì´ì§€ ê²½ë¡œ"""
     return redirect('/download_database_page')
 
 @app.route('/db_download')
 def db_download_alias():
-    """µ¥ÀÌÅÍº£ÀÌ½º ´Ù¿î·Îµå ÆäÀÌÁö º°Äª"""
+    """ë°ì´í„°ë² ì´ìŠ¤ ë‹¤ìš´ë¡œë“œ í˜ì´ì§€ ë³„ì¹­"""
     return redirect('/download_database_page')
 
 @app.route('/routes')
 def list_routes():
-    """µî·ÏµÈ ¸ğµç ¶ó¿ìÆ® È®ÀÎ"""
+    """ë“±ë¡ëœ ëª¨ë“  ë¼ìš°íŠ¸ í™•ì¸"""
     routes = []
     for rule in app.url_map.iter_rules():
         routes.append({
@@ -2457,7 +2457,7 @@ def list_routes():
     
     routes.sort(key=lambda x: x['rule'])
     
-    html = "<h2>µî·ÏµÈ ¶ó¿ìÆ® ¸ñ·Ï</h2><ul>"
+    html = "<h2>ë“±ë¡ëœ ë¼ìš°íŠ¸ ëª©ë¡</h2><ul>"
     for route in routes:
         html += f"<li><strong>{route['rule']}</strong> - {route['methods']} - {route['endpoint']}</li>"
     html += "</ul>"
@@ -2466,28 +2466,28 @@ def list_routes():
 
 @app.route('/copy_local_data')
 def copy_local_data():
-    """·ÎÄÃ DB ±¸Á¶¿Í »ùÇÃ µ¥ÀÌÅÍ¸¦ Render ¼­¹ö¿¡ º¹»ç"""
+    """ë¡œì»¬ DB êµ¬ì¡°ì™€ ìƒ˜í”Œ ë°ì´í„°ë¥¼ Render ì„œë²„ì— ë³µì‚¬"""
     if not os.environ.get('RENDER'):
-        return jsonify({"error": "ÀÌ ±â´ÉÀº Render ¼­¹ö¿¡¼­¸¸ »ç¿ë °¡´ÉÇÕ´Ï´Ù."}), 403
+        return jsonify({"error": "ì´ ê¸°ëŠ¥ì€ Render ì„œë²„ì—ì„œë§Œ ì‚¬ìš© ê°€ëŠ¥í•©ë‹ˆë‹¤."}), 403
     
     try:
         conn = get_db_connection()
         results = []
         
-        # ¸ÕÀú ±âº» Å×ÀÌºíµé »ı¼º
+        # ë¨¼ì € ê¸°ë³¸ í…Œì´ë¸”ë“¤ ìƒì„±
         try:
             init_user_tables()
-            results.append("? ±âº» »ç¿ëÀÚ Å×ÀÌºí »ı¼º ¿Ï·á")
+            results.append("? ê¸°ë³¸ ì‚¬ìš©ì í…Œì´ë¸” ìƒì„± ì™„ë£Œ")
         except Exception as e:
-            results.append(f"? ±âº» »ç¿ëÀÚ Å×ÀÌºí »ı¼º ½ÇÆĞ: {str(e)}")
+            results.append(f"? ê¸°ë³¸ ì‚¬ìš©ì í…Œì´ë¸” ìƒì„± ì‹¤íŒ¨: {str(e)}")
         
         try:
             init_business_tables()
-            results.append("? ±âº» ºñÁî´Ï½º Å×ÀÌºí »ı¼º ¿Ï·á")
+            results.append("? ê¸°ë³¸ ë¹„ì¦ˆë‹ˆìŠ¤ í…Œì´ë¸” ìƒì„± ì™„ë£Œ")
         except Exception as e:
-            results.append(f"? ±âº» ºñÁî´Ï½º Å×ÀÌºí »ı¼º ½ÇÆĞ: {str(e)}")
+            results.append(f"? ê¸°ë³¸ ë¹„ì¦ˆë‹ˆìŠ¤ í…Œì´ë¸” ìƒì„± ì‹¤íŒ¨: {str(e)}")
         
-        # ÇÙ½É Å×ÀÌºíµéÀ» Á÷Á¢ »ı¼º (È®½ÇÇÏ°Ô)
+        # í•µì‹¬ í…Œì´ë¸”ë“¤ì„ ì§ì ‘ ìƒì„± (í™•ì‹¤í•˜ê²Œ)
         core_tables = [
             ("Users", '''
                 CREATE TABLE IF NOT EXISTS Users (
@@ -2495,9 +2495,9 @@ def copy_local_data():
                     password TEXT NOT NULL,
                     name TEXT NOT NULL,
                     user_level TEXT NOT NULL DEFAULT 'N',
-                    user_level_name TEXT NOT NULL DEFAULT 'ÀÏ¹İ´ã´çÀÚ',
+                    user_level_name TEXT NOT NULL DEFAULT 'ì¼ë°˜ë‹´ë‹¹ì',
                     branch_code TEXT NOT NULL DEFAULT 'DEFAULT',
-                    branch_name TEXT NOT NULL DEFAULT '±âº»ÁöÁ¡',
+                    branch_name TEXT NOT NULL DEFAULT 'ê¸°ë³¸ì§€ì ',
                     phone TEXT,
                     gender TEXT,
                     birth_date TEXT,
@@ -2538,11 +2538,11 @@ def copy_local_data():
         for table_name, create_sql in core_tables:
             try:
                 conn.execute(create_sql)
-                results.append(f"? {table_name} Å×ÀÌºí Á÷Á¢ »ı¼º ¿Ï·á")
+                results.append(f"? {table_name} í…Œì´ë¸” ì§ì ‘ ìƒì„± ì™„ë£Œ")
             except Exception as e:
-                results.append(f"? {table_name} Å×ÀÌºí Á÷Á¢ »ı¼º ½ÇÆĞ: {str(e)}")
+                results.append(f"? {table_name} í…Œì´ë¸” ì§ì ‘ ìƒì„± ì‹¤íŒ¨: {str(e)}")
         
-        # Ãß°¡ Å×ÀÌºíµé »ı¼º
+        # ì¶”ê°€ í…Œì´ë¸”ë“¤ ìƒì„±
         additional_tables = [
             ("User_Subscriptions", '''
                 CREATE TABLE IF NOT EXISTS User_Subscriptions (
@@ -2629,17 +2629,17 @@ def copy_local_data():
         for table_name, create_sql in additional_tables:
             try:
                 conn.execute(create_sql)
-                results.append(f"? {table_name} Å×ÀÌºí »ı¼º ¿Ï·á")
+                results.append(f"? {table_name} í…Œì´ë¸” ìƒì„± ì™„ë£Œ")
             except Exception as e:
-                results.append(f"? {table_name} Å×ÀÌºí »ı¼º ½ÇÆĞ: {str(e)}")
+                results.append(f"? {table_name} í…Œì´ë¸” ìƒì„± ì‹¤íŒ¨: {str(e)}")
         
-        # »ùÇÃ »ç¿ëÀÚ °èÁ¤°ú µ¥ÀÌÅÍ Ãß°¡
+        # ìƒ˜í”Œ ì‚¬ìš©ì ê³„ì •ê³¼ ë°ì´í„° ì¶”ê°€
         try:
-            # ±âº» »ç¿ëÀÚµé Ãß°¡ (yangch °èÁ¤ Á¦°ÅµÊ)
+            # ê¸°ë³¸ ì‚¬ìš©ìë“¤ ì¶”ê°€ (yangch ê³„ì • ì œê±°ë¨)
             users_data = [
-                ('admin', 'admin123!', '°ü¸®ÀÚ', 'S', '¼­ºê°ü¸®ÀÚ', 'ADMIN', '°ü¸®ºÎ', '010-1111-1111'),
-                ('manager1', 'manager123!', '¸Å´ÏÀú1', 'M', '¸Å´ÏÀú', 'SALES', '¿µ¾÷ºÎ', '010-2222-2222'),
-                ('user1', 'user123!', 'ÀÏ¹İ»ç¿ëÀÚ1', 'N', 'ÀÏ¹İ´ã´çÀÚ', 'SALES', '¿µ¾÷ºÎ', '010-3333-3333')
+                ('admin', 'admin123!', 'ê´€ë¦¬ì', 'S', 'ì„œë¸Œê´€ë¦¬ì', 'ADMIN', 'ê´€ë¦¬ë¶€', '010-1111-1111'),
+                ('manager1', 'manager123!', 'ë§¤ë‹ˆì €1', 'M', 'ë§¤ë‹ˆì €', 'SALES', 'ì˜ì—…ë¶€', '010-2222-2222'),
+                ('user1', 'user123!', 'ì¼ë°˜ì‚¬ìš©ì1', 'N', 'ì¼ë°˜ë‹´ë‹¹ì', 'SALES', 'ì˜ì—…ë¶€', '010-3333-3333')
             ]
             
             for user_data in users_data:
@@ -2649,13 +2649,13 @@ def copy_local_data():
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ''', user_data)
             
-            results.append("? ±âº» »ç¿ëÀÚ °èÁ¤µé Ãß°¡ ¿Ï·á")
+            results.append("? ê¸°ë³¸ ì‚¬ìš©ì ê³„ì •ë“¤ ì¶”ê°€ ì™„ë£Œ")
             
-            # »ùÇÃ ±â¾÷ µ¥ÀÌÅÍ Ãß°¡
+            # ìƒ˜í”Œ ê¸°ì—… ë°ì´í„° ì¶”ê°€
             sample_companies = [
-                ('1234567890', '»ùÇÃ±â¾÷1', 'È«±æµ¿', '2020-01-01', 'Áß¼Ò±â¾÷', 'IT¼­ºñ½º¾÷', '¼­¿ïÆ¯º°½Ã'),
-                ('0987654321', '»ùÇÃ±â¾÷2', '±èÃ¶¼ö', '2019-05-15', 'Áß°ß±â¾÷', 'Á¦Á¶¾÷', '°æ±âµµ'),
-                ('5555555555', 'Å×½ºÆ®È¸»ç', 'ÀÌ¿µÈñ', '2021-03-10', '¼Ò±â¾÷', '¼­ºñ½º¾÷', 'ºÎ»ê±¤¿ª½Ã')
+                ('1234567890', 'ìƒ˜í”Œê¸°ì—…1', 'í™ê¸¸ë™', '2020-01-01', 'ì¤‘ì†Œê¸°ì—…', 'ITì„œë¹„ìŠ¤ì—…', 'ì„œìš¸íŠ¹ë³„ì‹œ'),
+                ('0987654321', 'ìƒ˜í”Œê¸°ì—…2', 'ê¹€ì² ìˆ˜', '2019-05-15', 'ì¤‘ê²¬ê¸°ì—…', 'ì œì¡°ì—…', 'ê²½ê¸°ë„'),
+                ('5555555555', 'í…ŒìŠ¤íŠ¸íšŒì‚¬', 'ì´ì˜í¬', '2021-03-10', 'ì†Œê¸°ì—…', 'ì„œë¹„ìŠ¤ì—…', 'ë¶€ì‚°ê´‘ì—­ì‹œ')
             ]
             
             for company_data in sample_companies:
@@ -2665,24 +2665,24 @@ def copy_local_data():
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''', company_data)
             
-            results.append("? »ùÇÃ ±â¾÷ µ¥ÀÌÅÍ Ãß°¡ ¿Ï·á")
+            results.append("? ìƒ˜í”Œ ê¸°ì—… ë°ì´í„° ì¶”ê°€ ì™„ë£Œ")
             
         except Exception as e:
-            results.append(f"? »ùÇÃ µ¥ÀÌÅÍ Ãß°¡ ½ÇÆĞ: {str(e)}")
+            results.append(f"? ìƒ˜í”Œ ë°ì´í„° ì¶”ê°€ ì‹¤íŒ¨: {str(e)}")
         
         conn.commit()
         conn.close()
         
         return jsonify({
             "status": "success",
-            "message": "·ÎÄÃ µ¥ÀÌÅÍ º¹»ç ¿Ï·á",
+            "message": "ë¡œì»¬ ë°ì´í„° ë³µì‚¬ ì™„ë£Œ",
             "results": results
         })
         
     except Exception as e:
         return jsonify({
             "status": "error", 
-            "message": f"µ¥ÀÌÅÍ º¹»ç ½ÇÆĞ: {str(e)}"
+            "message": f"ë°ì´í„° ë³µì‚¬ ì‹¤íŒ¨: {str(e)}"
         }), 500
 
 @app.route('/')
@@ -2695,24 +2695,24 @@ def index():
     
     conn = get_db_connection()
 
-    # ±¸µ¶ Á¤º¸ Á¶È¸ (»õ·Î¿î ÇÔ¼ö »ç¿ë)
-    subscription_info = get_user_subscription_info(user_id)    # ÆäÀÌÁö³×ÀÌ¼Ç ¼³Á¤
+    # êµ¬ë… ì •ë³´ ì¡°íšŒ (ìƒˆë¡œìš´ í•¨ìˆ˜ ì‚¬ìš©)
+    subscription_info = get_user_subscription_info(user_id)    # í˜ì´ì§€ë„¤ì´ì…˜ ì„¤ì •
     page = request.args.get('page', 1, type=int)
     per_page = 20
     offset = (page - 1) * per_page
 
-    # Company_Basic Å×ÀÌºí·Î º¯°æ
+    # Company_Basic í…Œì´ë¸”ë¡œ ë³€ê²½
     total_companies = conn.execute('SELECT COUNT(*) FROM Company_Basic').fetchone()[0]
     total_pages = math.ceil(total_companies / per_page)
 
     companies = conn.execute('SELECT * FROM Company_Basic LIMIT ? OFFSET ?', (per_page, offset)).fetchall()
 
-    # Á¢ÃË ÀÌ·Â Á¶È¸ ±ÇÇÑ Ã³¸® ·ÎÁ÷
+    # ì ‘ì´‰ ì´ë ¥ ì¡°íšŒ ê¶Œí•œ ì²˜ë¦¬ ë¡œì§
     user_level = session.get('user_level', 'N')
     contact_params = []
     contact_history_query = "SELECT * FROM Contact_History"
     
-    # V(¸ŞÀÎ°ü¸®ÀÚ), S(¼­ºê°ü¸®ÀÚ)´Â ÀüÃ¼ ÀÌ·Â Á¶È¸ °¡´É
+    # V(ë©”ì¸ê´€ë¦¬ì), S(ì„œë¸Œê´€ë¦¬ì)ëŠ” ì „ì²´ ì´ë ¥ ì¡°íšŒ ê°€ëŠ¥
     if not check_permission(user_level, 'S'):
         contact_history_query += " WHERE registered_by = ?"
         contact_params.append(user_id)
@@ -2733,35 +2733,35 @@ def main():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     
-    # ±¸µ¶ Á¤º¸ Á¶È¸
+    # êµ¬ë… ì •ë³´ ì¡°íšŒ
     subscription_info = get_user_subscription_info(session.get('user_id'))
     
-    # »ç¿ëÀÚ ±ÇÇÑ Á¤º¸¸¦ ÅÛÇÃ¸´¿¡ Àü´Ş
+    # ì‚¬ìš©ì ê¶Œí•œ ì •ë³´ë¥¼ í…œí”Œë¦¿ì— ì „ë‹¬
     user_data = {
         'user_name': session.get('user_name'),
         'user_level': session.get('user_level', 'N'),
-        'user_level_name': session.get('user_level_name', 'ÀÏ¹İ´ã´çÀÚ'),
+        'user_level_name': session.get('user_level_name', 'ì¼ë°˜ë‹´ë‹¹ì'),
         'branch_name': session.get('branch_name', ''),
         'can_manage_users': check_permission(session.get('user_level', 'N'), 'S'),
         'subscription_info': subscription_info
     }
     
     return render_template('main.html', **user_data)
-# (ºÒÇÊ¿äÇÑ Àß¸øµÈ µé¿©¾²±â ¶óÀÎ Á¦°Å)
-# --- Á¢ÃËÀÌ·Â µ¥ÀÌÅÍ Á¶È¸ API Ãß°¡ ---
+# (ë¶ˆí•„ìš”í•œ ì˜ëª»ëœ ë“¤ì—¬ì“°ê¸° ë¼ì¸ ì œê±°)
+# --- ì ‘ì´‰ì´ë ¥ ë°ì´í„° ì¡°íšŒ API ì¶”ê°€ ---
 @app.route('/api/contact_history_csv', methods=['GET', 'POST'])
 def contact_history_csv():
     if not session.get('logged_in'):
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     if request.method == 'GET':
-        # º»ÀÎÀÌ µî·ÏÇÑ Contact_History¸¸ CSV·Î ¹İÈ¯ (°ü¸®ÀÚ´Â ÀüÃ¼ Á¶È¸ °¡´É)
+        # ë³¸ì¸ì´ ë“±ë¡í•œ Contact_Historyë§Œ CSVë¡œ ë°˜í™˜ (ê´€ë¦¬ìëŠ” ì „ì²´ ì¡°íšŒ ê°€ëŠ¥)
         conn = get_db_connection()
         user_level = session.get('user_level', 'N')
         user_id = session.get('user_id')
         
-        if user_level in ['V', 'S']:  # ÃÖ°í°ü¸®ÀÚ, ½Ã½ºÅÛ°ü¸®ÀÚ´Â ÀüÃ¼ Á¶È¸
+        if user_level in ['V', 'S']:  # ìµœê³ ê´€ë¦¬ì, ì‹œìŠ¤í…œê´€ë¦¬ìëŠ” ì „ì²´ ì¡°íšŒ
             rows = conn.execute('SELECT history_id, contact_datetime, biz_no, contact_type, contact_person, memo, registered_by FROM Contact_History ORDER BY history_id').fetchall()
-        else:  # ÀÏ¹İ »ç¿ëÀÚ´Â º»ÀÎ µî·Ï °Ç¸¸ Á¶È¸
+        else:  # ì¼ë°˜ ì‚¬ìš©ìëŠ” ë³¸ì¸ ë“±ë¡ ê±´ë§Œ ì¡°íšŒ
             rows = conn.execute('SELECT history_id, contact_datetime, biz_no, contact_type, contact_person, memo, registered_by FROM Contact_History WHERE registered_by = ? ORDER BY history_id', (user_id,)).fetchall()
         
         conn.close()
@@ -2773,24 +2773,24 @@ def contact_history_csv():
         output = si.getvalue().encode('utf-8-sig')
         return Response(output, mimetype='text/csv', headers={"Content-Disposition": "attachment;filename=contact_history.csv"})
     else:
-        # ¾÷·Îµå: ±âÁ¸ µ¥ÀÌÅÍ ÀüÃ¼ »èÁ¦ ÈÄ, ¾÷·ÎµåµÈ CSV·Î ÀüÃ¼ ´ëÃ¼
+        # ì—…ë¡œë“œ: ê¸°ì¡´ ë°ì´í„° ì „ì²´ ì‚­ì œ í›„, ì—…ë¡œë“œëœ CSVë¡œ ì „ì²´ ëŒ€ì²´
         if 'file' not in request.files:
-            return jsonify({'success': False, 'message': 'ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.'}), 400
+            return jsonify({'success': False, 'message': 'íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.'}), 400
         file = request.files['file']
         if not file.filename.endswith('.csv'):
-            return jsonify({'success': False, 'message': 'CSV ÆÄÀÏ¸¸ ¾÷·Îµå °¡´ÉÇÕ´Ï´Ù.'}), 400
+            return jsonify({'success': False, 'message': 'CSV íŒŒì¼ë§Œ ì—…ë¡œë“œ ê°€ëŠ¥í•©ë‹ˆë‹¤.'}), 400
         
-        # ÀÎÄÚµù °¨Áö ¹× Ã³¸®
+        # ì¸ì½”ë”© ê°ì§€ ë° ì²˜ë¦¬
         content = file.stream.read()
         try:
-            # UTF-8 BOM ¿ì¼± ½Ãµµ
+            # UTF-8 BOM ìš°ì„  ì‹œë„
             decoded_content = content.decode('utf-8-sig')
         except UnicodeDecodeError:
             try:
-                # CP949 (EUC-KR) ½Ãµµ
+                # CP949 (EUC-KR) ì‹œë„
                 decoded_content = content.decode('cp949')
             except UnicodeDecodeError:
-                # UTF-8 ½Ãµµ
+                # UTF-8 ì‹œë„
                 decoded_content = content.decode('utf-8', errors='ignore')
         
         stream = io.StringIO(decoded_content)
@@ -2819,13 +2819,13 @@ def contact_history_csv():
         return jsonify({'success': True, 'inserted': inserted, 'updated': updated})
 @app.route('/api/history_search')
 def api_history_search():
-    print(">>> /api/history_search ¶ó¿ìÆ® ÁøÀÔ")  # ¶ó¿ìÆ® ÁøÀÔ È®ÀÎ¿ë ·Î±×
+    print(">>> /api/history_search ë¼ìš°íŠ¸ ì§„ì…")  # ë¼ìš°íŠ¸ ì§„ì… í™•ì¸ìš© ë¡œê·¸
     if not session.get('logged_in'):
         return jsonify({"error": "Unauthorized"}), 401
 
     try:
         user_id = session.get('user_id')
-        print(f"Á¢¼Ó user_id: {user_id}")
+        print(f"ì ‘ì† user_id: {user_id}")
         query = """
             SELECT
                 h.history_id,
@@ -2845,17 +2845,17 @@ def api_history_search():
         search_user = request.args.get('registered_by')
         user_level = session.get('user_level', 'N')
         
-        # ´ã´çÀÚID°¡ ¸íÈ®È÷ ÀÔ·ÂµÈ °æ¿ì¸¸ ÇØ´ç ´ã´çÀÚ µî·Ï°Ç¸¸ Á¶È¸
+        # ë‹´ë‹¹ìIDê°€ ëª…í™•íˆ ì…ë ¥ëœ ê²½ìš°ë§Œ í•´ë‹¹ ë‹´ë‹¹ì ë“±ë¡ê±´ë§Œ ì¡°íšŒ
         if search_user is not None and search_user.strip() != "":
             filters.append("h.registered_by = ?")
             params.append(search_user.strip())
         else:
-            # ´ã´çÀÚID ¹ÌÀÔ·Â ½Ã ±ÇÇÑ¿¡ µû¶ó Á¶È¸ ¹üÀ§ °áÁ¤
-            if check_permission(user_level, 'S'):  # V(¸ŞÀÎ°ü¸®ÀÚ), S(¼­ºê°ü¸®ÀÚ)
-                # ÀüÃ¼ ÀÌ·Â Á¶È¸ (ÇÊÅÍ ¾øÀ½)
+            # ë‹´ë‹¹ìID ë¯¸ì…ë ¥ ì‹œ ê¶Œí•œì— ë”°ë¼ ì¡°íšŒ ë²”ìœ„ ê²°ì •
+            if check_permission(user_level, 'S'):  # V(ë©”ì¸ê´€ë¦¬ì), S(ì„œë¸Œê´€ë¦¬ì)
+                # ì „ì²´ ì´ë ¥ ì¡°íšŒ (í•„í„° ì—†ìŒ)
                 pass
             else:
-                # M(¸Å´ÏÀú), N(ÀÏ¹İ´ã´çÀÚ)´Â º»ÀÎ µî·Ï°Ç¸¸ Á¶È¸
+                # M(ë§¤ë‹ˆì €), N(ì¼ë°˜ë‹´ë‹¹ì)ëŠ” ë³¸ì¸ ë“±ë¡ê±´ë§Œ ì¡°íšŒ
                 filters.append("h.registered_by = ?")
                 params.append(user_id)
 
@@ -2873,14 +2873,14 @@ def api_history_search():
             query += " WHERE " + " AND ".join(filters)
         query += " ORDER BY h.contact_datetime DESC"
 
-        print(f"Äõ¸® ½ÇÇà: {query}")
-        print(f"ÆÄ¶ó¹ÌÅÍ: {params}")
+        print(f"ì¿¼ë¦¬ ì‹¤í–‰: {query}")
+        print(f"íŒŒë¼ë¯¸í„°: {params}")
 
         conn = get_db_connection()
         results = conn.execute(query, params).fetchall()
         conn.close()
 
-        print(f"Á¶È¸µÈ °á°ú ¼ö: {len(results)}")
+        print(f"ì¡°íšŒëœ ê²°ê³¼ ìˆ˜: {len(results)}")
         return jsonify([dict(row) for row in results])
         
     except Exception as e:
@@ -2889,7 +2889,7 @@ def api_history_search():
         traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
 
-# ¡å¡å¡å [¼öÁ¤] get_companies ÇÔ¼ö ¡å¡å¡å
+# â–¼â–¼â–¼ [ìˆ˜ì •] get_companies í•¨ìˆ˜ â–¼â–¼â–¼
 @app.route('/api/companies')
 def get_companies():
     if not session.get('logged_in'):
@@ -2924,29 +2924,29 @@ def export_excel():
         import xlsxwriter  # ensure xlsxwriter is installed
         df = query_companies_data(request.args)
         if len(df) > 500:
-            return "°Ë»ö °á°ú°¡ 500°ÇÀ» ÃÊ°úÇÕ´Ï´Ù. Á¶°ÇÀ» Á¶Á¤ÇÏ¿© 500°Ç ÀÌÇÏ·Î Á¶È¸ÇØÁÖ¼¼¿ä.", 400
+            return "ê²€ìƒ‰ ê²°ê³¼ê°€ 500ê±´ì„ ì´ˆê³¼í•©ë‹ˆë‹¤. ì¡°ê±´ì„ ì¡°ì •í•˜ì—¬ 500ê±´ ì´í•˜ë¡œ ì¡°íšŒí•´ì£¼ì„¸ìš”.", 400
         df.rename(columns={
-            'biz_no': '»ç¾÷ÀÚ¹øÈ£', 'company_name': '±â¾÷¸í', 'representative_name': '´ëÇ¥ÀÚ¸í', 'phone_number': 'ÀüÈ­¹øÈ£',
-            'company_size': '±â¾÷±Ô¸ğ', 'address': 'ÁÖ¼Ò', 'industry_name': '¾÷Á¾¸í', 'fiscal_year': 'ÃÖ½Å°á»ê³âµµ',
-            'total_assets': 'ÀÚ»êÃÑ°è', 'sales_revenue': '¸ÅÃâ¾×', 'retained_earnings': 'ÀÌÀÍÀ×¿©±İ'
+            'biz_no': 'ì‚¬ì—…ìë²ˆí˜¸', 'company_name': 'ê¸°ì—…ëª…', 'representative_name': 'ëŒ€í‘œìëª…', 'phone_number': 'ì „í™”ë²ˆí˜¸',
+            'company_size': 'ê¸°ì—…ê·œëª¨', 'address': 'ì£¼ì†Œ', 'industry_name': 'ì—…ì¢…ëª…', 'fiscal_year': 'ìµœì‹ ê²°ì‚°ë…„ë„',
+            'total_assets': 'ìì‚°ì´ê³„', 'sales_revenue': 'ë§¤ì¶œì•¡', 'retained_earnings': 'ì´ìµì‰ì—¬ê¸ˆ'
         }, inplace=True)
-        excel_cols = ['»ç¾÷ÀÚ¹øÈ£', '±â¾÷¸í', '´ëÇ¥ÀÚ¸í', 'ÀüÈ­¹øÈ£', '±â¾÷±Ô¸ğ', 'ÁÖ¼Ò', '¾÷Á¾¸í', 'ÃÖ½Å°á»ê³âµµ', 'ÀÚ»êÃÑ°è', '¸ÅÃâ¾×', 'ÀÌÀÍÀ×¿©±İ']
+        excel_cols = ['ì‚¬ì—…ìë²ˆí˜¸', 'ê¸°ì—…ëª…', 'ëŒ€í‘œìëª…', 'ì „í™”ë²ˆí˜¸', 'ê¸°ì—…ê·œëª¨', 'ì£¼ì†Œ', 'ì—…ì¢…ëª…', 'ìµœì‹ ê²°ì‚°ë…„ë„', 'ìì‚°ì´ê³„', 'ë§¤ì¶œì•¡', 'ì´ìµì‰ì—¬ê¸ˆ']
         df_excel = df[[col for col in excel_cols if col in df.columns]]
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            df_excel.to_excel(writer, index=False, sheet_name='±â¾÷Á¤º¸')
+            df_excel.to_excel(writer, index=False, sheet_name='ê¸°ì—…ì •ë³´')
         output.seek(0)
         return Response(output, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         headers={"Content-Disposition": "attachment;filename=company_data.xlsx"})
     except ImportError:
-        return "¿¢¼¿ ÆÄÀÏ »ı¼º¿¡ ÇÊ¿äÇÑ 'xlsxwriter' ÆĞÅ°Áö°¡ ¼³Ä¡µÇ¾î ÀÖÁö ¾Ê½À´Ï´Ù. °ü¸®ÀÚ¿¡°Ô ¹®ÀÇÇÏ¼¼¿ä.", 500
+        return "ì—‘ì…€ íŒŒì¼ ìƒì„±ì— í•„ìš”í•œ 'xlsxwriter' íŒ¨í‚¤ì§€ê°€ ì„¤ì¹˜ë˜ì–´ ìˆì§€ ì•ŠìŠµë‹ˆë‹¤. ê´€ë¦¬ìì—ê²Œ ë¬¸ì˜í•˜ì„¸ìš”.", 500
     except Exception as e:
         print(f"Error in export_excel: {e}")
-        return f"¿¢¼¿ ÆÄÀÏ »ı¼º Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù. »ó¼¼: {e}", 500
+        return f"ì—‘ì…€ íŒŒì¼ ìƒì„± ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤. ìƒì„¸: {e}", 500
 
 # ...existing code...
 @app.route('/company/<biz_no>')
-@app.route('/company_detail/<biz_no>')  # Ãß°¡ ¶ó¿ìÆ® °æ·Î
+@app.route('/company_detail/<biz_no>')  # ì¶”ê°€ ë¼ìš°íŠ¸ ê²½ë¡œ
 def company_detail(biz_no):
     if not session.get('logged_in'): return redirect(url_for('login'))
     
@@ -2979,12 +2979,12 @@ def company_detail(biz_no):
     history_params = [biz_no]
     user_level = session.get('user_level', 'N')
 
-    # ±ÇÇÑ¿¡ µû¸¥ Á¢ÃËÀÌ·Â Á¶È¸ ¹üÀ§ ¼³Á¤
-    if user_level == 'V':  # ¸ŞÀÎ°ü¸®ÀÚ: ¸ğµç ÀÌ·Â
+    # ê¶Œí•œì— ë”°ë¥¸ ì ‘ì´‰ì´ë ¥ ì¡°íšŒ ë²”ìœ„ ì„¤ì •
+    if user_level == 'V':  # ë©”ì¸ê´€ë¦¬ì: ëª¨ë“  ì´ë ¥
         pass
-    elif user_level == 'S':  # ¼­ºê°ü¸®ÀÚ: °ü¸®ÀÚ±Ş ÀÌ·Â¸¸
+    elif user_level == 'S':  # ì„œë¸Œê´€ë¦¬ì: ê´€ë¦¬ìê¸‰ ì´ë ¥ë§Œ
         history_query += " AND registered_by IN (SELECT user_id FROM Users WHERE user_level IN ('V', 'S'))"
-    else:  # ¸Å´ÏÀú, ÀÏ¹İ´ã´çÀÚ: º»ÀÎ ÀÌ·Â¸¸
+    else:  # ë§¤ë‹ˆì €, ì¼ë°˜ë‹´ë‹¹ì: ë³¸ì¸ ì´ë ¥ë§Œ
         history_query += " AND registered_by = ?"
         history_params.append(user_id)
     
@@ -3015,12 +3015,12 @@ def company_detail(biz_no):
     financial_data_for_calc = [dict(row) for row in financial_info] if financial_info else []
     stock_valuation = calculate_unlisted_stock_value(financial_data_for_calc)
     
-    # ÁÖÁÖ Á¤º¸ Ã³¸® °³¼± - ÁöºĞÀ², ÁÖ½Ä¼ö, ±İ¾× °è»ê
+    # ì£¼ì£¼ ì •ë³´ ì²˜ë¦¬ ê°œì„  - ì§€ë¶„ìœ¨, ì£¼ì‹ìˆ˜, ê¸ˆì•¡ ê³„ì‚°
     processed_shareholders = []
     total_shares_owned = 0
     
     if shareholders:
-        # ÀüÃ¼ ÁÖ½Ä¼ö °è»ê (stock_valuation¿¡¼­ °è»êµÈ °ª »ç¿ë)
+        # ì „ì²´ ì£¼ì‹ìˆ˜ ê³„ì‚° (stock_valuationì—ì„œ ê³„ì‚°ëœ ê°’ ì‚¬ìš©)
         total_shares_issued = stock_valuation.get('total_shares_issued', 1)
         estimated_stock_value = stock_valuation.get('estimated_stock_value', 0)
         
@@ -3028,20 +3028,20 @@ def company_detail(biz_no):
             try:
                 shareholder_dict = dict(shareholder)
                 
-                # ¾ÈÀüÇÑ ÁöºĞÀ² º¯È¯
+                # ì•ˆì „í•œ ì§€ë¶„ìœ¨ ë³€í™˜
                 try:
                     ownership_percent = float(shareholder_dict.get('ownership_percent', 0) or 0)
                 except (ValueError, TypeError):
                     ownership_percent = 0.0
                 
-                # ½ÇÁ¦ ÁÖ½Ä¼ö°¡ ÀÖ´ÂÁö È®ÀÎ
+                # ì‹¤ì œ ì£¼ì‹ìˆ˜ê°€ ìˆëŠ”ì§€ í™•ì¸
                 actual_stock_quantity = shareholder_dict.get('total_shares_owned')
                 has_actual_stock_data = (actual_stock_quantity is not None and 
                                        actual_stock_quantity != '' and 
                                        actual_stock_quantity != 0)
                 
                 if has_actual_stock_data:
-                    # ½ÇÁ¦ ÁÖ½Ä¼ö µ¥ÀÌÅÍ°¡ ÀÖ´Â °æ¿ì
+                    # ì‹¤ì œ ì£¼ì‹ìˆ˜ ë°ì´í„°ê°€ ìˆëŠ” ê²½ìš°
                     try:
                         stock_quantity = float(actual_stock_quantity)
                         is_predicted = False
@@ -3049,7 +3049,7 @@ def company_detail(biz_no):
                         stock_quantity = 0.0
                         is_predicted = False
                 else:
-                    # ½ÇÁ¦ ÁÖ½Ä¼ö°¡ ¾ø´Â °æ¿ì ÁöºĞÀ²·Î ¿¹Ãø °è»ê
+                    # ì‹¤ì œ ì£¼ì‹ìˆ˜ê°€ ì—†ëŠ” ê²½ìš° ì§€ë¶„ìœ¨ë¡œ ì˜ˆì¸¡ ê³„ì‚°
                     try:
                         stock_quantity = (total_shares_issued * ownership_percent) / 100.0
                         is_predicted = True
@@ -3057,7 +3057,7 @@ def company_detail(biz_no):
                         stock_quantity = 0.0
                         is_predicted = True
                 
-                # ÁÖ½Ä ±İ¾× °è»ê
+                # ì£¼ì‹ ê¸ˆì•¡ ê³„ì‚°
                 try:
                     stock_value_amount = stock_quantity * estimated_stock_value
                 except (ValueError, TypeError):
@@ -3069,15 +3069,15 @@ def company_detail(biz_no):
                     'stock_value_amount': round(stock_value_amount, 0),
                     'shareholder_name': shareholder_dict.get('shareholder_name', ''),
                     'relationship': shareholder_dict.get('relationship', ''),
-                    'is_predicted': is_predicted  # ¿¹Ãø ¿©ºÎ¸¦ Ç¥½Ã
+                    'is_predicted': is_predicted  # ì˜ˆì¸¡ ì—¬ë¶€ë¥¼ í‘œì‹œ
                 })
                 
                 processed_shareholders.append(shareholder_dict)
                 total_shares_owned += stock_quantity
                 
             except Exception as e:
-                print(f"ÁÖÁÖ Á¤º¸ Ã³¸® Áß ¿À·ù: {e}")
-                # ¿À·ù°¡ ¹ß»ıÇÑ ÁÖÁÖ´Â °Ç³Ê¶Ù°í °è¼Ó ÁøÇà
+                print(f"ì£¼ì£¼ ì •ë³´ ì²˜ë¦¬ ì¤‘ ì˜¤ë¥˜: {e}")
+                # ì˜¤ë¥˜ê°€ ë°œìƒí•œ ì£¼ì£¼ëŠ” ê±´ë„ˆë›°ê³  ê³„ì† ì§„í–‰
                 continue
 
     company_data = {
@@ -3099,21 +3099,21 @@ def company_detail(biz_no):
 
 @app.route('/api/contact_history', methods=['GET'])
 def get_contact_history():
-    """Æ¯Á¤ ±â¾÷ÀÇ Á¢ÃËÀÌ·Â Á¶È¸"""
+    """íŠ¹ì • ê¸°ì—…ì˜ ì ‘ì´‰ì´ë ¥ ì¡°íšŒ"""
     if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
     
     biz_no = request.args.get('biz_no')
     if not biz_no:
-        return jsonify({"success": False, "message": "»ç¾÷ÀÚ¹øÈ£°¡ ÇÊ¿äÇÕ´Ï´Ù."}), 400
+        return jsonify({"success": False, "message": "ì‚¬ì—…ìë²ˆí˜¸ê°€ í•„ìš”í•©ë‹ˆë‹¤."}), 400
     
     conn = get_db_connection()
     try:
-        # »ç¿ëÀÚ ±ÇÇÑ¿¡ µû¸¥ Á¢ÃËÀÌ·Â Á¶È¸
+        # ì‚¬ìš©ì ê¶Œí•œì— ë”°ë¥¸ ì ‘ì´‰ì´ë ¥ ì¡°íšŒ
         user_level = session.get('user_level', 'N')
         user_id = session.get('user_id')
         
         if user_level in ['V', 'S']:
-            # ¸ŞÀÎ°ü¸®ÀÚ, ¼­ºê°ü¸®ÀÚ´Â ¸ğµç Á¢ÃËÀÌ·Â Á¶È¸ °¡´É
+            # ë©”ì¸ê´€ë¦¬ì, ì„œë¸Œê´€ë¦¬ìëŠ” ëª¨ë“  ì ‘ì´‰ì´ë ¥ ì¡°íšŒ ê°€ëŠ¥
             histories = conn.execute(
                 """SELECT history_id, biz_no, contact_datetime, contact_type, contact_person, memo, registered_by, registered_date
                    FROM Contact_History 
@@ -3122,7 +3122,7 @@ def get_contact_history():
                 (biz_no,)
             ).fetchall()
         else:
-            # ¸Å´ÏÀú ÀÌÇÏ´Â º»ÀÎÀÌ µî·ÏÇÑ ÀÌ·Â¸¸ Á¶È¸
+            # ë§¤ë‹ˆì € ì´í•˜ëŠ” ë³¸ì¸ì´ ë“±ë¡í•œ ì´ë ¥ë§Œ ì¡°íšŒ
             histories = conn.execute(
                 """SELECT history_id, biz_no, contact_datetime, contact_type, contact_person, memo, registered_by, registered_date
                    FROM Contact_History 
@@ -3131,7 +3131,7 @@ def get_contact_history():
                 (biz_no, user_id)
             ).fetchall()
         
-        # °á°ú¸¦ µñ¼Å³Ê¸® ¸®½ºÆ®·Î º¯È¯
+        # ê²°ê³¼ë¥¼ ë”•ì…”ë„ˆë¦¬ ë¦¬ìŠ¤íŠ¸ë¡œ ë³€í™˜
         history_list = []
         for history in histories:
             history_list.append({
@@ -3154,12 +3154,12 @@ def get_contact_history():
 
 @app.route('/api/contact_history/<int:history_id>', methods=['GET'])
 def get_contact_history_detail(history_id):
-    """°³º° Á¢ÃËÀÌ·Â »ó¼¼ Á¶È¸"""
+    """ê°œë³„ ì ‘ì´‰ì´ë ¥ ìƒì„¸ ì¡°íšŒ"""
     if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
     
-    # µğ¹ö±ëÀ» À§ÇÑ ·Î±× Ãß°¡
-    print(f">>> Á¢ÃËÀÌ·Â Á¶È¸ ¿äÃ» - history_id: {history_id}")
-    print(f">>> ¼¼¼Ç Á¤º¸ - user_id: {session.get('user_id')}, user_level: {session.get('user_level')}")
+    # ë””ë²„ê¹…ì„ ìœ„í•œ ë¡œê·¸ ì¶”ê°€
+    print(f">>> ì ‘ì´‰ì´ë ¥ ì¡°íšŒ ìš”ì²­ - history_id: {history_id}")
+    print(f">>> ì„¸ì…˜ ì •ë³´ - user_id: {session.get('user_id')}, user_level: {session.get('user_level')}")
     
     conn = get_db_connection()
     try:
@@ -3170,22 +3170,22 @@ def get_contact_history_detail(history_id):
             (history_id,)
         ).fetchone()
         
-        print(f">>> Á¶È¸µÈ ÀÌ·Â: {history}")
+        print(f">>> ì¡°íšŒëœ ì´ë ¥: {history}")
         
         if not history:
-            print(f">>> Á¢ÃËÀÌ·ÂÀ» Ã£À» ¼ö ¾øÀ½ - history_id: {history_id}")
-            return jsonify({"success": False, "message": "Á¢ÃËÀÌ·ÂÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù."}), 404
+            print(f">>> ì ‘ì´‰ì´ë ¥ì„ ì°¾ì„ ìˆ˜ ì—†ìŒ - history_id: {history_id}")
+            return jsonify({"success": False, "message": "ì ‘ì´‰ì´ë ¥ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 404
         
-        # ±ÇÇÑ Ã¼Å©: º»ÀÎÀÌ µî·ÏÇÑ ÀÌ·ÂÀÌ°Å³ª °ü¸®ÀÚ ±ÇÇÑÀÎ °æ¿ì¸¸ Á¶È¸ °¡´É
+        # ê¶Œí•œ ì²´í¬: ë³¸ì¸ì´ ë“±ë¡í•œ ì´ë ¥ì´ê±°ë‚˜ ê´€ë¦¬ì ê¶Œí•œì¸ ê²½ìš°ë§Œ ì¡°íšŒ ê°€ëŠ¥
         user_level = session.get('user_level', 'N')
         user_id = session.get('user_id')
         
-        print(f">>> ±ÇÇÑ Ã¼Å© - user_level: {user_level}, user_id: {user_id}, registered_by: {history[6]}")
+        print(f">>> ê¶Œí•œ ì²´í¬ - user_level: {user_level}, user_id: {user_id}, registered_by: {history[6]}")
         
-        # ÀÓ½Ã·Î ±ÇÇÑ Ã¼Å©¸¦ ¿ÏÈ­ (¸ğµç »ç¿ëÀÚ°¡ Á¶È¸ °¡´É)
+        # ì„ì‹œë¡œ ê¶Œí•œ ì²´í¬ë¥¼ ì™„í™” (ëª¨ë“  ì‚¬ìš©ìê°€ ì¡°íšŒ ê°€ëŠ¥)
         # if user_level not in ['V', 'S'] and history[6] != user_id:
-        #     print(f">>> Á¢±Ù ±ÇÇÑ ¾øÀ½")
-        #     return jsonify({"success": False, "message": "Á¢±Ù ±ÇÇÑÀÌ ¾ø½À´Ï´Ù."}), 403
+        #     print(f">>> ì ‘ê·¼ ê¶Œí•œ ì—†ìŒ")
+        #     return jsonify({"success": False, "message": "ì ‘ê·¼ ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤."}), 403
         
         history_data = {
             'history_id': history[0],
@@ -3197,18 +3197,18 @@ def get_contact_history_detail(history_id):
             'registered_by': history[6]
         }
         
-        print(f">>> ¼º°øÀûÀ¸·Î ¹İÈ¯: {history_data}")
+        print(f">>> ì„±ê³µì ìœ¼ë¡œ ë°˜í™˜: {history_data}")
         return jsonify({"success": True, "data": history_data})
     
     except Exception as e:
-        print(f">>> ¿¡·¯ ¹ß»ı: {str(e)}")
+        print(f">>> ì—ëŸ¬ ë°œìƒ: {str(e)}")
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
 
 @app.route('/api/contact_history/<int:history_id>', methods=['PUT'])
 def update_contact_history(history_id):
-    """°³º° Á¢ÃËÀÌ·Â ¼öÁ¤"""
+    """ê°œë³„ ì ‘ì´‰ì´ë ¥ ìˆ˜ì •"""
     if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
     
     data = request.json
@@ -3217,25 +3217,25 @@ def update_contact_history(history_id):
     
     conn = get_db_connection()
     try:
-        # ±âÁ¸ ÀÌ·Â Á¶È¸ ¹× ±ÇÇÑ Ã¼Å©
+        # ê¸°ì¡´ ì´ë ¥ ì¡°íšŒ ë° ê¶Œí•œ ì²´í¬
         existing_history = conn.execute(
             "SELECT registered_by FROM Contact_History WHERE history_id = ?",
             (history_id,)
         ).fetchone()
         
         if not existing_history:
-            return jsonify({"success": False, "message": "Á¢ÃËÀÌ·ÂÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù."}), 404
+            return jsonify({"success": False, "message": "ì ‘ì´‰ì´ë ¥ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 404
         
-        # ±ÇÇÑ Ã¼Å©: º»ÀÎÀÌ µî·ÏÇÑ ÀÌ·ÂÀÌ°Å³ª °ü¸®ÀÚ ±ÇÇÑÀÎ °æ¿ì¸¸ ¼öÁ¤ °¡´É
-        # ÀÓ½Ã·Î ±ÇÇÑ Ã¼Å©¸¦ ¿ÏÈ­ (¸ğµç »ç¿ëÀÚ°¡ ¼öÁ¤ °¡´É)
+        # ê¶Œí•œ ì²´í¬: ë³¸ì¸ì´ ë“±ë¡í•œ ì´ë ¥ì´ê±°ë‚˜ ê´€ë¦¬ì ê¶Œí•œì¸ ê²½ìš°ë§Œ ìˆ˜ì • ê°€ëŠ¥
+        # ì„ì‹œë¡œ ê¶Œí•œ ì²´í¬ë¥¼ ì™„í™” (ëª¨ë“  ì‚¬ìš©ìê°€ ìˆ˜ì • ê°€ëŠ¥)
         # if user_level not in ['V', 'S'] and existing_history[0] != user_id:
-        #     return jsonify({"success": False, "message": "¼öÁ¤ ±ÇÇÑÀÌ ¾ø½À´Ï´Ù."}), 403
+        #     return jsonify({"success": False, "message": "ìˆ˜ì • ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤."}), 403
         
-        # Á¢ÃËÀÏ½Ã Ã³¸®
+        # ì ‘ì´‰ì¼ì‹œ ì²˜ë¦¬
         contact_datetime_str = data.get('contact_datetime')
         if contact_datetime_str:
             if 'T' in contact_datetime_str:
-                # datetime-local Çü½ÄÀÎ °æ¿ì ÇÑ±¹ ½Ã°£À¸·Î Ã³¸®
+                # datetime-local í˜•ì‹ì¸ ê²½ìš° í•œêµ­ ì‹œê°„ìœ¼ë¡œ ì²˜ë¦¬
                 if not contact_datetime_str.endswith('Z') and '+' not in contact_datetime_str:
                     naive_dt = datetime.strptime(contact_datetime_str, '%Y-%m-%dT%H:%M')
                     kst_dt = KST.localize(naive_dt)
@@ -3243,7 +3243,7 @@ def update_contact_history(history_id):
         else:
             contact_datetime_str = format_kst_datetime()
         
-        # Á¢ÃËÀÌ·Â ¾÷µ¥ÀÌÆ®
+        # ì ‘ì´‰ì´ë ¥ ì—…ë°ì´íŠ¸
         conn.execute("""
             UPDATE Contact_History 
             SET contact_datetime = ?, contact_type = ?, contact_person = ?, memo = ?
@@ -3259,7 +3259,7 @@ def update_contact_history(history_id):
         
         return jsonify({
             "success": True, 
-            "message": "Á¢ÃËÀÌ·ÂÀÌ ¼º°øÀûÀ¸·Î ¼öÁ¤µÇ¾ú½À´Ï´Ù.",
+            "message": "ì ‘ì´‰ì´ë ¥ì´ ì„±ê³µì ìœ¼ë¡œ ìˆ˜ì •ë˜ì—ˆìŠµë‹ˆë‹¤.",
             "history_id": history_id
         })
     
@@ -3278,48 +3278,48 @@ def handle_contact_history():
     contact_datetime_str = data.get('contact_datetime')
     history_id = data.get('history_id')
 
-    # Á¢ÃËÀÏ½Ã°¡ ¾øÀ¸¸é ÇöÀç ÇÑ±¹ ½Ã°£À¸·Î ¼³Á¤
+    # ì ‘ì´‰ì¼ì‹œê°€ ì—†ìœ¼ë©´ í˜„ì¬ í•œêµ­ ì‹œê°„ìœ¼ë¡œ ì„¤ì •
     if not contact_datetime_str:
         contact_datetime_str = format_kst_datetime()
     
     try:
-        # ½Ã°£´ë Á¤º¸°¡ ÀÖ´Â °æ¿ì ÇÑ±¹ ½Ã°£À¸·Î º¯È¯
+        # ì‹œê°„ëŒ€ ì •ë³´ê°€ ìˆëŠ” ê²½ìš° í•œêµ­ ì‹œê°„ìœ¼ë¡œ ë³€í™˜
         if contact_datetime_str:
             if 'T' in contact_datetime_str:
-                # ISO Çü½ÄÀÎ °æ¿ì
+                # ISO í˜•ì‹ì¸ ê²½ìš°
                 if contact_datetime_str.endswith('Z'):
-                    # UTC ½Ã°£ÀÎ °æ¿ì
+                    # UTC ì‹œê°„ì¸ ê²½ìš°
                     dt_utc = datetime.fromisoformat(contact_datetime_str[:-1]).replace(tzinfo=pytz.UTC)
                     dt_kst = dt_utc.astimezone(KST)
                     formatted_datetime = dt_kst.strftime('%Y-%m-%d %H:%M:%S')
                 elif '+' in contact_datetime_str or '-' in contact_datetime_str.split('T')[1]:
-                    # ½Ã°£´ë Á¤º¸°¡ ÀÖ´Â °æ¿ì
+                    # ì‹œê°„ëŒ€ ì •ë³´ê°€ ìˆëŠ” ê²½ìš°
                     dt_with_tz = datetime.fromisoformat(contact_datetime_str)
                     dt_kst = dt_with_tz.astimezone(KST)
                     formatted_datetime = dt_kst.strftime('%Y-%m-%d %H:%M:%S')
                 else:
-                    # ½Ã°£´ë Á¤º¸°¡ ¾ø´Â °æ¿ì ÇÑ±¹ ½Ã°£À¸·Î °£ÁÖ
+                    # ì‹œê°„ëŒ€ ì •ë³´ê°€ ì—†ëŠ” ê²½ìš° í•œêµ­ ì‹œê°„ìœ¼ë¡œ ê°„ì£¼
                     dt_naive = datetime.fromisoformat(contact_datetime_str.replace('T', ' '))
                     dt_kst = KST.localize(dt_naive)
                     formatted_datetime = dt_kst.strftime('%Y-%m-%d %H:%M:%S')
             else:
-                # ÀÏ¹İ ¹®ÀÚ¿­ Çü½ÄÀÎ °æ¿ì ÇÑ±¹ ½Ã°£À¸·Î °£ÁÖ
+                # ì¼ë°˜ ë¬¸ìì—´ í˜•ì‹ì¸ ê²½ìš° í•œêµ­ ì‹œê°„ìœ¼ë¡œ ê°„ì£¼
                 formatted_datetime = contact_datetime_str
         else:
-            # ½Ã°£ÀÌ ¾øÀ¸¸é ÇöÀç ÇÑ±¹ ½Ã°£ »ç¿ë
+            # ì‹œê°„ì´ ì—†ìœ¼ë©´ í˜„ì¬ í•œêµ­ ì‹œê°„ ì‚¬ìš©
             formatted_datetime = format_kst_datetime()
         
-        # ¹Ì·¡ ½Ã°£ Ã¼Å© (ÇÑ±¹ ½Ã°£ ±âÁØ)
+        # ë¯¸ë˜ ì‹œê°„ ì²´í¬ (í•œêµ­ ì‹œê°„ ê¸°ì¤€)
         submitted_dt = datetime.strptime(formatted_datetime, '%Y-%m-%d %H:%M:%S')
         now_kst = get_kst_now().replace(tzinfo=None)
         
-        # 1ºĞÀÇ ¿©À¯½Ã°£À» µÎ¾î ³×Æ®¿öÅ© Áö¿¬ÀÌ³ª ½Ã°£ µ¿±âÈ­ ¿ÀÂ÷¸¦ Çã¿ë
+        # 1ë¶„ì˜ ì—¬ìœ ì‹œê°„ì„ ë‘ì–´ ë„¤íŠ¸ì›Œí¬ ì§€ì—°ì´ë‚˜ ì‹œê°„ ë™ê¸°í™” ì˜¤ì°¨ë¥¼ í—ˆìš©
         from datetime import timedelta
         if submitted_dt > (now_kst + timedelta(minutes=1)):
-            return jsonify({"success": False, "message": "¹Ì·¡ ³¯Â¥ ¹× ½Ã°£À¸·Î µî·Ï/¼öÁ¤ÇÒ ¼ö ¾ø½À´Ï´Ù."}), 400
+            return jsonify({"success": False, "message": "ë¯¸ë˜ ë‚ ì§œ ë° ì‹œê°„ìœ¼ë¡œ ë“±ë¡/ìˆ˜ì •í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 400
             
     except ValueError as e:
-        return jsonify({"success": False, "message": f"Àß¸øµÈ ³¯Â¥ Çü½ÄÀÔ´Ï´Ù: {str(e)}"}), 400
+        return jsonify({"success": False, "message": f"ì˜ëª»ëœ ë‚ ì§œ í˜•ì‹ì…ë‹ˆë‹¤: {str(e)}"}), 400
 
     conn = get_db_connection()
     try:
@@ -3335,33 +3335,33 @@ def handle_contact_history():
             )
             new_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
             conn.commit()
-            return jsonify({"success": True, "message": "Ãß°¡µÇ¾ú½À´Ï´Ù.", "new_history_id": new_id})
+            return jsonify({"success": True, "message": "ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤.", "new_history_id": new_id})
         
         elif request.method == 'PUT':
             if not history_id:
-                return jsonify({"success": False, "message": "¼öÁ¤ÇÒ ÀÌ·Â ID°¡ ¾ø½À´Ï´Ù."}), 400
+                return jsonify({"success": False, "message": "ìˆ˜ì •í•  ì´ë ¥ IDê°€ ì—†ìŠµë‹ˆë‹¤."}), 400
             
-            # ±ÇÇÑ Ã¼Å©: ÇØ´ç ÀÌ·ÂÀÌ Á¸ÀçÇÏ´ÂÁö È®ÀÎÇÏ°í ¼öÁ¤ ±ÇÇÑ Ã¼Å©
+            # ê¶Œí•œ ì²´í¬: í•´ë‹¹ ì´ë ¥ì´ ì¡´ì¬í•˜ëŠ”ì§€ í™•ì¸í•˜ê³  ìˆ˜ì • ê¶Œí•œ ì²´í¬
             existing_history = conn.execute(
                 "SELECT registered_by FROM Contact_History WHERE history_id = ?", 
                 (history_id,)
             ).fetchone()
             
             if not existing_history:
-                return jsonify({"success": False, "message": "¼öÁ¤ÇÒ Á¢ÃËÀÌ·ÂÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù."}), 404
+                return jsonify({"success": False, "message": "ìˆ˜ì •í•  ì ‘ì´‰ì´ë ¥ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 404
             
-            # ±ÇÇÑ Ã¼Å©: º»ÀÎÀÌ µî·ÏÇÑ ÀÌ·ÂÀÌ°Å³ª °ü¸®ÀÚ ±ÇÇÑÀÎ °æ¿ì¸¸ ¼öÁ¤ °¡´É
+            # ê¶Œí•œ ì²´í¬: ë³¸ì¸ì´ ë“±ë¡í•œ ì´ë ¥ì´ê±°ë‚˜ ê´€ë¦¬ì ê¶Œí•œì¸ ê²½ìš°ë§Œ ìˆ˜ì • ê°€ëŠ¥
             user_level = session.get('user_level', 'N')
             
             if user_level not in ['V', 'S'] and existing_history[0] != user_id:
-                return jsonify({"success": False, "message": "¼öÁ¤ ±ÇÇÑÀÌ ¾ø½À´Ï´Ù."}), 403
+                return jsonify({"success": False, "message": "ìˆ˜ì • ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤."}), 403
             
             conn.execute(
                 "UPDATE Contact_History SET contact_datetime=?, contact_type=?, contact_person=?, memo=? WHERE history_id = ?", 
                 (formatted_datetime, contact_type, contact_person, memo, history_id)
             )
             conn.commit()
-            return jsonify({"success": True, "message": "¼öÁ¤µÇ¾ú½À´Ï´Ù."})
+            return jsonify({"success": True, "message": "ìˆ˜ì •ë˜ì—ˆìŠµë‹ˆë‹¤."})
 
     except Exception as e:
         conn.rollback()
@@ -3371,31 +3371,31 @@ def handle_contact_history():
 
 @app.route('/api/contact_history/<int:history_id>', methods=['DELETE'])
 def delete_contact_history(history_id):
-    """Á¢ÃËÀÌ·Â »èÁ¦ (±ÇÇÑ Ã¼Å© Æ÷ÇÔ)"""
+    """ì ‘ì´‰ì´ë ¥ ì‚­ì œ (ê¶Œí•œ ì²´í¬ í¬í•¨)"""
     if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
     
     conn = get_db_connection()
     try:
-        # ¸ÕÀú ÇØ´ç ÀÌ·ÂÀÌ Á¸ÀçÇÏ´ÂÁö È®ÀÎÇÏ°í ±ÇÇÑ Ã¼Å©
+        # ë¨¼ì € í•´ë‹¹ ì´ë ¥ì´ ì¡´ì¬í•˜ëŠ”ì§€ í™•ì¸í•˜ê³  ê¶Œí•œ ì²´í¬
         history = conn.execute(
             "SELECT registered_by FROM Contact_History WHERE history_id = ?", 
             (history_id,)
         ).fetchone()
         
         if not history:
-            return jsonify({"success": False, "message": "Á¢ÃËÀÌ·ÂÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù."}), 404
+            return jsonify({"success": False, "message": "ì ‘ì´‰ì´ë ¥ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 404
         
-        # ±ÇÇÑ Ã¼Å©: º»ÀÎÀÌ µî·ÏÇÑ ÀÌ·ÂÀÌ°Å³ª °ü¸®ÀÚ ±ÇÇÑÀÎ °æ¿ì¸¸ »èÁ¦ °¡´É
+        # ê¶Œí•œ ì²´í¬: ë³¸ì¸ì´ ë“±ë¡í•œ ì´ë ¥ì´ê±°ë‚˜ ê´€ë¦¬ì ê¶Œí•œì¸ ê²½ìš°ë§Œ ì‚­ì œ ê°€ëŠ¥
         user_level = session.get('user_level', 'N')
         user_id = session.get('user_id')
         
         if user_level not in ['V', 'S'] and history[0] != user_id:
-            return jsonify({"success": False, "message": "»èÁ¦ ±ÇÇÑÀÌ ¾ø½À´Ï´Ù."}), 403
+            return jsonify({"success": False, "message": "ì‚­ì œ ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤."}), 403
         
-        # »èÁ¦ ½ÇÇà
+        # ì‚­ì œ ì‹¤í–‰
         conn.execute("DELETE FROM Contact_History WHERE history_id = ?", (history_id,))
         conn.commit()
-        return jsonify({"success": True, "message": "Á¢ÃËÀÌ·ÂÀÌ »èÁ¦µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ì ‘ì´‰ì´ë ¥ì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤."})
         
     except Exception as e:
         conn.rollback()
@@ -3403,14 +3403,14 @@ def delete_contact_history(history_id):
     finally:
         conn.close()
 
-# --- Áõ¿©¼¼ °è»ê±â ¶ó¿ìÆ® ---
+# --- ì¦ì—¬ì„¸ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
 @app.route('/gift_tax')
 def gift_tax():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('gift_tax.html', user_name=session.get('user_name'))
 
-# --- ¾çµµ¼Òµæ¼¼ °è»ê±â ¶ó¿ìÆ® ---
+# --- ì–‘ë„ì†Œë“ì„¸ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
 @app.route('/transfer_tax')
 def transfer_tax():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
@@ -3419,19 +3419,19 @@ def transfer_tax():
 
 @app.route('/transfer_tax_detail')
 def transfer_tax_detail():
-    """¾çµµ¼Òµæ¼¼ »ó¼¼°è»ê±â (ÇöÀç´Â °°Àº ÆäÀÌÁö)"""
+    """ì–‘ë„ì†Œë“ì„¸ ìƒì„¸ê³„ì‚°ê¸° (í˜„ì¬ëŠ” ê°™ì€ í˜ì´ì§€)"""
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('transfer_tax.html', user_name=session.get('user_name'))
 
-# --- Á¾ÇÕ¼Òµæ¼¼ °è»ê±â ¶ó¿ìÆ® ---
+# --- ì¢…í•©ì†Œë“ì„¸ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
 @app.route('/income_tax')
 def income_tax():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('income_tax.html', user_name=session.get('user_name'))
 
-# --- 4´ëº¸Çè·á °è»ê±â ¶ó¿ìÆ® ---
+# --- 4ëŒ€ë³´í—˜ë£Œ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
 @app.route('/social_ins_tax')
 def social_ins_tax():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
@@ -3439,14 +3439,14 @@ def social_ins_tax():
     return render_template('social_ins_tax.html', user_name=session.get('user_name'))
 
 
-# --- Ãëµæ¼¼ °è»ê±â ¶ó¿ìÆ® ---
+# --- ì·¨ë“ì„¸ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
 @app.route('/acquisition_tax')
 def acquisition_tax():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
         return redirect(url_for('login'))
     return render_template('acquisition_tax.html', user_name=session.get('user_name'))
 
-# --- ÅğÁ÷±İ °è»ê±â ¶ó¿ìÆ® ---
+# --- í‡´ì§ê¸ˆ ê³„ì‚°ê¸° ë¼ìš°íŠ¸ ---
 @app.route('/retirement_pay')
 def retirement_pay():
     if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
@@ -3460,7 +3460,7 @@ def industrial_accident():
         return redirect(url_for('login'))
     return render_template('industrial_accident.html', user_name=session.get('user_name'))
 
-# --- ºñ¿ëµî·Ï °ü¸® ¶ó¿ìÆ® ---
+# --- ë¹„ìš©ë“±ë¡ ê´€ë¦¬ ë¼ìš°íŠ¸ ---
 @app.route('/expense_management')
 def expense_management():
     if not session.get('logged_in'):
@@ -3469,17 +3469,17 @@ def expense_management():
     user_data = {
         'user_name': session.get('user_name'),
         'user_level': session.get('user_level', 'N'),
-        'user_level_name': session.get('user_level_name', 'ÀÏ¹İ´ã´çÀÚ'),
+        'user_level_name': session.get('user_level_name', 'ì¼ë°˜ë‹´ë‹¹ì'),
         'branch_name': session.get('branch_name', ''),
         'user_id': session.get('user_id')
     }
     
     return render_template('expense_management.html', **user_data)
 
-# --- ¿µ¾÷°ü¸® ÅëÇÕ ¶ó¿ìÆ® ---
+# --- ì˜ì—…ê´€ë¦¬ í†µí•© ë¼ìš°íŠ¸ ---
 @app.route('/view_receipt/<int:expense_id>')
 def view_receipt(expense_id):
-    """¿µ¼öÁõ ÆÄÀÏ º¸±â (¿©·¯ ÆÄÀÏ Áö¿ø)"""
+    """ì˜ìˆ˜ì¦ íŒŒì¼ ë³´ê¸° (ì—¬ëŸ¬ íŒŒì¼ ì§€ì›)"""
     if not session.get('logged_in'):
         return redirect(url_for('login'))
         
@@ -3487,7 +3487,7 @@ def view_receipt(expense_id):
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # »ç¿ëÀÚ°¡ µî·ÏÇÑ ¿µ¼öÁõ¸¸ ¶Ç´Â ½ÂÀÎÀÚ´Â ¸ğµç ¿µ¼öÁõ Á¶È¸
+        # ì‚¬ìš©ìê°€ ë“±ë¡í•œ ì˜ìˆ˜ì¦ë§Œ ë˜ëŠ” ìŠ¹ì¸ìëŠ” ëª¨ë“  ì˜ìˆ˜ì¦ ì¡°íšŒ
         if session.get('user_level') in ['V', 'S', 'M']:
             cursor.execute('''
                 SELECT COALESCE(receipt_filename, receipt_image) as receipt_file
@@ -3505,19 +3505,19 @@ def view_receipt(expense_id):
         conn.close()
         
         if not result or not result[0]:
-            return "¿µ¼öÁõ ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù.", 404
+            return "ì˜ìˆ˜ì¦ íŒŒì¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", 404
             
         receipt_files = result[0]
         
-        # ¿©·¯ ÆÄÀÏÀÎ °æ¿ì ÄŞ¸¶·Î ±¸ºĞµÈ ÆÄÀÏ¸íµéÀ» Ã³¸®
+        # ì—¬ëŸ¬ íŒŒì¼ì¸ ê²½ìš° ì½¤ë§ˆë¡œ êµ¬ë¶„ëœ íŒŒì¼ëª…ë“¤ì„ ì²˜ë¦¬
         if ',' in receipt_files:
             file_list = receipt_files.split(',')
-            # Ã¹ ¹øÂ° ÆÄÀÏ¸¸ º¸¿©ÁÖ°Å³ª, ¿©·¯ ÆÄÀÏ ¸ñ·Ï ÆäÀÌÁö·Î ¸®´ÙÀÌ·ºÆ®
+            # ì²« ë²ˆì§¸ íŒŒì¼ë§Œ ë³´ì—¬ì£¼ê±°ë‚˜, ì—¬ëŸ¬ íŒŒì¼ ëª©ë¡ í˜ì´ì§€ë¡œ ë¦¬ë‹¤ì´ë ‰íŠ¸
             return f"""
             <html>
-            <head><title>¿µ¼öÁõ ÆÄÀÏ ¸ñ·Ï</title></head>
+            <head><title>ì˜ìˆ˜ì¦ íŒŒì¼ ëª©ë¡</title></head>
             <body>
-                <h3>¿µ¼öÁõ ÆÄÀÏ ¸ñ·Ï</h3>
+                <h3>ì˜ìˆ˜ì¦ íŒŒì¼ ëª©ë¡</h3>
                 <ul>
                     {''.join([f'<li><a href="/view_single_receipt/{expense_id}/{i}" target="_blank">{filename}</a></li>' for i, filename in enumerate(file_list)])}
                 </ul>
@@ -3525,22 +3525,22 @@ def view_receipt(expense_id):
             </html>
             """
         else:
-            # ´ÜÀÏ ÆÄÀÏÀÎ °æ¿ì
+            # ë‹¨ì¼ íŒŒì¼ì¸ ê²½ìš°
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], receipt_files)
             
             if not os.path.exists(file_path):
-                return "¿µ¼öÁõ ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.", 404
+                return "ì˜ìˆ˜ì¦ íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.", 404
                 
             return send_file(file_path)
         
     except Exception as e:
         print(f"[RECEIPT_VIEW_ERROR] {str(e)}")
-        return f"¿µ¼öÁõ º¸±â ¿À·ù: {str(e)}", 500
+        return f"ì˜ìˆ˜ì¦ ë³´ê¸° ì˜¤ë¥˜: {str(e)}", 500
 
 
 @app.route('/view_single_receipt/<int:expense_id>/<int:file_index>')
 def view_single_receipt(expense_id, file_index):
-    """°³º° ¿µ¼öÁõ ÆÄÀÏ º¸±â"""
+    """ê°œë³„ ì˜ìˆ˜ì¦ íŒŒì¼ ë³´ê¸°"""
     if not session.get('logged_in'):
         return redirect(url_for('login'))
         
@@ -3565,31 +3565,31 @@ def view_single_receipt(expense_id, file_index):
         conn.close()
         
         if not result or not result[0]:
-            return "¿µ¼öÁõ ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù.", 404
+            return "ì˜ìˆ˜ì¦ íŒŒì¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", 404
             
         receipt_files = result[0].split(',')
         
         if file_index >= len(receipt_files):
-            return "ÆÄÀÏ ÀÎµ¦½º°¡ Àß¸øµÇ¾ú½À´Ï´Ù.", 404
+            return "íŒŒì¼ ì¸ë±ìŠ¤ê°€ ì˜ëª»ë˜ì—ˆìŠµë‹ˆë‹¤.", 404
             
         filename = receipt_files[file_index]
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         
         if not os.path.exists(file_path):
-            return "¿µ¼öÁõ ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.", 404
+            return "ì˜ìˆ˜ì¦ íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.", 404
             
         return send_file(file_path)
         
     except Exception as e:
         print(f"[SINGLE_RECEIPT_VIEW_ERROR] {str(e)}")
-        return f"¿µ¼öÁõ º¸±â ¿À·ù: {str(e)}", 500
+        return f"ì˜ìˆ˜ì¦ ë³´ê¸° ì˜¤ë¥˜: {str(e)}", 500
         print(f"[RECEIPT_VIEW_ERROR] {str(e)}")
-        return f"¿µ¼öÁõ º¸±â ¿À·ù: {str(e)}", 500
+        return f"ì˜ìˆ˜ì¦ ë³´ê¸° ì˜¤ë¥˜: {str(e)}", 500
 
 
 @app.route('/download_receipt/<int:expense_id>')
 def download_receipt(expense_id):
-    """¿µ¼öÁõ ÆÄÀÏ ´Ù¿î·Îµå"""
+    """ì˜ìˆ˜ì¦ íŒŒì¼ ë‹¤ìš´ë¡œë“œ"""
     if not session.get('logged_in'):
         return redirect(url_for('login'))
         
@@ -3614,19 +3614,19 @@ def download_receipt(expense_id):
         conn.close()
         
         if not result or not result[0]:
-            return "¿µ¼öÁõ ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù.", 404
+            return "ì˜ìˆ˜ì¦ íŒŒì¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", 404
             
         receipt_filename = result[0]
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], receipt_filename)
         
         if not os.path.exists(file_path):
-            return "¿µ¼öÁõ ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.", 404
+            return "ì˜ìˆ˜ì¦ íŒŒì¼ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.", 404
             
         return send_file(file_path, as_attachment=True)
         
     except Exception as e:
         print(f"[RECEIPT_DOWNLOAD_ERROR] {str(e)}")
-        return f"¿µ¼öÁõ ´Ù¿î·Îµå ¿À·ù: {str(e)}", 500
+        return f"ì˜ìˆ˜ì¦ ë‹¤ìš´ë¡œë“œ ì˜¤ë¥˜: {str(e)}", 500
 
 
 @app.route('/sales_management')
@@ -3637,31 +3637,31 @@ def sales_management():
     user_data = {
         'user_name': session.get('user_name'),
         'user_level': session.get('user_level', 'N'),
-        'user_level_name': session.get('user_level_name', 'ÀÏ¹İ´ã´çÀÚ'),
+        'user_level_name': session.get('user_level_name', 'ì¼ë°˜ë‹´ë‹¹ì'),
         'branch_name': session.get('branch_name', ''),
         'user_id': session.get('user_id')
     }
     
     return render_template('sales_management.html', **user_data)
 
-# --- C-Level °³Ã´°ü¸® ¶ó¿ìÆ® (ÇÏÀ§ È£È¯¿ë) ---
+# --- C-Level ê°œì²™ê´€ë¦¬ ë¼ìš°íŠ¸ (í•˜ìœ„ í˜¸í™˜ìš©) ---
 @app.route('/clevel_management')
 def clevel_management():
     return redirect(url_for('sales_management'))
 
-# --- »ç¿ëÀÚ °ü¸® ¶ó¿ìÆ® (¸ŞÀÎ°ü¸®ÀÚ, ¼­ºê°ü¸®ÀÚ¸¸ Á¢±Ù °¡´É) ---
+# --- ì‚¬ìš©ì ê´€ë¦¬ ë¼ìš°íŠ¸ (ë©”ì¸ê´€ë¦¬ì, ì„œë¸Œê´€ë¦¬ìë§Œ ì ‘ê·¼ ê°€ëŠ¥) ---
 @app.route('/user_management')
 def user_management():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     
     user_level = session.get('user_level', 'N')
-    if not check_permission(user_level, 'S'):  # ¼­ºê°ü¸®ÀÚ ÀÌ»ó¸¸ Á¢±Ù °¡´É
-        return "Á¢±Ù ±ÇÇÑÀÌ ¾ø½À´Ï´Ù.", 403
+    if not check_permission(user_level, 'S'):  # ì„œë¸Œê´€ë¦¬ì ì´ìƒë§Œ ì ‘ê·¼ ê°€ëŠ¥
+        return "ì ‘ê·¼ ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤.", 403
     
     return render_template('user_management.html', user_name=session.get('user_name'))
 
-# --- »ç¿ëÀÚ ¸ñ·Ï API ---
+# --- ì‚¬ìš©ì ëª©ë¡ API ---
 @app.route('/api/users')
 def get_users():
     if not session.get('logged_in'):
@@ -3682,7 +3682,7 @@ def get_users():
     finally:
         conn.close()
 
-# --- »ç¿ëÀÚ Ãß°¡/¼öÁ¤ API ---
+# --- ì‚¬ìš©ì ì¶”ê°€/ìˆ˜ì • API ---
 @app.route('/api/users', methods=['POST', 'PUT'])
 def manage_user():
     if not session.get('logged_in'):
@@ -3697,14 +3697,14 @@ def manage_user():
     
     try:
         if request.method == 'POST':
-            # ÆĞ½º¿öµå ±ÔÄ¢ °ËÁõ (½Å±Ô »ç¿ëÀÚ)
+            # íŒ¨ìŠ¤ì›Œë“œ ê·œì¹™ ê²€ì¦ (ì‹ ê·œ ì‚¬ìš©ì)
             password = data.get('password')
             if password:
                 is_valid, validation_message = validate_password(password)
                 if not is_valid:
                     return jsonify({"success": False, "message": validation_message}), 400
             
-            # »ç¿ëÀÚ Ãß°¡
+            # ì‚¬ìš©ì ì¶”ê°€
             conn.execute('''
                 INSERT INTO Users 
                 (user_id, password, name, user_level, user_level_name, branch_code, branch_name, 
@@ -3717,10 +3717,10 @@ def manage_user():
                 data.get('email'), data.get('position'), data.get('status', 'ACTIVE')
             ))
             conn.commit()
-            return jsonify({"success": True, "message": "»ç¿ëÀÚ°¡ Ãß°¡µÇ¾ú½À´Ï´Ù."})
+            return jsonify({"success": True, "message": "ì‚¬ìš©ìê°€ ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤."})
         
         elif request.method == 'PUT':
-            # »ç¿ëÀÚ ¼öÁ¤
+            # ì‚¬ìš©ì ìˆ˜ì •
             conn.execute('''
                 UPDATE Users SET 
                     name=?, user_level=?, user_level_name=?, branch_code=?, branch_name=?,
@@ -3734,7 +3734,7 @@ def manage_user():
                 data.get('position'), data.get('status'), data['user_id']
             ))
             conn.commit()
-            return jsonify({"success": True, "message": "»ç¿ëÀÚ Á¤º¸°¡ ¼öÁ¤µÇ¾ú½À´Ï´Ù."})
+            return jsonify({"success": True, "message": "ì‚¬ìš©ì ì •ë³´ê°€ ìˆ˜ì •ë˜ì—ˆìŠµë‹ˆë‹¤."})
     
     except Exception as e:
         conn.rollback()
@@ -3742,7 +3742,7 @@ def manage_user():
     finally:
         conn.close()
 
-# --- ºñ¹Ğ¹øÈ£ º¯°æ API ---
+# --- ë¹„ë°€ë²ˆí˜¸ ë³€ê²½ API ---
 @app.route('/api/users/<user_id>/password', methods=['PUT'])
 def change_password(user_id):
     if not session.get('logged_in'):
@@ -3751,7 +3751,7 @@ def change_password(user_id):
     current_user_id = session.get('user_id')
     user_level = session.get('user_level', 'N')
     
-    # º»ÀÎ ºñ¹Ğ¹øÈ£ÀÌ°Å³ª °ü¸®ÀÚ ±ÇÇÑ ÇÊ¿ä
+    # ë³¸ì¸ ë¹„ë°€ë²ˆí˜¸ì´ê±°ë‚˜ ê´€ë¦¬ì ê¶Œí•œ í•„ìš”
     if user_id != current_user_id and not check_permission(user_level, 'S'):
         return jsonify({"error": "Permission denied"}), 403
     
@@ -3761,39 +3761,39 @@ def change_password(user_id):
     confirm_password = data.get('confirm_password')
     
     if not new_password:
-        return jsonify({"success": False, "message": "»õ ºñ¹Ğ¹øÈ£¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä."}), 400
+        return jsonify({"success": False, "message": "ìƒˆ ë¹„ë°€ë²ˆí˜¸ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”."}), 400
     
     if new_password != confirm_password:
-        return jsonify({"success": False, "message": "»õ ºñ¹Ğ¹øÈ£°¡ ÀÏÄ¡ÇÏÁö ¾Ê½À´Ï´Ù."}), 400
+        return jsonify({"success": False, "message": "ìƒˆ ë¹„ë°€ë²ˆí˜¸ê°€ ì¼ì¹˜í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤."}), 400
     
-    # ÆĞ½º¿öµå ±ÔÄ¢ °ËÁõ
+    # íŒ¨ìŠ¤ì›Œë“œ ê·œì¹™ ê²€ì¦
     is_valid, validation_message = validate_password(new_password)
     if not is_valid:
         return jsonify({"success": False, "message": validation_message}), 400
     
-    # ÆĞ½º¿öµå ÀÌ·Â È®ÀÎ
+    # íŒ¨ìŠ¤ì›Œë“œ ì´ë ¥ í™•ì¸
     history_valid, history_message = check_password_history(user_id, new_password)
     if not history_valid:
         return jsonify({"success": False, "message": history_message}), 400
     
     conn = get_db_connection()
     try:
-        # º»ÀÎ ºñ¹Ğ¹øÈ£ º¯°æÀÎ °æ¿ì ÇöÀç ºñ¹Ğ¹øÈ£ È®ÀÎ
+        # ë³¸ì¸ ë¹„ë°€ë²ˆí˜¸ ë³€ê²½ì¸ ê²½ìš° í˜„ì¬ ë¹„ë°€ë²ˆí˜¸ í™•ì¸
         if user_id == current_user_id:
             if not current_password:
-                return jsonify({"success": False, "message": "ÇöÀç ºñ¹Ğ¹øÈ£¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä."}), 400
+                return jsonify({"success": False, "message": "í˜„ì¬ ë¹„ë°€ë²ˆí˜¸ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”."}), 400
             
             current_user = conn.execute(
                 "SELECT password FROM Users WHERE user_id = ?", (user_id,)
             ).fetchone()
             
             if not current_user or current_user['password'] != current_password:
-                return jsonify({"success": False, "message": "ÇöÀç ºñ¹Ğ¹øÈ£°¡ ÀÏÄ¡ÇÏÁö ¾Ê½À´Ï´Ù."}), 400
+                return jsonify({"success": False, "message": "í˜„ì¬ ë¹„ë°€ë²ˆí˜¸ê°€ ì¼ì¹˜í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤."}), 400
         
-        # ÆĞ½º¿öµå ÀÌ·Â ÀúÀå (º¯°æ Àü ÆĞ½º¿öµå)
+        # íŒ¨ìŠ¤ì›Œë“œ ì´ë ¥ ì €ì¥ (ë³€ê²½ ì „ íŒ¨ìŠ¤ì›Œë“œ)
         save_password_history(user_id, new_password)
         
-        # ºñ¹Ğ¹øÈ£ ¾÷µ¥ÀÌÆ®
+        # ë¹„ë°€ë²ˆí˜¸ ì—…ë°ì´íŠ¸
         conn.execute('''
             UPDATE Users SET 
                 password=?, 
@@ -3802,14 +3802,14 @@ def change_password(user_id):
             WHERE user_id=?
         ''', (new_password, user_id))
         conn.commit()
-        return jsonify({"success": True, "message": "ºñ¹Ğ¹øÈ£°¡ º¯°æµÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ë¹„ë°€ë²ˆí˜¸ê°€ ë³€ê²½ë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
 
-# --- ºñ¹Ğ¹øÈ£ ÃÊ±âÈ­ API ---
+# --- ë¹„ë°€ë²ˆí˜¸ ì´ˆê¸°í™” API ---
 @app.route('/api/users/<user_id>/reset-password', methods=['PUT'])
 def reset_password(user_id):
     if not session.get('logged_in'):
@@ -3817,7 +3817,7 @@ def reset_password(user_id):
     
     user_level = session.get('user_level', 'N')
     
-    # °ü¸®ÀÚ ±ÇÇÑ ÇÊ¿ä (¼­ºê°ü¸®ÀÚ ÀÌ»ó)
+    # ê´€ë¦¬ì ê¶Œí•œ í•„ìš” (ì„œë¸Œê´€ë¦¬ì ì´ìƒ)
     if not check_permission(user_level, 'S'):
         return jsonify({"error": "Permission denied"}), 403
     
@@ -3826,18 +3826,18 @@ def reset_password(user_id):
     
     conn = get_db_connection()
     try:
-        # »ç¿ëÀÚ°¡ Á¸ÀçÇÏ´ÂÁö È®ÀÎ
+        # ì‚¬ìš©ìê°€ ì¡´ì¬í•˜ëŠ”ì§€ í™•ì¸
         user_exists = conn.execute(
             "SELECT user_id FROM Users WHERE user_id = ?", (user_id,)
         ).fetchone()
         
         if not user_exists:
-            return jsonify({"success": False, "message": "»ç¿ëÀÚ¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù."}), 404
+            return jsonify({"success": False, "message": "ì‚¬ìš©ìë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 404
         
-        # ÆĞ½º¿öµå ÀÌ·Â ÀúÀå (ÃÊ±âÈ­ Àü ÆĞ½º¿öµå)
+        # íŒ¨ìŠ¤ì›Œë“œ ì´ë ¥ ì €ì¥ (ì´ˆê¸°í™” ì „ íŒ¨ìŠ¤ì›Œë“œ)
         save_password_history(user_id, new_password)
         
-        # ºñ¹Ğ¹øÈ£ ÃÊ±âÈ­
+        # ë¹„ë°€ë²ˆí˜¸ ì´ˆê¸°í™”
         conn.execute('''
             UPDATE Users SET 
                 password=?, 
@@ -3846,7 +3846,7 @@ def reset_password(user_id):
             WHERE user_id=?
         ''', (new_password, user_id))
         conn.commit()
-        return jsonify({"success": True, "message": f"ºñ¹Ğ¹øÈ£°¡ '{new_password}'·Î ÃÊ±âÈ­µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": f"ë¹„ë°€ë²ˆí˜¸ê°€ '{new_password}'ë¡œ ì´ˆê¸°í™”ë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -3861,79 +3861,79 @@ def delete_user(user_id):
     user_level = session.get('user_level', 'N')
     current_user_id = session.get('user_id')
     
-    # ÃÖ°í°ü¸®ÀÚ ±ÇÇÑ ÇÊ¿ä (V)
+    # ìµœê³ ê´€ë¦¬ì ê¶Œí•œ í•„ìš” (V)
     if not check_permission(user_level, 'V'):
         return jsonify({"error": "Permission denied"}), 403
     
-    # ÀÚ±â ÀÚ½ÅÀº »èÁ¦ÇÒ ¼ö ¾øÀ½
+    # ìê¸° ìì‹ ì€ ì‚­ì œí•  ìˆ˜ ì—†ìŒ
     if current_user_id == user_id:
-        return jsonify({"success": False, "message": "ÀÚ±â ÀÚ½ÅÀº »èÁ¦ÇÒ ¼ö ¾ø½À´Ï´Ù."}), 400
+        return jsonify({"success": False, "message": "ìê¸° ìì‹ ì€ ì‚­ì œí•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 400
     
     conn = get_db_connection()
     try:
-        # »ç¿ëÀÚ°¡ Á¸ÀçÇÏ´ÂÁö È®ÀÎ
+        # ì‚¬ìš©ìê°€ ì¡´ì¬í•˜ëŠ”ì§€ í™•ì¸
         user_info = conn.execute(
             "SELECT user_id, name FROM Users WHERE user_id = ?", (user_id,)
         ).fetchone()
         
         if not user_info:
-            return jsonify({"success": False, "message": "»ç¿ëÀÚ¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù."}), 404
+            return jsonify({"success": False, "message": "ì‚¬ìš©ìë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 404
         
-        # °ü·Ã Å×ÀÌºí¿¡¼­ µ¥ÀÌÅÍ »èÁ¦ (¿Ü·¡Å° Á¦¾à»çÇ×¿¡ µû¶ó ¼ø¼­´ë·Î)
-        # 1. ¿¬¶ô ÀÌ·Â »èÁ¦
+        # ê´€ë ¨ í…Œì´ë¸”ì—ì„œ ë°ì´í„° ì‚­ì œ (ì™¸ë˜í‚¤ ì œì•½ì‚¬í•­ì— ë”°ë¼ ìˆœì„œëŒ€ë¡œ)
+        # 1. ì—°ë½ ì´ë ¥ ì‚­ì œ
         conn.execute("DELETE FROM Contact_History WHERE registered_by = ?", (user_id,))
         
-        # 2. ÆĞ½º¿öµå ÀÌ·Â »èÁ¦
+        # 2. íŒ¨ìŠ¤ì›Œë“œ ì´ë ¥ ì‚­ì œ
         conn.execute("DELETE FROM Password_History WHERE user_id = ?", (user_id,))
         
-        # 3. »ç¿ëÀÚ ±¸µ¶ Á¤º¸ »èÁ¦
+        # 3. ì‚¬ìš©ì êµ¬ë… ì •ë³´ ì‚­ì œ
         conn.execute("DELETE FROM User_Subscriptions WHERE user_id = ?", (user_id,))
         
-        # 4. »ç¿ëÀÚ »èÁ¦
+        # 4. ì‚¬ìš©ì ì‚­ì œ
         conn.execute("DELETE FROM Users WHERE user_id = ?", (user_id,))
         
         conn.commit()
-        return jsonify({"success": True, "message": f"»ç¿ëÀÚ '{user_id} ({user_info['name']})'°¡ ¼º°øÀûÀ¸·Î »èÁ¦µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": f"ì‚¬ìš©ì '{user_id} ({user_info['name']})'ê°€ ì„±ê³µì ìœ¼ë¡œ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
-        return jsonify({"success": False, "message": f"»ç¿ëÀÚ »èÁ¦ Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù: {str(e)}"}), 500
+        return jsonify({"success": False, "message": f"ì‚¬ìš©ì ì‚­ì œ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤: {str(e)}"}), 500
     finally:
         conn.close()
 
-# --- È¸¿ø °¡ÀÔ ¿äÃ» API ---
+# --- íšŒì› ê°€ì… ìš”ì²­ API ---
 @app.route('/api/signup-request', methods=['POST'])
 def signup_request():
     data = request.json
     
-    # µğ¹ö±×: ¼ö½ÅµÈ µ¥ÀÌÅÍ È®ÀÎ
-    print(f"È¸¿ø°¡ÀÔ ½ÅÃ» µ¥ÀÌÅÍ: {data}")
+    # ë””ë²„ê·¸: ìˆ˜ì‹ ëœ ë°ì´í„° í™•ì¸
+    print(f"íšŒì›ê°€ì… ì‹ ì²­ ë°ì´í„°: {data}")
     
-    # ÇÊ¼ö ÇÊµå °ËÁõ
+    # í•„ìˆ˜ í•„ë“œ ê²€ì¦
     required_fields = ['user_id', 'name', 'phone', 'email', 'birth_date', 'gender', 'position']
     for field in required_fields:
         if not data.get(field):
-            print(f"´©¶ôµÈ ÇÊµå: {field}")
-            return jsonify({"success": False, "message": f"{field}´Â ÇÊ¼ö Ç×¸ñÀÔ´Ï´Ù."}), 400
+            print(f"ëˆ„ë½ëœ í•„ë“œ: {field}")
+            return jsonify({"success": False, "message": f"{field}ëŠ” í•„ìˆ˜ í•­ëª©ì…ë‹ˆë‹¤."}), 400
     
-    # branch_nameÀÌ ¾øÀ¸¸é ±âº»°ª ¼³Á¤
+    # branch_nameì´ ì—†ìœ¼ë©´ ê¸°ë³¸ê°’ ì„¤ì •
     if not data.get('branch_name'):
-        data['branch_name'] = '¹ÌÁöÁ¤'
+        data['branch_name'] = 'ë¯¸ì§€ì •'
     
-    # branch_code°¡ ¾øÀ¸¸é branch_name°ú µ¿ÀÏÇÏ°Ô ¼³Á¤
+    # branch_codeê°€ ì—†ìœ¼ë©´ branch_nameê³¼ ë™ì¼í•˜ê²Œ ì„¤ì •
     if not data.get('branch_code'):
         data['branch_code'] = data['branch_name']
     
     conn = get_db_connection()
     try:
-        # Áßº¹ ¾ÆÀÌµğ È®ÀÎ (±âÁ¸ »ç¿ëÀÚ)
+        # ì¤‘ë³µ ì•„ì´ë”” í™•ì¸ (ê¸°ì¡´ ì‚¬ìš©ì)
         existing_user = conn.execute(
             "SELECT user_id FROM Users WHERE user_id = ?", (data['user_id'],)
         ).fetchone()
         
         if existing_user:
-            return jsonify({"success": False, "message": "ÀÌ¹Ì »ç¿ë ÁßÀÎ ¾ÆÀÌµğÀÔ´Ï´Ù."}), 400
+            return jsonify({"success": False, "message": "ì´ë¯¸ ì‚¬ìš© ì¤‘ì¸ ì•„ì´ë””ì…ë‹ˆë‹¤."}), 400
         
-        # Áßº¹ ½ÅÃ» È®ÀÎ ¹× Ã³¸®
+        # ì¤‘ë³µ ì‹ ì²­ í™•ì¸ ë° ì²˜ë¦¬
         existing_request = conn.execute(
             "SELECT id, status FROM Signup_Requests WHERE user_id = ?", 
             (data['user_id'],)
@@ -3941,11 +3941,11 @@ def signup_request():
         
         if existing_request:
             if existing_request['status'] == 'PENDING':
-                return jsonify({"success": False, "message": "ÀÌ¹Ì ½ÅÃ»ÇÑ ¾ÆÀÌµğÀÔ´Ï´Ù. ½ÂÀÎ ´ë±â ÁßÀÔ´Ï´Ù."}), 400
+                return jsonify({"success": False, "message": "ì´ë¯¸ ì‹ ì²­í•œ ì•„ì´ë””ì…ë‹ˆë‹¤. ìŠ¹ì¸ ëŒ€ê¸° ì¤‘ì…ë‹ˆë‹¤."}), 400
             elif existing_request['status'] == 'APPROVED':
-                return jsonify({"success": False, "message": "ÀÌ¹Ì ½ÂÀÎµÈ ¾ÆÀÌµğÀÔ´Ï´Ù."}), 400
+                return jsonify({"success": False, "message": "ì´ë¯¸ ìŠ¹ì¸ëœ ì•„ì´ë””ì…ë‹ˆë‹¤."}), 400
             elif existing_request['status'] == 'REJECTED':
-                # °ÅÀıµÈ ½ÅÃ»Àº ¾÷µ¥ÀÌÆ® °¡´É
+                # ê±°ì ˆëœ ì‹ ì²­ì€ ì—…ë°ì´íŠ¸ ê°€ëŠ¥
                 conn.execute('''
                     UPDATE Signup_Requests 
                     SET name = ?, phone = ?, email = ?, branch_code = ?, branch_name = ?, 
@@ -3960,9 +3960,9 @@ def signup_request():
                     data['user_id']
                 ))
                 conn.commit()
-                return jsonify({"success": True, "message": "½ÅÃ» Á¤º¸°¡ ¼öÁ¤µÇ¾î Àç½ÅÃ»µÇ¾ú½À´Ï´Ù."})
+                return jsonify({"success": True, "message": "ì‹ ì²­ ì •ë³´ê°€ ìˆ˜ì •ë˜ì–´ ì¬ì‹ ì²­ë˜ì—ˆìŠµë‹ˆë‹¤."})
         
-        # »õ·Î¿î °¡ÀÔ ½ÅÃ» ÀúÀå
+        # ìƒˆë¡œìš´ ê°€ì… ì‹ ì²­ ì €ì¥
         conn.execute('''
             INSERT INTO Signup_Requests (user_id, name, phone, email, branch_code, branch_name, birth_date, gender, position, purpose)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -3973,7 +3973,7 @@ def signup_request():
         ))
         conn.commit()
         
-        return jsonify({"success": True, "message": "°¡ÀÔ ½ÅÃ»ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ê°€ì… ì‹ ì²­ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤."})
         
     except Exception as e:
         conn.rollback()
@@ -3981,7 +3981,7 @@ def signup_request():
     finally:
         conn.close()
 
-# --- °¡ÀÔ ½ÅÃ» ¸ñ·Ï Á¶È¸ API ---
+# --- ê°€ì… ì‹ ì²­ ëª©ë¡ ì¡°íšŒ API ---
 @app.route('/api/signup-requests')
 def get_signup_requests():
     if not session.get('logged_in'):
@@ -4004,7 +4004,7 @@ def get_signup_requests():
     finally:
         conn.close()
 
-# --- °¡ÀÔ ½ÅÃ» ½ÂÀÎ/°ÅÀı API ---
+# --- ê°€ì… ì‹ ì²­ ìŠ¹ì¸/ê±°ì ˆ API ---
 @app.route('/api/signup-requests/<int:request_id>/process', methods=['PUT'])
 def process_signup_request(request_id):
     if not session.get('logged_in'):
@@ -4019,23 +4019,23 @@ def process_signup_request(request_id):
     admin_notes = data.get('admin_notes', '')
     
     if action not in ['approve', 'reject']:
-        return jsonify({"success": False, "message": "Àß¸øµÈ ¾×¼ÇÀÔ´Ï´Ù."}), 400
+        return jsonify({"success": False, "message": "ì˜ëª»ëœ ì•¡ì…˜ì…ë‹ˆë‹¤."}), 400
     
     admin_user = session.get('user_id')
     
     conn = get_db_connection()
     try:
-        # ½ÅÃ» Á¤º¸ Á¶È¸
+        # ì‹ ì²­ ì •ë³´ ì¡°íšŒ
         signup_request = conn.execute(
             "SELECT * FROM Signup_Requests WHERE id = ? AND status = 'PENDING'", 
             (request_id,)
         ).fetchone()
         
         if not signup_request:
-            return jsonify({"success": False, "message": "Ã³¸®ÇÒ ¼ö ¾ø´Â ½ÅÃ»ÀÔ´Ï´Ù."}), 404
+            return jsonify({"success": False, "message": "ì²˜ë¦¬í•  ìˆ˜ ì—†ëŠ” ì‹ ì²­ì…ë‹ˆë‹¤."}), 404
         
         if action == 'approve':
-            # »ç¿ëÀÚ °èÁ¤ »ı¼º
+            # ì‚¬ìš©ì ê³„ì • ìƒì„±
             default_password = 'Welcome123!'
             conn.execute('''
                 INSERT INTO Users 
@@ -4044,12 +4044,12 @@ def process_signup_request(request_id):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 signup_request['user_id'], default_password, signup_request['name'], 
-                'N', 'ÀÏ¹İ´ã´çÀÚ', signup_request['branch_code'], signup_request['branch_name'],
+                'N', 'ì¼ë°˜ë‹´ë‹¹ì', signup_request['branch_code'], signup_request['branch_name'],
                 signup_request['phone'], signup_request['email'], signup_request['birth_date'],
                 signup_request['gender'], signup_request['position'], 'ACTIVE'
             ))
             
-            # ½ÅÃ» »óÅÂ ¾÷µ¥ÀÌÆ®
+            # ì‹ ì²­ ìƒíƒœ ì—…ë°ì´íŠ¸
             conn.execute('''
                 UPDATE Signup_Requests 
                 SET status = 'APPROVED', processed_date = CURRENT_TIMESTAMP, 
@@ -4057,10 +4057,10 @@ def process_signup_request(request_id):
                 WHERE id = ?
             ''', (admin_user, admin_notes, request_id))
             
-            message = f"'{signup_request['user_id']}' °èÁ¤ÀÌ ½ÂÀÎµÇ¾ú½À´Ï´Ù. ±âº» ºñ¹Ğ¹øÈ£: {default_password}"
+            message = f"'{signup_request['user_id']}' ê³„ì •ì´ ìŠ¹ì¸ë˜ì—ˆìŠµë‹ˆë‹¤. ê¸°ë³¸ ë¹„ë°€ë²ˆí˜¸: {default_password}"
             
         else:  # reject
-            # ½ÅÃ» »óÅÂ ¾÷µ¥ÀÌÆ®
+            # ì‹ ì²­ ìƒíƒœ ì—…ë°ì´íŠ¸
             conn.execute('''
                 UPDATE Signup_Requests 
                 SET status = 'REJECTED', processed_date = CURRENT_TIMESTAMP, 
@@ -4068,7 +4068,7 @@ def process_signup_request(request_id):
                 WHERE id = ?
             ''', (admin_user, admin_notes, request_id))
             
-            message = f"'{signup_request['user_id']}' °¡ÀÔ ½ÅÃ»ÀÌ °ÅÀıµÇ¾ú½À´Ï´Ù."
+            message = f"'{signup_request['user_id']}' ê°€ì… ì‹ ì²­ì´ ê±°ì ˆë˜ì—ˆìŠµë‹ˆë‹¤."
         
         conn.commit()
         return jsonify({"success": True, "message": message})
@@ -4079,7 +4079,7 @@ def process_signup_request(request_id):
     finally:
         conn.close()
 
-# --- ½ÅÃ» »óÅÂ Á¶È¸ API ---
+# --- ì‹ ì²­ ìƒíƒœ ì¡°íšŒ API ---
 @app.route('/api/check-signup-status', methods=['POST'])
 def check_signup_status():
     data = request.json
@@ -4087,7 +4087,7 @@ def check_signup_status():
     name = data.get('name')
     
     if not user_id or not name:
-        return jsonify({"success": False, "message": "¾ÆÀÌµğ¿Í ÀÌ¸§À» ÀÔ·ÂÇØÁÖ¼¼¿ä."}), 400
+        return jsonify({"success": False, "message": "ì•„ì´ë””ì™€ ì´ë¦„ì„ ì…ë ¥í•´ì£¼ì„¸ìš”."}), 400
     
     conn = get_db_connection()
     try:
@@ -4102,7 +4102,7 @@ def check_signup_status():
         ''', (user_id, name)).fetchone()
         
         if not signup_request:
-            return jsonify({"success": False, "message": "ÇØ´ç ½ÅÃ» Á¤º¸¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù."}), 404
+            return jsonify({"success": False, "message": "í•´ë‹¹ ì‹ ì²­ ì •ë³´ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 404
         
         return jsonify({"success": True, "data": dict(signup_request)})
         
@@ -4111,7 +4111,7 @@ def check_signup_status():
     finally:
         conn.close()
 
-# --- ½ÅÃ» Á¤º¸ °¡Á®¿À±â API ---
+# --- ì‹ ì²­ ì •ë³´ ê°€ì ¸ì˜¤ê¸° API ---
 @app.route('/api/get-signup-request/<user_id>')
 def get_signup_request(user_id):
     conn = get_db_connection()
@@ -4126,7 +4126,7 @@ def get_signup_request(user_id):
         ''', (user_id,)).fetchone()
         
         if not signup_request:
-            return jsonify({"success": False, "message": "¼öÁ¤ °¡´ÉÇÑ ½ÅÃ» Á¤º¸¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù."}), 404
+            return jsonify({"success": False, "message": "ìˆ˜ì • ê°€ëŠ¥í•œ ì‹ ì²­ ì •ë³´ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 404
         
         return jsonify({"success": True, "data": dict(signup_request)})
         
@@ -4135,21 +4135,21 @@ def get_signup_request(user_id):
     finally:
         conn.close()
 
-# --- Àç½ÅÃ» API ---
+# --- ì¬ì‹ ì²­ API ---
 @app.route('/api/resubmit-signup/<user_id>', methods=['PUT'])
 def resubmit_signup(user_id):
     conn = get_db_connection()
     try:
-        # ±âÁ¸ ½ÅÃ»ÀÌ ÀÖ´ÂÁö È®ÀÎ
+        # ê¸°ì¡´ ì‹ ì²­ì´ ìˆëŠ”ì§€ í™•ì¸
         existing_request = conn.execute(
             "SELECT id FROM Signup_Requests WHERE user_id = ? AND status IN ('PENDING', 'REJECTED')", 
             (user_id,)
         ).fetchone()
         
         if not existing_request:
-            return jsonify({"success": False, "message": "Àç½ÅÃ»ÇÒ ¼ö ÀÖ´Â ½ÅÃ»ÀÌ ¾ø½À´Ï´Ù."}), 404
+            return jsonify({"success": False, "message": "ì¬ì‹ ì²­í•  ìˆ˜ ìˆëŠ” ì‹ ì²­ì´ ì—†ìŠµë‹ˆë‹¤."}), 404
         
-        # »óÅÂ¸¦ PENDINGÀ¸·Î º¯°æÇÏ°í ½ÅÃ»ÀÏÀ» ÇöÀç ½Ã°£À¸·Î ¾÷µ¥ÀÌÆ®
+        # ìƒíƒœë¥¼ PENDINGìœ¼ë¡œ ë³€ê²½í•˜ê³  ì‹ ì²­ì¼ì„ í˜„ì¬ ì‹œê°„ìœ¼ë¡œ ì—…ë°ì´íŠ¸
         conn.execute('''
             UPDATE Signup_Requests 
             SET status = 'PENDING', 
@@ -4161,7 +4161,7 @@ def resubmit_signup(user_id):
         ''', (user_id,))
         
         conn.commit()
-        return jsonify({"success": True, "message": "Àç½ÅÃ»ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ì¬ì‹ ì²­ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤."})
         
     except Exception as e:
         conn.rollback()
@@ -4169,7 +4169,7 @@ def resubmit_signup(user_id):
     finally:
         conn.close()
 
-# --- ±¸µ¶ °ü¸® API ---
+# --- êµ¬ë… ê´€ë¦¬ API ---
 @app.route('/api/subscriptions', methods=['GET'])
 def get_subscriptions():
     if not session.get('logged_in'):
@@ -4181,7 +4181,7 @@ def get_subscriptions():
     
     conn = get_db_connection()
     try:
-        # ±¸µ¶ ÇöÈ² Á¶È¸
+        # êµ¬ë… í˜„í™© ì¡°íšŒ
         subscriptions = conn.execute('''
             SELECT us.*, u.name as user_name,
                    COALESCE(SUM(ph.amount), 0) as total_paid
@@ -4192,7 +4192,7 @@ def get_subscriptions():
             ORDER BY us.subscription_start_date DESC
         ''').fetchall()
         
-        # °áÁ¦ ÀÌ·Â Á¶È¸
+        # ê²°ì œ ì´ë ¥ ì¡°íšŒ
         payments = conn.execute('''
             SELECT ph.*, u.name as user_name
             FROM Payment_History ph
@@ -4227,47 +4227,47 @@ def create_subscription():
     notes = data.get('notes', '')
     
     if not all([user_id, subscription_type, start_date, end_date]):
-        return jsonify({"success": False, "message": "ÇÊ¼ö Ç×¸ñÀ» ¸ğµÎ ÀÔ·ÂÇØÁÖ¼¼¿ä."}), 400
+        return jsonify({"success": False, "message": "í•„ìˆ˜ í•­ëª©ì„ ëª¨ë‘ ì…ë ¥í•´ì£¼ì„¸ìš”."}), 400
     
     conn = get_db_connection()
     try:
         conn.execute('BEGIN TRANSACTION')
         
-        # ±âÁ¸ ±¸µ¶ Á¤º¸ È®ÀÎ
+        # ê¸°ì¡´ êµ¬ë… ì •ë³´ í™•ì¸
         existing = conn.execute(
             "SELECT * FROM User_Subscriptions WHERE user_id = ?", (user_id,)
         ).fetchone()
         
-        # ±¸µ¶ À¯Çü º¯È¯ (UI¿¡¼­ ¿À´Â °ªÀ» DB Çü½ÄÀ¸·Î º¯È¯)
+        # êµ¬ë… ìœ í˜• ë³€í™˜ (UIì—ì„œ ì˜¤ëŠ” ê°’ì„ DB í˜•ì‹ìœ¼ë¡œ ë³€í™˜)
         if subscription_type == 'monthly':
             db_subscription_type = 'MONTHLY'
         elif subscription_type == 'annual':
-            db_subscription_type = 'YEARLY'  # ANNUAL -> YEARLY·Î º¯°æ
+            db_subscription_type = 'YEARLY'  # ANNUAL -> YEARLYë¡œ ë³€ê²½
         elif subscription_type == 'free':
             db_subscription_type = 'FREE'
         else:
             db_subscription_type = subscription_type.upper()
         
         if existing:
-            # ±âÁ¸ ±¸µ¶ ¾÷µ¥ÀÌÆ®
+            # ê¸°ì¡´ êµ¬ë… ì—…ë°ì´íŠ¸
             conn.execute('''
                 UPDATE User_Subscriptions SET 
                     subscription_type=?, subscription_start_date=?, subscription_end_date=?, updated_date=CURRENT_TIMESTAMP
                 WHERE user_id=?
             ''', (db_subscription_type, start_date, end_date, user_id))
         else:
-            # »õ ±¸µ¶ »ı¼º
+            # ìƒˆ êµ¬ë… ìƒì„±
             conn.execute('''
                 INSERT INTO User_Subscriptions (user_id, subscription_type, subscription_start_date, subscription_end_date)
                 VALUES (?, ?, ?, ?)
             ''', (user_id, db_subscription_type, start_date, end_date))
         
-        # °áÁ¦ ±İ¾×ÀÌ ÀÖÀ¸¸é °áÁ¦ ÀÌ·Â Ãß°¡
+        # ê²°ì œ ê¸ˆì•¡ì´ ìˆìœ¼ë©´ ê²°ì œ ì´ë ¥ ì¶”ê°€
         if payment_amount and float(payment_amount) > 0:
             from datetime import date
             today = date.today().strftime('%Y-%m-%d')
             
-            # payment_type ¼³Á¤
+            # payment_type ì„¤ì •
             payment_type = 'MONTHLY' if db_subscription_type == 'MONTHLY' else \
                           'YEARLY' if db_subscription_type == 'YEARLY' else 'SIGNUP'
             
@@ -4277,7 +4277,7 @@ def create_subscription():
             ''', (user_id, today, float(payment_amount), payment_type, payment_method, notes))
         
         conn.commit()
-        return jsonify({"success": True, "message": "±¸µ¶ÀÌ ¼³Á¤µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "êµ¬ë…ì´ ì„¤ì •ë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -4297,7 +4297,7 @@ def delete_subscription(user_id):
     try:
         conn.execute("DELETE FROM User_Subscriptions WHERE user_id = ?", (user_id,))
         conn.commit()
-        return jsonify({"success": True, "message": "±¸µ¶ÀÌ »èÁ¦µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "êµ¬ë…ì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
@@ -4314,26 +4314,26 @@ def delete_payment_history(payment_id):
     
     conn = get_db_connection()
     try:
-        # »èÁ¦ÇÏ±â Àü¿¡ ÇØ´ç °áÁ¦ ÀÌ·ÂÀÌ Á¸ÀçÇÏ´ÂÁö È®ÀÎ
+        # ì‚­ì œí•˜ê¸° ì „ì— í•´ë‹¹ ê²°ì œ ì´ë ¥ì´ ì¡´ì¬í•˜ëŠ”ì§€ í™•ì¸
         payment = conn.execute(
             "SELECT * FROM Payment_History WHERE id = ?", (payment_id,)
         ).fetchone()
         
         if not payment:
-            return jsonify({"success": False, "message": "°áÁ¦ ÀÌ·ÂÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù."}), 404
+            return jsonify({"success": False, "message": "ê²°ì œ ì´ë ¥ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 404
         
-        # °áÁ¦ ÀÌ·Â »èÁ¦
+        # ê²°ì œ ì´ë ¥ ì‚­ì œ
         conn.execute("DELETE FROM Payment_History WHERE id = ?", (payment_id,))
         conn.commit()
         
-        return jsonify({"success": True, "message": "°áÁ¦ ÀÌ·ÂÀÌ »èÁ¦µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ê²°ì œ ì´ë ¥ì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
 
-# --- ºñ¿ëµî·Ï °ü¸® API ---
+# --- ë¹„ìš©ë“±ë¡ ê´€ë¦¬ API ---
 @app.route('/api/expenses', methods=['GET'])
 def get_expenses():
     if not session.get('logged_in'):
@@ -4344,8 +4344,8 @@ def get_expenses():
     
     conn = get_db_connection()
     try:
-        # ±ÇÇÑ¿¡ µû¸¥ Á¶È¸ ¹üÀ§ ¼³Á¤
-        if check_permission(user_level, 'S'):  # °ü¸®ÀÚ´Â ¸ğµç ºñ¿ë Á¶È¸
+        # ê¶Œí•œì— ë”°ë¥¸ ì¡°íšŒ ë²”ìœ„ ì„¤ì •
+        if check_permission(user_level, 'S'):  # ê´€ë¦¬ìëŠ” ëª¨ë“  ë¹„ìš© ì¡°íšŒ
             expenses = conn.execute('''
                 SELECT e.*, u.name as registered_by_name, c.company_name
                 FROM Expenses e
@@ -4353,7 +4353,7 @@ def get_expenses():
                 LEFT JOIN Company_Basic c ON e.biz_no = c.biz_no
                 ORDER BY e.expense_date DESC
             ''').fetchall()
-        else:  # ÀÏ¹İ »ç¿ëÀÚ´Â º»ÀÎ µî·Ï ºñ¿ë¸¸ Á¶È¸
+        else:  # ì¼ë°˜ ì‚¬ìš©ìëŠ” ë³¸ì¸ ë“±ë¡ ë¹„ìš©ë§Œ ì¡°íšŒ
             expenses = conn.execute('''
                 SELECT e.*, u.name as registered_by_name, c.company_name
                 FROM Expenses e
@@ -4386,7 +4386,7 @@ def add_expense():
             data.get('amount'), data.get('description'), data.get('receipt_file'), user_id
         ))
         conn.commit()
-        return jsonify({"success": True, "message": "ºñ¿ëÀÌ µî·ÏµÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ë¹„ìš©ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -4404,7 +4404,7 @@ def update_expense(expense_id):
     
     conn = get_db_connection()
     try:
-        # ±ÇÇÑ È®ÀÎ: º»ÀÎÀÌ µî·ÏÇÑ ºñ¿ëÀÌ°Å³ª °ü¸®ÀÚÀÎ °æ¿ì¸¸ ¼öÁ¤ °¡´É
+        # ê¶Œí•œ í™•ì¸: ë³¸ì¸ì´ ë“±ë¡í•œ ë¹„ìš©ì´ê±°ë‚˜ ê´€ë¦¬ìì¸ ê²½ìš°ë§Œ ìˆ˜ì • ê°€ëŠ¥
         if not check_permission(user_level, 'S'):
             existing = conn.execute(
                 "SELECT registered_by FROM Expenses WHERE id = ?", (expense_id,)
@@ -4422,7 +4422,7 @@ def update_expense(expense_id):
             data.get('amount'), data.get('description'), data.get('receipt_file'), expense_id
         ))
         conn.commit()
-        return jsonify({"success": True, "message": "ºñ¿ë Á¤º¸°¡ ¼öÁ¤µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ë¹„ìš© ì •ë³´ê°€ ìˆ˜ì •ë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -4439,7 +4439,7 @@ def delete_expense(expense_id):
     
     conn = get_db_connection()
     try:
-        # ±ÇÇÑ È®ÀÎ: º»ÀÎÀÌ µî·ÏÇÑ ºñ¿ëÀÌ°Å³ª °ü¸®ÀÚÀÎ °æ¿ì¸¸ »èÁ¦ °¡´É
+        # ê¶Œí•œ í™•ì¸: ë³¸ì¸ì´ ë“±ë¡í•œ ë¹„ìš©ì´ê±°ë‚˜ ê´€ë¦¬ìì¸ ê²½ìš°ë§Œ ì‚­ì œ ê°€ëŠ¥
         if not check_permission(user_level, 'S'):
             existing = conn.execute(
                 "SELECT registered_by FROM Expenses WHERE id = ?", (expense_id,)
@@ -4449,14 +4449,14 @@ def delete_expense(expense_id):
         
         conn.execute("DELETE FROM Expenses WHERE id = ?", (expense_id,))
         conn.commit()
-        return jsonify({"success": True, "message": "ºñ¿ëÀÌ »èÁ¦µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ë¹„ìš©ì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
 
-# --- C-Level °³Ã´°ü¸® API ---
+# --- C-Level ê°œì²™ê´€ë¦¬ API ---
 @app.route('/api/clevel_targets', methods=['GET'])
 def get_clevel_targets():
     if not session.get('logged_in'):
@@ -4467,8 +4467,8 @@ def get_clevel_targets():
     
     conn = get_db_connection()
     try:
-        # ±ÇÇÑ¿¡ µû¸¥ Á¶È¸ ¹üÀ§ ¼³Á¤
-        if check_permission(user_level, 'S'):  # °ü¸®ÀÚ´Â ¸ğµç Å¸°Ù Á¶È¸
+        # ê¶Œí•œì— ë”°ë¥¸ ì¡°íšŒ ë²”ìœ„ ì„¤ì •
+        if check_permission(user_level, 'S'):  # ê´€ë¦¬ìëŠ” ëª¨ë“  íƒ€ê²Ÿ ì¡°íšŒ
             targets = conn.execute('''
                 SELECT t.*, u.name as registered_by_name, c.company_name
                 FROM CLevel_Targets t
@@ -4476,7 +4476,7 @@ def get_clevel_targets():
                 LEFT JOIN Company_Basic c ON t.biz_no = c.biz_no
                 ORDER BY t.created_date DESC
             ''').fetchall()
-        else:  # ÀÏ¹İ »ç¿ëÀÚ´Â º»ÀÎ µî·Ï Å¸°Ù¸¸ Á¶È¸
+        else:  # ì¼ë°˜ ì‚¬ìš©ìëŠ” ë³¸ì¸ ë“±ë¡ íƒ€ê²Ÿë§Œ ì¡°íšŒ
             targets = conn.execute('''
                 SELECT t.*, u.name as registered_by_name, c.company_name
                 FROM CLevel_Targets t
@@ -4511,7 +4511,7 @@ def add_clevel_target():
             data.get('status', 'PLANNED'), data.get('notes'), user_id
         ))
         conn.commit()
-        return jsonify({"success": True, "message": "C-Level Å¸°ÙÀÌ µî·ÏµÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "C-Level íƒ€ê²Ÿì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -4529,7 +4529,7 @@ def update_clevel_target(target_id):
     
     conn = get_db_connection()
     try:
-        # ±ÇÇÑ È®ÀÎ: º»ÀÎÀÌ µî·ÏÇÑ Å¸°ÙÀÌ°Å³ª °ü¸®ÀÚÀÎ °æ¿ì¸¸ ¼öÁ¤ °¡´É
+        # ê¶Œí•œ í™•ì¸: ë³¸ì¸ì´ ë“±ë¡í•œ íƒ€ê²Ÿì´ê±°ë‚˜ ê´€ë¦¬ìì¸ ê²½ìš°ë§Œ ìˆ˜ì • ê°€ëŠ¥
         if not check_permission(user_level, 'S'):
             existing = conn.execute(
                 "SELECT registered_by FROM CLevel_Targets WHERE id = ?", (target_id,)
@@ -4549,7 +4549,7 @@ def update_clevel_target(target_id):
             data.get('status'), data.get('notes'), target_id
         ))
         conn.commit()
-        return jsonify({"success": True, "message": "C-Level Å¸°Ù Á¤º¸°¡ ¼öÁ¤µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "C-Level íƒ€ê²Ÿ ì •ë³´ê°€ ìˆ˜ì •ë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -4566,7 +4566,7 @@ def delete_clevel_target(target_id):
     
     conn = get_db_connection()
     try:
-        # ±ÇÇÑ È®ÀÎ: º»ÀÎÀÌ µî·ÏÇÑ Å¸°ÙÀÌ°Å³ª °ü¸®ÀÚÀÎ °æ¿ì¸¸ »èÁ¦ °¡´É
+        # ê¶Œí•œ í™•ì¸: ë³¸ì¸ì´ ë“±ë¡í•œ íƒ€ê²Ÿì´ê±°ë‚˜ ê´€ë¦¬ìì¸ ê²½ìš°ë§Œ ì‚­ì œ ê°€ëŠ¥
         if not check_permission(user_level, 'S'):
             existing = conn.execute(
                 "SELECT registered_by FROM CLevel_Targets WHERE id = ?", (target_id,)
@@ -4576,14 +4576,14 @@ def delete_clevel_target(target_id):
         
         conn.execute("DELETE FROM CLevel_Targets WHERE id = ?", (target_id,))
         conn.commit()
-        return jsonify({"success": True, "message": "C-Level Å¸°ÙÀÌ »èÁ¦µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "C-Level íƒ€ê²Ÿì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
 
-# --- °³Ã´´ë»ó ±â¾÷ °ü¸® API ---
+# --- ê°œì²™ëŒ€ìƒ ê¸°ì—… ê´€ë¦¬ API ---
 @app.route('/api/pioneering_targets', methods=['GET'])
 def get_pioneering_targets():
     if not session.get('logged_in'):
@@ -4594,8 +4594,8 @@ def get_pioneering_targets():
     
     conn = get_db_connection()
     try:
-        # ±ÇÇÑ¿¡ µû¸¥ Á¶È¸ ¹üÀ§ ¼³Á¤
-        if check_permission(user_level, 'S'):  # °ü¸®ÀÚ´Â ¸ğµç Å¸°Ù Á¶È¸
+        # ê¶Œí•œì— ë”°ë¥¸ ì¡°íšŒ ë²”ìœ„ ì„¤ì •
+        if check_permission(user_level, 'S'):  # ê´€ë¦¬ìëŠ” ëª¨ë“  íƒ€ê²Ÿ ì¡°íšŒ
             targets = conn.execute('''
                 SELECT p.*, u.name as visitor_name, c.company_name
                 FROM Pioneering_Targets p
@@ -4603,7 +4603,7 @@ def get_pioneering_targets():
                 LEFT JOIN Company_Basic c ON REPLACE(p.biz_no, '-', '') = c.biz_no
                 ORDER BY p.visit_date DESC, p.created_date DESC
             ''').fetchall()
-        else:  # ÀÏ¹İ »ç¿ëÀÚ´Â º»ÀÎ µî·Ï Å¸°Ù¸¸ Á¶È¸
+        else:  # ì¼ë°˜ ì‚¬ìš©ìëŠ” ë³¸ì¸ ë“±ë¡ íƒ€ê²Ÿë§Œ ì¡°íšŒ
             targets = conn.execute('''
                 SELECT p.*, u.name as visitor_name, c.company_name
                 FROM Pioneering_Targets p
@@ -4620,15 +4620,15 @@ def get_pioneering_targets():
 @app.route('/api/pioneering_targets', methods=['POST'])
 def add_pioneering_target():
     if not session.get('logged_in'):
-        return jsonify({"success": False, "message": "·Î±×ÀÎÀÌ ÇÊ¿äÇÕ´Ï´Ù."}), 401
+        return jsonify({"success": False, "message": "ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤."}), 401
     
     try:
         data = request.json
     except Exception as e:
-        return jsonify({"success": False, "message": "Àß¸øµÈ JSON Çü½ÄÀÔ´Ï´Ù."}), 400
+        return jsonify({"success": False, "message": "ì˜ëª»ëœ JSON í˜•ì‹ì…ë‹ˆë‹¤."}), 400
     
     if not data:
-        return jsonify({"success": False, "message": "µ¥ÀÌÅÍ°¡ Àü¼ÛµÇÁö ¾Ê¾Ò½À´Ï´Ù."}), 400
+        return jsonify({"success": False, "message": "ë°ì´í„°ê°€ ì „ì†¡ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤."}), 400
     
     user_id = session.get('user_id')
     biz_no = data.get('biz_no')
@@ -4637,20 +4637,20 @@ def add_pioneering_target():
     visitor_id = data.get('visitor_id', user_id)
     
     if not biz_no or not visit_date:
-        return jsonify({"success": False, "message": "»ç¾÷ÀÚ¹øÈ£¿Í ¹æ¹®ÀÏÀÚ´Â ÇÊ¼öÀÔ´Ï´Ù."}), 400
+        return jsonify({"success": False, "message": "ì‚¬ì—…ìë²ˆí˜¸ì™€ ë°©ë¬¸ì¼ìëŠ” í•„ìˆ˜ì…ë‹ˆë‹¤."}), 400
     
     conn = get_db_connection()
     try:
-        # Áßº¹ È®ÀÎ
+        # ì¤‘ë³µ í™•ì¸
         existing = conn.execute('''
             SELECT id FROM Pioneering_Targets 
             WHERE biz_no = ? AND visit_date = ? AND registered_by = ?
         ''', (biz_no, visit_date, user_id)).fetchone()
         
         if existing:
-            return jsonify({"success": False, "message": "ÀÌ¹Ì ÇØ´ç ³¯Â¥¿¡ µî·ÏÇÑ ±â¾÷ÀÔ´Ï´Ù."})
+            return jsonify({"success": False, "message": "ì´ë¯¸ í•´ë‹¹ ë‚ ì§œì— ë“±ë¡í•œ ê¸°ì—…ì…ë‹ˆë‹¤."})
         
-        # »ğÀÔ
+        # ì‚½ì…
         result = conn.execute('''
             INSERT INTO Pioneering_Targets 
             (biz_no, visit_date, visitor_id, notes, registered_by)
@@ -4661,13 +4661,13 @@ def add_pioneering_target():
         
         return jsonify({
             "success": True, 
-            "message": "°³Ã´ ´ë»óÀÌ Á¤»óÀûÀ¸·Î µî·ÏµÇ¾ú½À´Ï´Ù.", 
+            "message": "ê°œì²™ ëŒ€ìƒì´ ì •ìƒì ìœ¼ë¡œ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤.", 
             "id": result.lastrowid
         })
         
     except Exception as e:
         conn.rollback()
-        return jsonify({"success": False, "message": f"µî·Ï Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù: {str(e)}"}), 500
+        return jsonify({"success": False, "message": f"ë“±ë¡ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤: {str(e)}"}), 500
     finally:
         conn.close()
 
@@ -4681,7 +4681,7 @@ def delete_pioneering_target(target_id):
     
     conn = get_db_connection()
     try:
-        # ±ÇÇÑ È®ÀÎ: º»ÀÎÀÌ µî·ÏÇÑ Å¸°ÙÀÌ°Å³ª °ü¸®ÀÚÀÎ °æ¿ì¸¸ »èÁ¦ °¡´É
+        # ê¶Œí•œ í™•ì¸: ë³¸ì¸ì´ ë“±ë¡í•œ íƒ€ê²Ÿì´ê±°ë‚˜ ê´€ë¦¬ìì¸ ê²½ìš°ë§Œ ì‚­ì œ ê°€ëŠ¥
         if not check_permission(user_level, 'S'):
             existing = conn.execute(
                 "SELECT registered_by FROM Pioneering_Targets WHERE id = ?", (target_id,)
@@ -4691,7 +4691,7 @@ def delete_pioneering_target(target_id):
         
         conn.execute("DELETE FROM Pioneering_Targets WHERE id = ?", (target_id,))
         conn.commit()
-        return jsonify({"success": True, "message": "°³Ã´ ´ë»óÀÌ »èÁ¦µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ê°œì²™ ëŒ€ìƒì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -4712,7 +4712,7 @@ def mark_target_visited(target_id):
             WHERE id = ?
         ''', (target_id,))
         conn.commit()
-        return jsonify({"success": True, "message": "¹æ¹® ¿Ï·á Ã³¸®µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ë°©ë¬¸ ì™„ë£Œ ì²˜ë¦¬ë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -4725,11 +4725,11 @@ def upload_pioneering_csv():
         return jsonify({"error": "Unauthorized"}), 401
     
     if 'file' not in request.files:
-        return jsonify({'success': False, 'message': 'ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.'}), 400
+        return jsonify({'success': False, 'message': 'íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.'}), 400
     
     file = request.files['file']
     if not file.filename.endswith('.csv'):
-        return jsonify({'success': False, 'message': 'CSV ÆÄÀÏ¸¸ ¾÷·Îµå °¡´ÉÇÕ´Ï´Ù.'}), 400
+        return jsonify({'success': False, 'message': 'CSV íŒŒì¼ë§Œ ì—…ë¡œë“œ ê°€ëŠ¥í•©ë‹ˆë‹¤.'}), 400
     
     user_id = session.get('user_id')
     
@@ -4741,29 +4741,29 @@ def upload_pioneering_csv():
         inserted = 0
         
         for row in reader:
-            if row.get('»ç¾÷ÀÚ¹øÈ£') and row.get('¹æ¹®ÀÏÀÚ'):
+            if row.get('ì‚¬ì—…ìë²ˆí˜¸') and row.get('ë°©ë¬¸ì¼ì'):
                 try:
                     conn.execute('''
                         INSERT INTO Pioneering_Targets 
                         (biz_no, visit_date, visitor_id, registered_by)
                         VALUES (?, ?, ?, ?)
                     ''', (
-                        row['»ç¾÷ÀÚ¹øÈ£'], row['¹æ¹®ÀÏÀÚ'], 
-                        row.get('¹æ¹®ÀÚID', user_id), user_id
+                        row['ì‚¬ì—…ìë²ˆí˜¸'], row['ë°©ë¬¸ì¼ì'], 
+                        row.get('ë°©ë¬¸ìID', user_id), user_id
                     ))
                     inserted += 1
                 except Exception as e:
-                    continue  # Áßº¹ µîÀÇ ¿À·ù´Â ¹«½ÃÇÏ°í °è¼Ó
+                    continue  # ì¤‘ë³µ ë“±ì˜ ì˜¤ë¥˜ëŠ” ë¬´ì‹œí•˜ê³  ê³„ì†
         
         conn.commit()
         conn.close()
         
-        return jsonify({'success': True, 'inserted': inserted, 'message': f'{inserted}°ÇÀÌ µî·ÏµÇ¾ú½À´Ï´Ù.'})
+        return jsonify({'success': True, 'inserted': inserted, 'message': f'{inserted}ê±´ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤.'})
     
     except Exception as e:
-        return jsonify({'success': False, 'message': f'CSV Ã³¸® Áß ¿À·ù: {str(e)}'}), 500
+        return jsonify({'success': False, 'message': f'CSV ì²˜ë¦¬ ì¤‘ ì˜¤ë¥˜: {str(e)}'}), 500
 
-# --- ¿µ¾÷ºñ¿ë °ü¸® API ---
+# --- ì˜ì—…ë¹„ìš© ê´€ë¦¬ API ---
 @app.route('/api/sales_expenses', methods=['GET'])
 def get_sales_expenses():
     if not session.get('logged_in'):
@@ -4774,8 +4774,8 @@ def get_sales_expenses():
     
     conn = get_db_connection()
     try:
-        # ±ÇÇÑ¿¡ µû¸¥ Á¶È¸ ¹üÀ§ ¼³Á¤
-        if check_permission(user_level, 'S'):  # °ü¸®ÀÚ´Â ¸ğµç ºñ¿ë Á¶È¸
+        # ê¶Œí•œì— ë”°ë¥¸ ì¡°íšŒ ë²”ìœ„ ì„¤ì •
+        if check_permission(user_level, 'S'):  # ê´€ë¦¬ìëŠ” ëª¨ë“  ë¹„ìš© ì¡°íšŒ
             expenses = conn.execute('''
                 SELECT e.id, e.expense_date, 
                        COALESCE(e.expense_type, e.category) as expense_type, 
@@ -4786,7 +4786,7 @@ def get_sales_expenses():
                 LEFT JOIN Users u ON e.registered_by = u.user_id
                 ORDER BY e.expense_date DESC
             ''').fetchall()
-        else:  # ÀÏ¹İ »ç¿ëÀÚ´Â º»ÀÎ µî·Ï ºñ¿ë¸¸ Á¶È¸
+        else:  # ì¼ë°˜ ì‚¬ìš©ìëŠ” ë³¸ì¸ ë“±ë¡ ë¹„ìš©ë§Œ ì¡°íšŒ
             expenses = conn.execute('''
                 SELECT e.id, e.expense_date, 
                        COALESCE(e.expense_type, e.category) as expense_type, 
@@ -4810,36 +4810,36 @@ def add_sales_expense():
     
     user_id = session.get('user_id')
     
-    # ¿©·¯ ÆÄÀÏ ¾÷·Îµå Ã³¸®
+    # ì—¬ëŸ¬ íŒŒì¼ ì—…ë¡œë“œ ì²˜ë¦¬
     receipt_filenames = []
     if 'receipt_files' in request.files:
         files = request.files.getlist('receipt_files')
         
-        # ÃÖ´ë 3°³ ÆÄÀÏ Á¦ÇÑ
+        # ìµœëŒ€ 3ê°œ íŒŒì¼ ì œí•œ
         if len(files) > 3:
-            return jsonify({"error": "ÃÖ´ë 3°³ÀÇ ÆÄÀÏ¸¸ ¾÷·Îµå °¡´ÉÇÕ´Ï´Ù."}), 400
+            return jsonify({"error": "ìµœëŒ€ 3ê°œì˜ íŒŒì¼ë§Œ ì—…ë¡œë“œ ê°€ëŠ¥í•©ë‹ˆë‹¤."}), 400
         
         for file in files:
             if file and file.filename:
-                # ÀÌ¹ÌÁö ÆÄÀÏ Çü½Ä Ã¼Å©
+                # ì´ë¯¸ì§€ íŒŒì¼ í˜•ì‹ ì²´í¬
                 allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'}
                 file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
                 
                 if file_ext not in allowed_extensions:
-                    return jsonify({"error": "ÀÌ¹ÌÁö ÆÄÀÏ¸¸ ¾÷·Îµå °¡´ÉÇÕ´Ï´Ù."}), 400
+                    return jsonify({"error": "ì´ë¯¸ì§€ íŒŒì¼ë§Œ ì—…ë¡œë“œ ê°€ëŠ¥í•©ë‹ˆë‹¤."}), 400
                 
-                # ÆÄÀÏ¸í º¸¾ÈÀ» À§ÇØ secure_filename »ç¿ë
+                # íŒŒì¼ëª… ë³´ì•ˆì„ ìœ„í•´ secure_filename ì‚¬ìš©
                 filename = secure_filename(file.filename)
-                # Áßº¹ ¹æÁö¸¦ À§ÇØ Å¸ÀÓ½ºÅÆÇÁ Ãß°¡
+                # ì¤‘ë³µ ë°©ì§€ë¥¼ ìœ„í•´ íƒ€ì„ìŠ¤íƒ¬í”„ ì¶”ê°€
                 timestamp = str(int(time.time()))
                 filename = f"{timestamp}_{filename}"
                 
-                # ÆÄÀÏ ÀúÀå
+                # íŒŒì¼ ì €ì¥
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(file_path)
                 receipt_filenames.append(filename)
     
-    # ÆÄÀÏ¸íµéÀ» JSON ÇüÅÂ·Î ÀúÀå (¿©·¯ ÆÄÀÏ Áö¿ø)
+    # íŒŒì¼ëª…ë“¤ì„ JSON í˜•íƒœë¡œ ì €ì¥ (ì—¬ëŸ¬ íŒŒì¼ ì§€ì›)
     receipt_data = ','.join(receipt_filenames) if receipt_filenames else None
     
     conn = get_db_connection()
@@ -4850,16 +4850,16 @@ def add_sales_expense():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             request.form.get('expense_date'), 
-            request.form.get('expense_type'),  # category ÇÊµå
-            request.form.get('expense_type'),  # expense_type ÇÊµå 
+            request.form.get('expense_type'),  # category í•„ë“œ
+            request.form.get('expense_type'),  # expense_type í•„ë“œ 
             request.form.get('amount'), 
-            request.form.get('payment_method', '°³ÀÎÄ«µå'),  # ±âº»°ª ¼³Á¤
+            request.form.get('payment_method', 'ê°œì¸ì¹´ë“œ'),  # ê¸°ë³¸ê°’ ì„¤ì •
             request.form.get('description'), 
             receipt_data, 
             user_id
         ))
         conn.commit()
-        return jsonify({"success": True, "message": "¿µ¾÷ºñ¿ëÀÌ µî·ÏµÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ì˜ì—…ë¹„ìš©ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -4876,7 +4876,7 @@ def update_sales_expense(expense_id):
     
     conn = get_db_connection()
     try:
-        # ±ÇÇÑ È®ÀÎ: º»ÀÎÀÌ µî·ÏÇÑ ºñ¿ëÀÌ°Å³ª °ü¸®ÀÚÀÎ °æ¿ì¸¸ ¼öÁ¤ °¡´É
+        # ê¶Œí•œ í™•ì¸: ë³¸ì¸ì´ ë“±ë¡í•œ ë¹„ìš©ì´ê±°ë‚˜ ê´€ë¦¬ìì¸ ê²½ìš°ë§Œ ìˆ˜ì • ê°€ëŠ¥
         if not check_permission(user_level, 'S'):
             existing = conn.execute(
                 "SELECT registered_by FROM Sales_Expenses WHERE id = ?", (expense_id,)
@@ -4884,34 +4884,34 @@ def update_sales_expense(expense_id):
             if not existing or existing['registered_by'] != user_id:
                 return jsonify({"error": "Permission denied"}), 403
         
-        # ÆÄÀÏ ¾÷·Îµå Ã³¸® (¼öÁ¤ ½Ã ¿µ¼öÁõ ÆÄÀÏ ÀúÀå)
+        # íŒŒì¼ ì—…ë¡œë“œ ì²˜ë¦¬ (ìˆ˜ì • ì‹œ ì˜ìˆ˜ì¦ íŒŒì¼ ì €ì¥)
         receipt_filename = None
         if 'receipt_file' in request.files:
             file = request.files['receipt_file']
             if file and file.filename:
-                # ÀÌ¹ÌÁö ÆÄÀÏ Çü½Ä Ã¼Å©
+                # ì´ë¯¸ì§€ íŒŒì¼ í˜•ì‹ ì²´í¬
                 allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'}
                 file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
                 if file_ext not in allowed_extensions:
-                    return jsonify({"error": "ÀÌ¹ÌÁö ÆÄÀÏ¸¸ ¾÷·Îµå °¡´ÉÇÕ´Ï´Ù."}), 400
+                    return jsonify({"error": "ì´ë¯¸ì§€ íŒŒì¼ë§Œ ì—…ë¡œë“œ ê°€ëŠ¥í•©ë‹ˆë‹¤."}), 400
 
-                # ÆÄÀÏ¸í º¸¾ÈÀ» À§ÇØ secure_filename »ç¿ë
+                # íŒŒì¼ëª… ë³´ì•ˆì„ ìœ„í•´ secure_filename ì‚¬ìš©
                 filename = secure_filename(file.filename)
-                # Áßº¹ ¹æÁö¸¦ À§ÇØ Å¸ÀÓ½ºÅÆÇÁ Ãß°¡
+                # ì¤‘ë³µ ë°©ì§€ë¥¼ ìœ„í•´ íƒ€ì„ìŠ¤íƒ¬í”„ ì¶”ê°€
                 timestamp = str(int(time.time()))
                 filename = f"{timestamp}_{filename}"
 
-                # ÆÄÀÏ ÀúÀå
+                # íŒŒì¼ ì €ì¥
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 try:
                     file.save(file_path)
                 except Exception as save_err:
                     print(f"[FILE_SAVE_ERROR] {save_err}")
-                    return jsonify({"success": False, "message": "ÆÄÀÏ ÀúÀå Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù."}), 500
+                    return jsonify({"success": False, "message": "íŒŒì¼ ì €ì¥ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤."}), 500
 
                 receipt_filename = filename
         
-        # ÆÄÀÏÀÌ »õ·Î ¾÷·ÎµåµÇÁö ¾ÊÀº °æ¿ì ±âÁ¸ ÆÄÀÏ¸í À¯Áö
+        # íŒŒì¼ì´ ìƒˆë¡œ ì—…ë¡œë“œë˜ì§€ ì•Šì€ ê²½ìš° ê¸°ì¡´ íŒŒì¼ëª… ìœ ì§€
         if receipt_filename:
             conn.execute('''
                 UPDATE Sales_Expenses SET 
@@ -4945,7 +4945,7 @@ def update_sales_expense(expense_id):
             ))
         
         conn.commit()
-        return jsonify({"success": True, "message": "¿µ¾÷ºñ¿ë Á¤º¸°¡ ¼öÁ¤µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ì˜ì—…ë¹„ìš© ì •ë³´ê°€ ìˆ˜ì •ë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
@@ -4962,7 +4962,7 @@ def delete_sales_expense(expense_id):
     
     conn = get_db_connection()
     try:
-        # ±ÇÇÑ È®ÀÎ: º»ÀÎÀÌ µî·ÏÇÑ ºñ¿ëÀÌ°Å³ª °ü¸®ÀÚÀÎ °æ¿ì¸¸ »èÁ¦ °¡´É
+        # ê¶Œí•œ í™•ì¸: ë³¸ì¸ì´ ë“±ë¡í•œ ë¹„ìš©ì´ê±°ë‚˜ ê´€ë¦¬ìì¸ ê²½ìš°ë§Œ ì‚­ì œ ê°€ëŠ¥
         if not check_permission(user_level, 'S'):
             existing = conn.execute(
                 "SELECT registered_by FROM Sales_Expenses WHERE id = ?", (expense_id,)
@@ -4972,25 +4972,25 @@ def delete_sales_expense(expense_id):
         
         conn.execute("DELETE FROM Sales_Expenses WHERE id = ?", (expense_id,))
         conn.commit()
-        return jsonify({"success": True, "message": "¿µ¾÷ºñ¿ëÀÌ »èÁ¦µÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ì˜ì—…ë¹„ìš©ì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤."})
     except Exception as e:
         conn.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
 
-# --- °³Ã´´ë»ó ±â¾÷ CSV Ã³¸® API ---
+# --- ê°œì²™ëŒ€ìƒ ê¸°ì—… CSV ì²˜ë¦¬ API ---
 @app.route('/api/pioneering_targets_csv', methods=['GET', 'POST'])
 def pioneering_targets_csv():
     if not session.get('logged_in'):
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     
     if request.method == 'GET':
-        # CSV ´Ù¿î·Îµå
+        # CSV ë‹¤ìš´ë¡œë“œ
         conn = get_db_connection()
         rows = conn.execute('''
             SELECT p.id, p.biz_no, b.company_name, p.visit_date, p.visitor_id, 
-                   CASE WHEN p.is_visited = 1 THEN '¿Ï·á' ELSE '¿¹Á¤' END as visit_status,
+                   CASE WHEN p.is_visited = 1 THEN 'ì™„ë£Œ' ELSE 'ì˜ˆì •' END as visit_status,
                    p.notes, p.registered_by, p.created_date
             FROM Pioneering_Targets p
             LEFT JOIN Company_Basic b ON REPLACE(p.biz_no, '-', '') = b.biz_no
@@ -5000,9 +5000,9 @@ def pioneering_targets_csv():
         
         si = io.StringIO()
         cw = csv.writer(si)
-        cw.writerow(['¹øÈ£', '»ç¾÷ÀÚ¹øÈ£', 'È¸»ç¸í', '¹æ¹®ÀÏÀÚ', '¹æ¹®ÀÚID', '¹æ¹®»óÅÂ', '¸Ş¸ğ', 'µî·ÏÀÚ', 'µî·ÏÀÏ'])
+        cw.writerow(['ë²ˆí˜¸', 'ì‚¬ì—…ìë²ˆí˜¸', 'íšŒì‚¬ëª…', 'ë°©ë¬¸ì¼ì', 'ë°©ë¬¸ìID', 'ë°©ë¬¸ìƒíƒœ', 'ë©”ëª¨', 'ë“±ë¡ì', 'ë“±ë¡ì¼'])
         for row in rows:
-            # »ç¾÷ÀÚ¹øÈ£¿Í ¹æ¹®ÀÏÀÚ¿¡¼­ ÇÏÀÌÇÂ Á¦°Å
+            # ì‚¬ì—…ìë²ˆí˜¸ì™€ ë°©ë¬¸ì¼ìì—ì„œ í•˜ì´í”ˆ ì œê±°
             biz_no = row['biz_no'].replace('-', '') if row['biz_no'] else ''
             visit_date = row['visit_date'].replace('-', '') if row['visit_date'] else ''
             
@@ -5014,17 +5014,17 @@ def pioneering_targets_csv():
                        headers={"Content-Disposition": "attachment;filename=pioneering_targets.csv"})
     
     else:
-        # CSV ¾÷·Îµå
+        # CSV ì—…ë¡œë“œ
         if 'file' not in request.files:
-            return jsonify({'success': False, 'message': 'ÆÄÀÏÀÌ ¼±ÅÃµÇÁö ¾Ê¾Ò½À´Ï´Ù.'}), 400
+            return jsonify({'success': False, 'message': 'íŒŒì¼ì´ ì„ íƒë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.'}), 400
         
         file = request.files['file']
         if file.filename == '':
-            return jsonify({'success': False, 'message': 'ÆÄÀÏÀÌ ¼±ÅÃµÇÁö ¾Ê¾Ò½À´Ï´Ù.'}), 400
+            return jsonify({'success': False, 'message': 'íŒŒì¼ì´ ì„ íƒë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.'}), 400
         if not file.filename.endswith('.csv'):
-            return jsonify({'success': False, 'message': 'CSV ÆÄÀÏ¸¸ ¾÷·Îµå °¡´ÉÇÕ´Ï´Ù.'}), 400
+            return jsonify({'success': False, 'message': 'CSV íŒŒì¼ë§Œ ì—…ë¡œë“œ ê°€ëŠ¥í•©ë‹ˆë‹¤.'}), 400
         
-        # ÀÎÄÚµù °¨Áö ¹× Ã³¸®
+        # ì¸ì½”ë”© ê°ì§€ ë° ì²˜ë¦¬
         content = file.stream.read()
         try:
             decoded_content = content.decode('utf-8-sig')
@@ -5043,64 +5043,64 @@ def pioneering_targets_csv():
         try:
             inserted = 0
             for row in reader:
-                # ÇÊ¼ö ÇÊµå È®ÀÎ
-                if not all([row.get('»ç¾÷ÀÚ¹øÈ£'), row.get('¹æ¹®ÀÏÀÚ'), row.get('¹æ¹®ÀÚID')]):
+                # í•„ìˆ˜ í•„ë“œ í™•ì¸
+                if not all([row.get('ì‚¬ì—…ìë²ˆí˜¸'), row.get('ë°©ë¬¸ì¼ì'), row.get('ë°©ë¬¸ìID')]):
                     continue
                 
-                # »ç¾÷ÀÚ¹øÈ£¿Í ¹æ¹®ÀÏÀÚ Çü½Ä Á¤¸® (ÇÏÀÌÇÂ Ãß°¡)
-                biz_no = row.get('»ç¾÷ÀÚ¹øÈ£', '').replace('-', '')
-                if len(biz_no) == 10:  # ÀÏ¹İ »ç¾÷ÀÚ¹øÈ£
+                # ì‚¬ì—…ìë²ˆí˜¸ì™€ ë°©ë¬¸ì¼ì í˜•ì‹ ì •ë¦¬ (í•˜ì´í”ˆ ì¶”ê°€)
+                biz_no = row.get('ì‚¬ì—…ìë²ˆí˜¸', '').replace('-', '')
+                if len(biz_no) == 10:  # ì¼ë°˜ ì‚¬ì—…ìë²ˆí˜¸
                     biz_no = f"{biz_no[:3]}-{biz_no[3:5]}-{biz_no[5:]}"
-                elif len(biz_no) == 13:  # ¹ıÀÎµî·Ï¹øÈ£
+                elif len(biz_no) == 13:  # ë²•ì¸ë“±ë¡ë²ˆí˜¸
                     biz_no = f"{biz_no[:6]}-{biz_no[6:]}"
                 
-                visit_date = row.get('¹æ¹®ÀÏÀÚ', '').replace('-', '')
-                if len(visit_date) == 8:  # YYYYMMDD Çü½Ä
+                visit_date = row.get('ë°©ë¬¸ì¼ì', '').replace('-', '')
+                if len(visit_date) == 8:  # YYYYMMDD í˜•ì‹
                     visit_date = f"{visit_date[:4]}-{visit_date[4:6]}-{visit_date[6:]}"
                 
-                # ¹æ¹®»óÅÂ¸¦ is_visited·Î º¯È¯
-                visit_status = row.get('¹æ¹®»óÅÂ', '¿¹Á¤')
-                is_visited = 1 if visit_status == '¿Ï·á' else 0
+                # ë°©ë¬¸ìƒíƒœë¥¼ is_visitedë¡œ ë³€í™˜
+                visit_status = row.get('ë°©ë¬¸ìƒíƒœ', 'ì˜ˆì •')
+                is_visited = 1 if visit_status == 'ì™„ë£Œ' else 0
                 
                 conn.execute('''
                     INSERT INTO Pioneering_Targets (biz_no, visit_date, visitor_id, is_visited, notes, registered_by)
                     VALUES (?, ?, ?, ?, ?, ?)
                 ''', (
-                    biz_no, visit_date, row.get('¹æ¹®ÀÚID'),
-                    is_visited, row.get('¸Ş¸ğ', ''), user_id
+                    biz_no, visit_date, row.get('ë°©ë¬¸ìID'),
+                    is_visited, row.get('ë©”ëª¨', ''), user_id
                 ))
                 inserted += 1
             
             conn.commit()
-            return jsonify({'success': True, 'message': f'{inserted}°ÇÀÇ °³Ã´´ë»óÀÌ µî·ÏµÇ¾ú½À´Ï´Ù.', 'inserted': inserted})
+            return jsonify({'success': True, 'message': f'{inserted}ê±´ì˜ ê°œì²™ëŒ€ìƒì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤.', 'inserted': inserted})
         except Exception as e:
             conn.rollback()
             return jsonify({'success': False, 'message': str(e)}), 500
         finally:
             conn.close()
 
-# --- ¿µ¾÷ºñ¿ë CSV Ã³¸® API ---
+# --- ì˜ì—…ë¹„ìš© CSV ì²˜ë¦¬ API ---
 @app.route('/api/sales_expenses_csv', methods=['GET', 'POST'])
 def sales_expenses_csv():
     if not session.get('logged_in'):
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     
     if request.method == 'GET':
-        # CSV ´Ù¿î·Îµå
+        # CSV ë‹¤ìš´ë¡œë“œ
         conn = get_db_connection()
         user_id = session.get('user_id')
         user_level = session.get('user_level', 'N')
         
-        # ±ÇÇÑ¿¡ µû¸¥ Á¶È¸ ¹üÀ§ ¼³Á¤
+        # ê¶Œí•œì— ë”°ë¥¸ ì¡°íšŒ ë²”ìœ„ ì„¤ì •
         if check_permission(user_level, 'S'):
-            # °ü¸®ÀÚ´Â ÀüÃ¼ Á¶È¸
+            # ê´€ë¦¬ìëŠ” ì „ì²´ ì¡°íšŒ
             rows = conn.execute('''
                 SELECT id, expense_date, expense_type, amount, payment_method, 
                        description, receipt_filename, registered_by, created_date
                 FROM Sales_Expenses ORDER BY expense_date DESC
             ''').fetchall()
         else:
-            # ÀÏ¹İ »ç¿ëÀÚ´Â º»ÀÎ µî·Ï°Ç¸¸ Á¶È¸
+            # ì¼ë°˜ ì‚¬ìš©ìëŠ” ë³¸ì¸ ë“±ë¡ê±´ë§Œ ì¡°íšŒ
             rows = conn.execute('''
                 SELECT id, expense_date, expense_type, amount, payment_method, 
                        description, receipt_filename, registered_by, created_date
@@ -5111,7 +5111,7 @@ def sales_expenses_csv():
         
         si = io.StringIO()
         cw = csv.writer(si)
-        cw.writerow(['¹øÈ£', '³¯Â¥', 'Ç×¸ñ', '±İ¾×', '°áÁ¦¹æ¹ı', '¼³¸í', '¿µ¼öÁõÆÄÀÏ', 'µî·ÏÀÚ', 'µî·ÏÀÏ'])
+        cw.writerow(['ë²ˆí˜¸', 'ë‚ ì§œ', 'í•­ëª©', 'ê¸ˆì•¡', 'ê²°ì œë°©ë²•', 'ì„¤ëª…', 'ì˜ìˆ˜ì¦íŒŒì¼', 'ë“±ë¡ì', 'ë“±ë¡ì¼'])
         for row in rows:
             cw.writerow([row['id'], row['expense_date'], row['expense_type'], row['amount'], 
                         row['payment_method'], row['description'], row['receipt_filename'], 
@@ -5122,15 +5122,15 @@ def sales_expenses_csv():
                        headers={"Content-Disposition": "attachment;filename=sales_expenses.csv"})
     
     else:
-        # CSV ¾÷·Îµå
+        # CSV ì—…ë¡œë“œ
         if 'file' not in request.files:
-            return jsonify({'success': False, 'message': 'ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.'}), 400
+            return jsonify({'success': False, 'message': 'íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.'}), 400
         
         file = request.files['file']
         if not file.filename.endswith('.csv'):
-            return jsonify({'success': False, 'message': 'CSV ÆÄÀÏ¸¸ ¾÷·Îµå °¡´ÉÇÕ´Ï´Ù.'}), 400
+            return jsonify({'success': False, 'message': 'CSV íŒŒì¼ë§Œ ì—…ë¡œë“œ ê°€ëŠ¥í•©ë‹ˆë‹¤.'}), 400
         
-        # ÀÎÄÚµù °¨Áö ¹× Ã³¸®
+        # ì¸ì½”ë”© ê°ì§€ ë° ì²˜ë¦¬
         content = file.stream.read()
         try:
             decoded_content = content.decode('utf-8-sig')
@@ -5149,21 +5149,21 @@ def sales_expenses_csv():
         try:
             inserted = 0
             for row in reader:
-                # ÇÊ¼ö ÇÊµå È®ÀÎ
-                if not all([row.get('³¯Â¥'), row.get('Ç×¸ñ'), row.get('±İ¾×')]):
+                # í•„ìˆ˜ í•„ë“œ í™•ì¸
+                if not all([row.get('ë‚ ì§œ'), row.get('í•­ëª©'), row.get('ê¸ˆì•¡')]):
                     continue
                 
                 conn.execute('''
                     INSERT INTO Sales_Expenses (expense_date, expense_type, amount, payment_method, description, registered_by)
                     VALUES (?, ?, ?, ?, ?, ?)
                 ''', (
-                    row.get('³¯Â¥'), row.get('Ç×¸ñ'), row.get('±İ¾×'),
-                    row.get('°áÁ¦¹æ¹ı', 'Çö±İ'), row.get('¼³¸í', ''), user_id
+                    row.get('ë‚ ì§œ'), row.get('í•­ëª©'), row.get('ê¸ˆì•¡'),
+                    row.get('ê²°ì œë°©ë²•', 'í˜„ê¸ˆ'), row.get('ì„¤ëª…', ''), user_id
                 ))
                 inserted += 1
             
             conn.commit()
-            return jsonify({'success': True, 'message': f'{inserted}°ÇÀÇ ¿µ¾÷ºñ¿ëÀÌ µî·ÏµÇ¾ú½À´Ï´Ù.', 'inserted': inserted})
+            return jsonify({'success': True, 'message': f'{inserted}ê±´ì˜ ì˜ì—…ë¹„ìš©ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤.', 'inserted': inserted})
         except Exception as e:
             conn.rollback()
             return jsonify({'success': False, 'message': str(e)}), 500
@@ -5172,36 +5172,36 @@ def sales_expenses_csv():
 
 @app.route('/api/change-password', methods=['POST'])
 def api_change_password():
-    """ºñ¹Ğ¹øÈ£ º¯°æ API"""
+    """ë¹„ë°€ë²ˆí˜¸ ë³€ê²½ API"""
     if not session.get('logged_in'):
-        return jsonify({"success": False, "message": "·Î±×ÀÎÀÌ ÇÊ¿äÇÕ´Ï´Ù."}), 401
+        return jsonify({"success": False, "message": "ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤."}), 401
     
     data = request.get_json()
     new_password = data.get('new_password')
     
     if not new_password:
-        return jsonify({"success": False, "message": "»õ ºñ¹Ğ¹øÈ£¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä."}), 400
+        return jsonify({"success": False, "message": "ìƒˆ ë¹„ë°€ë²ˆí˜¸ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”."}), 400
     
-    # ºñ¹Ğ¹øÈ£ º¹Àâ¼º °Ë»ç
+    # ë¹„ë°€ë²ˆí˜¸ ë³µì¡ì„± ê²€ì‚¬
     import re
     password_pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$'
     if not re.match(password_pattern, new_password):
-        return jsonify({"success": False, "message": "ºñ¹Ğ¹øÈ£´Â 8-20ÀÚ¸®·Î ´ë¹®ÀÚ, ¼Ò¹®ÀÚ, ¼ıÀÚ, Æ¯¼ö¹®ÀÚ¸¦ ¸ğµÎ Æ÷ÇÔÇØ¾ß ÇÕ´Ï´Ù."}), 400
+        return jsonify({"success": False, "message": "ë¹„ë°€ë²ˆí˜¸ëŠ” 8-20ìë¦¬ë¡œ ëŒ€ë¬¸ì, ì†Œë¬¸ì, ìˆ«ì, íŠ¹ìˆ˜ë¬¸ìë¥¼ ëª¨ë‘ í¬í•¨í•´ì•¼ í•©ë‹ˆë‹¤."}), 400
     
     user_id = session.get('user_id')
     
     conn = get_db_connection()
     try:
-        # »ç¿ëÀÚ Á¸Àç È®ÀÎ
+        # ì‚¬ìš©ì ì¡´ì¬ í™•ì¸
         user = conn.execute("SELECT password FROM Users WHERE user_id = ?", (user_id,)).fetchone()
         if not user:
-            return jsonify({"success": False, "message": "»ç¿ëÀÚ¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù."}), 404
+            return jsonify({"success": False, "message": "ì‚¬ìš©ìë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."}), 404
         
-        # ÇöÀç ºñ¹Ğ¹øÈ£¿Í µ¿ÀÏÇÑÁö È®ÀÎ (°°À¸¸é º¯°æ °ÅºÎ)
+        # í˜„ì¬ ë¹„ë°€ë²ˆí˜¸ì™€ ë™ì¼í•œì§€ í™•ì¸ (ê°™ìœ¼ë©´ ë³€ê²½ ê±°ë¶€)
         if user['password'] == new_password:
-            return jsonify({"success": False, "message": "ÇöÀç ºñ¹Ğ¹øÈ£¿Í ´Ù¸¥ ºñ¹Ğ¹øÈ£¸¦ ÀÔ·ÂÇØÁÖ¼¼¿ä."}), 400
+            return jsonify({"success": False, "message": "í˜„ì¬ ë¹„ë°€ë²ˆí˜¸ì™€ ë‹¤ë¥¸ ë¹„ë°€ë²ˆí˜¸ë¥¼ ì…ë ¥í•´ì£¼ì„¸ìš”."}), 400
         
-        # »õ ºñ¹Ğ¹øÈ£·Î ¾÷µ¥ÀÌÆ®
+        # ìƒˆ ë¹„ë°€ë²ˆí˜¸ë¡œ ì—…ë°ì´íŠ¸
         conn.execute("""
             UPDATE Users 
             SET password = ?, password_changed_date = CURRENT_TIMESTAMP, updated_date = CURRENT_TIMESTAMP
@@ -5210,10 +5210,10 @@ def api_change_password():
         
         conn.commit()
         
-        # ¼¼¼Ç ÃÊ±âÈ­ (´Ù½Ã ·Î±×ÀÎÇÏµµ·Ï)
+        # ì„¸ì…˜ ì´ˆê¸°í™” (ë‹¤ì‹œ ë¡œê·¸ì¸í•˜ë„ë¡)
         session.clear()
         
-        return jsonify({"success": True, "message": "ºñ¹Ğ¹øÈ£°¡ ¼º°øÀûÀ¸·Î º¯°æµÇ¾ú½À´Ï´Ù."})
+        return jsonify({"success": True, "message": "ë¹„ë°€ë²ˆí˜¸ê°€ ì„±ê³µì ìœ¼ë¡œ ë³€ê²½ë˜ì—ˆìŠµë‹ˆë‹¤."})
         
     except Exception as e:
         conn.rollback()
@@ -5222,12 +5222,12 @@ def api_change_password():
         conn.close()
 
 # ==========================================
-# ¿µ¾÷ ÆÄÀÌÇÁ¶óÀÎ °ü¸® ½Ã½ºÅÛ
+# ì˜ì—… íŒŒì´í”„ë¼ì¸ ê´€ë¦¬ ì‹œìŠ¤í…œ
 # ==========================================
 
 @app.route('/pipeline')
 def sales_pipeline():
-    """¿µ¾÷ ÆÄÀÌÇÁ¶óÀÎ ´ë½Ãº¸µå"""
+    """ì˜ì—… íŒŒì´í”„ë¼ì¸ ëŒ€ì‹œë³´ë“œ"""
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     
@@ -5241,9 +5241,9 @@ def sales_pipeline():
 
 @app.route('/api/pipeline/dashboard')
 def pipeline_dashboard_data():
-    """ÆÄÀÌÇÁ¶óÀÎ ´ë½Ãº¸µå µ¥ÀÌÅÍ API"""
+    """íŒŒì´í”„ë¼ì¸ ëŒ€ì‹œë³´ë“œ ë°ì´í„° API"""
     if not session.get('logged_in'):
-        return jsonify({"success": False, "message": "·Î±×ÀÎÀÌ ÇÊ¿äÇÕ´Ï´Ù"}), 401
+        return jsonify({"success": False, "message": "ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤"}), 401
     
     user_id = session.get('user_id')
     conn = get_db_connection()
@@ -5251,7 +5251,7 @@ def pipeline_dashboard_data():
     try:
         cursor = conn.cursor()
         
-        # ¿À´Ã ¿¬¶ôÇØ¾ß ÇÒ ±â¾÷
+        # ì˜¤ëŠ˜ ì—°ë½í•´ì•¼ í•  ê¸°ì—…
         today = datetime.now().strftime('%Y-%m-%d')
         today_contacts_query = '''
             SELECT mc.*, cb.company_name, cb.representative_name 
@@ -5263,7 +5263,7 @@ def pipeline_dashboard_data():
         cursor.execute(today_contacts_query, (user_id, today))
         today_contacts = cursor.fetchall()
         
-        # °ü¸® ¼ÒÈ¦ ±â¾÷ (»óÅÂº° ¾Ë¸² ÁÖ±â Àû¿ë)
+        # ê´€ë¦¬ ì†Œí™€ ê¸°ì—… (ìƒíƒœë³„ ì•Œë¦¼ ì£¼ê¸° ì ìš©)
         urgent_companies = []
         status_periods = {
             'prospect': 14, 'contacted': 7, 'proposal': 3, 
@@ -5284,7 +5284,7 @@ def pipeline_dashboard_data():
             urgent_for_status = cursor.fetchall()
             urgent_companies.extend(urgent_for_status)
         
-        # ÀüÃ¼ °ü¸® ±â¾÷ ÇöÈ²
+        # ì „ì²´ ê´€ë¦¬ ê¸°ì—… í˜„í™©
         total_query = '''
             SELECT mc.*, cb.company_name, cb.representative_name 
             FROM managed_companies mc
@@ -5295,7 +5295,7 @@ def pipeline_dashboard_data():
         cursor.execute(total_query, (user_id,))
         all_companies = cursor.fetchall()
         
-        # »óÅÂº° Åë°è
+        # ìƒíƒœë³„ í†µê³„
         stats_query = '''
             SELECT status, COUNT(*) as count, 
                    COALESCE(SUM(expected_amount), 0) as total_amount
@@ -5323,9 +5323,9 @@ def pipeline_dashboard_data():
 
 @app.route('/api/pipeline/company', methods=['POST'])
 def add_managed_company():
-    """°ü½É ±â¾÷ µî·Ï"""
+    """ê´€ì‹¬ ê¸°ì—… ë“±ë¡"""
     if not session.get('logged_in'):
-        return jsonify({"success": False, "message": "·Î±×ÀÎÀÌ ÇÊ¿äÇÕ´Ï´Ù"}), 401
+        return jsonify({"success": False, "message": "ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤"}), 401
     
     user_id = session.get('user_id')
     data = request.get_json()
@@ -5334,19 +5334,19 @@ def add_managed_company():
     try:
         cursor = conn.cursor()
         
-        # ±â¾÷ Á¤º¸ È®ÀÎ
+        # ê¸°ì—… ì •ë³´ í™•ì¸
         cursor.execute('SELECT biz_no, company_name FROM Company_Basic WHERE biz_no = ?', (data['biz_reg_no'],))
         company = cursor.fetchone()
         if not company:
-            return jsonify({"success": False, "message": "Á¸ÀçÇÏÁö ¾Ê´Â ±â¾÷ÀÔ´Ï´Ù"}), 400
+            return jsonify({"success": False, "message": "ì¡´ì¬í•˜ì§€ ì•ŠëŠ” ê¸°ì—…ì…ë‹ˆë‹¤"}), 400
         
-        # Áßº¹ µî·Ï È®ÀÎ
+        # ì¤‘ë³µ ë“±ë¡ í™•ì¸
         cursor.execute('SELECT id FROM managed_companies WHERE biz_reg_no = ? AND manager_id = ?', 
                       (data['biz_reg_no'], user_id))
         if cursor.fetchone():
-            return jsonify({"success": False, "message": "ÀÌ¹Ì °ü¸® ÁßÀÎ ±â¾÷ÀÔ´Ï´Ù"}), 400
+            return jsonify({"success": False, "message": "ì´ë¯¸ ê´€ë¦¬ ì¤‘ì¸ ê¸°ì—…ì…ë‹ˆë‹¤"}), 400
         
-        # »õ °ü½É ±â¾÷ µî·Ï
+        # ìƒˆ ê´€ì‹¬ ê¸°ì—… ë“±ë¡
         insert_query = '''
             INSERT INTO managed_companies 
             (biz_reg_no, manager_id, status, keyman_name, keyman_phone, keyman_position, 
@@ -5365,7 +5365,7 @@ def add_managed_company():
         company_id = cursor.lastrowid
         conn.commit()
         
-        return jsonify({"success": True, "message": "°ü½É ±â¾÷ÀÌ µî·ÏµÇ¾ú½À´Ï´Ù", "company_id": company_id})
+        return jsonify({"success": True, "message": "ê´€ì‹¬ ê¸°ì—…ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤", "company_id": company_id})
         
     except Exception as e:
         conn.rollback()
@@ -5375,9 +5375,9 @@ def add_managed_company():
 
 @app.route('/api/pipeline/company/<int:company_id>', methods=['PUT'])
 def update_managed_company(company_id):
-    """°ü½É ±â¾÷ Á¤º¸ ¼öÁ¤"""
+    """ê´€ì‹¬ ê¸°ì—… ì •ë³´ ìˆ˜ì •"""
     if not session.get('logged_in'):
-        return jsonify({"success": False, "message": "·Î±×ÀÎÀÌ ÇÊ¿äÇÕ´Ï´Ù"}), 401
+        return jsonify({"success": False, "message": "ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤"}), 401
     
     user_id = session.get('user_id')
     data = request.get_json()
@@ -5386,13 +5386,13 @@ def update_managed_company(company_id):
     try:
         cursor = conn.cursor()
         
-        # ±ÇÇÑ È®ÀÎ
+        # ê¶Œí•œ í™•ì¸
         cursor.execute('SELECT manager_id FROM managed_companies WHERE id = ?', (company_id,))
         result = cursor.fetchone()
         if not result or result[0] != user_id:
-            return jsonify({"success": False, "message": "¼öÁ¤ ±ÇÇÑÀÌ ¾ø½À´Ï´Ù"}), 403
+            return jsonify({"success": False, "message": "ìˆ˜ì • ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤"}), 403
         
-        # Á¤º¸ ¾÷µ¥ÀÌÆ®
+        # ì •ë³´ ì—…ë°ì´íŠ¸
         update_query = '''
             UPDATE managed_companies SET
                 status = ?, keyman_name = ?, keyman_phone = ?, keyman_position = ?,
@@ -5410,7 +5410,7 @@ def update_managed_company(company_id):
         ))
         
         conn.commit()
-        return jsonify({"success": True, "message": "±â¾÷ Á¤º¸°¡ ¼öÁ¤µÇ¾ú½À´Ï´Ù"})
+        return jsonify({"success": True, "message": "ê¸°ì—… ì •ë³´ê°€ ìˆ˜ì •ë˜ì—ˆìŠµë‹ˆë‹¤"})
         
     except Exception as e:
         conn.rollback()
@@ -5420,9 +5420,9 @@ def update_managed_company(company_id):
 
 @app.route('/api/pipeline/contact', methods=['POST'])
 def add_contact_history():
-    """Á¢ÃË ÀÌ·Â µî·Ï"""
+    """ì ‘ì´‰ ì´ë ¥ ë“±ë¡"""
     if not session.get('logged_in'):
-        return jsonify({"success": False, "message": "·Î±×ÀÎÀÌ ÇÊ¿äÇÕ´Ï´Ù"}), 401
+        return jsonify({"success": False, "message": "ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤"}), 401
     
     user_id = session.get('user_id')
     data = request.get_json()
@@ -5431,14 +5431,14 @@ def add_contact_history():
     try:
         cursor = conn.cursor()
         
-        # °ü¸® ±ÇÇÑ È®ÀÎ
+        # ê´€ë¦¬ ê¶Œí•œ í™•ì¸
         cursor.execute('SELECT manager_id FROM managed_companies WHERE id = ?', 
                       (data['managed_company_id'],))
         result = cursor.fetchone()
         if not result or result[0] != user_id:
-            return jsonify({"success": False, "message": "Á¢ÃË ÀÌ·ÂÀ» µî·ÏÇÒ ±ÇÇÑÀÌ ¾ø½À´Ï´Ù"}), 403
+            return jsonify({"success": False, "message": "ì ‘ì´‰ ì´ë ¥ì„ ë“±ë¡í•  ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤"}), 403
         
-        # Á¢ÃË ÀÌ·Â µî·Ï
+        # ì ‘ì´‰ ì´ë ¥ ë“±ë¡
         insert_query = '''
             INSERT INTO pipeline_contact_history 
             (managed_company_id, contact_date, contact_type, content, cost, 
@@ -5452,14 +5452,14 @@ def add_contact_history():
             data.get('follow_up_date'), data.get('attachment')
         ))
         
-        # ºÎ¸ğ Å×ÀÌºíÀÇ last_contact_date ÀÚµ¿ ¾÷µ¥ÀÌÆ®
+        # ë¶€ëª¨ í…Œì´ë¸”ì˜ last_contact_date ìë™ ì—…ë°ì´íŠ¸
         cursor.execute('''
             UPDATE managed_companies 
             SET last_contact_date = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ''', (data['contact_date'], data['managed_company_id']))
         
-        # ÈÄ¼Ó ¾à¼ÓÀÌ ÀÖÀ¸¸é next_contact_dateµµ ¾÷µ¥ÀÌÆ®
+        # í›„ì† ì•½ì†ì´ ìˆìœ¼ë©´ next_contact_dateë„ ì—…ë°ì´íŠ¸
         if data.get('follow_up_date'):
             cursor.execute('''
                 UPDATE managed_companies 
@@ -5468,7 +5468,7 @@ def add_contact_history():
             ''', (data['follow_up_date'], data['managed_company_id']))
         
         conn.commit()
-        return jsonify({"success": True, "message": "Á¢ÃË ÀÌ·ÂÀÌ µî·ÏµÇ¾ú½À´Ï´Ù"})
+        return jsonify({"success": True, "message": "ì ‘ì´‰ ì´ë ¥ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤"})
         
     except Exception as e:
         conn.rollback()
@@ -5478,9 +5478,9 @@ def add_contact_history():
 
 @app.route('/api/pipeline/contact/<int:company_id>')
 def get_pipeline_contact_history(company_id):
-    """Æ¯Á¤ ±â¾÷ÀÇ Á¢ÃË ÀÌ·Â Á¶È¸"""
+    """íŠ¹ì • ê¸°ì—…ì˜ ì ‘ì´‰ ì´ë ¥ ì¡°íšŒ"""
     if not session.get('logged_in'):
-        return jsonify({"success": False, "message": "·Î±×ÀÎÀÌ ÇÊ¿äÇÕ´Ï´Ù"}), 401
+        return jsonify({"success": False, "message": "ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤"}), 401
     
     user_id = session.get('user_id')
     conn = get_db_connection()
@@ -5488,13 +5488,13 @@ def get_pipeline_contact_history(company_id):
     try:
         cursor = conn.cursor()
         
-        # °ü¸® ±ÇÇÑ È®ÀÎ
+        # ê´€ë¦¬ ê¶Œí•œ í™•ì¸
         cursor.execute('SELECT manager_id FROM managed_companies WHERE id = ?', (company_id,))
         result = cursor.fetchone()
         if not result or result[0] != user_id:
-            return jsonify({"success": False, "message": "Á¶È¸ ±ÇÇÑÀÌ ¾ø½À´Ï´Ù"}), 403
+            return jsonify({"success": False, "message": "ì¡°íšŒ ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤"}), 403
         
-        # Á¢ÃË ÀÌ·Â Á¶È¸
+        # ì ‘ì´‰ ì´ë ¥ ì¡°íšŒ
         history_query = '''
             SELECT * FROM pipeline_contact_history 
             WHERE managed_company_id = ?
@@ -5511,63 +5511,22 @@ def get_pipeline_contact_history(company_id):
         conn.close()
 
 @app.route('/api/companies/search')
-def search_companies_for_pipeline():
-    """ÆÄÀÌÇÁ¶óÀÎ µî·Ï¿ë ±â¾÷ °Ë»ö"""
-    if not session.get('logged_in'):
-        return jsonify({"success": False, "message": "·Î±×ÀÎÀÌ ÇÊ¿äÇÕ´Ï´Ù"}), 401
-    
-    query = request.args.get('q', '').strip()
-    print(f"Search request: '{query}'")  # Debug log
-    if len(query) < 2:
-        return jsonify({"success": True, "data": []})
-    
-    conn = get_db_connection()
-    try:
-        cursor = conn.cursor()
-        
-        # ±â¾÷ °Ë»ö (ÀÌ¹Ì °ü¸®ÁßÀÎ ±â¾÷ Á¦¿Ü)
-        search_query = '''
-            SELECT cb.biz_no, cb.company_name, cb.representative_name, cb.region
-            FROM Company_Basic cb
-            LEFT JOIN managed_companies mc ON cb.biz_no = mc.biz_reg_no 
-                AND mc.manager_id = ?
-            WHERE (cb.company_name LIKE ? OR cb.representative_name LIKE ? OR cb.biz_no LIKE ?)
-                AND mc.id IS NULL
-            ORDER BY cb.company_name
-            LIMIT 10
-        '''
-        
-        search_term = f'%{query}%'
-        print(f"Executing query with term: {search_term}, user_id: {session.get('user_id')}") # Debug log
-        cursor.execute(search_query, (session.get('user_id'), search_term, search_term, search_term))
-        companies = [dict(row) for row in cursor.fetchall()]
-        print(f"Found {len(companies)} companies") # Debug log
-        
-        return jsonify({"success": True, "data": companies})
-        
-    except Exception as e:
-        print(f"Search error: {e}") # Debug log
-        return jsonify({"success": False, "message": str(e)}), 500
-    finally:
-        conn.close()
-
-@app.route('/api/ai_analysis', methods=['POST'])
 def ai_analysis():
-    """AI ±â¾÷ ºĞ¼® API"""
+    """AI ê¸°ì—… ë¶„ì„ API"""
     if not session.get('logged_in'):
-        return jsonify({"success": False, "message": "·Î±×ÀÎÀÌ ÇÊ¿äÇÕ´Ï´Ù"}), 401
+        return jsonify({"success": False, "message": "ë¡œê·¸ì¸ì´ í•„ìš”í•©ë‹ˆë‹¤"}), 401
     
     data = request.get_json()
     biz_no = data.get('biz_no')
     
     if not biz_no:
-        return jsonify({"success": False, "message": "»ç¾÷ÀÚ¹øÈ£°¡ ÇÊ¿äÇÕ´Ï´Ù"}), 400
+        return jsonify({"success": False, "message": "ì‚¬ì—…ìë²ˆí˜¸ê°€ í•„ìš”í•©ë‹ˆë‹¤"}), 400
     
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
         
-        # ±â¾÷ ±âº» Á¤º¸ Á¶È¸
+        # ê¸°ì—… ê¸°ë³¸ ì •ë³´ ì¡°íšŒ
         cursor.execute('''
             SELECT company_name, representative_name, industry_name, address, pension_count
             FROM Company_Basic 
@@ -5576,9 +5535,9 @@ def ai_analysis():
         
         company_basic = cursor.fetchone()
         if not company_basic:
-            return jsonify({"success": False, "message": "±â¾÷ Á¤º¸¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù"}), 404
+            return jsonify({"success": False, "message": "ê¸°ì—… ì •ë³´ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤"}), 404
         
-        # Àç¹« Á¤º¸ Á¶È¸ (ÃÖ±Ù 3³â)
+        # ì¬ë¬´ ì •ë³´ ì¡°íšŒ (ìµœê·¼ 3ë…„)
         cursor.execute('''
             SELECT fiscal_year, sales_revenue, operating_income, total_assets, 
                    total_equity, retained_earnings, corporate_tax
@@ -5590,7 +5549,7 @@ def ai_analysis():
         
         financials = cursor.fetchall()
         
-        # AI ºĞ¼® ½ÇÇà
+        # AI ë¶„ì„ ì‹¤í–‰
         analysis_result = perform_ai_analysis(company_basic, financials)
         
         return jsonify({
@@ -5599,72 +5558,72 @@ def ai_analysis():
         })
         
     except Exception as e:
-        print(f"AI ºĞ¼® ¿À·ù: {e}")
-        return jsonify({"success": False, "message": f"ºĞ¼® Áß ¿À·ù ¹ß»ı: {str(e)}"}), 500
+        print(f"AI ë¶„ì„ ì˜¤ë¥˜: {e}")
+        return jsonify({"success": False, "message": f"ë¶„ì„ ì¤‘ ì˜¤ë¥˜ ë°œìƒ: {str(e)}"}), 500
     finally:
         conn.close()
 
 def perform_ai_analysis(company_basic, financials):
-    """OpenAI API¸¦ »ç¿ëÇÑ Àü¹®ÀûÀÎ ±â¾÷ ºĞ¼®"""
+    """OpenAI APIë¥¼ ì‚¬ìš©í•œ ì „ë¬¸ì ì¸ ê¸°ì—… ë¶„ì„"""
     import os
     import json
     from openai import OpenAI
     
-    # ±â¾÷ ±âº» Á¤º¸ ÃßÃâ
-    company_name = company_basic[0] or "Á¤º¸¾øÀ½"
-    representative = company_basic[1] or "Á¤º¸¾øÀ½"  
-    industry = company_basic[2] or "Á¤º¸¾øÀ½"
-    address = company_basic[3] or "Á¤º¸¾øÀ½"
-    employee_count = company_basic[4] or 0  # pension_count¸¦ Á÷¿ø¼ö·Î »ç¿ë
+    # ê¸°ì—… ê¸°ë³¸ ì •ë³´ ì¶”ì¶œ
+    company_name = company_basic[0] or "ì •ë³´ì—†ìŒ"
+    representative = company_basic[1] or "ì •ë³´ì—†ìŒ"  
+    industry = company_basic[2] or "ì •ë³´ì—†ìŒ"
+    address = company_basic[3] or "ì •ë³´ì—†ìŒ"
+    employee_count = company_basic[4] or 0  # pension_countë¥¼ ì§ì›ìˆ˜ë¡œ ì‚¬ìš©
     
-    # Àç¹« ºĞ¼®
+    # ì¬ë¬´ ë¶„ì„
     financial_summary = ""
     latest_year_data = None
     
     if financials and len(financials) > 0:
         latest_year_data = financials[0]
         
-        # ÃÖ±Ù 3³â µ¥ÀÌÅÍ ºĞ¼®
+        # ìµœê·¼ 3ë…„ ë°ì´í„° ë¶„ì„
         revenue_trend = []
         profit_trend = []
         asset_trend = []
         
         for fin in financials:
-            if fin[1]:  # ¸ÅÃâ¾×
+            if fin[1]:  # ë§¤ì¶œì•¡
                 revenue_trend.append(fin[1])
-            if fin[2]:  # ¿µ¾÷ÀÌÀÍ
+            if fin[2]:  # ì˜ì—…ì´ìµ
                 profit_trend.append(fin[2])
-            if fin[3]:  # ÀÚ»êÃÑ°è
+            if fin[3]:  # ìì‚°ì´ê³„
                 asset_trend.append(fin[3])
         
-        # ¼ºÀå·ü °è»ê
-        revenue_growth = "¾ÈÁ¤Àû" if len(revenue_trend) > 1 else "µ¥ÀÌÅÍ ºÎÁ·"
+        # ì„±ì¥ë¥  ê³„ì‚°
+        revenue_growth = "ì•ˆì •ì " if len(revenue_trend) > 1 else "ë°ì´í„° ë¶€ì¡±"
         if len(revenue_trend) >= 2:
             growth_rate = ((revenue_trend[0] - revenue_trend[-1]) / revenue_trend[-1]) * 100
             if growth_rate > 10:
-                revenue_growth = f"°í¼ºÀå ({growth_rate:.1f}%)"
+                revenue_growth = f"ê³ ì„±ì¥ ({growth_rate:.1f}%)"
             elif growth_rate > 0:
-                revenue_growth = f"¼ºÀå¼¼ ({growth_rate:.1f}%)"
+                revenue_growth = f"ì„±ì¥ì„¸ ({growth_rate:.1f}%)"
             elif growth_rate > -10:
-                revenue_growth = f"¼ÒÆø °¨¼Ò ({growth_rate:.1f}%)"
+                revenue_growth = f"ì†Œí­ ê°ì†Œ ({growth_rate:.1f}%)"
             else:
-                revenue_growth = f"°¨¼Ò¼¼ ({growth_rate:.1f}%)"
+                revenue_growth = f"ê°ì†Œì„¸ ({growth_rate:.1f}%)"
         
-        financial_summary = f"ÃÖ±Ù³âµµ ¸ÅÃâ¾×: {latest_year_data[1]:,}¿ø, ¼ºÀåÃß¼¼: {revenue_growth}"
+        financial_summary = f"ìµœê·¼ë…„ë„ ë§¤ì¶œì•¡: {latest_year_data[1]:,}ì›, ì„±ì¥ì¶”ì„¸: {revenue_growth}"
     
-    # OpenAI API »ç¿ë (È¯°æº¯¼ö¿¡¼­ API Å° È®ÀÎ)
+    # OpenAI API ì‚¬ìš© (í™˜ê²½ë³€ìˆ˜ì—ì„œ API í‚¤ í™•ì¸)
     api_key = os.environ.get('OPENAI_API_KEY')
-    print(f"API Å° È®ÀÎ: {api_key[:20]}..." if api_key else "API Å° ¾øÀ½")
+    print(f"API í‚¤ í™•ì¸: {api_key[:20]}..." if api_key else "API í‚¤ ì—†ìŒ")
     
     if api_key and api_key.startswith('sk-'):
         try:
-            # OpenAI Å¬¶óÀÌ¾ğÆ® ÃÊ±âÈ­
+            # OpenAI í´ë¼ì´ì–¸íŠ¸ ì´ˆê¸°í™”
             client = OpenAI(api_key=api_key)
             
-            # ´õ »ó¼¼ÇÑ Àç¹« ºĞ¼®À» À§ÇÑ µ¥ÀÌÅÍ ±¸¼º
+            # ë” ìƒì„¸í•œ ì¬ë¬´ ë¶„ì„ì„ ìœ„í•œ ë°ì´í„° êµ¬ì„±
             financial_details = ""
             if financials and len(financials) > 0:
-                financial_details = "Àç¹« »ó¼¼ Á¤º¸:\n"
+                financial_details = "ì¬ë¬´ ìƒì„¸ ì •ë³´:\n"
                 for i, fin in enumerate(financials):
                     year = fin[0]
                     revenue = fin[1] if fin[1] else 0
@@ -5672,64 +5631,64 @@ def perform_ai_analysis(company_basic, financials):
                     assets = fin[3] if fin[3] else 0
                     equity = fin[4] if fin[4] else 0
                     
-                    financial_details += f"? {year}³â: ¸ÅÃâ¾× {revenue:,}¿ø, ¿µ¾÷ÀÌÀÍ {profit:,}¿ø, ÀÚ»êÃÑ°è {assets:,}¿ø, ÀÚº»ÃÑ°è {equity:,}¿ø\n"
+                    financial_details += f"? {year}ë…„: ë§¤ì¶œì•¡ {revenue:,}ì›, ì˜ì—…ì´ìµ {profit:,}ì›, ìì‚°ì´ê³„ {assets:,}ì›, ìë³¸ì´ê³„ {equity:,}ì›\n"
                     
-                    # Àç¹«ºñÀ² °è»ê
+                    # ì¬ë¬´ë¹„ìœ¨ ê³„ì‚°
                     if assets > 0 and revenue > 0:
                         roe = (profit / equity * 100) if equity > 0 else 0
                         asset_turnover = revenue / assets
                         profit_margin = (profit / revenue * 100) if revenue > 0 else 0
-                        financial_details += f"  - ROE: {roe:.1f}%, ÀÚ»êÈ¸ÀüÀ²: {asset_turnover:.2f}, ¿µ¾÷ÀÌÀÍ·ü: {profit_margin:.1f}%\n"
+                        financial_details += f"  - ROE: {roe:.1f}%, ìì‚°íšŒì „ìœ¨: {asset_turnover:.2f}, ì˜ì—…ì´ìµë¥ : {profit_margin:.1f}%\n"
             
-            # Àü¹®ÀûÀÎ ºĞ¼® ÇÁ·ÒÇÁÆ® ±¸¼º
+            # ì „ë¬¸ì ì¸ ë¶„ì„ í”„ë¡¬í”„íŠ¸ êµ¬ì„±
             detailed_prompt = f"""
-´ç½ÅÀº 20³â °æ·ÂÀÇ ±â¾÷ ºĞ¼® Àü¹®°¡ÀÔ´Ï´Ù. ´ÙÀ½ ±â¾÷¿¡ ´ëÇØ ÅõÀÚÀºÇà ¼öÁØÀÇ »ó¼¼ÇÑ ºĞ¼®À» ¼öÇàÇØÁÖ¼¼¿ä.
+ë‹¹ì‹ ì€ 20ë…„ ê²½ë ¥ì˜ ê¸°ì—… ë¶„ì„ ì „ë¬¸ê°€ì…ë‹ˆë‹¤. ë‹¤ìŒ ê¸°ì—…ì— ëŒ€í•´ íˆ¬ìì€í–‰ ìˆ˜ì¤€ì˜ ìƒì„¸í•œ ë¶„ì„ì„ ìˆ˜í–‰í•´ì£¼ì„¸ìš”.
 
-== ±â¾÷ ±âº» Á¤º¸ ==
-? ±â¾÷¸í: {company_name}
-? ´ëÇ¥ÀÚ: {representative}
-? ¾÷Á¾: {industry}
-? º»»ç ¼ÒÀçÁö: {address}
-? ±¹¹Î¿¬±İ °¡ÀÔÀÚ¼ö: {employee_count}¸í
+== ê¸°ì—… ê¸°ë³¸ ì •ë³´ ==
+? ê¸°ì—…ëª…: {company_name}
+? ëŒ€í‘œì: {representative}
+? ì—…ì¢…: {industry}
+? ë³¸ì‚¬ ì†Œì¬ì§€: {address}
+? êµ­ë¯¼ì—°ê¸ˆ ê°€ì…ììˆ˜: {employee_count}ëª…
 
-== Àç¹« Á¤º¸ (ÃÖ±Ù 3°³³â) ==
+== ì¬ë¬´ ì •ë³´ (ìµœê·¼ 3ê°œë…„) ==
 {financial_details}
 
-== ºĞ¼® ¿äÃ»»çÇ× ==
-´ÙÀ½ 4°³ ¼½¼Ç¿¡ ´ëÇØ °¢°¢ 150-200ÀÚ ³»¿Ü·Î Àü¹®ÀûÀÌ°í ±¸Ã¼ÀûÀÎ ºĞ¼®À» Á¦°øÇØÁÖ¼¼¿ä:
+== ë¶„ì„ ìš”ì²­ì‚¬í•­ ==
+ë‹¤ìŒ 4ê°œ ì„¹ì…˜ì— ëŒ€í•´ ê°ê° 150-200ì ë‚´ì™¸ë¡œ ì „ë¬¸ì ì´ê³  êµ¬ì²´ì ì¸ ë¶„ì„ì„ ì œê³µí•´ì£¼ì„¸ìš”:
 
-1. **±â¾÷ °³¿ä ¹× »ç¾÷ ÇöÈ²**
-   - ÁÖ·Â »ç¾÷ ¿µ¿ª°ú ½ÃÀå Æ÷Áö¼Ç
-   - ¾÷°è ³» °æÀï·Â°ú Â÷º°È­ ¿ä¼Ò
-   - »ç¾÷ ¸ğµ¨ÀÇ Æ¯Â¡°ú ¼ºÀå µ¿·Â
+1. **ê¸°ì—… ê°œìš” ë° ì‚¬ì—… í˜„í™©**
+   - ì£¼ë ¥ ì‚¬ì—… ì˜ì—­ê³¼ ì‹œì¥ í¬ì§€ì…˜
+   - ì—…ê³„ ë‚´ ê²½ìŸë ¥ê³¼ ì°¨ë³„í™” ìš”ì†Œ
+   - ì‚¬ì—… ëª¨ë¸ì˜ íŠ¹ì§•ê³¼ ì„±ì¥ ë™ë ¥
 
-2. **Àç¹« ¼º°ú ¹× ¾ÈÁ¤¼º ºĞ¼®**
-   - ¼öÀÍ¼º ÁöÇ¥ ºĞ¼® (¸ÅÃâ ¼ºÀå·ü, ¿µ¾÷ÀÌÀÍ·ü, ROE µî)
-   - Àç¹« ¾ÈÁ¤¼º Æò°¡ (ÀÚº»±¸Á¶, À¯µ¿¼º µî)
-   - 3°³³â Àç¹« Æ®·»µå¿Í °³¼±/¾ÇÈ­ ¿äÀÎ
+2. **ì¬ë¬´ ì„±ê³¼ ë° ì•ˆì •ì„± ë¶„ì„**
+   - ìˆ˜ìµì„± ì§€í‘œ ë¶„ì„ (ë§¤ì¶œ ì„±ì¥ë¥ , ì˜ì—…ì´ìµë¥ , ROE ë“±)
+   - ì¬ë¬´ ì•ˆì •ì„± í‰ê°€ (ìë³¸êµ¬ì¡°, ìœ ë™ì„± ë“±)
+   - 3ê°œë…„ ì¬ë¬´ íŠ¸ë Œë“œì™€ ê°œì„ /ì•…í™” ìš”ì¸
 
-3. **¸®½ºÅ© ¿äÀÎ ¹× ¿ì·Á»çÇ×**
-   - ¾÷°è Æ¯¼º»ó ÁÖ¿ä À§Çè¿ä¼Ò
-   - Àç¹«Àû ¸®½ºÅ© (ºÎÃ¤ºñÀ², Çö±İÈå¸§ µî)
-   - ¿ÜºÎ È¯°æ º¯È­¿¡ µû¸¥ ¿µÇâµµ
+3. **ë¦¬ìŠ¤í¬ ìš”ì¸ ë° ìš°ë ¤ì‚¬í•­**
+   - ì—…ê³„ íŠ¹ì„±ìƒ ì£¼ìš” ìœ„í—˜ìš”ì†Œ
+   - ì¬ë¬´ì  ë¦¬ìŠ¤í¬ (ë¶€ì±„ë¹„ìœ¨, í˜„ê¸ˆíë¦„ ë“±)
+   - ì™¸ë¶€ í™˜ê²½ ë³€í™”ì— ë”°ë¥¸ ì˜í–¥ë„
 
-4. **ÅõÀÚ ÀÇ°ß ¹× ¹ë·ù¿¡ÀÌ¼Ç**
-   - Á¾ÇÕÀûÀÎ ÅõÀÚ ¸Å·Âµµ Æò°¡
-   - ¸ñÇ¥ ÁÖ°¡ ¶Ç´Â ±â¾÷°¡Ä¡ Æò°¡ °üÁ¡
-   - ÅõÀÚ ½Ã °í·Á»çÇ×°ú ¸ğ´ÏÅÍ¸µ Æ÷ÀÎÆ®
+4. **íˆ¬ì ì˜ê²¬ ë° ë°¸ë¥˜ì—ì´ì…˜**
+   - ì¢…í•©ì ì¸ íˆ¬ì ë§¤ë ¥ë„ í‰ê°€
+   - ëª©í‘œ ì£¼ê°€ ë˜ëŠ” ê¸°ì—…ê°€ì¹˜ í‰ê°€ ê´€ì 
+   - íˆ¬ì ì‹œ ê³ ë ¤ì‚¬í•­ê³¼ ëª¨ë‹ˆí„°ë§ í¬ì¸íŠ¸
 
-°¢ ¼½¼ÇÀº °´°üÀû µ¥ÀÌÅÍ¿¡ ±â¹İÇÏµÇ, ½Ç¹«ÀûÀÌ°í actionableÇÑ ÀÎ»çÀÌÆ®¸¦ Æ÷ÇÔÇØÁÖ¼¼¿ä.
+ê° ì„¹ì…˜ì€ ê°ê´€ì  ë°ì´í„°ì— ê¸°ë°˜í•˜ë˜, ì‹¤ë¬´ì ì´ê³  actionableí•œ ì¸ì‚¬ì´íŠ¸ë¥¼ í¬í•¨í•´ì£¼ì„¸ìš”.
 """
             
-            print(f"OpenAI API È£Ãâ ½ÃÀÛ - ±â¾÷¸í: {company_name}")
+            print(f"OpenAI API í˜¸ì¶œ ì‹œì‘ - ê¸°ì—…ëª…: {company_name}")
             
-            # OpenAI API È£Ãâ
+            # OpenAI API í˜¸ì¶œ
             response = client.chat.completions.create(
-                model="gpt-4o-mini",  # ´õ Á¤È®ÇÑ ºĞ¼®À» À§ÇØ GPT-4 »ç¿ë
+                model="gpt-4o-mini",  # ë” ì •í™•í•œ ë¶„ì„ì„ ìœ„í•´ GPT-4 ì‚¬ìš©
                 messages=[
                     {
                         "role": "system", 
-                        "content": "´ç½ÅÀº Goldman Sachs, JP Morgan µî ±Û·Î¹ú ÅõÀÚÀºÇà¿¡¼­ 20³â°£ ±â¾÷ºĞ¼®À» ´ã´çÇÑ Àü¹®°¡ÀÔ´Ï´Ù. Á¤È®ÇÏ°í ½Ç¹«ÀûÀÎ ºĞ¼®À» Á¦°øÇÏ¸ç, Ç×»ó °´°üÀû µ¥ÀÌÅÍ¿¡ ±â¹İÇÑ ÆÇ´ÜÀ» ³»¸³´Ï´Ù."
+                        "content": "ë‹¹ì‹ ì€ Goldman Sachs, JP Morgan ë“± ê¸€ë¡œë²Œ íˆ¬ìì€í–‰ì—ì„œ 20ë…„ê°„ ê¸°ì—…ë¶„ì„ì„ ë‹´ë‹¹í•œ ì „ë¬¸ê°€ì…ë‹ˆë‹¤. ì •í™•í•˜ê³  ì‹¤ë¬´ì ì¸ ë¶„ì„ì„ ì œê³µí•˜ë©°, í•­ìƒ ê°ê´€ì  ë°ì´í„°ì— ê¸°ë°˜í•œ íŒë‹¨ì„ ë‚´ë¦½ë‹ˆë‹¤."
                     },
                     {
                         "role": "user", 
@@ -5737,17 +5696,17 @@ def perform_ai_analysis(company_basic, financials):
                     }
                 ],
                 max_tokens=2500,
-                temperature=0.3,  # ÀÏ°ü¼º ÀÖ´Â ºĞ¼®À» À§ÇØ ³·Àº ¿Âµµ
+                temperature=0.3,  # ì¼ê´€ì„± ìˆëŠ” ë¶„ì„ì„ ìœ„í•´ ë‚®ì€ ì˜¨ë„
                 presence_penalty=0.1,
                 frequency_penalty=0.1
             )
             
-            # AI ÀÀ´ä ÆÄ½Ì
+            # AI ì‘ë‹µ íŒŒì‹±
             ai_analysis = response.choices[0].message.content
-            print(f"OpenAI API ÀÀ´ä ¹ŞÀ½ - ÀÀ´ä ±æÀÌ: {len(ai_analysis)} ¹®ÀÚ")
-            print(f"ÀÀ´ä ¹Ì¸®º¸±â: {ai_analysis[:200]}...")
+            print(f"OpenAI API ì‘ë‹µ ë°›ìŒ - ì‘ë‹µ ê¸¸ì´: {len(ai_analysis)} ë¬¸ì")
+            print(f"ì‘ë‹µ ë¯¸ë¦¬ë³´ê¸°: {ai_analysis[:200]}...")
             
-            # ¼½¼Çº°·Î ´õ Á¤È®ÇÏ°Ô ÆÄ½Ì
+            # ì„¹ì…˜ë³„ë¡œ ë” ì •í™•í•˜ê²Œ íŒŒì‹±
             sections = {
                 'summary': '',
                 'financial_analysis': '',
@@ -5755,24 +5714,24 @@ def perform_ai_analysis(company_basic, financials):
                 'recommendations': ''
             }
             
-            # ¼½¼Ç ±¸ºĞÀ» À§ÇÑ Å°¿öµå ¸ÅÄª
+            # ì„¹ì…˜ êµ¬ë¶„ì„ ìœ„í•œ í‚¤ì›Œë“œ ë§¤ì¹­
             current_section = None
             lines = ai_analysis.split('\n')
             
             for line in lines:
                 line = line.strip()
-                if '±â¾÷ °³¿ä' in line or '»ç¾÷ ÇöÈ²' in line or '1.' in line[:5]:
+                if 'ê¸°ì—… ê°œìš”' in line or 'ì‚¬ì—… í˜„í™©' in line or '1.' in line[:5]:
                     current_section = 'summary'
-                elif 'Àç¹« ¼º°ú' in line or 'Àç¹« ºĞ¼®' in line or '¾ÈÁ¤¼º' in line or '2.' in line[:5]:
+                elif 'ì¬ë¬´ ì„±ê³¼' in line or 'ì¬ë¬´ ë¶„ì„' in line or 'ì•ˆì •ì„±' in line or '2.' in line[:5]:
                     current_section = 'financial_analysis'
-                elif '¸®½ºÅ©' in line or 'À§Çè' in line or '¿ì·Á»çÇ×' in line or '3.' in line[:5]:
+                elif 'ë¦¬ìŠ¤í¬' in line or 'ìœ„í—˜' in line or 'ìš°ë ¤ì‚¬í•­' in line or '3.' in line[:5]:
                     current_section = 'risk_assessment'
-                elif 'ÅõÀÚ ÀÇ°ß' in line or '¹ë·ù¿¡ÀÌ¼Ç' in line or 'ÅõÀÚ' in line or '4.' in line[:5]:
+                elif 'íˆ¬ì ì˜ê²¬' in line or 'ë°¸ë¥˜ì—ì´ì…˜' in line or 'íˆ¬ì' in line or '4.' in line[:5]:
                     current_section = 'recommendations'
                 elif line and current_section:
                     sections[current_section] += line + ' '
             
-            # ¼½¼ÇÀÌ ºñ¾îÀÖ´Â °æ¿ì ÀüÃ¼ ÅØ½ºÆ®¸¦ ±Õµî ºĞÇÒ
+            # ì„¹ì…˜ì´ ë¹„ì–´ìˆëŠ” ê²½ìš° ì „ì²´ í…ìŠ¤íŠ¸ë¥¼ ê· ë“± ë¶„í• 
             if not any(sections.values()):
                 paragraphs = [p.strip() for p in ai_analysis.split('\n\n') if p.strip()]
                 if len(paragraphs) >= 4:
@@ -5787,72 +5746,155 @@ def perform_ai_analysis(company_basic, financials):
                     sections['recommendations'] = ai_analysis[3*len(ai_analysis)//4:]
             
             return {
-                "summary": sections['summary'].strip() or f"{company_name}´Â {industry} ¾÷Á¾¿¡¼­ »ç¾÷À» ¿µÀ§ÇÏ´Â ±â¾÷À¸·Î, {representative} ´ëÇ¥ Ã¼Á¦ ÇÏ¿¡ ¿î¿µµÇ°í ÀÖ½À´Ï´Ù.",
-                "financial_analysis": sections['financial_analysis'].strip() or f"Àç¹«ºĞ¼®: {financial_summary}¸¦ ±â¹İÀ¸·Î ÇÑ »ó¼¼ ºĞ¼®ÀÌ Á¦°øµË´Ï´Ù.",
-                "risk_assessment": sections['risk_assessment'].strip() or f"{industry} ¾÷°èÀÇ ÀÏ¹İÀûÀÎ ¸®½ºÅ©¿Í ±â¾÷ °íÀ¯ÀÇ À§Çè¿ä¼Ò¸¦ Á¾ÇÕÀûÀ¸·Î Æò°¡ÇÏ¿´½À´Ï´Ù.",
-                "recommendations": sections['recommendations'].strip() or "Àü¹®ÀûÀÎ ºĞ¼®À» ¹ÙÅÁÀ¸·Î ÇÑ ÅõÀÚ ÀÇ°ß°ú ÇâÈÄ ¸ğ´ÏÅÍ¸µ Æ÷ÀÎÆ®¸¦ Á¦½ÃÇÕ´Ï´Ù."
+                "summary": sections['summary'].strip() or f"{company_name}ëŠ” {industry} ì—…ì¢…ì—ì„œ ì‚¬ì—…ì„ ì˜ìœ„í•˜ëŠ” ê¸°ì—…ìœ¼ë¡œ, {representative} ëŒ€í‘œ ì²´ì œ í•˜ì— ìš´ì˜ë˜ê³  ìˆìŠµë‹ˆë‹¤.",
+                "financial_analysis": sections['financial_analysis'].strip() or f"ì¬ë¬´ë¶„ì„: {financial_summary}ë¥¼ ê¸°ë°˜ìœ¼ë¡œ í•œ ìƒì„¸ ë¶„ì„ì´ ì œê³µë©ë‹ˆë‹¤.",
+                "risk_assessment": sections['risk_assessment'].strip() or f"{industry} ì—…ê³„ì˜ ì¼ë°˜ì ì¸ ë¦¬ìŠ¤í¬ì™€ ê¸°ì—… ê³ ìœ ì˜ ìœ„í—˜ìš”ì†Œë¥¼ ì¢…í•©ì ìœ¼ë¡œ í‰ê°€í•˜ì˜€ìŠµë‹ˆë‹¤.",
+                "recommendations": sections['recommendations'].strip() or "ì „ë¬¸ì ì¸ ë¶„ì„ì„ ë°”íƒ•ìœ¼ë¡œ í•œ íˆ¬ì ì˜ê²¬ê³¼ í–¥í›„ ëª¨ë‹ˆí„°ë§ í¬ì¸íŠ¸ë¥¼ ì œì‹œí•©ë‹ˆë‹¤."
             }
             
         except Exception as e:
-            print(f"OpenAI API ¿À·ù (°í±Ş ºĞ¼®): {type(e).__name__}: {e}")
+            print(f"OpenAI API ì˜¤ë¥˜ (ê³ ê¸‰ ë¶„ì„): {type(e).__name__}: {e}")
             import traceback
-            print(f"»ó¼¼ ¿À·ù Á¤º¸: {traceback.format_exc()}")
-            # API ¿À·ù ½Ã¿¡µµ ±âº» ºĞ¼®Àº Á¦°ø
+            print(f"ìƒì„¸ ì˜¤ë¥˜ ì •ë³´: {traceback.format_exc()}")
+            # API ì˜¤ë¥˜ ì‹œì—ë„ ê¸°ë³¸ ë¶„ì„ì€ ì œê³µ
     
-    # API »ç¿ë ºÒ°¡ ½Ã ±âº» ºĞ¼® Á¦°ø
-    return {
-        "summary": f"{company_name}´Â {industry} ¾÷Á¾ÀÇ ±â¾÷À¸·Î, {representative} ´ëÇ¥°¡ °æ¿µÇÏ°í ÀÖ½À´Ï´Ù. º»»ç´Â {address}¿¡ À§Ä¡ÇÏ¸ç, ±¹¹Î¿¬±İ °¡ÀÔÀÚ¼ö´Â ¾à {employee_count}¸íÀÔ´Ï´Ù. ÇØ´ç ¾÷Á¾¿¡¼­ÀÇ »ç¾÷ ¿µ¿ª°ú °æÀï·ÂÀ» ¹ÙÅÁÀ¸·Î Áö¼ÓÀûÀÎ ¼ºÀåÀ» ÃßÁøÇÏ°í ÀÖ´Â °ÍÀ¸·Î ºĞ¼®µË´Ï´Ù.",
-        
-        "financial_analysis": f"Àç¹« ÇöÈ²: {financial_summary}. ÃÖ±Ù 3°³³â Àç¹«Á¦Ç¥¸¦ ±â¹İÀ¸·Î ºĞ¼®ÇÑ °á°ú, ¸ÅÃâ¾×°ú ¼öÀÍ¼º ÁöÇ¥¸¦ ÅëÇØ ±â¾÷ÀÇ °æ¿µ ¼º°ú¸¦ È®ÀÎÇÒ ¼ö ÀÖ½À´Ï´Ù. ÀÚ»ê ±Ô¸ğ¿Í ÀÚº» ±¸Á¶¸¦ Á¾ÇÕÀûÀ¸·Î °í·ÁÇÏ¿© Àç¹« ¾ÈÁ¤¼ºÀ» Æò°¡ÇÏ¿´½À´Ï´Ù.",
-        
-        "risk_assessment": f"ÁÖ¿ä À§Çè¿ä¼Ò·Î´Â ¾÷°è Æ¯¼º»ó °æ±â º¯µ¿¿¡ µû¸¥ ¿µÇâ, °æÀï ±â¾÷°úÀÇ ½ÃÀåÁ¡À¯À² °æÀï, ¿øÀÚÀç °¡°İ º¯µ¿ µîÀÌ ÀÖ½À´Ï´Ù. {industry} ¾÷Á¾ÀÇ Æ¯¼ºÀ» °í·ÁÇÒ ¶§ ±ÔÁ¦ º¯È­³ª ±â¼ú º¯È­¿¡ ´ëÇÑ ´ëÀÀ·Âµµ Áß¿äÇÑ ¸®½ºÅ© ¿äÀÎÀ¸·Î ºĞ¼®µË´Ï´Ù.",
-        
-        "recommendations": f"Á¾ÇÕ ºĞ¼® °á°ú, {company_name}´Â {industry} ¾÷Á¾¿¡¼­ ÀÏÁ¤ÇÑ »ç¾÷ ±â¹İÀ» °®Ãá ±â¾÷À¸·Î Æò°¡µË´Ï´Ù. Àç¹« ÁöÇ¥¿Í »ç¾÷ ÇöÈ²À» Á¾ÇÕÀûÀ¸·Î °í·ÁÇÒ ¶§, ÁßÀå±âÀûÀÎ °üÁ¡¿¡¼­ÀÇ ÅõÀÚ °ËÅä¸¦ ±ÇÀåÇÏ¸ç, º¸´Ù »ó¼¼ÇÑ ½Ç»ç¸¦ ÅëÇÑ ¸®½ºÅ© Æò°¡°¡ ÇÊ¿äÇÕ´Ï´Ù."
-    }
+    def generate():
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            
+            # ê¸°ì—… ê¸°ë³¸ ì •ë³´ ì¡°íšŒ
+            cursor.execute('''
+                SELECT company_name, representative_name, industry_name, address, pension_count
+                FROM Company_Basic 
+                WHERE biz_no = ?
+            ''', (biz_no,))
+            
+            company_basic = cursor.fetchone()
+            if not company_basic:
+                yield "Error: ê¸°ì—… ì •ë³´ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤"
+                return
+
+            # ì¬ë¬´ ì •ë³´ ì¡°íšŒ
+            cursor.execute('''
+                SELECT fiscal_year, sales_revenue, operating_income, total_assets, 
+                       total_equity, retained_earnings, corporate_tax
+                FROM Company_Financial 
+                WHERE biz_no = ? 
+                ORDER BY fiscal_year DESC 
+                LIMIT 3
+            ''', (biz_no,))
+            financials = cursor.fetchall()
+            
+            # ë°ì´í„° ì¤€ë¹„
+            company_name = company_basic[0] or "ì •ë³´ì—†ìŒ"
+            representative = company_basic[1] or "ì •ë³´ì—†ìŒ"
+            industry = company_basic[2] or "ì •ë³´ì—†ìŒ"
+            address = company_basic[3] or "ì •ë³´ì—†ìŒ"
+            employee_count = company_basic[4] or 0
+
+            financial_details = ""
+            if financials:
+                financial_details = "ì¬ë¬´ ìƒì„¸ ì •ë³´:\n"
+                for fin in financials:
+                    year = fin[0]
+                    revenue = fin[1] if fin[1] else 0
+                    profit = fin[2] if fin[2] else 0
+                    assets = fin[3] if fin[3] else 0
+                    equity = fin[4] if fin[4] else 0
+                    financial_details += f"- {year}ë…„: ë§¤ì¶œ {revenue:,}ì›, ì˜ì—…ì´ìµ {profit:,}ì›, ìì‚° {assets:,}ì›\n"
+
+            prompt = f"""
+ê¸°ì—…ëª…: {company_name}
+ëŒ€í‘œì: {representative}
+ì—…ì¢…: {industry}
+ì£¼ì†Œ: {address}
+ì§ì›ìˆ˜: {employee_count}ëª…
+
+{financial_details}
+
+ìœ„ ê¸°ì—…ì— ëŒ€í•´ ë‹¤ìŒ í•­ëª©ìœ¼ë¡œ ìƒì„¸í•œ ë¶„ì„ ë³´ê³ ì„œë¥¼ ì‘ì„±í•´ì£¼ì„¸ìš”:
+1. ê¸°ì—… ê°œìš” ë° ì‚¬ì—… í˜„í™©
+2. ì¬ë¬´ ì„±ê³¼ ë° ì•ˆì •ì„± ë¶„ì„
+3. ë¦¬ìŠ¤í¬ ìš”ì¸ ë° ìš°ë ¤ì‚¬í•­
+4. íˆ¬ì ì˜ê²¬ ë° ë°¸ë¥˜ì—ì´ì…˜
+
+ê° í•­ëª©ì€ ì „ë¬¸ì ì´ê³  êµ¬ì²´ì ìœ¼ë¡œ ì‘ì„±í•´ì£¼ì„¸ìš”.
+"""
+            
+            import os
+            from openai import OpenAI
+            api_key = os.environ.get('OPENAI_API_KEY')
+            
+            if not api_key:
+                yield "Error: OpenAI API í‚¤ê°€ ì„¤ì •ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤."
+                return
+
+            client = OpenAI(api_key=api_key)
+            
+            stream = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "ë‹¹ì‹ ì€ ê¸°ì—… ë¶„ì„ ì „ë¬¸ê°€ì…ë‹ˆë‹¤."},
+                    {"role": "user", "content": prompt}
+                ],
+                stream=True
+            )
+
+            for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+
+        except Exception as e:
+            yield f"Error: {str(e)}"
+        finally:
+            conn.close()
+
+    return Response(generate(), mimetype='text/event-stream')
 
 if __name__ == '__main__':
-    print("=== ¾ÖÇÃ¸®ÄÉÀÌ¼Ç ½ÃÀÛ ===")
-    print(f"Flask ¾Û µğ·ºÅÍ¸®: {app_dir}")
-    print(f"µ¥ÀÌÅÍº£ÀÌ½º °æ·Î: {DB_PATH}")
-    print(f"RENDER È¯°æº¯¼ö: {os.environ.get('RENDER', 'N/A')}")
-    print(f"PORT È¯°æº¯¼ö: {os.environ.get('PORT', 'N/A')}")
+    print("=== ì• í”Œë¦¬ì¼€ì´ì…˜ ì‹œì‘ ===")
+    print(f"Flask ì•± ë””ë ‰í„°ë¦¬: {app_dir}")
+    print(f"ë°ì´í„°ë² ì´ìŠ¤ ê²½ë¡œ: {DB_PATH}")
+    print(f"RENDER í™˜ê²½ë³€ìˆ˜: {os.environ.get('RENDER', 'N/A')}")
+    print(f"PORT í™˜ê²½ë³€ìˆ˜: {os.environ.get('PORT', 'N/A')}")
     
-    # µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ »óÅÂ È®ÀÎ
+    # ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ ìƒíƒœ í™•ì¸
     if os.path.exists(DB_PATH):
         file_size = os.path.getsize(DB_PATH)
-        print(f"? µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ Á¸Àç: {DB_PATH} (Å©±â: {file_size} bytes)")
+        print(f"? ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ ì¡´ì¬: {DB_PATH} (í¬ê¸°: {file_size} bytes)")
     else:
-        print(f"? µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ ¾øÀ½: {DB_PATH}")
+        print(f"? ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ ì—†ìŒ: {DB_PATH}")
     
-    # ¾Û ½ÃÀÛ ½Ã Å×ÀÌºí ÃÊ±âÈ­
-    print("\n=== µ¥ÀÌÅÍº£ÀÌ½º Å×ÀÌºí ÃÊ±âÈ­ ===")
+    # ì•± ì‹œì‘ ì‹œ í…Œì´ë¸” ì´ˆê¸°í™”
+    print("\n=== ë°ì´í„°ë² ì´ìŠ¤ í…Œì´ë¸” ì´ˆê¸°í™” ===")
     try:
         init_user_tables()
-        print("? »ç¿ëÀÚ Å×ÀÌºí ÃÊ±âÈ­ ¿Ï·á")
+        print("? ì‚¬ìš©ì í…Œì´ë¸” ì´ˆê¸°í™” ì™„ë£Œ")
     except Exception as e:
-        print(f"? »ç¿ëÀÚ Å×ÀÌºí ÃÊ±âÈ­ ½ÇÆĞ: {e}")
+        print(f"? ì‚¬ìš©ì í…Œì´ë¸” ì´ˆê¸°í™” ì‹¤íŒ¨: {e}")
     
     try:
         init_business_tables()
-        print("? ºñÁî´Ï½º Å×ÀÌºí ÃÊ±âÈ­ ¿Ï·á")
+        print("? ë¹„ì¦ˆë‹ˆìŠ¤ í…Œì´ë¸” ì´ˆê¸°í™” ì™„ë£Œ")
     except Exception as e:
-        print(f"? ºñÁî´Ï½º Å×ÀÌºí ÃÊ±âÈ­ ½ÇÆĞ: {e}")
+        print(f"? ë¹„ì¦ˆë‹ˆìŠ¤ í…Œì´ë¸” ì´ˆê¸°í™” ì‹¤íŒ¨: {e}")
     
     try:
         init_pipeline_tables()
-        print("? ¿µ¾÷ ÆÄÀÌÇÁ¶óÀÎ Å×ÀÌºí ÃÊ±âÈ­ ¿Ï·á")
+        print("? ì˜ì—… íŒŒì´í”„ë¼ì¸ í…Œì´ë¸” ì´ˆê¸°í™” ì™„ë£Œ")
     except Exception as e:
-        print(f"? ¿µ¾÷ ÆÄÀÌÇÁ¶óÀÎ Å×ÀÌºí ÃÊ±âÈ­ ½ÇÆĞ: {e}")
+        print(f"? ì˜ì—… íŒŒì´í”„ë¼ì¸ í…Œì´ë¸” ì´ˆê¸°í™” ì‹¤íŒ¨: {e}")
     
-    # ¼­¹ö ½ÃÀÛ
+    # ì„œë²„ ì‹œì‘
     port = int(os.environ.get('PORT', 5000))
-    print(f"\n=== Flask ¼­¹ö ½ÃÀÛ ===")
+    print(f"\n=== Flask ì„œë²„ ì‹œì‘ ===")
     print(f"Host: 0.0.0.0")
     print(f"Port: {port}")
-    print(f"Debug: {not os.environ.get('RENDER')}")  # Render¿¡¼­´Â debug=False
+    print(f"Debug: {not os.environ.get('RENDER')}")  # Renderì—ì„œëŠ” debug=False
     
     app.run(
         host='0.0.0.0', 
         port=port, 
-        debug=not os.environ.get('RENDER')  # Render¿¡¼­´Â debug=False
+        debug=not os.environ.get('RENDER')  # Renderì—ì„œëŠ” debug=False
     )

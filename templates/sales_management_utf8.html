@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영업관리 - 방문개척활동 (ych_s010)</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 1400px;
+            width: 95%;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+        }
+        
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: #545b62;
+        }
+        
+        /* 탭 스타일 */
+        .tab-nav {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tab-link {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            background: transparent;
+            color: #6c757d;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-link:hover {
+            background: rgba(0, 123, 255, 0.1);
+            color: #007bff;
+        }
+        
+        .tab-link.active {
+            background: white;
+            color: #007bff;
+            border-bottom-color: #007bff;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            table-layout: fixed;
+        }
+        
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* 영업비용/소득관리 테이블 컬럼 너비 */
+        #expenseTable th:nth-child(1), #expenseTable td:nth-child(1) { width: 10%; } /* 사용일자 */
+        #expenseTable th:nth-child(2), #expenseTable td:nth-child(2) { width: 8%; }  /* 비용유형 */
+        #expenseTable th:nth-child(3), #expenseTable td:nth-child(3) { width: 10%; } /* 금액 */
+        #expenseTable th:nth-child(4), #expenseTable td:nth-child(4) { width: 8%; }  /* 결제수단 */
+        #expenseTable th:nth-child(5), #expenseTable td:nth-child(5) { width: 30%; } /* 상세내역 */
+        #expenseTable th:nth-child(6), #expenseTable td:nth-child(6) { width: 8%; }  /* 영수증 */
+        #expenseTable th:nth-child(7), #expenseTable td:nth-child(7) { width: 12%; } /* 등록자 */
+        #expenseTable th:nth-child(8), #expenseTable td:nth-child(8) { width: 14%; } /* 작업 */
+        
+        /* 접촉이력관리 테이블 컬럼 너비 */
+        #contactTable th:nth-child(1), #contactTable td:nth-child(1) { width: 8%; }  /* 날짜/시간 */
+        #contactTable th:nth-child(2), #contactTable td:nth-child(2) { width: 10%; } /* 사업자번호 */
+        #contactTable th:nth-child(3), #contactTable td:nth-child(3) { width: 12%; } /* 기업명 */
+        #contactTable th:nth-child(4), #contactTable td:nth-child(4) { width: 8%; }  /* 접촉유형 */
+        #contactTable th:nth-child(5), #contactTable td:nth-child(5) { width: 8%; }  /* 컨설팅유형 */
+        #contactTable th:nth-child(6), #contactTable td:nth-child(6) { width: 30%; } /* 메모 */
+        #contactTable th:nth-child(7), #contactTable td:nth-child(7) { width: 8%; }  /* 등록자 */
+        #contactTable th:nth-child(8), #contactTable td:nth-child(8) { width: 16%; } /* 작업 */
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .visited-row {
+            background: #ffe6e6 !important;
+        }
+        
+        .visited-row:hover {
+            background: #ffd6d6 !important;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ced4da;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+        
+        .upload-area.dragover {
+            border-color: #28a745;
+            background: #e8f5e8;
+        }
+    </style>
+</head>
+<body>
+    <!-- 뒤로가기 버튼 -->
+    <a href="{{ url_for('main') }}" class="back-button">← 메인으로</a>
+    
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>영업관리 - 방문개척활동 (ych_s010)</h1>
+                <p>{{ user_name }}님 ({{ user_level_name }}) - {{ branch_name }}</p>
+            </div>
+        </div>
+        
+        <!-- 탭 네비게이션 -->
+        <div class="tab-nav">
+            <button class="tab-link active" onclick="openTab(event, 'pioneering-tab')">개척대상 기업</button>
+            <button class="tab-link" onclick="openTab(event, 'expense-tab')">영업비용/소득관리</button>
+            <button class="tab-link" onclick="openTab(event, 'history-tab')">접촉이력관리</button>
+        </div>
+        
+        <!-- 개척대상 기업 탭 -->
+        <div id="pioneering-tab" class="tab-content active">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px; gap: 20px;">
+                <div style="flex: 1;">
+                    <h3>C-Level 어프로치 전략</h3>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="downloadCSVTemplate()">CSV 템플릿</button>
+                    <button class="btn btn-success" onclick="downloadCSV()">CSV 다운로드</button>
+                    <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="uploadCSV()">
+                    <button class="btn btn-primary" onclick="document.getElementById('csvFileInput').click()">CSV 업로드</button>
+                </div>
+            </div>
+            
+            <!-- CSV 업로드 영역 -->
+            <div id="uploadArea" class="upload-area" onclick="document.getElementById('csvFileInput').click()">
+                <p>CSV 파일을 클릭해서 선택하거나 드래그&드롭 하세요</p>
+                <small>항목: 사업자번호, 방문일자, 방문자ID</small>
+            </div>
+            
+            <!-- 날짜별 필터 -->
+            <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
+                <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
+                    <label for="filterDate">조회 날짜:</label>
+                    <input type="date" id="filterDate" onchange="filterPioneeringTargets()">
+                </div>
+                <button class="btn btn-secondary" onclick="showAllTargets()">전체 보기</button>
+            </div>
+            
+            <!-- 개척대상 목록 테이블 -->
+            <div class="table-container">
+                <table id="pioneeringTable">
+                    <thead>
+                        <tr>
+                            <th>방문일자</th>
+                            <th>사업자번호</th>
+                            <th>기업명</th>
+                            <th>방문자</th>
+                            <th>방문상태</th>
+                            <th>등록일</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pioneeringTableBody">
+                        <!-- 데이터는 JavaScript로 동적 로드 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 영업비용/소득관리 탭 -->
+        <div id="expense-tab" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>영업비용/소득 관리</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" onclick="openExpenseModal()">+ 비용 등록</button>
+                </div>
+            </div>
+            
+            <!-- 필터 영역 -->
+            <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
+                    <label for="filterExpenseType">비용 유형:</label>
+                    <select id="filterExpenseType" onchange="filterExpenses()">
+                        <option value="">전체</option>
+                        <option value="식대">식대</option>
+                        <option value="교통비">교통비</option>
+                        <option value="주차비">주차비</option>
+                        <option value="경조사">경조사</option>
+                        <option value="우편료">우편료</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
+                    <label for="filterExpenseMonth">월별 조회:</label>
+                    <input type="month" id="filterExpenseMonth" onchange="filterExpenses()">
+                </div>
+            </div>
+            
+            <!-- 비용 목록 테이블 -->
+            <div class="table-container">
+                <table id="expenseTable">
+                    <thead>
+                        <tr>
+                            <th>사용일자</th>
+                            <th>비용유형</th>
+                            <th>금액</th>
+                            <th>결제수단</th>
+                            <th>상세내역</th>
+                            <th>영수증</th>
+                            <th>등록자</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody">
+                        <!-- 데이터는 JavaScript로 동적 로드 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 총계 표시 -->
+            <div style="margin-top: 20px; text-align: right; font-size: 16px; font-weight: 600;">
+                <span id="totalExpenseAmount">총 비용: 0원</span>
+            </div>
+        </div>
+        
+        <!-- 접촉이력관리 탭 -->
+        <div id="history-tab" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>접촉이력 관리</h3>
+            </div>
+            
+            <!-- 검색 필터 -->
+            <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
+                    <label for="historyStartDate">시작일:</label>
+                    <input type="date" id="historyStartDate" onchange="filterContactHistory()">
+                </div>
+                <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
+                    <label for="historyEndDate">종료일:</label>
+                    <input type="date" id="historyEndDate" onchange="filterContactHistory()">
+                </div>
+                <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
+                    <label for="historyBizNo">사업자번호:</label>
+                    <input type="text" id="historyBizNo" placeholder="123-45-67890" onkeyup="filterContactHistory()">
+                </div>
+                <div class="form-group" style="margin-bottom: 0; min-width: 150px;">
+                    <label for="historyRegisteredBy">담당자ID:</label>
+                    <input type="text" id="historyRegisteredBy" placeholder="담당자ID" onkeyup="filterContactHistory()">
+                </div>
+            </div>
+            
+            <!-- 접촉이력 목록 테이블 -->
+            <div class="table-container">
+                <table id="contactHistoryTable">
+                    <thead>
+                        <tr>
+                            <th>접촉일시</th>
+                            <th>사업자번호</th>
+                            <th>기업명</th>
+                            <th>접촉유형</th>
+                            <th>접촉자</th>
+                            <th>메모</th>
+                            <th>등록자</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactHistoryTableBody">
+                        <!-- 데이터는 JavaScript로 동적 로드 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 비용 등록 모달 -->
+    <div id="expenseModal" class="modal">
+        <div class="modal-content">
+            <h2 id="expenseModalTitle">영업비용 등록 (ych_P011)</h2>
+            <form id="expenseForm">
+                <input type="hidden" id="expenseId">
+                
+                <div class="form-group">
+                    <label for="expenseDate">사용일자 *</label>
+                    <input type="date" id="expenseDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="expenseType">비용유형 *</label>
+                    <select id="expenseType" required>
+                        <option value="">선택하세요</option>
+                        <option value="식대">식대</option>
+                        <option value="교통비">교통비</option>
+                        <option value="주차비">주차비</option>
+                        <option value="경조사">경조사</option>
+                        <option value="우편료">우편료</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="expenseAmount">금액 *</label>
+                    <input type="text" id="expenseAmount" required placeholder="10,000" oninput="formatCurrency(this)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="paymentMethod">결제수단 *</label>
+                    <select id="paymentMethod" required>
+                        <option value="개인카드">개인카드</option>
+                        <option value="법인카드">법인카드</option>
+                        <option value="현금">현금</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="expenseDescription">상세내역</label>
+                    <textarea id="expenseDescription" placeholder="상세 내용을 입력하세요..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="receiptFiles">영수증첨부 (최대 3개, 이미지 파일만)</label>
+                    <input type="file" id="receiptFiles" accept="image/*" multiple>
+                    <small style="color: #666; font-size: 12px;">지원 형식: JPG, PNG, GIF, BMP, WEBP (최대 3개 파일)</small>
+                    <div id="filePreview" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px;"></div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeExpenseModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let pioneeringTargets = [];
+        let expenses = [];
+        let contactHistory = [];
+        
+        // 페이지 로드 시 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPioneeringTargets();
+            loadExpenses();
+            loadContactHistory();
+            
+            // 기본값 설정
+            document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('filterDate').value = new Date().toISOString().split('T')[0];
+        });
+        
+        // 탭 전환 함수
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+        
+        // 기업 상세조회 팝업
+        function showCompanyDetail(bizNo) {
+            if (!bizNo || bizNo === '-') {
+                alert('사업자번호가 없어 상세조회를 할 수 없습니다.');
+                return;
+            }
+            
+            // 기업 상세조회 페이지를 새 창에서 열기
+            const detailUrl = `/company_detail/${bizNo.replace(/-/g, '')}?source=popup`;
+            window.open(detailUrl, '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
+        }
+        
+        // 개척대상 기업 관련 함수들
+        async function loadPioneeringTargets() {
+            try {
+                const response = await fetch('/api/pioneering_targets');
+                if (response.ok) {
+                    pioneeringTargets = await response.json();
+                    renderPioneeringTable();
+                }
+            } catch (error) {
+                console.error('Error loading pioneering targets:', error);
+            }
+        }
+        
+        function renderPioneeringTable(filteredTargets = null) {
+            const tableBody = document.getElementById('pioneeringTableBody');
+            const dataToRender = filteredTargets || pioneeringTargets;
+            
+            if (dataToRender.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">등록된 개척 대상이 없습니다.</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = dataToRender.map(target => `
+                <tr class="${target.is_visited ? 'visited-row' : ''}" onclick="showCompanyDetail('${target.biz_no}')" style="cursor: pointer;">
+                    <td>${target.visit_date}</td>
+                    <td>${target.biz_no}</td>
+                    <td>${target.company_name || '-'}</td>
+                    <td>${target.visitor_name || target.visitor_id}</td>
+                    <td>${target.is_visited ? '방문완료' : '방문예정'}</td>
+                    <td>${target.created_date ? target.created_date.split('T')[0] : '-'}</td>
+                    <td onclick="event.stopPropagation();">
+                        ${!target.is_visited ? `<button class="btn btn-success" style="padding: 5px 10px; font-size: 12px;" onclick="markAsVisited(${target.id})">완료</button>` : ''}
+                        <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deletePioneeringTarget(${target.id})">삭제</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function filterPioneeringTargets() {
+            const filterDate = document.getElementById('filterDate').value;
+            if (!filterDate) return;
+            
+            const filtered = pioneeringTargets.filter(target => target.visit_date === filterDate);
+            renderPioneeringTable(filtered);
+        }
+        
+        function showAllTargets() {
+            document.getElementById('filterDate').value = '';
+            renderPioneeringTable();
+        }
+        
+        async function markAsVisited(id) {
+            try {
+                const response = await fetch(`/api/pioneering_targets/${id}/visit`, {
+                    method: 'PUT'
+                });
+                const result = await response.json();
+                if (result.success) {
+                    loadPioneeringTargets();
+                }
+            } catch (error) {
+                console.error('Error marking as visited:', error);
+            }
+        }
+        
+        async function deletePioneeringTarget(id) {
+            if (!confirm('정말로 이 개척 대상을 삭제하시겠습니까?')) return;
+            
+            try {
+                const response = await fetch(`/api/pioneering_targets/${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('삭제되었습니다.');
+                    loadPioneeringTargets();
+                }
+            } catch (error) {
+                console.error('Error deleting target:', error);
+            }
+        }
+        
+        // CSV 관련 함수들
+        function downloadCSVTemplate() {
+            const activeTab = document.querySelector('.tab-content.active').id;
+            let csvContent = '';
+            let filename = '';
+            
+            switch(activeTab) {
+                case 'pioneering-tab':
+                    csvContent = "사업자번호,방문일자,방문자ID,방문상태,메모\n123-45-67890,2024-01-15,user001,예정,샘플 메모";
+                    filename = "개척대상_템플릿.csv";
+                    break;
+                case 'expenses-tab':
+                    csvContent = "날짜,항목,금액,결제방법,설명\n2024-01-15,교통비,50000,카드,고객사 방문";
+                    filename = "영업비용_템플릿.csv";
+                    break;
+                case 'contact-tab':
+                    csvContent = "history_id,contact_datetime,biz_no,contact_type,contact_person,memo,registered_by\n1,2024-01-15 10:30,123-45-67890,전화상담,홍길동,상담 내용,user001";
+                    filename = "접촉이력_템플릿.csv";
+                    break;
+                default:
+                    csvContent = "사업자번호,방문일자,방문자ID\n123-45-67890,2024-01-15,user001";
+                    filename = "템플릿.csv";
+            }
+            
+            // UTF-8 BOM 추가로 한글 깨짐 방지
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        async function uploadCSV() {
+            const activeTab = document.querySelector('.tab-content.active').id;
+            let fileInput, url;
+            
+            switch(activeTab) {
+                case 'pioneering-tab':
+                    fileInput = document.getElementById('csvFileInput');
+                    url = '/api/pioneering_targets_csv';
+                    break;
+                case 'expenses-tab':
+                    fileInput = document.getElementById('csvFileInputExpenses');
+                    url = '/api/sales_expenses_csv';
+                    break;
+                case 'contact-tab':
+                    fileInput = document.getElementById('csvFileInputContact');
+                    url = '/api/contact_history_csv';
+                    break;
+                default:
+                    alert('올바른 탭을 선택해주세요.');
+                    return;
+            }
+            
+            const file = fileInput.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    const count = result.inserted || '알 수 없는';
+                    alert(`${count}건이 등록되었습니다.`);
+                    loadPioneeringTargets();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error('Error uploading CSV:', error);
+                alert('CSV 업로드 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // CSV 다운로드 함수
+        function downloadCSV() {
+            const activeTab = document.querySelector('.tab-content.active').id;
+            let url = '';
+            
+            switch(activeTab) {
+                case 'pioneering-tab':
+                    url = '/api/pioneering_targets_csv';
+                    break;
+                case 'expenses-tab':
+                    url = '/api/sales_expenses_csv';
+                    break;
+                case 'contact-tab':
+                    url = '/api/contact_history_csv';
+                    break;
+                default:
+                    url = '/api/contact_history_csv';
+            }
+            
+            window.location.href = url;
+        }
+        
+        // 금액 포맷팅 함수 (3자리마다 콤마)
+        function formatCurrency(input) {
+            // 숫자가 아닌 문자 제거
+            let value = input.value.replace(/[^\d]/g, '');
+            
+            // 3자리마다 콤마 추가
+            if (value) {
+                value = parseInt(value).toLocaleString();
+            }
+            
+            input.value = value;
+        }
+        
+        // 콤마가 포함된 금액을 숫자로 변환
+        function parseCurrency(value) {
+            return parseInt(value.replace(/,/g, '')) || 0;
+        }
+        
+        // 영업비용 관련 함수들
+        async function loadExpenses() {
+            try {
+                const response = await fetch('/api/sales_expenses');
+                if (response.ok) {
+                    expenses = await response.json();
+                    renderExpenseTable();
+                    updateTotalExpenseAmount();
+                }
+            } catch (error) {
+                console.error('Error loading expenses:', error);
+            }
+        }
+        
+        function renderExpenseTable(filteredExpenses = null) {
+            const tableBody = document.getElementById('expenseTableBody');
+            const dataToRender = filteredExpenses || expenses;
+            
+            if (dataToRender.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">등록된 비용이 없습니다.</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = dataToRender.map(expense => `
+                <tr>
+                    <td>${expense.expense_date}</td>
+                    <td>${expense.expense_type}</td>
+                    <td class="amount-cell">${Number(expense.amount).toLocaleString()}원</td>
+                    <td>${expense.payment_method}</td>
+                    <td>${expense.description || '-'}</td>
+                    <td>${expense.receipt_file ? (expense.receipt_file.includes(',') ? `<a href="#" onclick="viewReceipt(${expense.id})">파일 ${expense.receipt_file.split(',').length}개</a>` : `<a href="#" onclick="viewReceipt(${expense.id})">보기</a>`) : '-'}</td>
+                    <td>${expense.registered_by_name || expense.registered_by}</td>
+                    <td>
+                        <button class="btn btn-success" style="padding: 5px 10px; font-size: 12px;" onclick="editExpense(${expense.id})">수정</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteExpense(${expense.id})">삭제</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        function updateTotalExpenseAmount() {
+            const total = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+            document.getElementById('totalExpenseAmount').textContent = `총 비용: ${total.toLocaleString()}원`;
+        }
+        
+        function filterExpenses() {
+            const typeFilter = document.getElementById('filterExpenseType').value;
+            const monthFilter = document.getElementById('filterExpenseMonth').value;
+            
+            let filtered = expenses.filter(expense => {
+                let matches = true;
+                
+                if (typeFilter && expense.expense_type !== typeFilter) {
+                    matches = false;
+                }
+                
+                if (monthFilter && !expense.expense_date.startsWith(monthFilter)) {
+                    matches = false;
+                }
+                
+                return matches;
+            });
+            
+            renderExpenseTable(filtered);
+        }
+        
+        function openExpenseModal() {
+            document.getElementById('expenseModalTitle').textContent = '영업비용 등록 (ych_P011)';
+            document.getElementById('expenseForm').reset();
+            document.getElementById('expenseId').value = '';
+            document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('paymentMethod').value = '개인카드';
+            document.getElementById('expenseModal').style.display = 'block';
+        }
+        
+        function closeExpenseModal() {
+            document.getElementById('expenseModal').style.display = 'none';
+            document.getElementById('expenseForm').reset();
+            document.getElementById('filePreview').innerHTML = '';
+            document.getElementById('expenseId').value = '';
+        }
+        
+        function editExpense(id) {
+            const expense = expenses.find(e => e.id === id);
+            if (!expense) return;
+            
+            document.getElementById('expenseModalTitle').textContent = '영업비용 수정 (ych_P011)';
+            document.getElementById('expenseId').value = expense.id;
+            document.getElementById('expenseDate').value = expense.expense_date;
+            document.getElementById('expenseType').value = expense.expense_type;
+            document.getElementById('expenseAmount').value = expense.amount;
+            document.getElementById('paymentMethod').value = expense.payment_method;
+            document.getElementById('expenseDescription').value = expense.description || '';
+            document.getElementById('expenseModal').style.display = 'block';
+        }
+        
+        async function deleteExpense(id) {
+            if (!confirm('정말로 이 비용을 삭제하시겠습니까?')) return;
+            
+            try {
+                const response = await fetch(`/api/sales_expenses/${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('삭제되었습니다.');
+                    loadExpenses();
+                }
+            } catch (error) {
+                console.error('Error deleting expense:', error);
+            }
+        }
+        
+        // 비용 등록 폼 제출
+        document.getElementById('expenseForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const expenseId = document.getElementById('expenseId').value;
+            const formData = new FormData();
+            
+            formData.append('expense_date', document.getElementById('expenseDate').value);
+            formData.append('expense_type', document.getElementById('expenseType').value);
+            formData.append('amount', parseCurrency(document.getElementById('expenseAmount').value));
+            formData.append('payment_method', document.getElementById('paymentMethod').value);
+            formData.append('description', document.getElementById('expenseDescription').value);
+            
+            const receiptFiles = document.getElementById('receiptFiles').files;
+            if (receiptFiles.length > 0) {
+                for (let i = 0; i < receiptFiles.length; i++) {
+                    formData.append('receipt_files', receiptFiles[i]);
+                }
+            }
+            
+            try {
+                const url = expenseId ? `/api/sales_expenses/${expenseId}` : '/api/sales_expenses';
+                const method = expenseId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(result.message);
+                    closeExpenseModal();
+                    loadExpenses();
+                } else {
+                    alert(result.message || '저장에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('Error saving expense:', error);
+                alert('저장 중 오류가 발생했습니다.');
+            }
+        });
+        
+        // 접촉이력 관련 함수들
+        async function loadContactHistory() {
+            try {
+                const response = await fetch('/api/history_search');
+                if (response.ok) {
+                    contactHistory = await response.json();
+                    renderContactHistoryTable();
+                }
+            } catch (error) {
+                console.error('Error loading contact history:', error);
+            }
+        }
+        
+        function renderContactHistoryTable(filteredHistory = null) {
+            const tableBody = document.getElementById('contactHistoryTableBody');
+            const dataToRender = filteredHistory || contactHistory;
+            
+            if (dataToRender.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">접촉이력이 없습니다.</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = dataToRender.map(history => `
+                <tr>
+                    <td>${history.contact_datetime}</td>
+                    <td>${history.biz_no}</td>
+                    <td>${history.company_name || '-'}</td>
+                    <td>${history.contact_type}</td>
+                    <td>${history.contact_person}</td>
+                    <td>${history.memo || '-'}</td>
+                    <td>${history.registered_by}</td>
+                </tr>
+            `).join('');
+        }
+        
+        function filterContactHistory() {
+            const startDate = document.getElementById('historyStartDate').value;
+            const endDate = document.getElementById('historyEndDate').value;
+            const bizNo = document.getElementById('historyBizNo').value.toLowerCase();
+            const registeredBy = document.getElementById('historyRegisteredBy').value.toLowerCase();
+            
+            let filtered = contactHistory.filter(history => {
+                let matches = true;
+                
+                if (startDate && history.contact_datetime < startDate + ' 00:00:00') {
+                    matches = false;
+                }
+                
+                if (endDate && history.contact_datetime > endDate + ' 23:59:59') {
+                    matches = false;
+                }
+                
+                if (bizNo && !history.biz_no.toLowerCase().includes(bizNo)) {
+                    matches = false;
+                }
+                
+                if (registeredBy && !history.registered_by.toLowerCase().includes(registeredBy)) {
+                    matches = false;
+                }
+                
+                return matches;
+            });
+            
+            renderContactHistoryTable(filtered);
+        }
+        
+        // 영수증 보기 함수
+        function viewReceipt(expenseId) {
+            const url = `/view_receipt/${expenseId}`;
+            window.open(url, '_blank');
+        }
+        
+        // 파일 선택 처리 함수
+        document.getElementById('receiptFiles').addEventListener('change', function(e) {
+            const files = e.target.files;
+            
+            // 파일 개수 제한 체크
+            if (files.length > 3) {
+                alert('최대 3개의 파일만 선택할 수 있습니다.');
+                e.target.value = '';
+                document.getElementById('filePreview').innerHTML = '';
+                return;
+            }
+            
+            // 이미지 파일 형식 체크
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+            for (let i = 0; i < files.length; i++) {
+                if (!allowedTypes.includes(files[i].type)) {
+                    alert('이미지 파일만 업로드 가능합니다.');
+                    e.target.value = '';
+                    document.getElementById('filePreview').innerHTML = '';
+                    return;
+                }
+            }
+            
+            // 파일 미리보기 생성
+            const previewContainer = document.getElementById('filePreview');
+            previewContainer.innerHTML = '';
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const fileDiv = document.createElement('div');
+                    fileDiv.style.cssText = 'position: relative; display: inline-block; margin: 5px;';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px;';
+                    
+                    const fileName = document.createElement('div');
+                    fileName.textContent = file.name;
+                    fileName.style.cssText = 'font-size: 10px; text-align: center; margin-top: 2px; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+                    
+                    fileDiv.appendChild(img);
+                    fileDiv.appendChild(fileName);
+                    previewContainer.appendChild(fileDiv);
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            const expenseModal = document.getElementById('expenseModal');
+            if (event.target === expenseModal) {
+                closeExpenseModal();
+            }
+        }
+        
+        // 드래그 앤 드롭 이벤트
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].name.endsWith('.csv')) {
+                document.getElementById('csvFileInput').files = files;
+                uploadCSV();
+            } else {
+                alert('CSV 파일만 업로드 가능합니다.');
+            }
+        });
+    </script>
+</body>
+</html>

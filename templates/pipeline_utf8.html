@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영업 파이프라인 관리</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        [x-cloak] { display: none !important; }
+        .status-badge {
+            @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+        }
+        .priority-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .priority-1 { background-color: #10b981; }
+        .priority-2 { background-color: #3b82f6; }
+        .priority-3 { background-color: #f59e0b; }
+        .priority-4 { background-color: #ef4444; }
+        .priority-5 { background-color: #dc2626; }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="pipelineApp()">
+    <!-- 헤더 -->
+    <div class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-semibold text-gray-900">
+                        <i class="fas fa-chart-line mr-2 text-blue-600"></i>
+                        영업 파이프라인 관리
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button @click="showAddCompanyModal = true" 
+                            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>기업 등록
+                    </button>
+                    <a href="/main" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-home mr-1"></i>메인으로
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Section A: 알림 대시보드 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- 오늘 연락할 기업 -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-phone text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">오늘 연락할 기업</p>
+                        <p class="text-2xl font-semibold text-blue-600" x-text="todayContacts.length"></p>
+                    </div>
+                </div>
+                <div class="mt-4" x-show="todayContacts.length > 0">
+                    <template x-for="company in todayContacts.slice(0, 3)">
+                        <div class="text-sm text-gray-600 truncate" x-text="company.company_name"></div>
+                    </template>
+                    <div x-show="todayContacts.length > 3" class="text-xs text-blue-600">
+                        외 <span x-text="todayContacts.length - 3"></span>개 기업
+                    </div>
+                </div>
+            </div>
+
+            <!-- 관리 소홀 기업 -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">관리 소홀 경고</p>
+                        <p class="text-2xl font-semibold text-red-600" x-text="urgentCompanies.length"></p>
+                    </div>
+                </div>
+                <div class="mt-4" x-show="urgentCompanies.length > 0">
+                    <template x-for="company in urgentCompanies.slice(0, 3)">
+                        <div class="text-sm text-gray-600 truncate" x-text="company.company_name"></div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- 전체 관리 기업 -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-building text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">전체 관리 기업</p>
+                        <p class="text-2xl font-semibold text-green-600" x-text="allCompanies.length"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 예상 매출 -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-won-sign text-white text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">예상 매출</p>
+                        <p class="text-lg font-semibold text-yellow-600" x-text="formatMoney(totalExpectedAmount)"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section B: 관리 기업 리스트 -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-medium text-gray-900">관리 기업 현황</h2>
+                    <div class="flex space-x-2">
+                        <!-- 상태 필터 -->
+                        <select x-model="statusFilter" @change="filterCompanies()" 
+                                class="rounded-md border-gray-300 text-sm">
+                            <option value="">전체 상태</option>
+                            <option value="prospect">잠재고객</option>
+                            <option value="contacted">접촉중</option>
+                            <option value="proposal">제안단계</option>
+                            <option value="negotiation">협상중</option>
+                            <option value="contract">계약완료</option>
+                            <option value="hold">보류</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 테이블 -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                상태
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                기업명
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                키맨 정보
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                마지막 접촉
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                다음 약속
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                예상금액
+                            </th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                관리
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <template x-for="company in filteredCompanies" :key="company.id">
+                            <tr class="hover:bg-gray-50" :class="{'bg-red-50': isUrgent(company)}">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div :class="'priority-' + company.priority_level" class="priority-indicator"></div>
+                                        <span class="status-badge" :class="getStatusBadgeClass(company.status)" 
+                                              x-text="getStatusText(company.status)"></span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600" 
+                                         @click="editCompany(company)" x-text="company.company_name"></div>
+                                    <div class="text-sm text-gray-500" x-text="company.representative_name"></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900" x-text="company.keyman_name"></div>
+                                    <div class="text-sm text-gray-500" x-text="company.keyman_position"></div>
+                                    <div class="text-sm text-blue-600" x-text="company.keyman_phone"></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <span x-text="formatDate(company.last_contact_date)"></span>
+                                    <div x-show="isUrgent(company)" class="text-xs text-red-600 font-medium">
+                                        관리 소홀!
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <span x-text="formatDate(company.next_contact_date)"></span>
+                                    <div class="text-xs" :class="getDdayClass(company.next_contact_date)" 
+                                         x-text="calculateDday(company.next_contact_date)"></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <span x-text="formatMoney(company.expected_amount)"></span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex justify-end space-x-2">
+                                        <button @click="showContactHistory(company)" 
+                                                class="text-blue-600 hover:text-blue-900">
+                                            <i class="fas fa-history"></i>
+                                        </button>
+                                        <button @click="addContactRecord(company)" 
+                                                class="text-green-600 hover:text-green-900">
+                                            <i class="fas fa-plus-circle"></i>
+                                        </button>
+                                        <button @click="editCompany(company)" 
+                                                class="text-gray-600 hover:text-gray-900">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 기업 등록 모달 -->
+    <div x-show="showAddCompanyModal" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">관심 기업 등록</h3>
+                    <button @click="closeAddCompanyModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- 기업 검색 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">기업 검색</label>
+                    <input type="text" x-model="companySearch" @input="searchCompanies()"
+                           placeholder="기업명, 대표자명 또는 사업자번호로 검색"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    
+                    <!-- 검색 결과 -->
+                    <div x-show="searchResults.length > 0" class="mt-2 max-h-40 overflow-y-auto border rounded-md">
+                        <template x-for="result in searchResults">
+                            <div @click="selectCompany(result)" 
+                                 class="p-2 hover:bg-gray-50 cursor-pointer border-b">
+                                <div class="font-medium" x-text="result.company_name"></div>
+                                <div class="text-sm text-gray-500" x-text="result.representative_name + ' | ' + result.biz_no"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- 선택된 기업 정보 -->
+                <div x-show="selectedCompany" class="mb-4 p-3 bg-blue-50 rounded-md">
+                    <div class="font-medium" x-text="selectedCompany?.company_name"></div>
+                    <div class="text-sm text-gray-600" x-text="selectedCompany?.representative_name"></div>
+                </div>
+
+                <!-- 기업 등록 폼 -->
+                <form @submit.prevent="submitAddCompany()" x-show="selectedCompany">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 이름*</label>
+                            <input type="text" x-model="newCompany.keyman_name" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 직급</label>
+                            <input type="text" x-model="newCompany.keyman_position"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 연락처</label>
+                            <input type="tel" x-model="newCompany.keyman_phone"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 이메일</label>
+                            <input type="email" x-model="newCompany.keyman_email"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">상태</label>
+                            <select x-model="newCompany.status" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="prospect">잠재고객</option>
+                                <option value="contacted">접촉중</option>
+                                <option value="proposal">제안단계</option>
+                                <option value="negotiation">협상중</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">우선순위</label>
+                            <select x-model="newCompany.priority_level" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="1">낮음</option>
+                                <option value="2">보통</option>
+                                <option value="3">높음</option>
+                                <option value="4">매우 높음</option>
+                                <option value="5">최우선</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">다음 연락 예정일</label>
+                            <input type="date" x-model="newCompany.next_contact_date"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">예상 매출 (보험가입금액)</label>
+                            <input type="number" x-model="newCompany.expected_amount"
+                                   placeholder="원 단위로 입력 (예: 5000000)"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">등록 사유</label>
+                        <textarea x-model="newCompany.registration_reason" rows="2"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">메모</label>
+                        <textarea x-model="newCompany.notes" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" @click="closeAddCompanyModal()"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                            취소
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                            등록하기
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 기업 정보 수정 모달 -->
+    <div x-show="showEditCompanyModal" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">기업 정보 수정</h3>
+                    <button @click="showEditCompanyModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- 기업 정보 표시 -->
+                <div x-show="editingCompany" class="mb-4 p-3 bg-blue-50 rounded-md">
+                    <div class="font-medium" x-text="editingCompany?.company_name"></div>
+                    <div class="text-sm text-gray-600" x-text="editingCompany?.representative_name"></div>
+                    <div class="text-sm text-gray-500" x-text="editingCompany?.biz_reg_no"></div>
+                </div>
+
+                <!-- 기업 수정 폼 -->
+                <form @submit.prevent="submitEditCompany()" x-show="editingCompany">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 이름*</label>
+                            <input type="text" x-model="editCompanyForm.keyman_name" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 직급</label>
+                            <input type="text" x-model="editCompanyForm.keyman_position"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 연락처</label>
+                            <input type="tel" x-model="editCompanyForm.keyman_phone"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">키맨 이메일</label>
+                            <input type="email" x-model="editCompanyForm.keyman_email"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">상태</label>
+                            <select x-model="editCompanyForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="prospect">잠재고객</option>
+                                <option value="contacted">접촉중</option>
+                                <option value="proposal">제안단계</option>
+                                <option value="negotiation">협상중</option>
+                                <option value="contract">계약완료</option>
+                                <option value="hold">보류</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">우선순위</label>
+                            <select x-model="editCompanyForm.priority_level" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="1">낮음</option>
+                                <option value="2">보통</option>
+                                <option value="3">높음</option>
+                                <option value="4">매우 높음</option>
+                                <option value="5">최우선</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">마지막 접촉일</label>
+                            <input type="date" x-model="editCompanyForm.last_contact_date"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">다음 연락 예정일</label>
+                            <input type="date" x-model="editCompanyForm.next_contact_date"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">예상 매출 (보험가입금액)</label>
+                            <input type="number" x-model="editCompanyForm.expected_amount"
+                                   placeholder="원 단위로 입력 (예: 5000000)"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">메모</label>
+                        <textarea x-model="editCompanyForm.notes" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" @click="showEditCompanyModal = false"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                            취소
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                            수정 완료
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 접촉 이력 모달 -->
+    <div x-show="showContactModal" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <span x-text="selectedCompanyForContact?.company_name"></span> - 접촉 이력
+                    </h3>
+                    <button @click="showContactModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- 새 접촉 이력 추가 -->
+                <div class="bg-gray-50 p-4 rounded-md mb-4">
+                    <h4 class="font-medium mb-3">새 접촉 이력 추가</h4>
+                    <form @submit.prevent="submitContactHistory()">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">접촉일*</label>
+                                <input type="date" x-model="newContact.contact_date" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">접촉 유형*</label>
+                                <select x-model="newContact.contact_type" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                                    <option value="phone">전화</option>
+                                    <option value="visit">방문</option>
+                                    <option value="email">이메일</option>
+                                    <option value="message">문자</option>
+                                    <option value="meeting">미팅</option>
+                                    <option value="gift">선물지급</option>
+                                    <option value="consulting">컨설팅</option>
+                                    <option value="proposal">제안서 제출</option>
+                                    <option value="contract">계약 체결</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">비용</label>
+                                <input type="number" x-model="newContact.cost"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">내용*</label>
+                            <textarea x-model="newContact.content" required rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" x-model="newContact.follow_up_required" class="mr-2">
+                                    <span class="text-sm text-gray-700">후속 약속 필요</span>
+                                </label>
+                            </div>
+                            <div x-show="newContact.follow_up_required">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">후속 약속일</label>
+                                <input type="date" x-model="newContact.follow_up_date"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            </div>
+                        </div>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm">
+                            이력 추가
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 기존 접촉 이력 목록 -->
+                <div class="max-h-96 overflow-y-auto">
+                    <template x-for="history in contactHistory" :key="history.id">
+                        <div class="border-l-4 border-blue-200 pl-4 pb-4 mb-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-1">
+                                        <span class="text-lg mr-2" x-text="getContactTypeIcon(history.contact_type)"></span>
+                                        <span class="font-medium text-gray-900" x-text="getContactTypeText(history.contact_type)"></span>
+                                        <span class="ml-2 text-sm text-gray-500" x-text="formatDate(history.contact_date)"></span>
+                                        <span x-show="history.cost > 0" class="ml-2 text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                                            <span x-text="formatMoney(history.cost)"></span>
+                                        </span>
+                                    </div>
+                                    <p class="text-gray-700 text-sm" x-text="history.content"></p>
+                                    <div x-show="history.follow_up_required" class="mt-2">
+                                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                            후속 약속: <span x-text="formatDate(history.follow_up_date)"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function pipelineApp() {
+            return {
+                // 데이터
+                allCompanies: [],
+                filteredCompanies: [],
+                todayContacts: [],
+                urgentCompanies: [],
+                contactHistory: [],
+                statusStats: {},
+                
+                // 필터
+                statusFilter: '',
+                
+                // 모달 상태
+                showAddCompanyModal: false,
+                showContactModal: false,
+                showEditCompanyModal: false,
+                
+                // 검색 관련
+                companySearch: '',
+                searchResults: [],
+                selectedCompany: null,
+                
+                // 폼 데이터
+                newCompany: {
+                    keyman_name: '',
+                    keyman_phone: '',
+                    keyman_position: '',
+                    keyman_email: '',
+                    status: 'prospect',
+                    priority_level: 3,
+                    registration_reason: '',
+                    next_contact_date: '',
+                    expected_amount: 0,
+                    notes: ''
+                },
+                
+                newContact: {
+                    contact_date: new Date().toISOString().split('T')[0],
+                    contact_type: 'phone',
+                    content: '',
+                    cost: 0,
+                    follow_up_required: false,
+                    follow_up_date: ''
+                },
+                
+                selectedCompanyForContact: null,
+                editingCompany: null,
+                
+                // 수정 폼 데이터
+                editCompanyForm: {
+                    keyman_name: '',
+                    keyman_phone: '',
+                    keyman_position: '',
+                    keyman_email: '',
+                    status: 'prospect',
+                    priority_level: 3,
+                    last_contact_date: '',
+                    next_contact_date: '',
+                    expected_amount: 0,
+                    notes: ''
+                },
+
+                // 초기화
+                init() {
+                    this.loadDashboardData();
+                    this.checkAutoRegister();
+                },
+
+                // URL 파라미터로 자동 등록 모드 체크
+                checkAutoRegister() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('register') === 'true') {
+                        const bizNo = urlParams.get('biz_no');
+                        const companyName = urlParams.get('company_name');
+                        const representative = urlParams.get('representative');
+                        
+                        if (bizNo && companyName) {
+                            // 자동으로 기업 선택 및 모달 열기
+                            this.selectedCompany = {
+                                biz_no: bizNo,
+                                company_name: companyName,
+                                representative_name: representative
+                            };
+                            this.companySearch = companyName;
+                            this.showAddCompanyModal = true;
+                        }
+                    }
+                },
+
+                // 대시보드 데이터 로드
+                async loadDashboardData() {
+                    try {
+                        const response = await fetch('/api/pipeline/dashboard');
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.allCompanies = data.data.all_companies;
+                            this.todayContacts = data.data.today_contacts;
+                            this.urgentCompanies = data.data.urgent_companies;
+                            this.statusStats = data.data.status_stats;
+                            this.filterCompanies();
+                        }
+                    } catch (error) {
+                        console.error('데이터 로드 실패:', error);
+                        alert('데이터를 불러오는 중 오류가 발생했습니다.');
+                    }
+                },
+
+                // 기업 검색
+                async searchCompanies() {
+                    if (this.companySearch.length < 2) {
+                        this.searchResults = [];
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/api/companies/search?q=${encodeURIComponent(this.companySearch)}`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.searchResults = data.data;
+                        }
+                    } catch (error) {
+                        console.error('검색 실패:', error);
+                    }
+                },
+
+                // 기업 선택
+                selectCompany(company) {
+                    this.selectedCompany = company;
+                    this.searchResults = [];
+                    this.companySearch = company.company_name;
+                },
+
+                // 새 기업 등록
+                async submitAddCompany() {
+                    if (!this.selectedCompany) {
+                        alert('기업을 먼저 선택해주세요.');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/api/pipeline/company', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                biz_reg_no: this.selectedCompany.biz_no,
+                                ...this.newCompany
+                            })
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            alert('기업이 등록되었습니다.');
+                            this.closeAddCompanyModal();
+                            this.loadDashboardData();
+                        } else {
+                            alert(data.message);
+                        }
+                    } catch (error) {
+                        console.error('등록 실패:', error);
+                        alert('등록 중 오류가 발생했습니다.');
+                    }
+                },
+
+                // 접촉 이력 보기
+                async showContactHistory(company) {
+                    this.selectedCompanyForContact = company;
+                    
+                    try {
+                        const response = await fetch(`/api/pipeline/contact/${company.id}`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.contactHistory = data.data;
+                            this.showContactModal = true;
+                        }
+                    } catch (error) {
+                        console.error('이력 조회 실패:', error);
+                        alert('접촉 이력을 불러오는 중 오류가 발생했습니다.');
+                    }
+                },
+
+                // 접촉 이력 추가
+                async submitContactHistory() {
+                    try {
+                        const response = await fetch('/api/pipeline/contact', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                managed_company_id: this.selectedCompanyForContact.id,
+                                ...this.newContact
+                            })
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            alert('접촉 이력이 등록되었습니다.');
+                            this.newContact = {
+                                contact_date: new Date().toISOString().split('T')[0],
+                                contact_type: 'phone',
+                                content: '',
+                                cost: 0,
+                                follow_up_required: false,
+                                follow_up_date: ''
+                            };
+                            this.showContactHistory(this.selectedCompanyForContact);
+                            this.loadDashboardData();
+                        } else {
+                            alert(data.message);
+                        }
+                    } catch (error) {
+                        console.error('이력 등록 실패:', error);
+                        alert('이력 등록 중 오류가 발생했습니다.');
+                    }
+                },
+
+                // 기업 추가 모달 닫기
+                closeAddCompanyModal() {
+                    this.showAddCompanyModal = false;
+                    this.selectedCompany = null;
+                    this.companySearch = '';
+                    this.searchResults = [];
+                    this.newCompany = {
+                        keyman_name: '',
+                        keyman_phone: '',
+                        keyman_position: '',
+                        keyman_email: '',
+                        status: 'prospect',
+                        priority_level: 3,
+                        registration_reason: '',
+                        next_contact_date: '',
+                        expected_amount: 0,
+                        notes: ''
+                    };
+                },
+
+                // 필터링
+                filterCompanies() {
+                    if (this.statusFilter) {
+                        this.filteredCompanies = this.allCompanies.filter(c => c.status === this.statusFilter);
+                    } else {
+                        this.filteredCompanies = [...this.allCompanies];
+                    }
+                },
+
+                // 유틸리티 함수들
+                formatDate(dateString) {
+                    if (!dateString) return '-';
+                    return new Date(dateString).toLocaleDateString('ko-KR');
+                },
+
+                formatMoney(amount) {
+                    if (!amount) return '0원';
+                    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
+                },
+
+                calculateDday(targetDate) {
+                    if (!targetDate) return '';
+                    
+                    const today = new Date();
+                    const target = new Date(targetDate);
+                    const diffTime = target - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays === 0) return 'D-Day';
+                    if (diffDays > 0) return `D-${diffDays}`;
+                    return `D+${Math.abs(diffDays)}`;
+                },
+
+                getDdayClass(targetDate) {
+                    if (!targetDate) return '';
+                    
+                    const today = new Date();
+                    const target = new Date(targetDate);
+                    const diffTime = target - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays <= 0) return 'text-red-600 font-bold';
+                    if (diffDays <= 3) return 'text-orange-600 font-medium';
+                    return 'text-gray-600';
+                },
+
+                getStatusText(status) {
+                    const statusMap = {
+                        'prospect': '잠재고객',
+                        'contacted': '접촉중',
+                        'proposal': '제안단계',
+                        'negotiation': '협상중',
+                        'contract': '계약완료',
+                        'hold': '보류'
+                    };
+                    return statusMap[status] || status;
+                },
+
+                getStatusBadgeClass(status) {
+                    const classMap = {
+                        'prospect': 'bg-gray-100 text-gray-800',
+                        'contacted': 'bg-blue-100 text-blue-800',
+                        'proposal': 'bg-yellow-100 text-yellow-800',
+                        'negotiation': 'bg-orange-100 text-orange-800',
+                        'contract': 'bg-green-100 text-green-800',
+                        'hold': 'bg-red-100 text-red-800'
+                    };
+                    return classMap[status] || 'bg-gray-100 text-gray-800';
+                },
+
+                getContactTypeText(type) {
+                    const typeMap = {
+                        'phone': '전화',
+                        'visit': '방문',
+                        'email': '이메일',
+                        'message': '문자',
+                        'meeting': '미팅',
+                        'gift': '선물지급',
+                        'consulting': '컨설팅',
+                        'proposal': '제안서 제출',
+                        'contract': '계약 체결'
+                    };
+                    return typeMap[type] || type;
+                },
+
+                getContactTypeIcon(type) {
+                    const iconMap = {
+                        'phone': '?',
+                        'visit': '?',
+                        'email': '?',
+                        'message': '?',
+                        'meeting': '?',
+                        'gift': '?',
+                        'consulting': '?',
+                        'proposal': '?',
+                        'contract': '?'
+                    };
+                    return iconMap[type] || '?';
+                },
+
+                isUrgent(company) {
+                    return this.urgentCompanies.some(urgent => urgent.id === company.id);
+                },
+
+                get totalExpectedAmount() {
+                    return this.allCompanies.reduce((sum, company) => sum + (company.expected_amount || 0), 0);
+                },
+
+                // 기업 정보 수정
+                editCompany(company) {
+                    this.editingCompany = company;
+                    this.editCompanyForm = {
+                        keyman_name: company.keyman_name || '',
+                        keyman_phone: company.keyman_phone || '',
+                        keyman_position: company.keyman_position || '',
+                        keyman_email: company.keyman_email || '',
+                        status: company.status || 'prospect',
+                        priority_level: company.priority_level || 3,
+                        last_contact_date: company.last_contact_date || '',
+                        next_contact_date: company.next_contact_date || '',
+                        expected_amount: company.expected_amount || 0,
+                        notes: company.notes || ''
+                    };
+                    this.showEditCompanyModal = true;
+                },
+
+                // 기업 정보 수정 제출
+                async submitEditCompany() {
+                    if (!this.editingCompany) return;
+
+                    try {
+                        const response = await fetch(`/api/pipeline/company/${this.editingCompany.id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(this.editCompanyForm)
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            alert('기업 정보가 수정되었습니다.');
+                            this.showEditCompanyModal = false;
+                            this.loadDashboardData();
+                        } else {
+                            alert(data.message);
+                        }
+                    } catch (error) {
+                        console.error('수정 실패:', error);
+                        alert('수정 중 오류가 발생했습니다.');
+                    }
+                },
+
+                // 기능 확장을 위한 플레이스홀더
+                addContactRecord(company) {
+                    this.showContactHistory(company);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
