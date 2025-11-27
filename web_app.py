@@ -5852,7 +5852,56 @@ def perform_ai_analysis(company_basic, financials):
 
     return Response(generate(), mimetype='text/event-stream')
 
+@app.route('/api/update_representative_name', methods=['POST'])
+def update_representative_name():
+    """대표자명 수정 API"""
+    try:
+        if not session.get('logged_in'):
+            return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
+        
+        data = request.json
+        biz_no = data.get('biz_no')
+        new_name = data.get('representative_name')
+        
+        print(f"[DEBUG] Updating representative name: biz_no={biz_no}, new_name={new_name}")
+        
+        if not biz_no or not new_name:
+            return jsonify({"success": False, "message": "사업자번호와 대표자명이 필요합니다."}), 400
+        
+        conn = get_db_connection()
+        try:
+            cursor = conn.execute("""
+                UPDATE Company_Basic 
+                SET representative_name = ?
+                WHERE biz_no = ?
+            """, (new_name, biz_no))
+            
+            rows_affected = cursor.rowcount
+            conn.commit()
+            
+            print(f"[DEBUG] Update successful: rows_affected={rows_affected}")
+            
+            response_data = {
+                "success": True, 
+                "message": "대표자명이 성공적으로 수정되었습니다.",
+                "new_name": new_name,
+                "rows_affected": rows_affected
+            }
+            return jsonify(response_data), 200
+        
+        except Exception as e:
+            conn.rollback()
+            print(f"[ERROR] Database error: {str(e)}")
+            return jsonify({"success": False, "message": f"데이터베이스 오류: {str(e)}"}), 500
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        print(f"[ERROR] Request processing error: {str(e)}")
+        return jsonify({"success": False, "message": f"요청 처리 오류: {str(e)}"}), 500
+
 if __name__ == '__main__':
+
     print("=== 애플리케이션 시작 ===")
     print(f"Flask 앱 디렉터리: {app_dir}")
     print(f"데이터베이스 경로: {DB_PATH}")
