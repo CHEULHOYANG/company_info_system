@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 # Company Management System
 import os
 import sqlite3
@@ -1272,11 +1272,13 @@ def check_tables():
         conn = get_db_connection()
         results = {}
         
-        # 확인할 테이블 목록
+        # 확인할 테이블 목록 (파이프라인 테이블 추가)
         tables_to_check = [
             'Users', 'User_Subscriptions', 'Company_Basic', 
             'Contact_History', 'Signup_Requests', 'Pioneering_Targets', 
-            'Sales_Expenses', 'Company_Financial', 'Company_Shareholder'
+            'Sales_Expenses', 'Company_Financial', 'Company_Shareholder',
+            'managed_companies', 'pipeline_contact_history', 'history',
+            'Password_History', 'Payment_History', 'Branches'
         ]
         
         for table_name in tables_to_check:
@@ -1428,6 +1430,41 @@ def fix_db():
                     description TEXT,
                     receipt_url TEXT,
                     created_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("managed_companies", '''
+                CREATE TABLE IF NOT EXISTS managed_companies (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    biz_reg_no TEXT NOT NULL,
+                    manager_id TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'prospect' CHECK (status IN ('prospect', 'contacted', 'proposal', 'negotiation', 'contract', 'hold')),
+                    keyman_name TEXT NOT NULL,
+                    keyman_phone TEXT,
+                    keyman_position TEXT,
+                    keyman_email TEXT,
+                    registration_reason TEXT,
+                    next_contact_date DATE,
+                    last_contact_date DATE,
+                    notes TEXT,
+                    expected_amount INTEGER DEFAULT 0,
+                    priority_level INTEGER DEFAULT 1 CHECK (priority_level BETWEEN 1 AND 5),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            '''),
+            ("pipeline_contact_history", '''
+                CREATE TABLE IF NOT EXISTS pipeline_contact_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    managed_company_id INTEGER NOT NULL,
+                    contact_date DATE NOT NULL,
+                    contact_type TEXT NOT NULL CHECK (contact_type IN ('phone', 'visit', 'email', 'message', 'gift', 'consulting', 'meeting', 'proposal', 'contract')),
+                    content TEXT NOT NULL,
+                    cost INTEGER DEFAULT 0,
+                    attachment TEXT,
+                    follow_up_required BOOLEAN DEFAULT 0,
+                    follow_up_date DATE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (managed_company_id) REFERENCES managed_companies(id) ON DELETE CASCADE
                 )
             ''')
         ]
