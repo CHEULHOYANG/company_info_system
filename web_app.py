@@ -3134,6 +3134,103 @@ def company_detail(biz_no):
                          user_name=session.get('user_name'),
                          user_level=session.get('user_level'))
 
+# 대표자 이름 수정 API
+@app.route('/api/update_representative_name', methods=['POST'])
+def update_representative_name():
+    """기본정보의 대표자 이름 수정"""
+    if not session.get('logged_in'): 
+        return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
+    
+    try:
+        data = request.get_json()
+        biz_no = data.get('biz_no')
+        new_name = data.get('new_name', '').strip()
+        
+        if not biz_no or not new_name:
+            return jsonify({"success": False, "message": "사업자번호와 새 이름이 필요합니다."})
+        
+        conn = get_db_connection()
+        
+        # Company_Basic 테이블의 대표자 이름 수정
+        conn.execute("""
+            UPDATE Company_Basic 
+            SET representative_name = ? 
+            WHERE biz_no = ?
+        """, (new_name, biz_no))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"success": True, "message": "대표자 이름이 수정되었습니다."})
+        
+    except Exception as e:
+        print(f"대표자 이름 수정 오류: {e}")
+        return jsonify({"success": False, "message": f"수정 중 오류가 발생했습니다: {str(e)}"})
+
+# 대표자 정보 삭제 API
+@app.route('/api/delete_representative', methods=['POST'])
+def delete_representative():
+    """대표자 정보 삭제 (마스킹된 데이터)"""
+    if not session.get('logged_in'): 
+        return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
+    
+    try:
+        data = request.get_json()
+        biz_no = data.get('biz_no')
+        name = data.get('name', '').strip()
+        
+        if not biz_no or not name:
+            return jsonify({"success": False, "message": "사업자번호와 이름이 필요합니다."})
+        
+        conn = get_db_connection()
+        
+        # Company_Representative 테이블에서 삭제
+        conn.execute("""
+            DELETE FROM Company_Representative 
+            WHERE biz_no = ? AND name = ?
+        """, (biz_no, name))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"success": True, "message": "대표자 정보가 삭제되었습니다."})
+        
+    except Exception as e:
+        print(f"대표자 삭제 오류: {e}")
+        return jsonify({"success": False, "message": f"삭제 중 오류가 발생했습니다: {str(e)}"})
+
+# 주주 정보 삭제 API
+@app.route('/api/delete_shareholder', methods=['POST'])
+def delete_shareholder():
+    """주주 정보 삭제 (마스킹된 데이터)"""
+    if not session.get('logged_in'): 
+        return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
+    
+    try:
+        data = request.get_json()
+        biz_no = data.get('biz_no')
+        shareholder_name = data.get('shareholder_name', '').strip()
+        
+        if not biz_no or not shareholder_name:
+            return jsonify({"success": False, "message": "사업자번호와 주주명이 필요합니다."})
+        
+        conn = get_db_connection()
+        
+        # Company_Shareholder 테이블에서 삭제
+        conn.execute("""
+            DELETE FROM Company_Shareholder 
+            WHERE biz_no = ? AND shareholder_name = ?
+        """, (biz_no, shareholder_name))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"success": True, "message": "주주 정보가 삭제되었습니다."})
+        
+    except Exception as e:
+        print(f"주주 삭제 오류: {e}")
+        return jsonify({"success": False, "message": f"삭제 중 오류가 발생했습니다: {str(e)}"})
+
 @app.route('/api/contact_history', methods=['GET'])
 def get_contact_history():
     """특정 기업의 접촉이력 조회"""
@@ -5888,54 +5985,6 @@ def perform_ai_analysis(company_basic, financials):
             conn.close()
 
     return Response(generate(), mimetype='text/event-stream')
-
-@app.route('/api/update_representative_name', methods=['POST'])
-def update_representative_name():
-    """대표자명 수정 API"""
-    try:
-        if not session.get('logged_in'):
-            return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
-        
-        data = request.json
-        biz_no = data.get('biz_no')
-        new_name = data.get('representative_name')
-        
-        print(f"[DEBUG] Updating representative name: biz_no={biz_no}, new_name={new_name}")
-        
-        if not biz_no or not new_name:
-            return jsonify({"success": False, "message": "사업자번호와 대표자명이 필요합니다."}), 400
-        
-        conn = get_db_connection()
-        try:
-            cursor = conn.execute("""
-                UPDATE Company_Basic 
-                SET representative_name = ?
-                WHERE biz_no = ?
-            """, (new_name, biz_no))
-            
-            rows_affected = cursor.rowcount
-            conn.commit()
-            
-            print(f"[DEBUG] Update successful: rows_affected={rows_affected}")
-            
-            response_data = {
-                "success": True, 
-                "message": "대표자명이 성공적으로 수정되었습니다.",
-                "new_name": new_name,
-                "rows_affected": rows_affected
-            }
-            return jsonify(response_data), 200
-        
-        except Exception as e:
-            conn.rollback()
-            print(f"[ERROR] Database error: {str(e)}")
-            return jsonify({"success": False, "message": f"데이터베이스 오류: {str(e)}"}), 500
-        finally:
-            conn.close()
-            
-    except Exception as e:
-        print(f"[ERROR] Request processing error: {str(e)}")
-        return jsonify({"success": False, "message": f"요청 처리 오류: {str(e)}"}), 500
 
 if __name__ == '__main__':
 
