@@ -13,6 +13,10 @@ import csv
 from werkzeug.utils import secure_filename
 from jinja2 import FileSystemLoader, TemplateNotFound
 
+# .env 파일에서 환경 변수 로드
+from dotenv import load_dotenv
+load_dotenv()  # .env 파일이 있으면 자동으로 환경 변수로 로드
+
 # 한국 시간대 설정
 KST = pytz.timezone('Asia/Seoul')
 
@@ -5645,8 +5649,9 @@ def get_pipeline_contact_history(company_id):
         conn.close()
 
 @app.route('/api/companies/search')
-def ai_analysis():
-    """AI 기업 분석 API"""
+@app.route('/api/ai_analysis', methods=['POST'])
+def ai_analysis_stream():
+    """AI 기업 분석 API (스트리밍)"""
     if not session.get('logged_in'):
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
     
@@ -5683,8 +5688,30 @@ def ai_analysis():
         
         financials = cursor.fetchall()
         
+        # 접촉이력 조회 (최근 10건)
+        cursor.execute('''
+            SELECT contact_datetime, contact_type, contact_person, memo, registered_by
+            FROM Contact_History 
+            WHERE biz_no = ? 
+            ORDER BY contact_datetime DESC 
+            LIMIT 10
+        ''', (biz_no,))
+        
+        contact_history = cursor.fetchall()
+        
+        # 주주 정보 조회 (상위 10명)
+        cursor.execute('''
+            SELECT shareholder_name, relationship, ownership_percent, total_shares_owned
+            FROM Company_Shareholder 
+            WHERE biz_no = ? 
+            ORDER BY CAST(ownership_percent AS REAL) DESC 
+            LIMIT 10
+        ''', (biz_no,))
+        
+        shareholders = cursor.fetchall()
+        
         # AI 분석 실행
-        analysis_result = perform_ai_analysis(company_basic, financials)
+        analysis_result = perform_ai_analysis(company_basic, financials, contact_history, shareholders)
         
         return jsonify({
             "success": True,
@@ -5697,8 +5724,8 @@ def ai_analysis():
     finally:
         conn.close()
 
-def perform_ai_analysis(company_basic, financials):
-    """OpenAI API를 사용한 전문적인 기업 분석"""
+def perform_ai_analysis(company_basic, financials, contact_history=None, shareholders=None):
+    """OpenAI API를 사용한 전문적인 경영 컨설팅 분석"""
     import os
     import json
     from openai import OpenAI
@@ -5774,64 +5801,196 @@ def perform_ai_analysis(company_basic, financials):
                         profit_margin = (profit / revenue * 100) if revenue > 0 else 0
                         financial_details += f"  - ROE: {roe:.1f}%, 자산회전율: {asset_turnover:.2f}, 영업이익률: {profit_margin:.1f}%\n"
             
-            # 전문적인 분석 프롬프트 구성
+            # 접촉이력 정보 구성
+            contact_summary = ""
+            if contact_history and len(contact_history) > 0:
+                contact_summary = "== 영업 접촉 이력 (최근 10건) ==\n"
+                for i, contact in enumerate(contact_history, 1):
+                    date = contact[0] or "날짜미상"
+                    type_ = contact[1] or "일반접촉"
+                    person = contact[2] or "미상"
+                    memo = contact[3] or ""
+                    registered_by = contact[4] or "시스템"
+                    
+                    contact_summary += f"{i}. [{date}] {type_} - {person}\n"
+                    if memo:
+                        contact_summary += f"   내용: {memo[:100]}{'...' if len(memo) > 100 else ''}\n"
+                    contact_summary += f"   담당자: {registered_by}\n\n"
+            else:
+                contact_summary = "== 영업 접촉 이력 ==\n아직 접촉 이력이 없습니다.\n\n"
+            
+            # 주주 정보 구성
+            shareholder_summary = ""
+            if shareholders and len(shareholders) > 0:
+                shareholder_summary = "== 주주 구조 (상위 10명) ==\n"
+                total_ownership = 0
+                for i, sh in enumerate(shareholders, 1):
+                    name = sh[0] or "미상"
+                    position = sh[1] or ""
+                    ratio = sh[2] or "0"
+                    shares = sh[3] or "0"
+                    
+                    try:
+                        ratio_float = float(ratio) if ratio else 0.0
+                        total_ownership += ratio_float
+                    except:
+                        ratio_float = 0.0
+                    
+                    shareholder_summary += f"{i}. {name}"
+                    if position:
+                        shareholder_summary += f" ({position})"
+                    shareholder_summary += f" - 지분율: {ratio_float:.2f}%"
+                    if shares and shares != "0":
+                        try:
+                            shares_int = int(float(shares))
+                            shareholder_summary += f", 보유주식: {shares_int:,}주"
+                        except:
+                            pass
+                    shareholder_summary += "\n"
+                
+                shareholder_summary += f"\n상위 {min(len(shareholders), 10)}인 합계 지분율: {total_ownership:.2f}%\n\n"
+            else:
+                shareholder_summary = "== 주주 구조 ==\n주주 정보가 없습니다.\n\n"
+            
+            # 전문적인 경영 컨설팅 분석 프롬프트 구성
             detailed_prompt = f"""
-당신은 20년 경력의 기업 분석 전문가입니다. 다음 기업에 대해 투자은행 수준의 상세한 분석을 수행해주세요.
+당신은 기업 경영 컨설턴트이자 재무 분석 전문가입니다. 다음 기업에 대해 **경영 개선 및 성장 전략 중심**의 실질적인 컨설팅 보고서를 작성해주세요.
 
 == 기업 기본 정보 ==
-? 기업명: {company_name}
-? 대표자: {representative}
-? 업종: {industry}
-? 본사 소재지: {address}
-? 국민연금 가입자수: {employee_count}명
+• 기업명: {company_name}
+• 대표자: {representative}
+• 업종: {industry}
+• 본사: {address}
+• 직원수: {employee_count}명 (국민연금 가입자)
 
 == 재무 정보 (최근 3개년) ==
 {financial_details}
 
-== 분석 요청사항 ==
-다음 4개 섹션에 대해 각각 150-200자 내외로 전문적이고 구체적인 분석을 제공해주세요:
+{shareholder_summary}
 
-1. **기업 개요 및 사업 현황**
-   - 주력 사업 영역과 시장 포지션
-   - 업계 내 경쟁력과 차별화 요소
-   - 사업 모델의 특징과 성장 동력
+{contact_summary}
 
-2. **재무 성과 및 안정성 분석**
-   - 수익성 지표 분석 (매출 성장률, 영업이익률, ROE 등)
-   - 재무 안정성 평가 (자본구조, 유동성 등)
-   - 3개년 재무 트렌드와 개선/악화 요인
+== 경영 컨설팅 보고서 작성 요청 ==
 
-3. **리스크 요인 및 우려사항**
-   - 업계 특성상 주요 위험요소
-   - 재무적 리스크 (부채비율, 현금흐름 등)
-   - 외부 환경 변화에 따른 영향도
+**중요**: 투자 추천이나 주가 평가는 제외하고, 순수하게 **경영 개선과 성장 전략**에 초점을 맞춘 보고서를 작성해주세요.
 
-4. **투자 의견 및 밸류에이션**
-   - 종합적인 투자 매력도 평가
-   - 목표 주가 또는 기업가치 평가 관점
-   - 투자 시 고려사항과 모니터링 포인트
+다음 4개 섹션으로 구성된 **최소 1200자 이상**의 상세한 경영 컨설팅 보고서를 작성해주세요:
 
-각 섹션은 객관적 데이터에 기반하되, 실무적이고 actionable한 인사이트를 포함해주세요.
+**1. 기업 현황 종합 분석** (350자 이상)
+   - 업종 특성과 현재 시장 환경 분석
+   - 기업의 핵심 강점과 개선이 필요한 약점 (SWOT)
+   - 주주 구조 분석 (대주주 지배구조, 경영권 안정성)
+   - 경쟁사 대비 포지셔닝 및 차별화 요소
+   - 사업 모델의 지속가능성과 성장 잠재력
+   - 조직 규모(직원수)의 적정성 평가
+
+**2. 재무 건전성 및 성과 평가** (350자 이상)
+   - 3개년 재무 추이의 심층 분석 (매출, 수익성, 자산 변화)
+   - 핵심 수익성 지표 분석
+     * 매출 성장률과 성장 지속가능성
+     * 영업이익률, 순이익률 추이
+     * ROE, ROA 등 자본 효율성
+   - 재무 안정성 지표 심층 분석
+     * 부채비율, 차입금 규모와 부담
+     * 유동비율, 당좌비율 (단기 지급능력)
+     * 자기자본비율 (재무구조 건전성)
+   - 현금흐름 분석 (영업/투자/재무 활동)
+   - 동종업계 평균 대비 비교 평가
+   - 재무제표에서 발견되는 특이사항이나 리스크 신호
+
+**3. 핵심 경영 과제 및 리스크** (300자 이상)
+   - **재무적 과제**
+     * 수익성 개선 방안 (매출 증대, 비용 절감)
+     * 재무구조 개선 방안 (부채 관리, 자본 확충)
+     * 현금흐름 관리 및 유동성 개선
+   - **영업 및 시장 과제**
+     * 시장 점유율 확대 방안
+     * 신규 고객 확보 및 기존 고객 관리
+     * 제품/서비스 경쟁력 강화
+   - **조직 및 경영 과제**
+     * 조직 효율성 개선
+     * 인력 구조 최적화
+     * 의사결정 체계 개선
+   - **접촉이력 기반 실제 이슈**
+     * 영업 활동에서 파악된 실질적인 경영 애로사항
+     * 고객 관계 개선이 필요한 부분
+   - 각 과제별 구체적인 해결 방안 제시
+
+**4. 실행 가능한 개선 과제** (300자 이상)
+   - **즉시 실행 과제 (1-3개월)**
+     * 빠르게 효과를 볼 수 있는 단기 개선 과제
+     * 비용 절감, 프로세스 개선 등
+     * 각 과제의 기대효과와 실행 방법
+   
+   - **단기 전략 과제 (6개월-1년)**
+     * 영업 및 마케팅 전략 개선
+     * 재무구조 최적화 (차입금 관리, 자금조달)
+     * 고객 관리 체계 구축
+     * 디지털화/자동화 추진
+   
+   - **중장기 성장 전략 (1-3년)**
+     * 사업 확장 또는 다각화 방향
+     * 시장 확대 전략 (지역, 고객층)
+     * 기술 혁신 및 R&D 투자
+     * 조직 역량 강화 (인재 확보, 교육)
+   
+   - **우선순위 및 로드맵**
+     * 각 과제의 중요도와 시급성 평가
+     * 예상 투자비용과 기대 효과
+     * 단계별 실행 순서 제안
+
+**작성 가이드라인:**
+1. 구체적 수치와 데이터를 최대한 활용할 것
+2. 이 기업만의 특수한 상황을 반영한 맞춤형 분석
+3. 접촉이력에서 나타난 실제 영업 상황을 적극 반영
+4. 주주구조를 고려한 지배구조 및 경영권 분석
+5. 일반론이 아닌 실행 가능한 구체적 액션 아이템 제시
+6. 전문적이되 이해하기 쉬운 실용적 용어 사용
+7. **투자 추천, 주가 평가, 밸류에이션은 절대 언급하지 말 것**
+8. 경영 개선과 성장 전략에만 집중
+9. 총 1200자 이상의 충실한 내용
+
+각 섹션은 단순 나열이 아닌, 논리적 흐름을 가진 분석 내러티브로 작성해주세요.
 """
             
             print(f"OpenAI API 호출 시작 - 기업명: {company_name}")
             
             # OpenAI API 호출
             response = client.chat.completions.create(
-                model="gpt-4o-mini",  # 더 정확한 분석을 위해 GPT-4 사용
+                model="gpt-4o-mini",
                 messages=[
                     {
                         "role": "system", 
-                        "content": "당신은 Goldman Sachs, JP Morgan 등 글로벌 투자은행에서 20년간 기업분석을 담당한 전문가입니다. 정확하고 실무적인 분석을 제공하며, 항상 객관적 데이터에 기반한 판단을 내립니다."
+                        "content": """당신은 맥킨지, BCG, 베인 등 글로벌 전략 컨설팅 기업의 시니어 파트너로 20년 이상 기업 컨설팅 경험을 보유하고 있습니다.
+
+**전문 분야:**
+- 경영 전략 및 사업 구조조정
+- 재무 구조 개선 및 수익성 향상
+- 조직 효율화 및 프로세스 혁신
+- 영업 및 마케팅 전략
+- 디지털 전환 및 혁신 전략
+
+**컨설팅 원칙:**
+1. 데이터 기반의 객관적 분석
+2. 실행 가능한 구체적 액션 플랜 제시
+3. 단기/중기/장기 로드맵 제공
+4. 경영진이 즉시 실행할 수 있는 실용적 조언
+5. 투자 추천이나 주가 평가는 절대 하지 않음 (경영 개선에만 집중)
+
+**작성 스타일:**
+- 전문적이되 실무자가 이해하기 쉬운 명확한 표현
+- 구체적인 수치와 사례 활용
+- 논리적이고 설득력 있는 분석 구조
+- 긍정적이면서도 현실적인 개선 방향 제시"""
                     },
                     {
                         "role": "user", 
                         "content": detailed_prompt
                     }
                 ],
-                max_tokens=2500,
-                temperature=0.3,  # 일관성 있는 분석을 위해 낮은 온도
-                presence_penalty=0.1,
+                max_tokens=5000,  # 상세한 보고서를 위해 토큰 증가
+                temperature=0.4,  # 창의적이면서도 일관성 있는 분석
+                presence_penalty=0.2,  # 다양한 관점 제시
                 frequency_penalty=0.1
             )
             
@@ -5848,19 +6007,23 @@ def perform_ai_analysis(company_basic, financials):
                 'recommendations': ''
             }
             
-            # 섹션 구분을 위한 키워드 매칭
+            # 섹션 구분을 위한 키워드 매칭 (컨설팅 보고서 구조)
             current_section = None
             lines = ai_analysis.split('\n')
             
             for line in lines:
                 line = line.strip()
-                if '기업 개요' in line or '사업 현황' in line or '1.' in line[:5]:
+                # 1. 기업 현황 종합 분석
+                if '기업 현황' in line or '기업 개요' in line or '사업 분석' in line or ('1.' in line[:5] and '기업' in line):
                     current_section = 'summary'
-                elif '재무 성과' in line or '재무 분석' in line or '안정성' in line or '2.' in line[:5]:
+                # 2. 재무 건전성 및 성과 평가
+                elif '재무' in line and ('건전성' in line or '성과' in line or '평가' in line) or ('2.' in line[:5] and '재무' in line):
                     current_section = 'financial_analysis'
-                elif '리스크' in line or '위험' in line or '우려사항' in line or '3.' in line[:5]:
+                # 3. 핵심 경영 과제 및 리스크
+                elif ('경영 과제' in line or '핵심' in line or '리스크' in line) or ('3.' in line[:5] and ('과제' in line or '리스크' in line)):
                     current_section = 'risk_assessment'
-                elif '투자 의견' in line or '밸류에이션' in line or '투자' in line or '4.' in line[:5]:
+                # 4. 실행 가능한 개선 과제 (투자 관련 키워드 제거!)
+                elif '실행' in line or '개선 과제' in line or '컨설팅 제안' in line or ('4.' in line[:5] and ('실행' in line or '개선' in line)):
                     current_section = 'recommendations'
                 elif line and current_section:
                     sections[current_section] += line + ' '
@@ -5886,105 +6049,20 @@ def perform_ai_analysis(company_basic, financials):
                 "recommendations": sections['recommendations'].strip() or "전문적인 분석을 바탕으로 한 투자 의견과 향후 모니터링 포인트를 제시합니다."
             }
             
+            
         except Exception as e:
             print(f"OpenAI API 오류 (고급 분석): {type(e).__name__}: {e}")
             import traceback
-            print(f"상세 오류 정보: {traceback.format_exc()}")
+            print(f"상세 오류 정보: {traceback.format_exc()}") 
             # API 오류 시에도 기본 분석은 제공
     
-    def generate():
-        conn = get_db_connection()
-        try:
-            cursor = conn.cursor()
-            
-            # 기업 기본 정보 조회
-            cursor.execute('''
-                SELECT company_name, representative_name, industry_name, address, pension_count
-                FROM Company_Basic 
-                WHERE biz_no = ?
-            ''', (biz_no,))
-            
-            company_basic = cursor.fetchone()
-            if not company_basic:
-                yield "Error: 기업 정보를 찾을 수 없습니다"
-                return
-
-            # 재무 정보 조회
-            cursor.execute('''
-                SELECT fiscal_year, sales_revenue, operating_income, total_assets, 
-                       total_equity, retained_earnings, corporate_tax
-                FROM Company_Financial 
-                WHERE biz_no = ? 
-                ORDER BY fiscal_year DESC 
-                LIMIT 3
-            ''', (biz_no,))
-            financials = cursor.fetchall()
-            
-            # 데이터 준비
-            company_name = company_basic[0] or "정보없음"
-            representative = company_basic[1] or "정보없음"
-            industry = company_basic[2] or "정보없음"
-            address = company_basic[3] or "정보없음"
-            employee_count = company_basic[4] or 0
-
-            financial_details = ""
-            if financials:
-                financial_details = "재무 상세 정보:\n"
-                for fin in financials:
-                    year = fin[0]
-                    revenue = fin[1] if fin[1] else 0
-                    profit = fin[2] if fin[2] else 0
-                    assets = fin[3] if fin[3] else 0
-                    equity = fin[4] if fin[4] else 0
-                    financial_details += f"- {year}년: 매출 {revenue:,}원, 영업이익 {profit:,}원, 자산 {assets:,}원\n"
-
-            prompt = f"""
-기업명: {company_name}
-대표자: {representative}
-업종: {industry}
-주소: {address}
-직원수: {employee_count}명
-
-{financial_details}
-
-위 기업에 대해 다음 항목으로 상세한 분석 보고서를 작성해주세요:
-1. 기업 개요 및 사업 현황
-2. 재무 성과 및 안정성 분석
-3. 리스크 요인 및 우려사항
-4. 투자 의견 및 밸류에이션
-
-각 항목은 전문적이고 구체적으로 작성해주세요.
-"""
-            
-            import os
-            from openai import OpenAI
-            api_key = os.environ.get('OPENAI_API_KEY')
-            
-            if not api_key:
-                yield "Error: OpenAI API 키가 설정되지 않았습니다."
-                return
-
-            client = OpenAI(api_key=api_key)
-            
-            stream = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "당신은 기업 분석 전문가입니다."},
-                    {"role": "user", "content": prompt}
-                ],
-                stream=True
-            )
-
-            for chunk in stream:
-                if chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
-
-        except Exception as e:
-            yield f"Error: {str(e)}"
-        finally:
-            conn.close()
-
-    return Response(generate(), mimetype='text/event-stream')
+    # API 키가 없거나 오류가 발생한 경우 기본 분석 반환
+    return {
+        "summary": f"{company_name}는 {industry} 업종에서 사업을 영위하는 기업으로, {representative} 대표 체제 하에 운영되고 있습니다.",
+        "financial_analysis": f"재무분석: {financial_summary}를 기반으로 한 상세 분석이 제공됩니다.",
+        "risk_assessment": f"{industry} 업계의 일반적인 리스크와 기업 고유의 위험요소를 종합적으로 평가하였습니다.",
+        "recommendations": "전문적인 분석을 바탕으로 한 투자 의견과 향후 모니터링 포인트를 제시합니다."
+    }
 
 if __name__ == '__main__':
 
