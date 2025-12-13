@@ -224,6 +224,11 @@
                                                 class="text-gray-600 hover:text-gray-900">
                                             <i class="fas fa-edit"></i>
                                         </button>
+                                        <button @click="deleteCompany(company)" 
+                                                class="text-red-600 hover:text-red-900"
+                                                title="삭제">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -435,15 +440,21 @@
                                   class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
                     </div>
                     
-                    <div class="flex justify-end space-x-3">
-                        <button type="button" @click="showEditCompanyModal = false"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
-                            취소
+                    <div class="flex justify-between">
+                        <button type="button" @click="deleteCompanyFromModal()"
+                                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
+                            <i class="fas fa-trash mr-1"></i> 삭제
                         </button>
-                        <button type="submit"
-                                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                            수정 완료
-                        </button>
+                        <div class="flex space-x-3">
+                            <button type="button" @click="showEditCompanyModal = false"
+                                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                                취소
+                            </button>
+                            <button type="submit"
+                                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                                수정 완료
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -949,6 +960,48 @@
                 // 기능 확장을 위한 플레이스홀더
                 addContactRecord(company) {
                     this.showContactHistory(company);
+                },
+
+                // 기업 삭제 (그리드에서)
+                async deleteCompany(company) {
+                    if (!confirm(`"${company.company_name}" 기업을 삭제하시겠습니까?\n\n※ 관련 접촉 이력도 함께 삭제됩니다.`)) {
+                        return;
+                    }
+                    await this.performDeleteCompany(company.id);
+                },
+
+                // 기업 삭제 (수정 모달에서)
+                async deleteCompanyFromModal() {
+                    if (!this.editingCompany) return;
+                    if (!confirm(`"${this.editingCompany.company_name}" 기업을 삭제하시겠습니까?\n\n※ 관련 접촉 이력도 함께 삭제됩니다.`)) {
+                        return;
+                    }
+                    await this.performDeleteCompany(this.editingCompany.id);
+                    this.showEditCompanyModal = false;
+                },
+
+                // 실제 삭제 수행
+                async performDeleteCompany(companyId) {
+                    try {
+                        const response = await fetch(`/api/pipeline/company/${companyId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            alert('기업이 삭제되었습니다.');
+                            this.loadDashboardData();
+                        } else {
+                            alert(data.message || '삭제에 실패했습니다.');
+                        }
+                    } catch (error) {
+                        console.error('삭제 실패:', error);
+                        alert('삭제 중 오류가 발생했습니다.');
+                    }
                 }
             }
         }

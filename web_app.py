@@ -536,6 +536,8 @@ def init_pipeline_tables():
         CREATE TABLE IF NOT EXISTS managed_companies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             biz_reg_no TEXT NOT NULL,
+            company_name TEXT,
+            representative TEXT,
             manager_id TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'prospect' CHECK (status IN ('prospect', 'contacted', 'proposal', 'negotiation', 'contract', 'hold')),
             keyman_name TEXT NOT NULL,
@@ -1440,6 +1442,8 @@ def fix_db():
                 CREATE TABLE IF NOT EXISTS managed_companies (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     biz_reg_no TEXT NOT NULL,
+                    company_name TEXT,
+                    representative TEXT,
                     manager_id TEXT NOT NULL,
                     status TEXT NOT NULL DEFAULT 'prospect' CHECK (status IN ('prospect', 'contacted', 'proposal', 'negotiation', 'contract', 'hold')),
                     keyman_name TEXT NOT NULL,
@@ -2945,7 +2949,12 @@ def get_companies():
         
         has_next_page = total_rows > (offset + per_page)
         
-        paginated_data = all_data.iloc[offset : offset + per_page].where(pd.notnull(all_data), None)
+        # NaN 값을 None으로 변환 (JSON 직렬화 문제 해결)
+        paginated_data = all_data.iloc[offset : offset + per_page]
+        
+        # NaN, inf, -inf를 None으로 변환
+        import numpy as np
+        paginated_data = paginated_data.replace([np.nan, np.inf, -np.inf], None)
         
         return jsonify({
             'companies': paginated_data.to_dict('records'),
@@ -2955,6 +2964,8 @@ def get_companies():
         })
     except Exception as e:
         print(f"Error in get_companies: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/export_excel')
@@ -5549,6 +5560,47 @@ def update_managed_company(company_id):
         
         conn.commit()
         return jsonify({"success": True, "message": "기업 정보가 수정되었습니다"})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/pipeline/company/<int:company_id>', methods=['DELETE'])
+def delete_managed_company(company_id):
+    """관심 기업 삭제 (접촉 이력 포함)"""
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
+    
+    user_id = session.get('user_id')
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 권한 확인
+        cursor.execute('SELECT manager_id, company_name FROM managed_companies WHERE id = ?', (company_id,))
+        result = cursor.fetchone()
+        if not result:
+            return jsonify({"success": False, "message": "기업을 찾을 수 없습니다"}), 404
+        if result[0] != user_id:
+            return jsonify({"success": False, "message": "삭제 권한이 없습니다"}), 403
+        
+        company_name = result[1]
+        
+        # 관련 접촉 이력 먼저 삭제
+        cursor.execute('DELETE FROM pipeline_contact_history WHERE managed_company_id = ?', (company_id,))
+        deleted_contacts = cursor.rowcount
+        
+        # 기업 정보 삭제
+        cursor.execute('DELETE FROM managed_companies WHERE id = ?', (company_id,))
+        
+        conn.commit()
+        return jsonify({
+            "success": True, 
+            "message": f"'{company_name}' 기업이 삭제되었습니다. (접촉이력 {deleted_contacts}건 삭제)"
+        })
         
     except Exception as e:
         conn.rollback()

@@ -1,0 +1,65 @@
+=== Sample company data ===
+
+--- Company 1 ---
+biz_no: 1048118121
+company_name: 지에스건설
+company_size: 대기업
+company_type: 주식회사
+industry_code: F41112
+industry_name: 아파트 건설업
+zip_code: 3159
+address: 서울 종로구 종로 33 (청진동)
+region: 서울
+city_district: 종로구
+phone_number: 02  21541112
+email: webmaster@gsconst.co.kr
+fax_number: 02  21540807
+gfc_transaction_yn: 
+group_transaction_yn: 
+ked_transaction_yn: 
+patent_transaction_yn: Y
+establish_date: 1969-12-19
+corporate_reg_no: 1.10111E+12
+representative_name: 허창수
+national_pension: 5157
+pension_count: 5286
+pension_date: 2025-02-21
+fiscal_year: 2024
+total_assets: 13137700000000
+sales_revenue: 9311100000000
+retained_earnings: 3008350000000
+
+--- Company 2 ---
+biz_no: 2148106859
+company_name: 삼라
+company_size: 대기업
+company_type: 주식회사
+industry_code: L68121
+industry_name: 주거용 건물 개발 및 공급업
+zip_code: 17362
+address: 경기 이천시 애련정로 126 (창전동)
+region: 경기
+city_district: 이천시
+phone_number: 02  69409500
+email: 
+fax_number: 02  69409508
+gfc_transaction_yn: 
+group_transaction_yn: 
+ked_transaction_yn: 
+patent_transaction_yn: 
+establish_date: 1969-08-26
+corporate_reg_no: 1.10111E+12
+representative_name: 조유선
+national_pension: 16
+pension_count: 13
+pension_date: 2024-04-24
+fiscal_year: 2024
+total_assets: 1853460000000
+sales_revenue: 376079000000
+retained_earnings: 1337250000000
+
+=== Checking for NULL pension values ===
+Total companies: 76833
+NULL national_pension: 0
+NULL pension_count: 0
+NULL pension_date: 0
