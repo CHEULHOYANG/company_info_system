@@ -5435,7 +5435,7 @@ def pipeline_dashboard_data():
                 LEFT JOIN Company_Basic cb ON mc.biz_reg_no = cb.biz_no
                 WHERE mc.manager_id = ? AND mc.status = ? 
                 AND (mc.last_contact_date IS NULL OR mc.last_contact_date < ?)
-                ORDER BY mc.last_contact_date ASC NULLS FIRST
+                ORDER BY CASE WHEN mc.last_contact_date IS NULL THEN 0 ELSE 1 END, mc.last_contact_date ASC
             '''
             cursor.execute(urgent_query, (user_id, status, threshold_date))
             urgent_for_status = cursor.fetchall()
@@ -5478,6 +5478,9 @@ def pipeline_dashboard_data():
         })
         
     except Exception as e:
+        print(f"Pipeline dashboard error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"success": False, "message": str(e)}), 500
     finally:
         conn.close()
