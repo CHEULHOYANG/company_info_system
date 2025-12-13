@@ -33,19 +33,48 @@
         }
 
         @keyframes vroomAndGo {
-            0% { transform: scale(1.2) translate(1px, 1px); }
-            10% { transform: scale(1.2) translate(-1px, -2px); }
-            20% { transform: scale(1.2) translate(-3px, 0px); }
-            30% { transform: scale(1.2) translate(3px, 2px); }
-            40% { transform: scale(1.2) translate(1px, -1px); }
-            50% { transform: scale(1.2) translate(-1px, 2px); }
-            60% { transform: scale(1.2) translate(-3px, 1px); }
-            70% { transform: scale(1.2) translate(3px, 1px); }
-            80% { transform: scale(1.2) translate(-1px, -1px); }
+            0% {
+                transform: scale(1.2) translate(1px, 1px);
+            }
+
+            10% {
+                transform: scale(1.2) translate(-1px, -2px);
+            }
+
+            20% {
+                transform: scale(1.2) translate(-3px, 0px);
+            }
+
+            30% {
+                transform: scale(1.2) translate(3px, 2px);
+            }
+
+            40% {
+                transform: scale(1.2) translate(1px, -1px);
+            }
+
+            50% {
+                transform: scale(1.2) translate(-1px, 2px);
+            }
+
+            60% {
+                transform: scale(1.2) translate(-3px, 1px);
+            }
+
+            70% {
+                transform: scale(1.2) translate(3px, 1px);
+            }
+
+            80% {
+                transform: scale(1.2) translate(-1px, -1px);
+            }
+
             /* 80%까지는 떨림 (부릉부릉) */
-            
+
             /* 80% ~ 100%: 멀어짐 (줌아웃) */
-            100% { transform: scale(1.0) translate(0, 0); }
+            100% {
+                transform: scale(1.0) translate(0, 0);
+            }
         }
 
         .full-screen-container {
@@ -387,7 +416,7 @@
                 'dbManagementPopup',
                 'width=800,height=600,scrollbars=yes,resizable=yes,centerscreen=yes'
             );
-            
+
             if (popup) {
                 popup.focus();
             } else {
@@ -415,75 +444,75 @@
             <div class="user-level">{{ user_level_name }}</div>
             {% if subscription_info %}
             {% if subscription_info.days_remaining > 0 %}
-            {% if subscription_info.days_remaining <= 7 %}
-            <div class="subscription-info warning">
+            {% if subscription_info.days_remaining <= 7 %} <div class="subscription-info warning">
                 {{ subscription_info.days_remaining }}일 남음
-            </div>
-            {% else %}
-            <div class="subscription-info">
-                {{ subscription_info.days_remaining }}일 남음
-            </div>
-            {% endif %}
-            {% else %}
-            <div class="subscription-info expired">
-                구독 만료
-            </div>
-            {% endif %}
-            {% else %}
-            <div class="subscription-info">
-                무료 체험
-            </div>
-            {% endif %}
-            {% if can_manage_users %}
-            <div class="db-management-section">
-                <button onclick="openDbManagementPopup()" class="db-management-btn">DB 관리</button>
-            </div>
-            {% endif %}
-            <div><a href="{{ url_for('logout') }}" class="logout-btn">로그아웃</a></div>
         </div>
+        {% else %}
+        <div class="subscription-info">
+            {{ subscription_info.days_remaining }}일 남음
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="subscription-info expired">
+            구독 만료
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="subscription-info">
+            무료 체험
+        </div>
+        {% endif %}
+        {% if can_manage_users %}
+        <div class="db-management-section">
+            <button onclick="openDbManagementPopup()" class="db-management-btn">DB 관리</button>
+        </div>
+        {% endif %}
+        <div><a href="{{ url_for('logout') }}" class="logout-btn">로그아웃</a></div>
+    </div>
 
-        <!-- 메인 버튼 그리드 -->
-        <div class="main-buttons">
-            <a href="/" class="main-btn">
-                <div class="main-btn-title">DB</div>
-                <div class="main-btn-korean">기업정보 조회</div>
-                <div class="main-btn-subtitle">기업 데이터베이스 검색</div>
-            </a>
-            <a href="/history" class="main-btn">
-                <div class="main-btn-title">HISTORY</div>
-                <div class="main-btn-korean">접촉이력조회</div>
-                <div class="main-btn-subtitle">접촉 이력 검색</div>
-            </a>
-            <a href="/pipeline" class="main-btn">
-                <div class="main-btn-title">PIPELINE</div>
-                <div class="main-btn-korean">영업 파이프라인</div>
-                <div class="main-btn-subtitle">관심 기업 관리</div>
-            </a>
-            <a href="/sales_management" class="main-btn">
-                <div class="main-btn-title">SALES</div>
-                <div class="main-btn-korean">영업관리</div>
-                <div class="main-btn-subtitle">개척 등록 및 비용</div>
-            </a>
-            {% if can_manage_users %}
-            <a href="/user_management" class="main-btn manager-btn">
-                <div class="main-btn-title">관리자</div>
-                <div class="main-btn-korean">사용자 관리</div>
-                <div class="main-btn-subtitle">사용자 및 구독 관리</div>
-            </a>
-            {% endif %}
-        </div>
+    <!-- 메인 버튼 그리드 -->
+    <div class="main-buttons">
+        <a href="/" class="main-btn">
+            <div class="main-btn-title">DB</div>
+            <div class="main-btn-korean">기업정보 조회</div>
+            <div class="main-btn-subtitle">기업 데이터베이스 검색</div>
+        </a>
+        <a href="/history" class="main-btn">
+            <div class="main-btn-title">HISTORY</div>
+            <div class="main-btn-korean">접촉이력조회</div>
+            <div class="main-btn-subtitle">접촉 이력 검색</div>
+        </a>
+        <a href="/pipeline" class="main-btn">
+            <div class="main-btn-title">PIPELINE</div>
+            <div class="main-btn-korean">영업 파이프라인</div>
+            <div class="main-btn-subtitle">관심 기업 관리</div>
+        </a>
+        <a href="/sales_management" class="main-btn">
+            <div class="main-btn-title">SALES</div>
+            <div class="main-btn-korean">영업관리</div>
+            <div class="main-btn-subtitle">개척 등록 및 비용</div>
+        </a>
+        {% if can_manage_users %}
+        <a href="/user_management" class="main-btn manager-btn">
+            <div class="main-btn-title">관리자</div>
+            <div class="main-btn-korean">사용자 관리</div>
+            <div class="main-btn-subtitle">사용자 및 구독 관리</div>
+        </a>
+        {% endif %}
+    </div>
 
-        <!-- 세금 계산기 버튼들 -->
-        <div class="tax-buttons">
-            <div class="tax-title">세금 계산기</div>
-            <a href="/gift_tax" class="tax-btn">증여세</a>
-            <a href="/transfer_tax" class="tax-btn">양도세</a>
-            <a href="/income_tax" class="tax-btn">종합소득세</a>
-            <a href="/social_ins_tax" class="tax-btn">4대보험</a>
-            <a href="/acquisition_tax" class="tax-btn">취득세</a>
-            <a href="/retirement_pay" class="tax-btn">퇴직금</a>
-            <a href="/industrial_accident" class="tax-btn">산재보상</a>
-        </div>
+    <!-- 세금 계산기 버튼들 -->
+    <div class="tax-buttons">
+        <div class="tax-title">세금 계산기</div>
+        <a href="/inheritance_tax" class="tax-btn">상속세</a>
+        <a href="/gift_tax" class="tax-btn">증여세</a>
+        <a href="/transfer_tax" class="tax-btn">양도세</a>
+        <a href="/income_tax" class="tax-btn">종합소득세</a>
+        <a href="/social_ins_tax" class="tax-btn">4대보험</a>
+        <a href="/acquisition_tax" class="tax-btn">취득세</a>
+        <a href="/retirement_pay" class="tax-btn">퇴직금</a>
+        <a href="/industrial_accident" class="tax-btn">산재보상</a>
+    </div>
     </div>
 </body>
 

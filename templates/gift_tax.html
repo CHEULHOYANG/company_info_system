@@ -1,309 +1,288 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
-    <title>증여세 계산기 - 2025년 최신</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>증여세 계산기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root{
-            --bg-1:#f3f7fb; --bg-2:#eaf2f8;
-            --accent:#6EE7B7; --accent-2:#7C3AED;
-            --glass: rgba(255,255,255,0.75);
-            --muted:#4b6b82;
-            --card-border: rgba(11,37,64,0.06);
-            --text:#0b2540;
-        }
-        html,body{
-            height:100%;margin:0;
-            background:
-                radial-gradient(900px 420px at 10% 8%, rgba(124,58,237,0.06), transparent 12%),
-                linear-gradient(180deg,var(--bg-1) 0%, var(--bg-2) 60%);
-            color:var(--text);
-            font-family:'Pretendard','Noto Sans KR',system-ui,-apple-system;
-            -webkit-font-smoothing:antialiased;
-        }
-        .wrap{max-width:1100px;margin:36px auto;padding:28px;}
-        .header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px;}
-        .brand{display:flex;align-items:center;gap:14px;}
-        .logo{
-            width:68px;height:68px;border-radius:14px;
-            background:linear-gradient(135deg,var(--accent-2),var(--accent));
-            display:flex;align-items:center;justify-content:center;
-            box-shadow:0 8px 24px rgba(124,58,237,0.12);
-        }
-        .brand h1{margin:0;font-size:1.25rem;font-weight:800;color:var(--text);}
-        .brand p{margin:0;color:var(--muted);font-size:0.95rem;}
-        .controls{display:flex;gap:10px;align-items:center;}
-        .btn{padding:10px 14px;border-radius:12px;border:none;cursor:pointer;font-weight:700;display:inline-flex;gap:10px;align-items:center;justify-content:center;}
-        /* 메인으로 버튼: 진한 네이비 배경 + 흰색 텍스트 */
-        .btn-ghost{
-            background: linear-gradient(180deg,#04243a,#063a53);
-            color: #ffffff;
-            border: 1px solid rgba(0,0,0,0.08);
-            box-shadow: 0 6px 18px rgba(4,36,58,0.22);
-            padding:10px 16px;
-        }
-        .btn-primary{
-            background:linear-gradient(90deg,var(--accent),var(--accent-2));
-            color:#022b27;padding:12px 18px;border-radius:14px;box-shadow:0 8px 20px rgba(124,58,237,0.12);
-            position:relative;overflow:visible;transition:transform .14s ease, box-shadow .14s ease;
-        }
-        .btn-primary:before{
-            content:"";position:absolute;inset:-6px;border-radius:16px;background:radial-gradient(ellipse at center, rgba(124,58,237,0.06), transparent 30%);opacity:0;transition:opacity .18s;
-        }
-        /* 마우스 오버 시 가볍게 '진동+글로우' 효과 */
-        .btn-primary:hover{ animation:vibrate .36s linear infinite; transform:translateY(-1px); box-shadow:0 18px 36px rgba(124,58,237,0.12); }
-        .btn-primary:hover:before{ opacity:1; }
-        @keyframes vibrate {
-            0%{ transform: translateX(0) translateY(-1px) rotate(0deg) }
-            25%{ transform: translateX(-0.6px) translateY(-1px) rotate(-0.18deg) }
-            50%{ transform: translateX(0.6px) translateY(-1px) rotate(0.18deg) }
-            75%{ transform: translateX(-0.4px) translateY(-1px) rotate(-0.12deg) }
-            100%{ transform: translateX(0) translateY(-1px) rotate(0deg) }
-        }
-
-        .layout{display:grid;grid-template-columns:1fr 420px;gap:20px;}
-        .card{
-            background: linear-gradient(180deg, var(--glass), rgba(255,255,255,0.92));
-            border:1px solid var(--card-border);
-            border-radius:14px;padding:20px;backdrop-filter: blur(6px);
-            box-shadow: 0 8px 30px rgba(11,37,64,0.06);
-        }
-        .title{font-size:1.02rem;color:var(--text);margin-bottom:10px;font-weight:700;}
-        .muted{color:var(--muted);font-size:0.92rem;}
-        /* 안전한 2열 그리드 (겹침 방지: minmax(0,1fr) + 자식 min-width:0) */
-        .form-row{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:12px;margin-bottom:12px;align-items:center}
-        .form-row > div{min-width:0} /* 그리드 항목 내부에서 overflow/겹침 방지 */
-        label{display:block;color:var(--muted);font-size:0.9rem;margin-bottom:6px}
-        /* 입력칸 선을 더 명확하게 — 기본 굵기와 포커스 강조 */
-        input[type="text"], select, input[inputmode="numeric"]{
-            width:100%;
-            padding:12px 14px;
-            border-radius:12px;
-            border:1.6px solid rgba(11,37,64,0.09); /* 더 선명한 기본 선 */
-            background:linear-gradient(180deg, #fff, #fbfdff);
-            color:var(--text);
-            font-size:0.96rem;
-            transition: border-color .16s ease, box-shadow .16s ease, transform .06s ease;
-            box-shadow: 0 2px 8px rgba(11,37,64,0.03);
-            box-sizing: border-box; /* 안전한 레이아웃 */
-        }
-        /* 입력 포커스 강조 */
-        input[type="text"]:focus, input[inputmode="numeric"]:focus, select:focus{
-            outline: none;
-            border-color: var(--accent-2);
-            box-shadow: 0 10px 24px rgba(124,58,237,0.08);
-            transform: translateY(-1px);
-        }
-        input[type="text"]::placeholder{color:#9aaebb}
-        .info-box{background:linear-gradient(90deg, rgba(124,58,237,0.03), rgba(110,231,183,0.02));padding:12px;border-radius:10px;color:var(--muted);margin-bottom:12px;font-size:0.95rem;}
-        .calculate-wrap{display:flex;gap:10px;align-items:center;margin-top:10px;}
-        .result-panel{padding:16px;border-radius:12px;border:1px solid rgba(11,37,64,0.04);background:linear-gradient(180deg,#ffffff,#fbfdff);}
-        .result-amount{font-size:1.6rem;font-weight:800;color:var(--text);margin:8px 0}
-        .result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(11,37,64,0.04);color:var(--muted)}
-        .result-row:last-child{border-bottom:none}
-        .deduction-table{width:100%;border-collapse:collapse;margin-top:10px;color:var(--muted)}
-        .deduction-table th, .deduction-table td{padding:8px;border-bottom:1px solid rgba(11,37,64,0.04);text-align:left}
-        .warning{background:linear-gradient(90deg, rgba(255,235,200,0.03), rgba(255,255,255,0.01));padding:12px;border-radius:8px;margin-top:12px;color:var(--muted);font-size:0.9rem}
-        .modal-backdrop{position:fixed;inset:0;background:rgba(11,37,64,0.35);display:none;align-items:center;justify-content:center;z-index:1200}
-        .modal{background:#fff;color:var(--text);border-radius:12px;padding:18px;max-width:780px;width:94%;border:1px solid rgba(11,37,64,0.06)}
-        .modal table{width:100%;border-collapse:collapse;margin-top:8px;color:var(--muted)}
-        .modal th{background:#fafcff;padding:8px;text-align:left}
-        .modal td{padding:8px;text-align:center}
-        @media(max-width:980px){ .layout{grid-template-columns:1fr} .header{flex-direction:column;align-items:flex-start} }
-
-        /* 커스텀 셀렉트 화살표 (굵게 보이게) */
-        select{
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            padding-right:44px;
-            background-repeat:no-repeat;
-            background-position: right 14px center;
-            background-size:18px;
-            /* 얇은 화살표 (기본) */
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'><path d='M6 9l6 6 6-6' stroke='%230b2540' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>");
-        }
-        /* 포커스 시 화살표 굵게 + 색상 변경(시각적 울림) */
-        select:focus{
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'><path d='M6 9l6 6 6-6' stroke='%237C3AED' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>");
-        }
-
-        /* 특정 입력칸(증여재산가액 / 과거 증여) 기본 선을 더 또렷하게 + 겹침 방지 z-index */
-        #giftAmount, #previousGifts{
-            border:2px solid rgba(11,37,64,0.1);
-            padding:12px 14px;
-            position:relative;
-            z-index:1;
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
-        #giftAmount:focus, #previousGifts:focus{
-            border-color: var(--accent-2);
-            box-shadow: 0 10px 24px rgba(124,58,237,0.06);
-            z-index:2;
+
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-nav-btn {
+            position: fixed;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.625rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .main-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 1.25rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            padding: 2rem;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0f172a, #334155);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-sections {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group {
+            background: rgba(248, 250, 252, 0.8);
+            padding: 1.25rem;
+            border-radius: 0.875rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(203, 213, 225, 0.3);
+        }
+
+        .form-group h3 {
+            color: #334155;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+            padding-bottom: 0.5rem;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.875rem;
+        }
+
+        .input-grid.single {
+            grid-template-columns: 1fr;
+        }
+
+        .field-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.375rem;
+            font-weight: 500;
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 1.5px solid rgba(203, 213, 225, 0.6);
+            border-radius: 0.5rem;
+            font-size: 0.8125rem;
+            transition: all 0.2s ease;
+            background: white;
+            color: #1e293b;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .help-text {
+            font-size: 0.6875rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .calc-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 0.875rem 2.5rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            min-width: 200px;
+        }
+
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .result-container {
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.9));
+            border-radius: 0.875rem;
+            padding: 1.5rem;
+            margin-top: 1.25rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(203, 213, 225, 0.3);
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .form-sections {
+                grid-template-columns: 1fr;
+            }
+
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+            }
         }
     </style>
 </head>
+
 <body>
-    <div class="wrap">
-        <div class="header">
-            <div class="brand">
-                <div class="logo" aria-hidden="true">
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 12L12 3l9 9" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
-                        <path d="M7 21h10" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>
-                    </svg>
-                </div>
-                <div>
-                    <h1>증여세 계산기</h1>
-                    <p class="muted">2025년 기준 · 간편 계산 (참고용)</p>
-                </div>
-            </div>
+    <a href="/main" class="main-nav-btn">
+        🏠 메인으로
+    </a>
 
-            <div class="controls">
-                <a href="{{ url_for('main') }}" class="btn btn-ghost" title="메인으로">메인으로</a>
-                <button id="showModalBtn" class="btn btn-primary" title="증여세율·공제 보기">세율·공제 보기</button>
-            </div>
-        </div>
+    <div class="container">
+        <h1>🎁 증여세 계산기</h1>
 
-        <div class="layout">
-            <section class="card" aria-labelledby="inputTitle">
-                <div id="inputTitle" class="title">증여 정보 입력</div>
+        <form id="giftForm">
+            <div class="form-sections">
+                <div class="form-group">
+                    <h3>증여 기본 정보</h3>
+                    <div class="input-grid single">
+                        <div class="field-wrapper">
+                            <label for="relationship">수증자 관계</label>
+                            <select id="relationship" required>
+                                <option value="">선택하세요</option>
+                                <option value="spouse">배우자</option>
+                                <option value="adult_child">성년 자녀 (만 19세 이상)</option>
+                                <option value="minor_child">미성년 자녀 (만 19세 미만)</option>
+                                <option value="grandchild">손자녀</option>
+                                <option value="other_relative">기타 친족 (6촌 이내)</option>
+                                <option value="non_relative">타인</option>
+                            </select>
+                        </div>
 
-                <div class="form-row" style="grid-template-columns:1fr;">
-                    <label for="relationship">수증자 관계</label>
-                    <select id="relationship" required>
-                        <option value="">선택하세요</option>
-                        <option value="spouse">배우자</option>
-                        <option value="adult_child">성년 자녀 (만 19세 이상)</option>
-                        <option value="minor_child">미성년 자녀 (만 19세 미만)</option>
-                        <option value="grandchild">손자녀</option>
-                        <option value="other_relative">기타 친족 (6촌 이내)</option>
-                        <option value="non_relative">타인</option>
-                    </select>
-                </div>
-
-                <div class="form-row">
-                    <div>
-                        <label for="giftAmount">증여 재산가액 (만원)</label>
-                        <input inputmode="numeric" id="giftAmount" placeholder="예: 50000 (5억원)">
-                    </div>
-                    <div>
-                        <label for="previousGifts">과거 10년간 증여액 합계 (만원)</label>
-                        <input inputmode="numeric" id="previousGifts" value="0" placeholder="예: 10000 (1억원)">
+                        <div class="field-wrapper">
+                            <label for="giftType">증여 재산 유형</label>
+                            <select id="giftType">
+                                <option value="cash">현금</option>
+                                <option value="real_estate">부동산</option>
+                                <option value="stock">주식</option>
+                                <option value="other">기타</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-row" style="grid-template-columns:1fr;">
-                    <label for="giftType">증여 재산 유형</label>
-                    <select id="giftType">
-                        <option value="cash">현금</option>
-                        <option value="real_estate">부동산</option>
-                        <option value="stock">주식</option>
-                        <option value="other">기타</option>
-                    </select>
-                </div>
+                <div class="form-group">
+                    <h3>증여 금액 정보</h3>
+                    <div class="input-grid single">
+                        <div class="field-wrapper">
+                            <label for="giftAmount">증여 재산가액 (원)</label>
+                            <input type="text" id="giftAmount" placeholder="예: 500,000,000" required>
+                            <div class="help-text">증여받을 재산의 가액</div>
+                        </div>
 
-                <div class="info-box">
-                    <strong>증여재산공제 (10년 합산)</strong>
-                    <div style="margin-top:8px" class="muted">
-                        배우자: 6억원 · 성년자녀: 5천만원 · 미성년자녀: 2천만원 · 손자녀: 5천만원 · 기타친족: 1천만원 · 타인: 0원
-                    </div>
-                </div>
-
-                <div class="calculate-wrap">
-                    <button id="calcBtn" class="btn btn-primary" style="flex:1">증여세 계산하기</button>
-                </div>
-            </section>
-
-            <aside class="card result-panel" id="resultPanel" aria-live="polite" style="display:none">
-                <div class="title">계산 결과 (간편)</div>
-                <div class="muted" style="margin-top:6px">참고: 실제 신고세액과 다를 수 있습니다.</div>
-
-                <div style="margin-top:14px" class="result-amount" id="taxAmount">0원</div>
-
-                <div style="margin-top:8px">
-                    <div class="result-row"><div class="muted">증여재산가액</div><div id="resultGiftAmount">0원</div></div>
-                    <div class="result-row"><div class="muted">과거 증여액 합산</div><div id="resultPreviousGifts">0원</div></div>
-                    <div class="result-row"><div class="muted">증여재산공제</div><div id="resultDeduction">0원</div></div>
-                    <div class="result-row"><div class="muted">과세표준</div><div id="resultTaxBase">0원</div></div>
-                    <div class="result-row"><div class="muted">적용세율</div><div id="resultTaxRate">0%</div></div>
-                    <div class="result-row"><div class="muted">산출세액</div><div id="resultCalculatedTax">0원</div></div>
-                </div>
-
-                <div class="deduction-table" style="margin-top:12px">
-                    <table class="deduction-table" aria-hidden="false">
-                        <thead>
-                            <tr><th>과세표준</th><th>세율</th><th>누진공제</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>2억원 이하</td><td>10%</td><td>-</td></tr>
-                            <tr><td>2억 초과~5억 이하</td><td>20%</td><td>2천만원</td></tr>
-                            <tr><td>5억 초과~10억 이하</td><td>30%</td><td>7천만원</td></tr>
-                            <tr><td>10억 초과~30억 이하</td><td>40%</td><td>1억7천만원</td></tr>
-                            <tr><td>30억 초과</td><td>50%</td><td>4억7천만원</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="warning" role="note">
-                    ⚠️ 본 계산 결과는 참고용입니다. 신고·납부 전 세무 전문가와 상담하세요.
-                </div>
-            </aside>
-        </div>
-    </div>
-
-    <!-- modal -->
-    <div class="modal-backdrop" id="modalBackdrop">
-        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <h3 id="modalTitle" style="margin:0">증여세 세율 및 공제 (2025년 기준)</h3>
-                <button id="closeModal" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">✕</button>
-            </div>
-            <div style="margin-top:12px;">
-                <table>
-                    <thead><tr><th>과세표준</th><th>세율</th><th>누진공제</th></tr></thead>
-                    <tbody>
-                        <tr><td>2억원 이하</td><td>10%</td><td>-</td></tr>
-                        <tr><td>2억 초과~5억 이하</td><td>20%</td><td>20,000,000원</td></tr>
-                        <tr><td>5억 초과~10억 이하</td><td>30%</td><td>70,000,000원</td></tr>
-                        <tr><td>10억 초과~30억 이하</td><td>40%</td><td>170,000,000원</td></tr>
-                        <tr><td>30억 초과</td><td>50%</td><td>470,000,000원</td></tr>
-                    </tbody>
-                </table>
-
-                <div style="margin-top:12px;">
-                    <strong>증여재산공제 (10년 합산)</strong>
-                    <div class="muted" style="margin-top:6px">
-                        배우자: 6억원 · 성년자녀: 5천만원 · 미성년자녀: 2천만원 · 손자녀: 5천만원 · 기타친족: 1천만원 · 타인: 0원
+                        <div class="field-wrapper">
+                            <label for="previousGifts">과거 10년간 증여액 합계 (원)</label>
+                            <input type="text" id="previousGifts" placeholder="예: 100,000,000">
+                            <div class="help-text">동일인에게서 받은 증여 합계</div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            <div class="button-container">
+                <button type="submit" class="calc-btn">💰 계산하기</button>
+            </div>
+        </form>
+
+        <div id="giftResult" class="result-container"></div>
     </div>
 
     <script>
-        // 유틸
-        function addCommas(n){ return (''+Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-        function removeCommas(s){ return (s||'').toString().replace(/,/g,'').replace(/[^\d\-]/g,'')||'0'; }
+        function addComma(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
 
-        // 입력 포맷 (만원 단위)
-        ['giftAmount','previousGifts'].forEach(id=>{
+        function removeComma(x) {
+            return x.replace(/,/g, "");
+        }
+
+        function setCommaInput(id) {
             const el = document.getElementById(id);
-            if(!el) return;
-            el.addEventListener('input', function(){
-                let v = removeCommas(this.value);
-                if(v===''||v==='0'){ this.value=''; return; }
-                this.value = addCommas(Number(v));
+            if (!el) return;
+            el.addEventListener('input', function () {
+                let val = el.value.replace(/[^\d]/g, '');
+                el.value = val ? addComma(val) : '';
             });
-            el.addEventListener('blur', function(){
-                if(this.value) this.value = addCommas(Number(removeCommas(this.value)));
-            });
-            el.addEventListener('focus', function(){ if(this.value) this.value = removeCommas(this.value); });
-        });
+        }
 
-        // 공제한도 (원 단위)
+        setCommaInput('giftAmount');
+        setCommaInput('previousGifts');
+
         const deductionLimits = {
             'spouse': 600000000,
             'adult_child': 50000000,
@@ -313,20 +292,19 @@
             'non_relative': 0
         };
 
-        // modal control
-        const modal = document.getElementById('modalBackdrop');
-        document.getElementById('showModalBtn').addEventListener('click', ()=> modal.style.display = 'flex');
-        document.getElementById('closeModal').addEventListener('click', ()=> modal.style.display = 'none');
-        modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.style.display='none'; });
-
-        function calcAndShow(){
+        function calculateGiftTax() {
             const rel = document.getElementById('relationship').value;
-            const giftAmountWan = parseFloat(removeCommas(document.getElementById('giftAmount').value)) || 0;
-            const previousWan = parseFloat(removeCommas(document.getElementById('previousGifts').value)) || 0;
-            const giftAmount = giftAmountWan * 10000;
-            const previousGifts = previousWan * 10000;
-            if(!rel){ alert('수증자 관계를 선택하세요.'); return; }
-            if(giftAmount === 0){ alert('증여 재산가액을 입력하세요.'); return; }
+            const giftAmount = parseInt(removeComma(document.getElementById('giftAmount').value)) || 0;
+            const previousGifts = parseInt(removeComma(document.getElementById('previousGifts').value)) || 0;
+
+            if (!rel) {
+                alert('수증자 관계를 선택하세요.');
+                return;
+            }
+            if (!giftAmount) {
+                alert('증여 재산가액을 입력하세요.');
+                return;
+            }
 
             const limit = deductionLimits[rel] || 0;
             const usedDeduction = Math.min(previousGifts, limit);
@@ -335,31 +313,86 @@
 
             const taxBase = Math.max(0, giftAmount - currentDeduction);
 
-            let tax = 0; let taxRate = '';
-            if (taxBase <= 200000000) { tax = taxBase * 0.1; taxRate = '10%'; }
-            else if (taxBase <= 500000000) { tax = taxBase * 0.2 - 20000000; taxRate = '20%'; }
-            else if (taxBase <= 1000000000) { tax = taxBase * 0.3 - 70000000; taxRate = '30%'; }
-            else if (taxBase <= 3000000000) { tax = taxBase * 0.4 - 170000000; taxRate = '40%'; }
-            else { tax = taxBase * 0.5 - 470000000; taxRate = '50%'; }
+            let tax = 0;
+            let taxRate = '';
+            if (taxBase <= 200000000) {
+                tax = taxBase * 0.1;
+                taxRate = '10%';
+            } else if (taxBase <= 500000000) {
+                tax = taxBase * 0.2 - 20000000;
+                taxRate = '20%';
+            } else if (taxBase <= 1000000000) {
+                tax = taxBase * 0.3 - 70000000;
+                taxRate = '30%';
+            } else if (taxBase <= 3000000000) {
+                tax = taxBase * 0.4 - 170000000;
+                taxRate = '40%';
+            } else {
+                tax = taxBase * 0.5 - 470000000;
+                taxRate = '50%';
+            }
 
-            document.getElementById('taxAmount').textContent = addCommas(Math.round(tax)) + '원';
-            document.getElementById('resultGiftAmount').textContent = addCommas(giftAmount) + '원';
-            document.getElementById('resultPreviousGifts').textContent = addCommas(previousGifts) + '원';
-            document.getElementById('resultDeduction').textContent = addCommas(currentDeduction) + '원';
-            document.getElementById('resultTaxBase').textContent = addCommas(taxBase) + '원';
-            document.getElementById('resultTaxRate').textContent = taxRate;
-            document.getElementById('resultCalculatedTax').textContent = addCommas(Math.round(tax)) + '원';
-
-            document.getElementById('resultPanel').style.display = 'block';
-            document.getElementById('resultPanel').scrollIntoView({behavior:'smooth'});
+            displayResult(giftAmount, previousGifts, currentDeduction, taxBase, tax, taxRate);
         }
 
-        document.getElementById('calcBtn').addEventListener('click', calcAndShow);
+        function displayResult(giftAmount, previousGifts, currentDeduction, taxBase, tax, taxRate) {
+            const resultDiv = document.getElementById('giftResult');
+            const formatCurrency = (num) => Math.round(num).toLocaleString('ko-KR') + ' 원';
 
-        // 엔터 제출 방지
-        document.addEventListener('keydown', function(e){
-            if(e.key === 'Enter' && e.target && e.target.tagName==='INPUT') e.preventDefault();
+            resultDiv.innerHTML = `
+                <h4 style="color:#1e293b;margin-bottom:1rem;font-size:0.9375rem;font-weight:600;">
+                    📊 증여세 계산 결과
+                </h4>
+                
+                <div style="background:rgba(241,245,249,0.8);border-radius:0.625rem;padding:1rem;margin-bottom:1rem;border:1px solid rgba(203,213,225,0.3);">
+                    <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;">
+                        <div style="padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;display:block;margin-bottom:0.25rem;">증여재산가액</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(giftAmount)}</span>
+                        </div>
+                        <div style="padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;display:block;margin-bottom:0.25rem;">과거 증여액</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(previousGifts)}</span>
+                        </div>
+                        <div style="padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;display:block;margin-bottom:0.25rem;">증여재산공제</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#10b981;">${formatCurrency(currentDeduction)}</span>
+                        </div>
+                        <div style="padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;display:block;margin-bottom:0.25rem;">과세표준</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(taxBase)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:linear-gradient(135deg,#8b5cf6,#6366f1);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(139,92,246,0.3);">
+                    <span style="font-weight:600;font-size:0.875rem;">예상 증여세 (적용세율: ${taxRate})</span>
+                    <span style="font-weight:700;font-size:1.25rem;">${formatCurrency(tax)}</span>
+                </div>
+                
+                <div style="margin-top:1rem;padding:0.75rem;background:rgba(59,130,246,0.1);border-radius:0.5rem;border-left:3px solid #3b82f6;">
+                    <p style="font-size:0.75rem;color:#1e40af;margin:0;">
+                        <strong>💡 Tip:</strong> 증여재산공제는 10년간 합산됩니다. 배우자 6억원, 성년자녀 5천만원, 미성년자녀 2천만원, 손자녀 5천만원, 기타친족 1천만원입니다.
+                    </p>
+                </div>
+            `;
+
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        document.getElementById('giftForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            calculateGiftTax();
+        });
+
+        window.addEventListener('load', function () {
+            document.getElementById('relationship').value = 'adult_child';
+            document.getElementById('giftAmount').value = '500,000,000';
+            document.getElementById('previousGifts').value = '0';
+            calculateGiftTax();
         });
     </script>
 </body>
+
 </html>

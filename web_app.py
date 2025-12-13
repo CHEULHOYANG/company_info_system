@@ -3595,6 +3595,13 @@ def acquisition_tax():
         return redirect(url_for('login'))
     return render_template('acquisition_tax.html', user_name=session.get('user_name'))
 
+# --- 상속세 계산기 라우트 ---
+@app.route('/inheritance_tax')
+def inheritance_tax():
+    if not session.get('logged_in') or not session.get('user_name') or session.get('user_name') == 'None':
+        return redirect(url_for('login'))
+    return render_template('inheritance_tax.html', user_name=session.get('user_name'))
+
 # --- 퇴직금 계산기 라우트 ---
 @app.route('/retirement_pay')
 def retirement_pay():

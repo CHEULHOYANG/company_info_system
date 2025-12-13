@@ -1,318 +1,381 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
-    <title>양도소득세 간편계산 입력</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>양도소득세 계산기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root{
-            --bg-1:#0a1f3b; --bg-2:#1e3a5f;
-            --accent:#4a9fd9; --accent-2:#2d5a87;
-            --text:#ffffff; --muted:#b8d4f0;
-            --card-border: rgba(255,255,255,0.1);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        html,body{
-            height:100%;margin:0;
-            background: linear-gradient(135deg, #0a1f3b 0%, #4a9fd9 100%);
-            color:var(--text);
-            font-family:'Pretendard','Noto Sans KR', system-ui, -apple-system;
-            -webkit-font-smoothing:antialiased;
-            -moz-osx-font-smoothing:grayscale;
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .wrap{max-width:1200px;margin:24px auto;padding:22px;}
-        .header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px;}
-        .brand{display:flex;align-items:center;gap:14px;}
-        .logo{
-            width:60px;height:60px;border-radius:12px;
-            background:linear-gradient(135deg,var(--accent-2),var(--accent));
-            display:flex;align-items:center;justify-content:center;
-            box-shadow:0 8px 24px rgba(124,58,237,0.12);
-        }
-        .brand h1{margin:0;font-size:1.25rem;font-weight:800;color:var(--text);}
-        .brand p{margin:0;color:var(--muted);font-size:0.92rem;}
-
-        .controls{display:flex;gap:10px;align-items:center;}
-        .btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700;display:inline-flex;gap:10px;align-items:center;justify-content:center;}
-        /* 메인으로 버튼: 진한 네이비 배경 + 흰색 텍스트 */
-        .btn-main{
-            background: linear-gradient(180deg,#04243a,#063a53);
-            color: #ffffff;
-            border: 1px solid rgba(0,0,0,0.08);
-            box-shadow: 0 6px 18px rgba(4,36,58,0.18);
-            padding:10px 16px;border-radius:10px;text-decoration:none;
-        }
-        .btn-alt{
-            background:linear-gradient(90deg,var(--accent),var(--accent-2));
-            color:#022b27;padding:10px 16px;border-radius:10px;box-shadow:0 8px 18px rgba(124,58,237,0.10);
-        }
-        .btn-alt:hover{ animation:vibrate .36s linear infinite; transform:translateY(-1px); }
-        @keyframes vibrate {
-            0%{ transform: translateX(0) translateY(0) }
-            20%{ transform: translateX(-0.6px) translateY(0) }
-            40%{ transform: translateX(0.6px) translateY(0) }
-            60%{ transform: translateX(-0.4px) translateY(0) }
-            80%{ transform: translateX(0.4px) translateY(0) }
-            100%{ transform: translateX(0) translateY(0) }
+        .main-nav-btn {
+            position: fixed;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.625rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            text-decoration: none;
         }
 
-        .layout{display:grid;grid-template-columns:1fr 420px;gap:20px;}
-        .card{
-            background: rgba(255,255,255,0.1);
-            border:1px solid var(--card-border);
-            border-radius:12px;padding:18px;backdrop-filter: blur(10px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        .main-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
         }
 
-        .title{font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:8px;}
-        .subtitle{font-size:0.92rem;color:var(--muted);margin-top:4px;}
-
-        /* 그리드: 겹침 방지 -> minmax(0,1fr) + 자식 min-width:0 */
-        .grid{display:grid;grid-template-columns:280px 1fr;gap:12px 18px;align-items:center;}
-        .grid-2{display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:12px;}
-        .grid > .col, .grid-2 > .col{min-width:0}
-        label.field-label{font-weight:700;color:var(--text);display:block;margin-bottom:6px;}
-
-        input[type="text"], input[type="date"], input[type="number"], select{
-            width:100%;padding:10px 12px;border:1.6px solid rgba(255,255,255,0.2);border-radius:10px;background:rgba(255,255,255,0.9);font-size:14px;color:#2c3e50;
-            transition: border-color .14s ease, box-shadow .14s ease, transform .06s ease;box-sizing:border-box;
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 1.25rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            padding: 2rem;
+            margin: 0 auto;
         }
-        input::placeholder{color:#9aaebb}
-        input:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 10px 24px rgba(74,159,217,0.2);transform:translateY(-1px);z-index:2}
 
-        .section-title{font-weight:700;color:var(--text);margin-bottom:12px}
-        .small-note{font-size:12px;color:var(--muted);margin-top:6px}
-        .radio-group{display:flex;gap:12px;align-items:center}
+        h1 {
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0f172a, #334155);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-        .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:10px}
-        .btn-secondary{background:#f2f7fb;color:var(--text);border:1px solid rgba(11,37,64,0.04);padding:8px 12px;border-radius:8px}
-        .result-panel{padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05)}
-        .result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(11,37,64,0.04);color:var(--muted)}
-        .result-row:last-child{border-bottom:none}
+        .form-sections {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
 
-        .detail-toggle{background:#fff;border:1px dashed rgba(11,37,64,0.06);padding:8px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text);display:inline-block;margin-top:8px}
-        .detail-box{margin-top:8px;border-top:1px dashed rgba(11,37,64,0.04);padding-top:10px;display:none}
+        .form-group {
+            background: rgba(248, 250, 252, 0.8);
+            padding: 1.25rem;
+            border-radius: 0.875rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(203, 213, 225, 0.3);
+        }
 
-        .deduction-table{width:100%;border-collapse:collapse;margin-top:8px;color:var(--muted)}
-        .deduction-table th, .deduction-table td{padding:8px;border-bottom:1px solid rgba(11,37,64,0.04);text-align:left}
+        .form-group h3 {
+            color: #334155;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+            padding-bottom: 0.5rem;
+        }
 
-        @media(max-width:980px){ .layout{grid-template-columns:1fr} .grid{grid-template-columns:1fr} .grid-2{grid-template-columns:1fr 1fr} .header{flex-direction:column;align-items:flex-start} }
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.875rem;
+        }
+
+        .input-grid.single {
+            grid-template-columns: 1fr;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.375rem;
+            font-weight: 500;
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 1.5px solid rgba(203, 213, 225, 0.6);
+            border-radius: 0.5rem;
+            font-size: 0.8125rem;
+            transition: all 0.2s ease;
+            background: white;
+            color: #1e293b;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .help-text {
+            font-size: 0.6875rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+
+        .calc-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 0.875rem 2.5rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            min-width: 200px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .result-container {
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.9));
+            border-radius: 0.875rem;
+            padding: 1.5rem;
+            margin-top: 1.25rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(203, 213, 225, 0.3);
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+
+            .form-sections,
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+            }
+        }
     </style>
 </head>
+
 <body>
-    <div class="wrap">
-        <div class="header">
-            <div class="brand">
-                <div class="logo" aria-hidden="true">
-                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 12L12 3l9 9" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
-                        <path d="M7 21h10" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>
-                    </svg>
-                </div>
-                <div>
-                    <h1>양도소득세 계산기</h1>
-                    <p class="subtitle">부동산 양도분 간편 계산 (참고용)</p>
-                </div>
-            </div>
+    <a href="/main" class="main-nav-btn">🏠 메인으로</a>
 
-            <div class="controls">
-                <a href="{{ url_for('main') }}" class="btn-main">메인으로</a>
-                <a href="{{ url_for('transfer_tax_detail') }}" class="btn-alt" style="text-decoration:none">상세계산</a>
-            </div>
-        </div>
+    <div class="container">
+        <h1>💵 양도소득세 계산기</h1>
 
-        <div class="layout">
-            <section class="card" aria-labelledby="inputTitle">
-                <div id="inputTitle" class="title">기본사항</div>
-                <div class="small-note" style="margin-bottom:12px">양도일자 · 취득일자 · 물건 종류를 입력하세요</div>
-
-                <div class="grid">
-                    <div class="col">
-                        <label class="field-label">양도일자</label>
-                        <input type="date" id="transferDate" value="2025-10-20">
-                    </div>
-                    <div class="col">
-                        <label class="field-label">취득일자</label>
-                        <input type="date" id="acquireDate" value="2025-10-20">
-                    </div>
-
-                    <div class="col">
-                        <label class="field-label">양도물건종류</label>
+        <form id="transferForm">
+            <div class="form-sections">
+                <div class="form-group">
+                    <h3>부동산 정보</h3>
+                    <div class="input-grid single">
                         <div>
-                            <div class="radio-group">
-                                <label><input type="radio" name="propType" value="land" checked> 토지</label>
-                                <label><input type="radio" name="propType" value="house"> 주택</label>
-                                <label><input type="radio" name="propType" value="highvalue"> 고가주택</label>
-                                <label><input type="radio" name="propType" value="other"> 기타</label>
-                            </div>
+                            <label for="propertyType">부동산 유형</label>
+                            <select id="propertyType">
+                                <option value="house">주택</option>
+                                <option value="land">토지</option>
+                                <option value="building">건물</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="holdingPeriod">보유기간 (년)</label>
+                            <input type="number" id="holdingPeriod" min="0" max="100" value="3" placeholder="0">
+                            <div class="help-text">취득일부터 양도일까지</div>
                         </div>
                     </div>
                 </div>
 
-                <div style="height:12px"></div>
+                <div class="form-group">
+                    <h3>금액 정보</h3>
+                    <div class="input-grid single">
+                        <div>
+                            <label for="acquisitionPrice">취득가액 (원)</label>
+                            <input type="text" id="acquisitionPrice" placeholder="예: 500,000,000" required>
+                            <div class="help-text">부동산을 취득한 가격</div>
+                        </div>
 
-                <div class="title" style="font-size:1.05rem">거래금액</div>
-                <div class="small-note" style="margin-bottom:8px">고가주택 공동소유 시 본인 지분을 입력하세요</div>
+                        <div>
+                            <label for="transferPrice">양도가액 (원)</label>
+                            <input type="text" id="transferPrice" placeholder="예: 700,000,000" required>
+                            <div class="help-text">부동산을 양도한 가격</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                <div class="grid-2" style="margin-top:8px;">
-                    <div class="col">
-                        <label class="field-label">양도가액</label>
-                        <input type="text" id="transferPrice" placeholder="예: 500,000,000">
-                        <div class="small-note">실수령 금액</div>
-                    </div>
-                    <div class="col">
-                        <label class="field-label">취득가액 (실지취득가액)</label>
-                        <input type="text" id="acquirePrice" placeholder="예: 120,000,000">
-                        <div class="small-note">취득비용 합계</div>
-                    </div>
+            <div class="form-sections">
+                <div class="form-group">
+                    <h3>필요경비</h3>
+                    <div class="input-grid single">
+                        <div>
+                            <label for="expenses">취득세·등록세 등 (원)</label>
+                            <input type="text" id="expenses" placeholder="예: 20,000,000">
+                            <div class="help-text">취득 시 지출한 세금 및 비용</div>
+                        </div>
 
-                    <div class="col">
-                        <label class="field-label">실지 필요경비</label>
-                        <input type="text" id="otherExpense" placeholder="예: 2,000,000">
-                        <div class="small-note">양도중개수수료 등</div>
-                    </div>
-                    <div class="col">
-                        <label class="field-label">기본공제(인별)</label>
-                        <input type="text" id="basicDeduction" value="2,500,000" readonly>
-                        <div class="small-note">연간 250만원 한도</div>
+                        <div>
+                            <label for="improvementCost">자본적 지출 (원)</label>
+                            <input type="text" id="improvementCost" placeholder="예: 10,000,000">
+                            <div class="help-text">리모델링 등 개량비용</div>
+                        </div>
                     </div>
                 </div>
 
-                <div style="height:8px"></div>
-
-                <div class="detail-toggle" onclick="toggleDetail('acquireDetail')">펼치기 · 취득관련 상세</div>
-                <div id="acquireDetail" class="detail-box">
-                    <label class="small-note">취득세, 법무사비, 취득중개수수료 등</label>
-                    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px;">
-                        <input type="text" id="acq_tax" placeholder="취득세 합계">
-                        <input type="text" id="acq_legal" placeholder="법무사비용">
-                        <input type="text" id="acq_agent" placeholder="취득중개수수료">
+                <div class="form-group">
+                    <h3>세율 정보</h3>
+                    <div
+                        style="padding:1rem;background:rgba(59,130,246,0.05);border-radius:0.5rem;border-left:3px solid #3b82f6;">
+                        <div style="font-size:0.75rem;color:#1e40af;line-height:1.6;">
+                            <strong>💡 보유기간별 세율:</strong><br>
+                            • 1년 미만: 70%<br>
+                            • 1년~2년: 60%<br>
+                            • 2년 이상: 6~45% (누진세율)
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div style="height:6px"></div>
+            <button type="submit" class="calc-btn">💰 계산하기</button>
+        </form>
 
-                <div class="detail-toggle" onclick="toggleDetail('expenseDetail')">펼치기 · 필요경비 상세</div>
-                <div id="expenseDetail" class="detail-box">
-                    <label class="small-note">양도중개수수료, 국민주택채권매각차손, 자본적지출</label>
-                    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px;">
-                        <input type="text" id="agentFee" placeholder="양도중개수수료">
-                        <input type="text" id="bondLoss" placeholder="국민주택채권매각차손">
-                        <input type="text" id="capex" placeholder="자본적지출액">
-                    </div>
-                </div>
-
-                <div class="actions">
-                    <button class="btn-secondary" id="resetBtn" type="button">초기화</button>
-                    <button class="btn-alt" id="calcBtn" type="button">계산하기</button>
-                </div>
-            </section>
-
-            <aside class="card result-panel" id="resultSection" style="display:none;">
-                <div class="title">계산결과 (간편)</div>
-                <div style="margin-top:8px">
-                    <div class="result-row"><div class="small-note">과세표준(양도차익)</div><div id="res_gain">- 원</div></div>
-                    <div class="result-row"><div class="small-note">추정 양도소득세</div><div id="res_tax">- 원</div></div>
-                    <div class="result-row"><div class="small-note">기본공제 적용(인별)</div><div id="res_basic">- 원</div></div>
-                    <div class="result-row"><div class="small-note">비고</div><div id="res_note">-</div></div>
-                </div>
-
-                <div style="margin-top:12px" class="small-note">참고: 간편 계산입니다. 실제 납부세액은 중과·장기보유특별공제 등으로 달라집니다.</div>
-            </aside>
-        </div>
+        <div id="transferResult" class="result-container"></div>
     </div>
 
     <script>
-        // 유틸
-        function addComma(n){ return (''+Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
-        function removeComma(s){ return (s||'').toString().replace(/,/g,'').replace(/[^\d\-]/g,'')||'0'; }
-        function $id(id){return document.getElementById(id);}
-
-        // 토글
-        function toggleDetail(id){
-            const el = $id(id);
-            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        function addComma(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
 
-        // 자동 콤마 입력
-        ['transferPrice','acquirePrice','otherExpense','acq_tax','acq_legal','acq_agent','agentFee','bondLoss','capex'].forEach(id=>{
-            const el = $id(id);
-            if(!el) return;
-            el.addEventListener('input', function(){
-                const v = removeComma(this.value);
-                if(v===''||v==='0'){ this.value=''; return; }
-                this.value = addComma(Number(v));
+        function removeComma(x) {
+            return x.replace(/,/g, "");
+        }
+
+        ['acquisitionPrice', 'transferPrice', 'expenses', 'improvementCost'].forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('input', function () {
+                let val = el.value.replace(/[^\d]/g, '');
+                el.value = val ? addComma(val) : '';
             });
         });
 
-        // 계산 로직 (간편)
-        $id('calcBtn').addEventListener('click', function(){
-            const tp = parseInt(removeComma($id('transferPrice')?.value))||0;
-            const ap = parseInt(removeComma($id('acquirePrice')?.value))||0;
-            const other = parseInt(removeComma($id('otherExpense')?.value))||0;
-            const acq_tax = parseInt(removeComma($id('acq_tax')?.value))||0;
-            const acq_legal = parseInt(removeComma($id('acq_legal')?.value))||0;
-            const acq_agent = parseInt(removeComma($id('acq_agent')?.value))||0;
-            const agentFee = parseInt(removeComma($id('agentFee')?.value))||0;
-            const bondLoss = parseInt(removeComma($id('bondLoss')?.value))||0;
-            const capex = parseInt(removeComma($id('capex')?.value))||0;
-            const basic = parseInt(removeComma($id('basicDeduction')?.value))||0;
+        function calculateTransferTax() {
+            const acquisitionPrice = parseInt(removeComma(document.getElementById('acquisitionPrice').value)) || 0;
+            const transferPrice = parseInt(removeComma(document.getElementById('transferPrice').value)) || 0;
+            const expenses = parseInt(removeComma(document.getElementById('expenses').value)) || 0;
+            const improvementCost = parseInt(removeComma(document.getElementById('improvementCost').value)) || 0;
+            const holdingPeriod = parseInt(document.getElementById('holdingPeriod').value) || 0;
 
-            const totalAcquireRelated = ap + acq_tax + acq_legal + acq_agent;
-            const totalExpenses = other + agentFee + bondLoss + capex;
-            const gain = tp - totalAcquireRelated - totalExpenses - basic;
-            const taxable = gain > 0 ? gain : 0;
-
-            const brackets = [
-                {limit:12000000, rate:0.06, minus:0},
-                {limit:46000000, rate:0.15, minus:1080000},
-                {limit:88000000, rate:0.24, minus:5220000},
-                {limit:150000000, rate:0.35, minus:14900000},
-                {limit:300000000, rate:0.38, minus:19400000},
-                {limit:500000000, rate:0.40, minus:25400000},
-                {limit:1000000000, rate:0.42, minus:45400000},
-                {limit:Infinity, rate:0.45, minus:75400000}
-            ];
-            let rate=0, minus=0;
-            for(let i=0;i<brackets.length;i++){
-                if(taxable <= brackets[i].limit){ rate = brackets[i].rate; minus = brackets[i].minus; break; }
+            if (!acquisitionPrice || !transferPrice) {
+                alert('취득가액과 양도가액을 입력하세요.');
+                return;
             }
-            let tax = Math.floor(taxable * rate - minus);
-            if(tax < 0) tax = 0;
 
-            // 결과 표시
-            const resGain = $id('res_gain');
-            const resTax = $id('res_tax');
-            const resBasic = $id('res_basic');
-            const resNote = $id('res_note');
-            const resultSection = $id('resultSection');
-            
-            if(resGain) resGain.textContent = addComma(taxable) + ' 원';
-            if(resTax) resTax.textContent = addComma(tax) + ' 원';
-            if(resBasic) resBasic.textContent = addComma(basic) + ' 원';
-            if(resNote) resNote.textContent = '간편 계산(참고용) — 실제는 중과/특별공제 등으로 달라집니다.';
-            if(resultSection) {
-                resultSection.style.display = 'block';
-                resultSection.scrollIntoView({behavior:'smooth'});
+            const capitalGain = transferPrice - acquisitionPrice - expenses - improvementCost;
+
+            let taxRate = 0;
+            let rateText = '';
+            if (holdingPeriod < 1) {
+                taxRate = 0.70;
+                rateText = '70% (1년 미만)';
+            } else if (holdingPeriod < 2) {
+                taxRate = 0.60;
+                rateText = '60% (1년~2년)';
+            } else {
+                // 간단히 30% 적용 (실제로는 누진세율)
+                taxRate = 0.30;
+                rateText = '30% (일반세율)';
             }
+
+            const tax = Math.max(0, capitalGain * taxRate);
+
+            displayResult(acquisitionPrice, transferPrice, capitalGain, tax, rateText, expenses + improvementCost);
+        }
+
+        function displayResult(acquisitionPrice, transferPrice, capitalGain, tax, rateText, totalExpenses) {
+            const resultDiv = document.getElementById('transferResult');
+            const formatCurrency = (num) => Math.round(num).toLocaleString('ko-KR') + ' 원';
+
+            resultDiv.innerHTML = `
+                <h4 style="color:#1e293b;margin-bottom:1rem;font-size:0.9375rem;font-weight:600;">
+                    📊 양도소득세 계산 결과
+                </h4>
+                
+                <div style="background:rgba(241,245,249,0.8);border-radius:0.625rem;padding:1rem;margin-bottom:1rem;">
+                    <div style="display:grid;grid-template- columns:repeat(2, 1fr);gap:0.75rem;">
+                        <div style="padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;display:block;">취득가액</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(acquisitionPrice)}</span>
+                        </div>
+                        <div style="padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;display:block;">양도가액</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(transferPrice)}</span>
+                        </div>
+                        <div style="padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;display:block;">필요경비</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#64748b;">${formatCurrency(totalExpenses)}</span>
+                        </div>
+                        <div style="padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;display:block;">양도차익</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:${capitalGain > 0 ? '#10b981' : '#ef4444'};">${formatCurrency(capitalGain)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(245,158,11,0.3);">
+                    <span style="font-weight:600;font-size:0.875rem;">예상 양도소득세 (${rateText})</span>
+                    <span style="font-weight:700;font-size:1.25rem;">${formatCurrency(tax)}</span>
+                </div>
+                
+                <div style="margin-top:1rem;padding:0.75rem;background:rgba(59,130,246,0.1);border-radius:0.5rem;border-left:3px solid #3b82f6;">
+                    <p style="font-size:0.75rem;color:#1e40af;margin:0;">
+                        <strong>💡 Tip:</strong> 실제 세액은 장기보유특별공제, 다주택자 중과세 등이 적용됩니다. 정확한 세액은 세무사와 상담하세요.
+                    </p>
+                </div>
+            `;
+
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        document.getElementById('transferForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            calculateTransferTax();
         });
 
-        // 초기화
-        $id('resetBtn').addEventListener('click', function(){
-            ['transferPrice','acquirePrice','otherExpense','acq_tax','acq_legal','acg_agent','agentFee','bondLoss','capex'].forEach(id=>{
-                const el = $id(id);
-                if(el) el.value = '';
-            });
-            const resultSection = $id('resultSection');
-            if(resultSection) resultSection.style.display='none';
-        });
-
-        // 엔터 제출 방지
-        document.addEventListener('keydown', function(e){
-            if(e.key === 'Enter' && e.target && e.target.tagName === 'INPUT') e.preventDefault();
+        window.addEventListener('load', function () {
+            document.getElementById('acquisitionPrice').value = '500,000,000';
+            document.getElementById('transferPrice').value = '700,000,000';
+            document.getElementById('expenses').value = '20,000,000';
+            calculateTransferTax();
         });
     </script>
 </body>
+
 </html>

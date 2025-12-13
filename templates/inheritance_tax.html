@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상속세 계산기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-nav-btn {
+            position: fixed;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.625rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .main-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 1.25rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            padding: 2rem;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0f172a, #334155);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .form-sections {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group {
+            background: rgba(248, 250, 252, 0.8);
+            padding: 1.25rem;
+            border-radius: 0.875rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(203, 213, 225, 0.3);
+        }
+
+        .form-group h3 {
+            color: #334155;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.875rem;
+        }
+
+        .input-grid.single {
+            grid-template-columns: 1fr;
+        }
+
+        .field-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.375rem;
+            font-weight: 500;
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 1.5px solid rgba(203, 213, 225, 0.6);
+            border-radius: 0.5rem;
+            font-size: 0.8125rem;
+            transition: all 0.2s ease;
+            background: white;
+            color: #1e293b;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .help-text {
+            font-size: 0.6875rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .calc-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 0.875rem 2.5rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            min-width: 200px;
+        }
+
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .result-container {
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.9));
+            border-radius: 0.875rem;
+            padding: 1.5rem;
+            margin-top: 1.25rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(203, 213, 225, 0.3);
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .form-sections {
+                grid-template-columns: 1fr;
+            }
+
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="/main" class="main-nav-btn">
+        🏠 메인으로
+    </a>
+
+    <div class="container">
+        <h1>📜 상속세 계산기</h1>
+
+        <form id="inheritanceForm">
+            <div class="form-sections">
+                <!-- 상속 재산 정보 -->
+                <div class="form-group">
+                    <h3>💰 상속 재산 정보</h3>
+                    <div class="input-grid single">
+                        <div class="field-wrapper">
+                            <label for="totalAssets">총 상속재산가액 (원)</label>
+                            <input type="text" id="totalAssets" placeholder="예: 2,000,000,000" required>
+                            <div class="help-text">부동산, 예금, 주식 등 모든 재산의 합계</div>
+                        </div>
+
+                        <div class="field-wrapper">
+                            <label for="totalDebts">총 채무액 (원)</label>
+                            <input type="text" id="totalDebts" placeholder="예: 100,000,000">
+                            <div class="help-text">대출금, 미지급금 등</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 상속인 정보 -->
+                <div class="form-group">
+                    <h3>👨‍👩‍👧‍👦 상속인 정보</h3>
+                    <div class="input-grid single">
+                        <div class="field-wrapper">
+                            <label for="spouseCount">배우자</label>
+                            <select id="spouseCount">
+                                <option value="0">없음</option>
+                                <option value="1" selected>1명</option>
+                            </select>
+                        </div>
+
+                        <div class="field-wrapper">
+                            <label for="childCount">자녀 수</label>
+                            <input type="number" id="childCount" min="0" max="20" value="2" placeholder="0">
+                            <div class="help-text">미성년 자녀 포함</div>
+                        </div>
+
+                        <div class="field-wrapper">
+                            <label for="minorCount">미성년 자녀 수</label>
+                            <input type="number" id="minorCount" min="0" max="20" value="0" placeholder="0">
+                            <div class="help-text">20세 미만 자녀</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-sections">
+                <!-- 공제 정보 -->
+                <div class="form-group">
+                    <h3>📊 공제 및 감면</h3>
+                    <div class="input-grid single">
+                        <div class="field-wrapper">
+                            <label for="funeralExpense">장례비용 (원)</label>
+                            <input type="text" id="funeralExpense" placeholder="예: 5,000,000">
+                            <div class="help-text">최대 1천만원 공제</div>
+                        </div>
+
+                        <div class="field-wrapper">
+                            <label for="priorDonation">사전증여재산 (원)</label>
+                            <input type="text" id="priorDonation" placeholder="예: 0">
+                            <div class="help-text">상속개시 10년 이내 증여재산</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 세율 정보 안내 -->
+                <div class="form-group">
+                    <h3>📈 상속세율 정보</h3>
+                    <div
+                        style="padding:1rem;background:rgba(59,130,246,0.05);border-radius:0.5rem;border-left:3px solid #3b82f6;">
+                        <div style="font-size:0.75rem;color:#1e40af;line-height:1.6;">
+                            <strong>💡 상속세율 (2025년 기준):</strong><br>
+                            • 1억원 이하: 10%<br>
+                            • 1억~5억: 20% (누진공제 1천만원)<br>
+                            • 5억~10억: 30% (누진공제 6천만원)<br>
+                            • 10억~30억: 40% (누진공제 1억 6천만원)<br>
+                            • 30억 초과: 50% (누진공제 4억 6천만원)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button type="submit" class="calc-btn">💰 계산하기</button>
+            </div>
+        </form>
+
+        <div id="inheritanceResult" class="result-container"></div>
+    </div>
+
+    <script>
+        // 콤마 처리
+        function addComma(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function removeComma(x) {
+            return x.replace(/,/g, "");
+        }
+
+        function setCommaInput(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', function () {
+                let val = el.value.replace(/[^\d]/g, '');
+                el.value = val ? addComma(val) : '';
+            });
+        }
+
+        setCommaInput('totalAssets');
+        setCommaInput('totalDebts');
+        setCommaInput('funeralExpense');
+        setCommaInput('priorDonation');
+
+        // 상속세 계산
+        function calculateInheritance() {
+            const totalAssets = parseInt(removeComma(document.getElementById('totalAssets').value)) || 0;
+            const totalDebts = parseInt(removeComma(document.getElementById('totalDebts').value)) || 0;
+            const spouseCount = parseInt(document.getElementById('spouseCount').value) || 0;
+            const childCount = parseInt(document.getElementById('childCount').value) || 0;
+            const minorCount = parseInt(document.getElementById('minorCount').value) || 0;
+            const funeralExpense = Math.min(parseInt(removeComma(document.getElementById('funeralExpense').value)) || 0, 10000000);
+            const priorDonation = parseInt(removeComma(document.getElementById('priorDonation').value)) || 0;
+
+            if (!totalAssets) {
+                alert('총 상속재산가액을 입력해주세요.');
+                return;
+            }
+
+            // 순상속재산가액 = 총상속재산 - 채무 - 장례비
+            const netAssets = totalAssets - totalDebts - funeralExpense + priorDonation;
+
+            // 기초공제 (최소 2억)
+            const basicDeduction = 200000000;
+
+            // 배우자공제 (최소 5억, 최대 30억)
+            let spouseDeduction = 0;
+            if (spouseCount > 0) {
+                spouseDeduction = Math.min(Math.max(netAssets * 0.5, 500000000), 3000000000);
+            }
+
+            // 자녀공제 (1인당 5천만원, 미성년자는 추가로 나이별 공제)
+            const childDeduction = childCount * 50000000;
+            const minorDeduction = minorCount * 10 * 10000000; // 간단히 1억으로 계산
+
+            // 총공제
+            const totalDeduction = basicDeduction + spouseDeduction + childDeduction + minorDeduction;
+
+            // 과세표준
+            const taxBase = Math.max(0, netAssets - totalDeduction);
+
+            // 세율 적용
+            let tax = 0;
+            let taxRate = '';
+
+            if (taxBase <= 100000000) {
+                tax = taxBase * 0.1;
+                taxRate = '10%';
+            } else if (taxBase <= 500000000) {
+                tax = taxBase * 0.2 - 10000000;
+                taxRate = '20%';
+            } else if (taxBase <= 1000000000) {
+                tax = taxBase * 0.3 - 60000000;
+                taxRate = '30%';
+            } else if (taxBase <= 3000000000) {
+                tax = taxBase * 0.4 - 160000000;
+                taxRate = '40%';
+            } else {
+                tax = taxBase * 0.5 - 460000000;
+                taxRate = '50%';
+            }
+
+            displayResult(totalAssets, totalDebts, funeralExpense, netAssets, totalDeduction, taxBase, tax, taxRate, spouseDeduction, childDeduction + minorDeduction);
+        }
+
+        function displayResult(totalAssets, totalDebts, funeralExpense, netAssets, totalDeduction, taxBase, tax, taxRate, spouseDeduction, childDeduction) {
+            const resultDiv = document.getElementById('inheritanceResult');
+            const formatCurrency = (num) => Math.round(num).toLocaleString('ko-KR') + ' 원';
+
+            resultDiv.innerHTML = `
+                <h4 style="color:#1e293b;margin-bottom:1rem;font-size:0.9375rem;font-weight:600;display:flex;align-items:center;gap:0.5rem;">
+                    <span style="color:#3b82f6;">📊</span> 상속세 계산 결과
+                </h4>
+                
+                <div style="background:rgba(241,245,249,0.8);border-radius:0.625rem;padding:1rem;margin-bottom:1rem;border:1px solid rgba(203,213,225,0.3);">
+                    <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;">
+                        <div style="display:flex;flex-direction:column;padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;">총 상속재산</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(totalAssets)}</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;">채무 및 장례비</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(totalDebts + funeralExpense)}</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;">순상속재산가액</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(netAssets)}</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;padding:0.625rem;">
+                            <span style="font-size:0.6875rem;color:#64748b;">총 공제액</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#10b981;">${formatCurrency(totalDeduction)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background:white;border-radius:0.625rem;padding:1rem;margin-bottom:1rem;border:1px solid rgba(203,213,225,0.3);">
+                    <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;">
+                        <div style="display:flex;flex-direction:column;padding:0.875rem;background:rgba(59,130,246,0.05);border-radius:0.5rem;border:1px solid rgba(59,130,246,0.2);">
+                            <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">배우자 공제</span>
+                            <span style="font-size:0.875rem;font-weight:700;color:#3b82f6;">${formatCurrency(spouseDeduction)}</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;padding:0.875rem;background:rgba(16,185,129,0.05);border-radius:0.5rem;border:1px solid rgba(16,185,129,0.2);">
+                            <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">자녀 공제</span>
+                            <span style="font-size:0.875rem;font-weight:700;color:#10b981;">${formatCurrency(childDeduction)}</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;padding:0.875rem;background:rgba(241,245,249,0.8);border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
+                            <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">과세표준</span>
+                            <span style="font-size:0.875rem;font-weight:700;color:#1e293b;">${formatCurrency(taxBase)}</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;padding:0.875rem;background:rgba(241,245,249,0.8);border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
+                            <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">적용 세율</span>
+                            <span style="font-size:0.875rem;font-weight:700;color:#1e293b;">${taxRate}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:linear-gradient(135deg,#dc2626,#b91c1c);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(220,38,38,0.3);">
+                    <span style="font-weight:600;font-size:0.875rem;">예상 상속세</span>
+                    <span style="font-weight:700;font-size:1.25rem;">${formatCurrency(tax)}</span>
+                </div>
+                
+                <div style="margin-top:1rem;padding:0.75rem;background:rgba(59,130,246,0.1);border-radius:0.5rem;border-left:3px solid #3b82f6;">
+                    <p style="font-size:0.75rem;color:#1e40af;margin:0;line-height:1.5;">
+                        <strong>💡 Tip:</strong> 본 결과는 간이 계산으로 실제 상속세와 다를 수 있습니다. 정확한 세액은 세무사와 상담하시기 바랍니다.
+                    </p>
+                </div>
+            `;
+
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        document.getElementById('inheritanceForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            calculateInheritance();
+        });
+
+        // 페이지 로드 시 자동 계산
+        window.addEventListener('load', function () {
+            document.getElementById('totalAssets').value = '2,000,000,000';
+            document.getElementById('totalDebts').value = '100,000,000';
+            document.getElementById('funeralExpense').value = '5,000,000';
+            calculateInheritance();
+        });
+    </script>
+</body>
+
+</html>

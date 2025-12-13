@@ -1,479 +1,624 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>퇴직금 계산기</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
             min-height: 100vh;
-            padding: 20px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .container-retire { 
-            max-width: 800px; 
-            margin: 40px auto; 
-            background: rgba(255, 255, 255, 0.95);
+
+        .main-nav-btn {
+            position: fixed;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.625rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .main-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
-            border-radius: 20px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.3);
-            padding: 40px;
-            position: relative;
-            overflow: hidden;
+            border-radius: 1.25rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            padding: 2rem;
+            margin: 0 auto;
         }
-        .container-retire::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
-            background-size: 400% 400%;
-            animation: gradient 3s ease infinite;
-        }
-        @keyframes gradient {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-        .retire-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 30px; 
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-        }
-        .retire-title { 
-            color: #2c3e50; 
-            font-size: 2.2em; 
-            font-weight: 700; 
-            background: linear-gradient(135deg, #667eea, #764ba2);
+
+        h1 {
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0f172a, #334155);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
-        .retire-tax-btn { 
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: #fff; 
-            font-weight: 600; 
-            padding: 12px 24px; 
-            border-radius: 12px; 
-            border: none; 
-            font-size: 1em;
+
+        /* Quick Calculation Tabs */
+        .quick-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .quick-tab {
+            padding: 0.625rem 1.25rem;
+            border-radius: 50px;
+            border: 1.5px solid rgba(59, 130, 246, 0.3);
+            background: white;
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.2s ease;
         }
-        .retire-tax-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+
+        .quick-tab:hover,
+        .quick-tab.active {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-1px);
         }
-        .retire-form { 
-            background: rgba(248, 250, 252, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 30px; 
-            border-radius: 16px; 
-            border: 1px solid rgba(255,255,255,0.2);
+
+        /* Grid Layout for Form Groups */
+        .form-sections {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
         }
-        .retire-btn { 
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: #fff; 
-            font-weight: 600; 
-            padding: 14px 32px; 
-            border-radius: 12px; 
-            border: none; 
-            font-size: 1.1em; 
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-            width: 100%;
-            margin-top: 20px;
-        }
-        .retire-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
+
         .form-group {
-            margin-bottom: 20px;
+            background: rgba(248, 250, 252, 0.8);
+            padding: 1.25rem;
+            border-radius: 0.875rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(203, 213, 225, 0.3);
         }
-        .form-group label {
-            display: block;
+
+        .form-group h3 {
+            color: #334155;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
             font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 8px;
-            font-size: 1.05em;
+            border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
         }
-        .form-group input, .form-group select {
+
+        /* Grid for Input Fields */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.875rem;
+        }
+
+        .input-grid.single {
+            grid-template-columns: 1fr;
+        }
+
+        .field-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.375rem;
+            font-weight: 500;
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        input,
+        select {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-            border-radius: 10px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.9);
+            padding: 0.625rem 0.75rem;
+            border: 1.5px solid rgba(203, 213, 225, 0.6);
+            border-radius: 0.5rem;
+            font-size: 0.8125rem;
+            transition: all 0.2s ease;
+            background: white;
+            color: #1e293b;
         }
-        .form-group input:focus, .form-group select:focus {
+
+        input:focus,
+        select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
+
         .date-inputs {
             display: flex;
-            gap: 10px;
-            align-items: center;
+            gap: 0.5rem;
         }
+
         .date-inputs select {
             flex: 1;
         }
+
         .radio-group {
             display: flex;
-            gap: 20px;
+            gap: 1rem;
             align-items: center;
         }
+
         .radio-group label {
             display: flex;
             align-items: center;
-            font-weight: 400 !important;
-            margin-bottom: 0 !important;
+            gap: 0.375rem;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+
+        .radio-group input[type="radio"] {
+            width: auto;
             cursor: pointer;
         }
-        .radio-group input[type="radio"] {
-            margin-right: 8px;
-            width: auto;
-        }
-        .exec-options {
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 15px;
-            border-left: 4px solid #667eea;
-        }
+
         .help-text {
-            font-size: 0.9em;
-            color: #6c757d;
-            margin-top: 5px;
-            line-height: 1.4;
+            font-size: 0.6875rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
         }
+
+        .button-container {
+            text-align: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .calc-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 0.875rem 2.5rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            min-width: 200px;
+        }
+
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .calc-btn:active {
+            transform: translateY(0);
+        }
+
+        .result-container {
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.9));
+            border-radius: 0.875rem;
+            padding: 1.5rem;
+            margin-top: 1.25rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(203, 213, 225, 0.3);
+            display: none;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .container-retire { 
-                margin: 20px auto;
-                padding: 25px; 
+            .form-sections {
+                grid-template-columns: 1fr;
             }
-            .retire-header {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
+
+            .input-grid {
+                grid-template-columns: 1fr;
             }
-            .retire-title {
-                font-size: 1.8em;
+
+            .container {
+                padding: 1.5rem;
             }
-            .date-inputs {
-                flex-direction: column;
-                gap: 10px;
+
+            h1 {
+                font-size: 1.25rem;
             }
-            .radio-group {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
+
+            .quick-tabs {
+                justify-content: flex-start;
             }
         }
     </style>
 </head>
+
 <body>
-<div class="container-retire">
-    <div class="retire-header">
-        <div class="retire-title">퇴직금 계산기</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-            <a href="/main" class="retire-tax-btn" style="text-decoration:none;">메인으로</a>
-            <button type="button" id="showRetireTaxRateBtn" class="retire-tax-btn">퇴직소득세율표 보기</button>
+    <a href="/main" class="main-nav-btn">
+        🏠 메인으로
+    </a>
+
+    <div class="container">
+        <h1>💰 퇴직금 계산기</h1>
+
+        <!-- Quick Calculation Tabs -->
+        <div class="quick-tabs">
+            <button class="quick-tab" data-years="10" data-multiplier="1">10년 근무</button>
+            <button class="quick-tab" data-years="15" data-multiplier="1">15년 근무</button>
+            <button class="quick-tab" data-years="20" data-multiplier="1">20년 근무</button>
+            <button class="quick-tab" data-years="10" data-multiplier="2">10년 2배수</button>
+            <button class="quick-tab" data-years="10" data-multiplier="3">10년 3배수</button>
+            <button class="quick-tab" data-years="15" data-multiplier="2">15년 2배수</button>
+            <button class="quick-tab" data-years="15" data-multiplier="3">15년 3배수</button>
         </div>
-    </div>
-    <form id="retirementForm" class="retire-form" autocomplete="off">
-        <div class="form-group">
-            <label>입사일</label>
-            <div class="date-inputs">
-                <select id="joinYear"></select>
-                <select id="joinMonth"></select>
-                <select id="joinDay"></select>
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <label>퇴사일</label>
-            <div class="date-inputs">
-                <select id="leaveYear"></select>
-                <select id="leaveMonth"></select>
-                <select id="leaveDay"></select>
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <label>퇴직 직전 1년간 총 급여</label>
-            <input type="text" id="last1ySalary" placeholder="예: 200,000,000" required pattern="[0-9,]*" inputmode="numeric" autocomplete="off">
-            <div class="help-text">퇴직금 계산의 기준이 되는 금액입니다</div>
-        </div>
-        
-        <div class="form-group">
-            <label>퇴직 직전 3년간 총 급여 (임원 한도용)</label>
-            <input type="text" id="last3ySalary" placeholder="예: 600,000,000" pattern="[0-9,]*" inputmode="numeric" autocomplete="off">
-            <div class="help-text">임원/대표일 때만 입력, 한도 계산에 사용됩니다</div>
-        </div>
-        
-        <div class="form-group">
-            <label>임원 이상 여부</label>
-            <div class="radio-group">
-                <label><input type="radio" name="executive" value="no" checked> 일반 직원</label>
-                <label><input type="radio" name="executive" value="yes"> 임원/대표</label>
-            </div>
-        </div>
-        
-        <div id="execOptions" class="exec-options" style="display:none;">
-            <div class="form-group">
-                <label>임원 퇴직소득 한도 배수</label>
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <input type="number" id="execMultiplier" min="0.1" max="10" step="0.1" value="2" style="width:100px;" inputmode="decimal" autocomplete="off">
-                    <span style="font-weight:600;">배수</span>
+
+        <form id="retirementForm">
+            <div class="form-sections">
+                <!-- 기본 정보 -->
+                <div class="form-group">
+                    <h3>📋 근무 기간</h3>
+                    <div class="input-grid single">
+                        <div class="field-wrapper">
+                            <label for="joinDate">입사일</label>
+                            <input type="date" id="joinDate" required>
+                        </div>
+
+                        <div class="field-wrapper">
+                            <label for="leaveDate">퇴사일</label>
+                            <input type="date" id="leaveDate" required>
+                        </div>
+                    </div>
                 </div>
-                <div class="help-text">
-                    ? 2011년 이전: 정관에서 정한 배수<br>
-                    ? 2012~2019년: 3배수<br>
-                    ? 2020년 이후: 2배수<br>
-                    ? 소수점 입력 가능 (예: 2.5배)
+
+                <!-- 급여 정보 -->
+                <div class="form-group">
+                    <h3>💵 급여 정보</h3>
+                    <div class="input-grid single">
+                        <div class="field-wrapper">
+                            <label for="last1ySalary">퇴직 직전 1년간 총 급여</label>
+                            <input type="text" id="last1ySalary" placeholder="예: 200,000,000" required>
+                            <div class="help-text">퇴직금 계산의 기준이 되는 금액</div>
+                        </div>
+
+                        <div class="field-wrapper" id="execSalaryField" style="display:none;">
+                            <label for="last3ySalary">퇴직 직전 3년간 총 급여</label>
+                            <input type="text" id="last3ySalary" placeholder="예: 600,000,000">
+                            <div class="help-text">임원/대표일 때만 입력</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="form-group">
-                <label>직전 3년 급여 총액 (임원용)</label>
-                <input type="text" id="exec3ySalary" placeholder="예: 300,000,000" pattern="[0-9,]*">
-                <div class="help-text">임원일 때만 입력, 평균임금은 직전 3년 총액을 일수 기준으로 나눈 값 (직전3년총액÷1080)</div>
+
+            <div class="form-sections">
+                <!-- 임원 정보 -->
+                <div class="form-group">
+                    <h3>👔 직급 정보</h3>
+                    <div class="input-grid single">
+                        <div class="field-wrapper">
+                            <label>임원 이상 여부</label>
+                            <div class="radio-group">
+                                <label><input type="radio" name="executive" value="no" checked> 일반 직원</label>
+                                <label><input type="radio" name="executive" value="yes"> 임원/대표</label>
+                            </div>
+                        </div>
+
+                        <div class="field-wrapper" id="execMultiplierField" style="display:none;">
+                            <label for="execMultiplier">임원 퇴직소득 한도 배수</label>
+                            <input type="number" id="execMultiplier" min="0.1" max="10" step="0.1" value="2"
+                                placeholder="2.0">
+                            <div class="help-text" id="multiplierGuide">
+                                <strong>📅 법정 기준 (퇴사일 기준):</strong><br>
+                                • 2011년 이전: 정관 규정 (기본 1배수)<br>
+                                • 2012~2018년: 2배수<br>
+                                • 2019년 이후: 3배수
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 영업용 시나리오 -->
+                <div class="form-group">
+                    <h3>📊 영업 시나리오</h3>
+                    <div class="input-grid single">
+                        <div class="field-wrapper">
+                            <label for="scenarioYears">시나리오 근무 년수</label>
+                            <input type="number" id="scenarioYears" min="1" max="50" step="1" value="10"
+                                placeholder="10">
+                            <div class="help-text">영업 제안용 근무 년수</div>
+                        </div>
+
+                        <div class="field-wrapper">
+                            <label for="scenarioMultiplier">시나리오 배수 (임원용)</label>
+                            <input type="number" id="scenarioMultiplier" min="1" max="5" step="0.5" value="1"
+                                placeholder="1.0">
+                            <div class="help-text">영업 제안용 배수 설정</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <button type="submit" class="retire-btn">계산하기</button>
-    </form>
-    
-    <div id="retireResult" style="display:none;background:linear-gradient(135deg, #e8f5e8, #f0fff0);padding:25px;border-radius:16px;margin-top:25px;border-left:4px solid #28a745;"></div>
-    
-    <div style="background:rgba(108, 117, 125, 0.1);border-radius:12px;padding:20px;margin-top:25px;">
-        <h4 style="color:#495057;margin-bottom:15px;">? 유의 사항</h4>
-        <div style="font-size:0.95em;color:#6c757d;line-height:1.6;">
-            <p><strong>1.</strong> 퇴직금은 1년 이상 재직한 근로자에 한해 지급되며, 재직기간 1년당 30일분의 평균임금이 지급됩니다.</p>
-            <p><strong>2.</strong> "평균임금"이란 발생 사유일 이전 3개월 동안 지급된 임금 총액을 그 기간의 총일수로 나눈 금액입니다.</p>
-            <p><strong>3.</strong> 임원의 경우 별도의 한도 배수가 적용되며, 이는 정관이나 관련 규정에 따라 달라질 수 있습니다.</p>
-            <p><strong>4.</strong> 위 계산결과는 근로자퇴직급여 보장법상 기준이며, 실제 지급액과 차이가 있을 수 있습니다.</p>
-        </div>
+
+            <div class="button-container">
+                <button type="submit" class="calc-btn">💰 계산하기</button>
+            </div>
+        </form>
+
+        <div id="retireResult" class="result-container"></div>
     </div>
-    <!-- 퇴직소득세율 안내 모달 -->
-    <div id="retireTaxRateModal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);backdrop-filter:blur(5px);">
-        <div style="background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);max-width:700px;margin:60px auto;padding:32px 28px;border-radius:20px;position:relative;box-shadow:0 20px 50px rgba(0,0,0,0.2);">
-            <button id="closeRetireTaxRateModal" style="position:absolute;top:18px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;color:#6c757d;width:40px;height:40px;border-radius:50%;transition:all 0.3s ease;">×</button>
-            <h3 style="color:#2c3e50;font-size:1.5em;margin-bottom:20px;text-align:center;">퇴직소득세율표</h3>
-            <div style="overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;text-align:center;background:rgba(255,255,255,0.9);border-radius:12px;overflow:hidden;">
-                    <thead>
-                        <tr style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">
-                            <th style="padding:15px;font-weight:600;">과세표준</th>
-                            <th style="padding:15px;font-weight:600;">세율</th>
-                            <th style="padding:15px;font-weight:600;">누진공제</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr style="border-bottom:1px solid rgba(0,0,0,0.1);"><td style="padding:12px;">1,200만원 이하</td><td style="padding:12px;font-weight:600;color:#28a745;">6%</td><td style="padding:12px;">0</td></tr>
-                        <tr style="border-bottom:1px solid rgba(0,0,0,0.1);"><td style="padding:12px;">4,600만원 이하</td><td style="padding:12px;font-weight:600;color:#fd7e14;">15%</td><td style="padding:12px;">108만원</td></tr>
-                        <tr style="border-bottom:1px solid rgba(0,0,0,0.1);"><td style="padding:12px;">8,800만원 이하</td><td style="padding:12px;font-weight:600;color:#e83e8c;">24%</td><td style="padding:12px;">522만원</td></tr>
-                        <tr style="border-bottom:1px solid rgba(0,0,0,0.1);"><td style="padding:12px;">1억5천만원 이하</td><td style="padding:12px;font-weight:600;color:#6f42c1;">35%</td><td style="padding:12px;">1,490만원</td></tr>
-                        <tr style="border-bottom:1px solid rgba(0,0,0,0.1);"><td style="padding:12px;">3억원 이하</td><td style="padding:12px;font-weight:600;color:#dc3545;">38%</td><td style="padding:12px;">1,940만원</td></tr>
-                        <tr style="border-bottom:1px solid rgba(0,0,0,0.1);"><td style="padding:12px;">5억원 이하</td><td style="padding:12px;font-weight:600;color:#dc3545;">40%</td><td style="padding:12px;">2,540만원</td></tr>
-                        <tr><td style="padding:12px;">5억원 초과</td><td style="padding:12px;font-weight:600;color:#dc3545;">42%</td><td style="padding:12px;">3,540만원</td></tr>
-                    </tbody>
-                </table>
-            </div>
-            <div style="font-size:0.95em;color:#6c757d;margin-top:15px;text-align:center;background:rgba(108, 117, 125, 0.1);padding:10px;border-radius:8px;">
-                ?? 실제 세율은 법령 변경 및 개인 상황에 따라 다를 수 있습니다.
-            </div>
-        </div>
-    </div>
-</div>
-<script>
-// 입력란 천단위 콤마 자동 적용 및 숫자만 허용
-function setCommaInput(id, allowFloat=false) {
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.addEventListener('input', function(e) {
-        let val = el.value.replace(/[^\d.]/g, '');
-        // 소수점 1개만 허용
-        if(allowFloat) {
-            const parts = val.split('.');
-            if(parts.length>2) val = parts[0]+'.'+parts.slice(1).join('');
-            // 소수점 앞부분만 콤마
-            if(parts.length>1) {
-                el.value = addComma(parts[0]) + '.' + parts[1];
+
+    <script>
+        // Quick Tab 기능
+        const quickTabs = document.querySelectorAll('.quick-tab');
+        const today = new Date();
+        const leaveDate = document.getElementById('leaveDate');
+        const joinDate = document.getElementById('joinDate');
+        const scenarioYears = document.getElementById('scenarioYears');
+        const scenarioMultiplier = document.getElementById('scenarioMultiplier');
+        const execRadios = document.getElementsByName('executive');
+        const execMultiplier = document.getElementById('execMultiplier');
+
+        // 초기 날짜 설정
+        leaveDate.value = today.toISOString().split('T')[0];
+        const tenYearsAgo = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate());
+        joinDate.value = tenYearsAgo.toISOString().split('T')[0];
+
+        quickTabs.forEach(tab => {
+            tab.addEventListener('click', function () {
+                // Active 상태 토글
+                quickTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                const years = parseInt(this.dataset.years);
+                const multiplier = parseFloat(this.dataset.multiplier);
+
+                // 입사일 자동 계산 (퇴사일 기준 역산)
+                const leaveD = new Date(leaveDate.value);
+                const joinD = new Date(leaveD.getFullYear() - years, leaveD.getMonth(), leaveD.getDate());
+                joinDate.value = joinD.toISOString().split('T')[0];
+
+                // 시나리오 필드 업데이트
+                scenarioYears.value = years;
+                scenarioMultiplier.value = multiplier;
+
+                // 배수가 1 이상이면 임원으로 설정
+                if (multiplier > 1) {
+                    execRadios[1].checked = true;
+                    execMultiplier.value = multiplier;
+                    toggleExecutiveFields(true);
+                } else {
+                    execRadios[0].checked = true;
+                    toggleExecutiveFields(false);
+                }
+            });
+        });
+
+        // 임원 필드 토글
+        function toggleExecutiveFields(isExec) {
+            document.getElementById('execSalaryField').style.display = isExec ? 'block' : 'none';
+            document.getElementById('execMultiplierField').style.display = isExec ? 'block' : 'none';
+        }
+
+        execRadios.forEach(radio => {
+            radio.addEventListener('change', function () {
+                const isExec = this.value === 'yes';
+                toggleExecutiveFields(isExec);
+                if (isExec) {
+                    updateMultiplierByLeaveDate();
+                }
+            });
+        });
+
+        // 퇴사일 기준으로 법정 배수 자동 계산
+        function updateMultiplierByLeaveDate() {
+            const leave = new Date(leaveDate.value);
+            const leaveYear = leave.getFullYear();
+            let suggestedMultiplier = 1;
+
+            if (leaveYear <= 2011) {
+                suggestedMultiplier = 1; // 정관 규정 (기본값)
+            } else if (leaveYear >= 2012 && leaveYear <= 2018) {
+                suggestedMultiplier = 2; // 2012~2018년: 2배수
+            } else if (leaveYear >= 2019) {
+                suggestedMultiplier = 3; // 2019년 이후: 3배수
+            }
+
+            execMultiplier.value = suggestedMultiplier;
+
+            // 도움말 업데이트
+            const currentMultiplier = suggestedMultiplier;
+            const guideText = document.getElementById('multiplierGuide');
+            guideText.innerHTML = `
+                <strong>📅 법정 기준 (퇴사일 기준):</strong><br>
+                • 2011년 이전: 정관 규정 (기본 1배수)<br>
+                • 2012~2018년: 2배수<br>
+                • 2019년 이후: 3배수<br>
+                <span style="color:#3b82f6;font-weight:600;">→ 현재 퇴사일(${leaveYear}년)에 적용: ${currentMultiplier}배수</span>
+            `;
+        }
+
+        // 퇴사일 변경 시 배수 자동 업데이트
+        leaveDate.addEventListener('change', function () {
+            const isExec = document.querySelector('input[name="executive"]:checked').value === 'yes';
+            if (isExec) {
+                updateMultiplierByLeaveDate();
+            }
+        });
+
+        // 콤마 처리
+        function addComma(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function removeComma(x) {
+            return x.replace(/,/g, "");
+        }
+
+        function setCommaInput(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', function () {
+                let val = el.value.replace(/[^\d]/g, '');
+                el.value = val ? addComma(val) : '';
+            });
+        }
+
+        setCommaInput('last1ySalary');
+        setCommaInput('last3ySalary');
+
+        // 퇴직금 계산
+        function calculateRetirement() {
+            const join = new Date(joinDate.value);
+            const leave = new Date(leaveDate.value);
+            const last1y = parseInt(removeComma(document.getElementById('last1ySalary').value)) || 0;
+            const last3y = parseInt(removeComma(document.getElementById('last3ySalary').value)) || 0;
+            const isExec = document.querySelector('input[name="executive"]:checked').value === 'yes';
+            const multiplier = isExec ? parseFloat(execMultiplier.value) || 1 : 1;
+
+            // 재직일수 계산
+            const days = Math.floor((leave - join) / (1000 * 60 * 60 * 24));
+            if (days < 0) {
+                alert('퇴사일이 입사일보다 빠릅니다.');
                 return;
             }
-        } else {
-            val = val.replace(/\./g, '');
+
+            const years = days / 365;
+
+            // 평균임금 계산
+            let avgSalary = 0;
+            if (isExec && last3y > 0) {
+                avgSalary = last3y / 1080; // 3년 = 1080일
+            } else {
+                avgSalary = last1y / 360; // 1년 = 360일
+            }
+
+            // 퇴직금 계산: 1년당 30일분
+            let retirePay = avgSalary * 30 * years;
+            let limitPay = null;
+
+            if (isExec) {
+                // 임원 한도 적용
+                limitPay = avgSalary * 30 * years * multiplier;
+                if (retirePay > limitPay) {
+                    retirePay = limitPay;
+                }
+            }
+
+            displayResult(years, avgSalary, retirePay, limitPay, isExec);
         }
-        if(val) el.value = addComma(val);
-        else el.value = '';
-    });
-}
 
-// 날짜 셀렉트 박스 자동 생성
-function fillDateSelect(id, start, end, val) {
-    const sel = document.getElementById(id);
-    for(let i=start;i<=end;i++) {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.text = i;
-        if(i===val) opt.selected = true;
-        sel.appendChild(opt);
-    }
-}
+        function displayResult(years, avgSalary, retirePay, limitPay, isExec) {
+            const resultDiv = document.getElementById('retireResult');
+            const formatCurrency = (num) => Math.round(num).toLocaleString('ko-KR') + ' 원';
 
-const today = new Date();
-fillDateSelect('joinYear', 1980, today.getFullYear(), today.getFullYear()-1);
-fillDateSelect('joinMonth', 1, 12, 1);
-fillDateSelect('joinDay', 1, 31, 1);
-fillDateSelect('leaveYear', 1980, today.getFullYear(), today.getFullYear());
-fillDateSelect('leaveMonth', 1, 12, today.getMonth()+1);
-fillDateSelect('leaveDay', 1, 31, today.getDate());
+            // 기본 퇴직금 계산 (한도 적용 전)
+            const basicRetirePay = avgSalary * 30 * years;
+            const isLimited = isExec && limitPay && basicRetirePay > limitPay;
 
-// 임원 여부에 따라 한도 기준 노출
-const execRadios = document.getElementsByName('executive');
-for(const r of execRadios) {
-    r.onchange = function() {
-        const execOptions = document.getElementById('execOptions');
-        execOptions.style.display = (this.value==='yes')?'block':'none';
-        
-        // 애니메이션 효과
-        if(this.value==='yes') {
-            execOptions.style.opacity = '0';
-            execOptions.style.transform = 'translateY(-10px)';
-            setTimeout(() => {
-                execOptions.style.transition = 'all 0.3s ease';
-                execOptions.style.opacity = '1';
-                execOptions.style.transform = 'translateY(0)';
-            }, 50);
+            resultDiv.innerHTML = `
+                <h4 style="color:#1e293b;margin-bottom:1rem;font-size:0.9375rem;font-weight:600;display:flex;align-items:center;gap:0.5rem;">
+                    <span style="color:#3b82f6;">📊</span> 퇴직금 계산 결과
+                </h4>
+                <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;margin-bottom:1rem;">
+                    <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
+                        <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">재직기간</span>
+                        <span style="font-size:0.8125rem;font-weight:600;color:#1e293b;">${years.toFixed(2)} 년</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
+                        <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">일평균 임금</span>
+                        <span style="font-size:0.8125rem;font-weight:600;color:#1e293b;">${formatCurrency(avgSalary)}</span>
+                    </div>
+                </div>
+                ${isExec ? `
+                <div style="background:rgba(241,245,249,0.8);border-radius:0.625rem;padding:1rem;margin-bottom:1rem;border:1px solid rgba(203,213,225,0.3);">
+                    <div style="display:grid;gap:0.625rem;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:0.75rem;color:#64748b;">① 기본 퇴직금</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(basicRetirePay)}</span>
+                        </div>
+                        ${limitPay ? `
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:0.75rem;color:#64748b;">② 임원 한도 (세법상 최대)</span>
+                            <span style="font-size:0.875rem;font-weight:600;color:#f59e0b;">${formatCurrency(limitPay)}</span>
+                        </div>
+                        <div style="margin-top:0.375rem;padding:0.625rem;background:${isLimited ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)'};border-radius:0.375rem;border-left:3px solid ${isLimited ? '#ef4444' : '#10b981'};">
+                            <p style="font-size:0.6875rem;color:${isLimited ? '#991b1b' : '#065f46'};margin:0;line-height:1.4;">
+                                ${isLimited ?
+                            `<strong>⚠️ 한도 제한 적용:</strong> 기본 퇴직금이 세법상 한도를 초과하여 <strong>한도 금액까지만</strong> 받을 수 있습니다.` :
+                            `<strong>✅ 한도 내:</strong> 기본  퇴직금이 세법상 한도 이내이므로 <strong>전액</strong> 받을 수 있습니다.`
+                        }
+                            </p>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:linear-gradient(135deg,#10b981,#059669);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(16,185,129,0.3);">
+                    <span style="font-weight:600;font-size:0.875rem;">예상 퇴직금 (최종)</span>
+                    <span style="font-weight:700;font-size:1.25rem;">${formatCurrency(retirePay)}</span>
+                </div>
+                <div style="margin-top:1rem;padding:0.75rem;background:rgba(59,130,246,0.1);border-radius:0.5rem;border-left:3px solid #3b82f6;">
+                    <p style="font-size:0.75rem;color:#1e40af;margin:0;">
+                        <strong>💡 Tip:</strong> ${isExec ?
+                    '임원의 경우 <strong>배수는 한도</strong>를 의미합니다. 기본 퇴직금과 한도 중 <strong>작은 금액</strong>을 받습니다.' :
+                    '퇴직금은 재직기간 1년당 30일분의 평균임금으로 계산됩니다. 빠른 계산 탭을 사용하여 다양한 시나리오를 비교해보세요.'
+                }
+                    </p>
+                </div>
+            `;
+
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
         }
-    }
-}
 
-// 콤마 처리
-function addComma(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
-function removeComma(x) { return x.replace(/,/g,""); }
+        document.getElementById('retirementForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            calculateRetirement();
+        });
 
-// 입력란에 콤마 적용 (요소가 모두 렌더된 이후에 호출)
-setCommaInput('last1ySalary');
-setCommaInput('last3ySalary');
-setCommaInput('exec3ySalary');
-
-// 퇴직금 계산 함수
-function calcRetirementPay(join, leave, last1ySalary, last3ySalary, isExec, execMultiplier, exec3ySalary) {
-    // 1. 재직일수 계산
-    const joinDate = new Date(join[0], join[1]-1, join[2]);
-    const leaveDate = new Date(leave[0], leave[1]-1, leave[2]);
-    const days = Math.floor((leaveDate-joinDate)/(1000*60*60*24));
-    if(days<0) return {error:'퇴사일이 입사일보다 빠릅니다.'};
-    const years = days/365;
-
-    // 평균임금 산정
-    let avgSalary = 0;
-    if(isExec && exec3ySalary && exec3ySalary>0) {
-        avgSalary = exec3ySalary / 1080; // 일당 평균
-    } else {
-        avgSalary = last1ySalary / 360; // 일당 평균
-    }
-
-    let retirePay = avgSalary * 30 * years; // 1년당 30일분
-    let limitPay = null;
-    if(isExec) {
-        // 임원 한도: 평균임금 기반으로 배수 적용
-        limitPay = avgSalary * 30 * years * execMultiplier;
-        if(retirePay > limitPay) retirePay = limitPay;
-    }
-    return {retirePay: Math.floor(retirePay), years: years.toFixed(2), avgSalary: Math.floor(avgSalary), limitPay: limitPay?Math.floor(limitPay):null};
-}
-
-// 세율표 모달
-const showBtn = document.getElementById('showRetireTaxRateBtn');
-const modal = document.getElementById('retireTaxRateModal');
-const closeBtn = document.getElementById('closeRetireTaxRateModal');
-
-showBtn.onclick = ()=>{ 
-    modal.style.display='block';
-    modal.style.opacity = '0';
-    setTimeout(() => {
-        modal.style.transition = 'opacity 0.3s ease';
-        modal.style.opacity = '1';
-    }, 50);
-};
-
-closeBtn.onclick = ()=>{ 
-    modal.style.opacity = '0';
-    setTimeout(() => {
-        modal.style.display='none';
-    }, 300);
-};
-
-// 모달 배경 클릭시 닫기
-modal.onclick = function(e) {
-    if(e.target === modal) {
-        closeBtn.onclick();
-    }
-}
-
-// 계산 이벤트
-const form = document.getElementById('retirementForm');
-form.onsubmit = function(e) {
-    e.preventDefault();
-    const join = [parseInt(document.getElementById('joinYear').value),parseInt(document.getElementById('joinMonth').value),parseInt(document.getElementById('joinDay').value)];
-    const leave = [parseInt(document.getElementById('leaveYear').value),parseInt(document.getElementById('leaveMonth').value),parseInt(document.getElementById('leaveDay').value)];
-    const last1ySalary = parseInt(removeComma(document.getElementById('last1ySalary').value))||0;
-    const last3ySalary = parseInt(removeComma(document.getElementById('last3ySalary').value))||0;
-    const isExec = document.querySelector('input[name="executive"]:checked').value==='yes';
-    let execMultiplier = 1;
-    if(isExec) execMultiplier = parseFloat(removeComma(document.getElementById('execMultiplier').value))||1;
-    const exec3ySalary = parseInt(removeComma(document.getElementById('exec3ySalary').value))||0;
-    
-    const result = calcRetirementPay(join, leave, last1ySalary, last3ySalary, isExec, execMultiplier, exec3ySalary);
-    const box = document.getElementById('retireResult');
-    
-    if(result.error) {
-        box.style.display='block';
-        box.innerHTML = `<div style='color:#dc3545;text-align:center;font-weight:600;font-size:1.1em;'>?? ${result.error}</div>`;
-        return;
-    }
-    
-    box.style.display='block';
-    box.innerHTML =
-        `<div style='text-align:center;margin-bottom:20px;'>
-            <h4 style='color:#2c3e50;margin-bottom:15px;'>? 퇴직금 계산 결과</h4>
-        </div>
-        <div style='display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px;'>
-            <div style='background:rgba(255,255,255,0.8);padding:15px;border-radius:10px;text-align:center;'>
-                <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>재직기간</div>
-                <div style='font-size:1.2em;font-weight:600;color:#495057;'>${result.years}년</div>
-            </div>
-            <div style='background:rgba(255,255,255,0.8);padding:15px;border-radius:10px;text-align:center;'>
-                <div style='font-size:0.9em;color:#6c757d;margin-bottom:5px;'>일평균 임금</div>
-                <div style='font-size:1.2em;font-weight:600;color:#495057;'>${addComma(result.avgSalary)}원</div>
-            </div>
-        </div>`+
-        (isExec && result.limitPay ? `
-        <div style='background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.3);padding:15px;border-radius:10px;margin-bottom:15px;text-align:center;'>
-            <div style='font-size:0.9em;color:#856404;margin-bottom:5px;'>임원 퇴직금 한도 (세법상)</div>
-            <div style='font-size:1.1em;font-weight:600;color:#856404;'>${addComma(result.limitPay)}원</div>
-        </div>` : '')+
-        `<div style='background:rgba(40,167,69,0.1);border:2px solid rgba(40,167,69,0.3);padding:20px;border-radius:12px;text-align:center;'>
-            <div style='font-size:1.1em;color:#155724;margin-bottom:8px;'>? 예상 퇴직금</div>
-            <div style='font-size:2em;font-weight:700;color:#28a745;'>${addComma(result.retirePay)}원</div>
-        </div>`;
-        
-    // 결과 박스로 스크롤
-    box.scrollIntoView({ behavior: 'smooth' });
-};
-</script>
+        // 페이지 로드 시 자동 계산
+        window.addEventListener('load', function () {
+            calculateRetirement();
+        });
+    </script>
 </body>
+
 </html>
