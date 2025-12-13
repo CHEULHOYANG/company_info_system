@@ -5403,7 +5403,11 @@ def pipeline_dashboard_data():
         # 오늘 연락해야 할 기업
         today = datetime.now().strftime('%Y-%m-%d')
         today_contacts_query = '''
-            SELECT mc.*, cb.company_name, cb.representative_name 
+            SELECT mc.id, mc.biz_reg_no, mc.manager_id, mc.status, mc.keyman_name,
+                   mc.keyman_phone, mc.keyman_position, mc.keyman_email, mc.registration_reason,
+                   mc.next_contact_date, mc.last_contact_date, mc.notes, mc.expected_amount,
+                   mc.priority_level, mc.created_at, mc.updated_at,
+                   cb.company_name, cb.representative_name 
             FROM managed_companies mc
             LEFT JOIN Company_Basic cb ON mc.biz_reg_no = cb.biz_no
             WHERE mc.manager_id = ? AND mc.next_contact_date = ?
@@ -5422,7 +5426,11 @@ def pipeline_dashboard_data():
         for status, days in status_periods.items():
             threshold_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
             urgent_query = '''
-                SELECT mc.*, cb.company_name, cb.representative_name 
+                SELECT mc.id, mc.biz_reg_no, mc.manager_id, mc.status, mc.keyman_name,
+                       mc.keyman_phone, mc.keyman_position, mc.keyman_email, mc.registration_reason,
+                       mc.next_contact_date, mc.last_contact_date, mc.notes, mc.expected_amount,
+                       mc.priority_level, mc.created_at, mc.updated_at,
+                       cb.company_name, cb.representative_name 
                 FROM managed_companies mc
                 LEFT JOIN Company_Basic cb ON mc.biz_reg_no = cb.biz_no
                 WHERE mc.manager_id = ? AND mc.status = ? 
@@ -5435,7 +5443,11 @@ def pipeline_dashboard_data():
         
         # 전체 관리 기업 현황
         total_query = '''
-            SELECT mc.*, cb.company_name, cb.representative_name 
+            SELECT mc.id, mc.biz_reg_no, mc.manager_id, mc.status, mc.keyman_name,
+                   mc.keyman_phone, mc.keyman_position, mc.keyman_email, mc.registration_reason,
+                   mc.next_contact_date, mc.last_contact_date, mc.notes, mc.expected_amount,
+                   mc.priority_level, mc.created_at, mc.updated_at,
+                   cb.company_name, cb.representative_name 
             FROM managed_companies mc
             LEFT JOIN Company_Basic cb ON mc.biz_reg_no = cb.biz_no
             WHERE mc.manager_id = ?
