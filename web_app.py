@@ -6138,6 +6138,136 @@ def perform_ai_analysis(company_basic, financials, contact_history=None, shareho
         "recommendations": "전문적인 분석을 바탕으로 한 투자 의견과 향후 모니터링 포인트를 제시합니다."
     }
 
+# =======================================================
+# 대표자 및 주주 정보 수정 API 엔드포인트
+# =======================================================
+
+@app.route('/api/update-ceo-name', methods=['POST'])
+def update_ceo_name():
+    """대표자 이름 업데이트 API"""
+    try:
+        data = request.get_json()
+        biz_no = data.get('biz_no')
+        new_ceo_name = data.get('new_ceo_name')
+        
+        if not biz_no or not new_ceo_name:
+            return jsonify({'success': False, 'message': '필수 파라미터가 누락되었습니다.'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Company_Basic 테이블에서 대표자명 업데이트
+        cursor.execute('''
+            UPDATE Company_Basic
+            SET representative_name = ?
+            WHERE biz_no = ?
+        ''', (new_ceo_name, biz_no))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': '대표자명이 성공적으로 업데이트되었습니다.'})
+    
+    except Exception as e:
+        print(f"대표자명 업데이트 오류: {e}")
+        return jsonify({'success': False, 'message': f'업데이트 중 오류가 발생했습니다: {str(e)}'}), 500
+
+
+@app.route('/api/update_representative_name', methods=['POST'])
+def update_representative_name_api():
+    """대표자 이름 업데이트 API (detail.html용)"""
+    try:
+        data = request.get_json()
+        biz_no = data.get('biz_no')
+        representative_name = data.get('representative_name')
+        
+        if not biz_no or not representative_name:
+            return jsonify({'success': False, 'message': '필수 파라미터가 누락되었습니다.'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Company_Basic 테이블에서 대표자명 업데이트
+        cursor.execute('''
+            UPDATE Company_Basic
+            SET representative_name = ?
+            WHERE biz_no = ?
+        ''', (representative_name, biz_no))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': '대표자명이 성공적으로 업데이트되었습니다.'})
+    
+    except Exception as e:
+        print(f"대표자명 업데이트 오류: {e}")
+        return jsonify({'success': False, 'message': f'업데이트 중 오류가 발생했습니다: {str(e)}'}), 500
+
+
+@app.route('/api/update-shareholder', methods=['POST'])
+def update_shareholder():
+    """주주명 업데이트 API"""
+    try:
+        data = request.get_json()
+        biz_no = data.get('biz_no')
+        old_shareholder_name = data.get('old_shareholder_name')
+        new_shareholder_name = data.get('new_shareholder_name')
+        
+        if not biz_no or not old_shareholder_name or not new_shareholder_name:
+            return jsonify({'success': False, 'message': '필수 파라미터가 누락되었습니다.'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Company_Shareholder 테이블에서 주주명 업데이트
+        cursor.execute('''
+            UPDATE Company_Shareholder
+            SET shareholder_name = ?
+            WHERE biz_no = ? AND shareholder_name = ?
+        ''', (new_shareholder_name, biz_no, old_shareholder_name))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': '주주명이 성공적으로 업데이트되었습니다.'})
+    
+    except Exception as e:
+        print(f"주주명 업데이트 오류: {e}")
+        return jsonify({'success': False, 'message': f'업데이트 중 오류가 발생했습니다: {str(e)}'}), 500
+
+
+@app.route('/api/update-share-count', methods=['POST'])
+def update_share_count():
+    """수식수 업데이트 API"""
+    try:
+        data = request.get_json()
+        biz_no = data.get('biz_no')
+        shareholder_name = data.get('shareholder_name')
+        new_share_count = data.get('new_share_count')
+        
+        if not biz_no or not shareholder_name or new_share_count is None:
+            return jsonify({'success': False, 'message': '필수 파라미터가 누락되었습니다.'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Company_Shareholder 테이블에서 수식수 업데이트
+        cursor.execute('''
+            UPDATE Company_Shareholder
+            SET share_count = ?
+            WHERE biz_no = ? AND shareholder_name = ?
+        ''', (new_share_count, biz_no, shareholder_name))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': '수식수가 성공적으로 업데이트되었습니다.'})
+    
+    except Exception as e:
+        print(f"수식수 업데이트 오류: {e}")
+        return jsonify({'success': False, 'message': f'업데이트 중 오류가 발생했습니다: {str(e)}'}), 500
+
+
 if __name__ == '__main__':
 
     print("=== 애플리케이션 시작 ===")

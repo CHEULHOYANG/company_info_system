@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <title>접촉이력 조회 (ych_m020)</title>
@@ -12,7 +13,7 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         .container {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
@@ -24,7 +25,7 @@
             max-width: 1400px;
             width: 95%;
         }
-        
+
         header {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(5px);
@@ -36,21 +37,22 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         h1 {
             color: #4a90e2;
             font-size: 28px;
             font-weight: 600;
             margin: 0;
         }
-        
+
         .header-subtext {
             font-size: 16px;
             font-weight: normal;
             opacity: 0.9;
         }
-        
-        .back-button, .logout-button-new {
+
+        .back-button,
+        .logout-button-new {
             background: rgba(108, 117, 125, 0.8);
             color: white;
             text-decoration: none;
@@ -61,13 +63,14 @@
             transition: all 0.3s ease;
             font-weight: 500;
         }
-        
-        .back-button:hover, .logout-button-new:hover {
+
+        .back-button:hover,
+        .logout-button-new:hover {
             background: rgba(108, 117, 125, 1);
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
-        
+
         .main-actions {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(5px);
@@ -79,7 +82,7 @@
             gap: 15px;
             flex-wrap: wrap;
         }
-        
+
         .action-button {
             background: linear-gradient(45deg, #4CAF50, #45a049);
             color: white;
@@ -92,22 +95,22 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
-        
+
         .action-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
-        
+
         .reset-button {
             background: linear-gradient(45deg, #ff9800, #f57c00);
             box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
         }
-        
+
         .csv-button-dark {
             background: linear-gradient(45deg, #2196f3, #1976d2);
             box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
         }
-        
+
         .search-container {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(5px);
@@ -116,13 +119,13 @@
             margin-bottom: 25px;
             border: 1px solid rgba(0, 0, 0, 0.1);
         }
-        
+
         .search-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
         }
-        
+
         .search-grid input {
             background: white;
             border: 1px solid #ddd;
@@ -132,13 +135,13 @@
             transition: all 0.3s ease;
             color: #333;
         }
-        
+
         .search-grid input:focus {
             outline: none;
             border-color: #007bff;
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
         }
-        
+
         .table-container {
             background: white;
             border-radius: 10px;
@@ -146,17 +149,17 @@
             border: 1px solid #ddd;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         thead {
             background: linear-gradient(45deg, #4a90e2, #357abd);
             color: white;
         }
-        
+
         th {
             padding: 15px;
             text-align: left;
@@ -164,27 +167,27 @@
             font-size: 14px;
             color: white;
         }
-        
+
         tbody tr:nth-child(even) {
             background: #e3f2fd;
         }
-        
+
         tbody tr:nth-child(odd) {
             background: #f0f8ff;
         }
-        
+
         tbody tr:hover {
             background: #bbdefb;
             transition: all 0.2s ease;
         }
-        
+
         td {
             padding: 12px 15px;
             border-bottom: 1px solid #eee;
             font-size: 14px;
             color: #333;
         }
-        
+
         .delete-btn {
             background: linear-gradient(45deg, #f44336, #d32f2f);
             color: white;
@@ -195,25 +198,25 @@
             font-size: 12px;
             transition: all 0.3s ease;
         }
-        
+
         .delete-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
         }
-        
+
         .memo-cell {
             max-width: 300px;
             word-break: break-word;
             white-space: pre-wrap;
             font-size: 14px;
         }
-        
+
         .loading {
             text-align: center;
             font-style: italic;
             color: #666;
         }
-        
+
         .scroll-buttons {
             position: fixed;
             right: 30px;
@@ -222,7 +225,7 @@
             flex-direction: column;
             gap: 10px;
         }
-        
+
         .scroll-buttons button {
             background: rgba(108, 117, 125, 0.8);
             color: white;
@@ -236,43 +239,44 @@
             border: 1px solid rgba(108, 117, 125, 0.3);
             transition: all 0.3s ease;
         }
-        
+
         .scroll-buttons button:hover {
             background: rgba(108, 117, 125, 1);
             transform: translateY(-2px);
         }
-        
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
                 padding: 20px;
                 width: calc(100% - 20px);
             }
-            
+
             header {
                 flex-direction: column;
                 gap: 15px;
                 text-align: center;
             }
-            
+
             .main-actions {
                 justify-content: center;
             }
-            
+
             .scroll-buttons {
                 right: 15px;
                 bottom: 15px;
             }
-            
+
             table {
                 font-size: 12px;
             }
-            
-            th, td {
+
+            th,
+            td {
                 padding: 8px;
                 font-size: 12px;
             }
-            
+
             .memo-cell {
                 max-width: 150px;
                 font-size: 12px;
@@ -281,10 +285,11 @@
     </style>
     <script src="{{ url_for('static', filename='js/auto-logout.js') }}"></script>
 </head>
+
 <body>
     <div class="container">
         <header>
-                            <h1>접촉이력 조회 (ych_m020)</h1>
+            <h1>접촉이력 조회 (ych_m020)</h1>
             <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
                 <a href="{{ url_for('index') }}" class="back-button">기업정보조회</a>
                 <a href="{{ url_for('main') }}" class="back-button">메인으로</a>
@@ -298,11 +303,14 @@
             <button type="button" id="search-button" class="action-button search-button">검색</button>
             {% if session.get('user_id') in ['ct0001','ct0002'] %}
             <button type="button" id="download-csv" class="action-button csv-button-dark">CSV 내리기</button>
-            <label for="upload-csv" class="action-button csv-button-dark" style="display:inline-block;cursor:pointer;">CSV 올리기</label>
+            <label for="upload-csv" class="action-button csv-button-dark"
+                style="display:inline-block;cursor:pointer;">CSV 올리기</label>
             <input type="file" id="upload-csv" accept=".csv" style="display:none;">
             {% else %}
-            <button type="button" class="action-button csv-button-dark" disabled style="opacity:0.45;cursor:not-allowed;">CSV 내리기</button>
-            <button type="button" class="action-button csv-button-dark" disabled style="opacity:0.45;cursor:not-allowed;margin-left:8px;">CSV 올리기</button>
+            <button type="button" class="action-button csv-button-dark" disabled
+                style="opacity:0.45;cursor:not-allowed;">CSV 내리기</button>
+            <button type="button" class="action-button csv-button-dark" disabled
+                style="opacity:0.45;cursor:not-allowed;margin-left:8px;">CSV 올리기</button>
             {% endif %}
         </div>
 
@@ -346,241 +354,264 @@
     </div>
 
     <script>
-    // CSV 내리기
-    document.getElementById('download-csv')?.addEventListener('click', function() {
-        const formData = new FormData(document.getElementById('search-form'));
-        const params = new URLSearchParams(formData);
-        window.location.href = `/api/contact_history_csv?${params.toString()}`;
-    });
+        // CSV 내리기
+        document.getElementById('download-csv')?.addEventListener('click', function () {
+            const formData = new FormData(document.getElementById('search-form'));
+            const params = new URLSearchParams(formData);
+            window.location.href = `/api/contact_history_csv?${params.toString()}`;
+        });
 
-    // CSV 올리기
-    document.getElementById('upload-csv')?.addEventListener('change', function(e) {
-        if (!confirm('CSV를 업로드하면 기존 이력 데이터가 모두 삭제되고, 새 파일로 대체됩니다. 진행하시겠습니까?')) return;
-        const file = e.target.files[0];
-        if (!file) return;
-        const formData = new FormData();
-        formData.append('file', file);
-        fetch('/api/contact_history_csv', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert('CSV 업로드 및 반영 완료!');
-                location.reload();
-            } else {
-                alert('업로드 실패: ' + (data.message || '오류'));
-            }
-        })
-        .catch(() => alert('업로드 중 오류 발생'));
-    });
+        // CSV 올리기
+        document.getElementById('upload-csv')?.addEventListener('change', function (e) {
+            if (!confirm('CSV를 업로드하면 기존 이력 데이터가 모두 삭제되고, 새 파일로 대체됩니다. 진행하시겠습니까?')) return;
+            const file = e.target.files[0];
+            if (!file) return;
+            const formData = new FormData();
+            formData.append('file', file);
+            fetch('/api/contact_history_csv', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('CSV 업로드 및 반영 완료!');
+                        location.reload();
+                    } else {
+                        alert('업로드 실패: ' + (data.message || '오류'));
+                    }
+                })
+                .catch(() => alert('업로드 중 오류 발생'));
+        });
 
-    function openCompanyPopup(bizNo) {
-        const url = `/company/${bizNo}?source=history_popup`;
-        const features = 'width=1200,height=800,scrollbars=yes,resizable=yes';
-        window.open(url, '_blank', features);
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const searchButton = document.getElementById('search-button');
-        const resetButton = document.getElementById('reset-button');
-        const searchForm = document.getElementById('search-form');
-        const historyList = document.getElementById('history-list');
-        const resultsCountSpan = document.getElementById('results-count');
-
-        // DOM 요소 존재 확인
-        if (!searchButton || !resetButton || !searchForm || !historyList) {
-            console.error('필수 DOM 요소를 찾을 수 없습니다.');
-            return;
+        function openCompanyPopup(bizNo) {
+            const url = `/company/${bizNo}?source=history_popup`;
+            const features = 'width=1200,height=800,scrollbars=yes,resizable=yes';
+            window.open(url, '_blank', features);
         }
 
-        // 검색이 실행 중인지 확인하는 플래그
-        let isSearching = false;
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchButton = document.getElementById('search-button');
+            const resetButton = document.getElementById('reset-button');
+            const searchForm = document.getElementById('search-form');
+            const historyList = document.getElementById('history-list');
+            const resultsCountSpan = document.getElementById('results-count');
 
-        // 검색 실행 함수
-        function performSearch(event) {
-            // 이벤트가 있다면 기본 동작 방지
-            if (event) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            
-            // 이미 검색 중이면 중복 실행 방지
-            if (isSearching) {
+            // DOM 요소 존재 확인
+            if (!searchButton || !resetButton || !searchForm || !historyList) {
+                console.error('필수 DOM 요소를 찾을 수 없습니다.');
                 return;
             }
-            
-            isSearching = true;
-            
-            try {
-                if (historyList) {
-                    historyList.innerHTML = '<tr><td colspan="9" class="loading">검색 중...</td></tr>';
+
+            // 검색이 실행 중인지 확인하는 플래그
+            let isSearching = false;
+
+            // 검색 실행 함수
+            function performSearch(event) {
+                // 이벤트가 있다면 기본 동작 방지
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
                 }
-                
-                // 폼 데이터를 명시적으로 수집
-                const formData = {
-                    registered_by: document.getElementById('registered_by').value || '',
-                    start_date: document.getElementById('start_date').value || '',
-                    end_date: document.getElementById('end_date').value || '',
-                    biz_no: document.getElementById('biz_no').value || ''
-                };
-                
-                const params = new URLSearchParams(formData);
 
-                fetch(`/api/history_search?${params.toString()}&_t=${Date.now()}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (historyList) {
-                            historyList.innerHTML = '';
-                        }
-                        if (resultsCountSpan) {
-                            resultsCountSpan.textContent = `조회건수 : ${data.length.toLocaleString()}건`;
-                        }
-
-                        if (data.length === 0) {
-                            if (historyList) {
-                                historyList.innerHTML = '<tr><td colspan="9">검색 결과가 없습니다.</td></tr>';
-                            }
-                            return;
-                        }
-
-                        data.forEach((item, index) => {
-                            const row = document.createElement('tr');
-                            
-                            // 각 셀을 안전하게 생성
-                            const cells = [
-                                index + 1,
-                                item.contact_datetime || '',
-                                '', // 회사명 링크는 별도 처리
-                                item.biz_no || '',
-                                item.contact_type || '',
-                                item.contact_person || '',
-                                item.memo || '',
-                                item.registered_by || '',
-                                '' // 삭제 버튼은 별도 처리
-                            ];
-                            
-                            cells.forEach((cellData, cellIndex) => {
-                                const td = document.createElement('td');
-                                if (cellIndex === 2) { // 회사명 링크
-                                    if (item.company_name) {
-                                        const link = document.createElement('a');
-                                        link.href = '#';
-                                        link.textContent = item.company_name;
-                                        link.onclick = function(e) { 
-                                            e.preventDefault();
-                                            openCompanyPopup(item.biz_no); 
-                                            return false; 
-                                        };
-                                        td.appendChild(link);
-                                    }
-                                } else if (cellIndex === 8) { // 삭제 버튼
-                                    const btn = document.createElement('button');
-                                    btn.className = 'delete-btn';
-                                    btn.textContent = '삭제';
-                                    btn.dataset.id = item.history_id;
-                                    btn.onclick = function(e) { 
-                                        e.preventDefault();
-                                        deleteHistory(this); 
-                                    };
-                                    td.appendChild(btn);
-                                } else if (cellIndex === 6) { // 메모 셀
-                                    td.className = 'memo-cell';
-                                    td.textContent = cellData;
-                                } else {
-                                    td.textContent = cellData;
-                                }
-                                row.appendChild(td);
-                            });
-                            
-                            if (historyList) {
-                                historyList.appendChild(row);
-                            }
-                        });
-                    })
-                    .catch(error => {
-                        console.error('상세 에러:', error);
-                        if (historyList) {
-                            historyList.innerHTML = '<tr><td colspan="9">데이터 조회 중 오류가 발생했습니다: ' + error.message + '</td></tr>';
-                        }
-                    })
-                    .finally(() => {
-                        isSearching = false;
-                    });
-            } catch (error) {
-                console.error('검색 함수 실행 중 오류:', error);
-                if (historyList) {
-                    historyList.innerHTML = '<tr><td colspan="9">검색 중 오류가 발생했습니다.</td></tr>';
-                }
-                isSearching = false;
-            }
-        }
-
-        // 이벤트 리스너 등록 (한 번만)
-        searchButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            performSearch(e);
-        });
-
-        resetButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            searchForm.reset();
-            performSearch(e);
-        });
-
-        // 폼 제출 이벤트 방지
-        searchForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            performSearch(e);
-        });
-
-        // 페이지 로드 시 한 번만 전체 내역 조회
-        setTimeout(() => {
-            performSearch();
-        }, 100);
-
-        // 삭제 버튼 기능
-        window.deleteHistory = function(btn) {
-            try {
-                const historyId = btn.getAttribute('data-id');
-                if (!historyId) {
-                    alert('삭제할 이력 ID가 없습니다.');
+                // 이미 검색 중이면 중복 실행 방지
+                if (isSearching) {
                     return;
                 }
-                if (!confirm('정말 삭제하시겠습니까?')) return;
-                
-                fetch(`/api/contact_history/${historyId}`, { method: 'DELETE' })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('삭제되었습니다!');
-                            // 검색 함수가 정의되어 있는지 확인 후 호출
-                            if (typeof performSearch === 'function') {
-                                performSearch();
-                            } else {
-                                location.reload();
+
+                isSearching = true;
+
+                try {
+                    if (historyList) {
+                        historyList.innerHTML = '<tr><td colspan="9" class="loading">검색 중...</td></tr>';
+                    }
+
+                    // 폼 데이터를 명시적으로 수집
+                    const formData = {
+                        registered_by: document.getElementById('registered_by').value || '',
+                        start_date: document.getElementById('start_date').value || '',
+                        end_date: document.getElementById('end_date').value || '',
+                        biz_no: document.getElementById('biz_no').value || ''
+                    };
+
+                    const params = new URLSearchParams(formData);
+
+                    fetch(`/api/history_search?${params.toString()}&_t=${Date.now()}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
                             }
-                        } else {
-                            alert('삭제 실패: ' + (data.message || '오류'));
-                        }
-                    })
-                    .catch(error => {
-                        console.error('삭제 오류:', error);
-                        alert('삭제 중 오류가 발생했습니다.');
-                    });
-            } catch (error) {
-                console.error('삭제 함수 오류:', error);
-                alert('삭제 처리 중 오류가 발생했습니다.');
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (historyList) {
+                                historyList.innerHTML = '';
+                            }
+                            if (resultsCountSpan) {
+                                resultsCountSpan.textContent = `조회건수 : ${data.length.toLocaleString()}건`;
+                            }
+
+                            if (data.length === 0) {
+                                if (historyList) {
+                                    historyList.innerHTML = '<tr><td colspan="9">검색 결과가 없습니다.</td></tr>';
+                                }
+                                return;
+                            }
+
+                            data.forEach((item, index) => {
+                                const row = document.createElement('tr');
+
+                                // 각 셀을 안전하게 생성
+                                const cells = [
+                                    index + 1,
+                                    item.contact_datetime || '',
+                                    '', // 회사명 링크는 별도 처리
+                                    item.biz_no || '',
+                                    item.contact_type || '',
+                                    item.contact_person || '',
+                                    item.memo || '',
+                                    item.registered_by || '',
+                                    '' // 삭제 버튼은 별도 처리
+                                ];
+
+                                cells.forEach((cellData, cellIndex) => {
+                                    const td = document.createElement('td');
+                                    if (cellIndex === 2) { // 회사명 링크
+                                        if (item.company_name) {
+                                            const link = document.createElement('a');
+                                            link.href = '#';
+                                            link.textContent = item.company_name;
+                                            link.onclick = function (e) {
+                                                e.preventDefault();
+                                                openCompanyPopup(item.biz_no);
+                                                return false;
+                                            };
+                                            td.appendChild(link);
+                                        }
+                                    } else if (cellIndex === 8) { // 삭제 버튼
+                                        const btn = document.createElement('button');
+                                        btn.className = 'delete-btn';
+                                        btn.textContent = '삭제';
+                                        btn.dataset.id = item.history_id;
+                                        btn.onclick = function (e) {
+                                            e.preventDefault();
+                                            deleteHistory(this);
+                                        };
+                                        td.appendChild(btn);
+                                    } else if (cellIndex === 6) { // 메모 셀
+                                        td.className = 'memo-cell';
+                                        td.textContent = cellData;
+                                    } else {
+                                        td.textContent = cellData;
+                                    }
+                                    row.appendChild(td);
+                                });
+
+                                if (historyList) {
+                                    historyList.appendChild(row);
+                                }
+                            });
+                        })
+                        .catch(error => {
+                            console.error('상세 에러:', error);
+                            if (historyList) {
+                                historyList.innerHTML = '<tr><td colspan="9">데이터 조회 중 오류가 발생했습니다: ' + error.message + '</td></tr>';
+                            }
+                        })
+                        .finally(() => {
+                            isSearching = false;
+                        });
+                } catch (error) {
+                    console.error('검색 함수 실행 중 오류:', error);
+                    if (historyList) {
+                        historyList.innerHTML = '<tr><td colspan="9">검색 중 오류가 발생했습니다.</td></tr>';
+                    }
+                    isSearching = false;
+                }
             }
-        }
-    });
+
+            // 이벤트 리스너 등록 (한 번만)
+            searchButton.addEventListener('click', function (e) {
+                e.preventDefault();
+                performSearch(e);
+            });
+
+            resetButton.addEventListener('click', function (e) {
+                e.preventDefault();
+                searchForm.reset();
+                performSearch(e);
+            });
+
+            // 폼 제출 이벤트 방지
+            searchForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                performSearch(e);
+            });
+
+            // 페이지 로드 시 한 번만 전체 내역 조회
+            setTimeout(() => {
+                performSearch();
+            }, 100);
+
+            // 삭제 버튼 기능
+            window.deleteHistory = function (btn) {
+                try {
+                    const historyId = btn.getAttribute('data-id');
+                    if (!historyId) {
+                        alert('삭제할 이력 ID가 없습니다.');
+                        return;
+                    }
+                    if (!confirm('정말 삭제하시겠습니까?')) return;
+
+                    fetch(`/api/contact_history/${historyId}`, { method: 'DELETE' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('삭제되었습니다!');
+                                // 검색 함수가 정의되어 있는지 확인 후 호출
+                                if (typeof performSearch === 'function') {
+                                    performSearch();
+                                } else {
+                                    location.reload();
+                                }
+                            } else {
+                                alert('삭제 실패: ' + (data.message || '오류'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('삭제 오류:', error);
+                            alert('삭제 중 오류가 발생했습니다.');
+                        });
+                } catch (error) {
+                    console.error('삭제 함수 오류:', error);
+                    alert('삭제 처리 중 오류가 발생했습니다.');
+                }
+            }
+
+            // 스크롤 버튼 기능 추가
+            const scrollTopBtn = document.getElementById('scroll-top');
+            const scrollBottomBtn = document.getElementById('scroll-bottom');
+
+            if (scrollTopBtn) {
+                scrollTopBtn.addEventListener('click', function () {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+
+            if (scrollBottomBtn) {
+                scrollBottomBtn.addEventListener('click', function () {
+                    window.scrollTo({
+                        top: document.documentElement.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+        });
     </script>
     <!-- 캐시 무효화 : 20251021_clean -->
 </body>
+
 </html>

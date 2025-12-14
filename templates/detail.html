@@ -259,7 +259,7 @@ function registerToPipeline() {
                                 <tbody>
                                 {% for rep in company.representatives %}
                                 <tr id="rep-row-{{ loop.index }}">
-                                    <td>{{ rep.name }}</td><td>{{ rep.birth_date }}</td><td>{{ rep.gender }}</td>
+                                    <td><span id="rep-name-{{ loop.index }}">{{ rep.name }}</span>{% if rep.name and "*" in rep.name %}<button onclick="editRep({{ loop.index }})" style="margin-left:8px;padding:4px 8px;background:#007bff;color:white;border:none;border-radius:4px;cursor:pointer;font-size:11px;">수정</button>{% endif %}</td><td>{{ rep.birth_date }}</td><td>{{ rep.gender }}</td>
                                     <td><span class="status-{{ 'yes' if rep.is_gfc == 'Y' else 'no' }}">{{ 'Y' if rep.is_gfc == 'Y' else 'N' }}</span></td>
                                     <td>
                                         {% if '*' in (rep.name or '') %}
@@ -1673,5 +1673,30 @@ function registerToPipeline() {
         });
     });
     </script>
+
+<script>
+function editRep(idx) {
+    const name = prompt('새로운 이름을 입력하세요:', document.getElementById('rep-name-' + idx).innerText);
+    if (name) {
+        fetch('/api/update_representative_name', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({biz_no: '{{ company.basic.biz_no }}', representative_name: name})
+        }).then(r => r.json()).then(d => { if(d.success) { document.getElementById('rep-name-' + idx).innerText = name; alert('수정되었습니다'); location.reload(); } else { alert('실패: ' + d.message); } });
+    }
+}
+function editShare(idx) {
+    const oldName = document.getElementById('share-name-' + idx).innerText;
+    const name = prompt('새로운 이름을 입력하세요:', oldName);
+    if (name) {
+        fetch('/api/update-shareholder', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({biz_no: '{{ company.basic.biz_no }}', old_shareholder_name: oldName, new_shareholder_name: name})
+        }).then(r => r.json()).then(d => { if(d.success) { document.getElementById('share-name-' + idx).innerText = name; alert('수정되었습니다'); location.reload(); } else { alert('실패: ' + d.message); } });
+    }
+}
+</script>
+
 </body>
 </html>

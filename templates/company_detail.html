@@ -3066,6 +3066,92 @@ if (stepIndex < steps.length) { const stepDiv=document.createElement('div'); ste
                 }
                 }
 
+                // 주주명 수정 함수
+                function editShareholder(shareholderName) {
+                // 마스킹된 이름인지 확인 (예: 홍*동, 홍**, 등)
+                if (shareholderName.includes('*')) {
+                // AI를 통해 실제 이름 검색 또는 직접 입력
+                const newName = prompt('주주명을 입력하세요 (마스킹 해제):', '');
+                if (newName && newName.trim()) {
+                updateShareholderName(shareholderName, newName.trim());
+                }
+                } else {
+                // 일반 수정
+                const newName = prompt('새로운 주주명을 입력하세요:', shareholderName);
+                if (newName && newName.trim() && newName !== shareholderName) {
+                updateShareholderName(shareholderName, newName.trim());
+                }
+                }
+                }
+
+                // 주주명 업데이트 API 호출
+                function updateShareholderName(oldName, newName) {
+                fetch('/api/update-shareholder', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                biz_no: currentBizNo,
+                old_shareholder_name: oldName,
+                new_shareholder_name: newName
+                })
+                })
+                .then(response => response.json())
+                .then(data => {
+                if (data.success) {
+                alert('주주명이 성공적으로 업데이트되었습니다.');
+                location.reload(); // 페이지 새로고침으로 변경사항 반영
+                } else {
+                alert('업데이트 실패: ' + (data.message || '알 수 없는 오류'));
+                }
+                })
+                .catch(error => {
+                console.error('Error:', error);
+                alert('업데이트 중 오류가 발생했습니다.');
+                });
+                }
+
+                // 수식수 변경 함수
+                function updateShareCount(shareholderName, currentShareCount) {
+                const newShareCount = prompt('수식수를 입력하세요:', currentShareCount || '0');
+
+                if (newShareCount !== null && newShareCount.trim() !== '') {
+                const shareCountNum = parseInt(newShareCount.replace(/,/g, ''), 10);
+
+                if (isNaN(shareCountNum)) {
+                alert('올바른 숫자를 입력해주세요.');
+                return;
+                }
+
+                fetch('/api/update-share-count', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                biz_no: currentBizNo,
+                shareholder_name: shareholderName,
+                new_share_count: shareCountNum
+                })
+                })
+                .then(response => response.json())
+                .then(data => {
+                if (data.success) {
+                alert('수식수가 성공적으로 업데이트되었습니다.');
+                location.reload(); // 페이지 새로고침으로 변경사항 반영
+                } else {
+                alert('업데이트 실패: ' + (data.message || '알 수 없는 오류'));
+                }
+                })
+                .catch(error => {
+                console.error('Error:', error);
+                alert('업데이트 중 오류가 발생했습니다.');
+                });
+                }
+                }
+
+
                 // 7. 스크롤 네비게이션 함수들
                 function scrollToTop() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });

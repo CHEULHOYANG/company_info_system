@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상세정보 (ych_p110) - 기업 상세 정보</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<header style="display:flex; align-items:center; justify-content:space-between;">
+    <div>
+        <h1 style="display:inline-block;">상세정보 (ych_p110) - {{ company.basic.company_name }} <span class="header-subtext">상세 정보</span></h1>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+    <button onclick="registerPioneering()" class="pioneering-button" style="background:#28a745; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500;">개척등록</button>
+    <button onclick="registerToPipeline()" class="pipeline-button" style="background:#007bff; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer; font-weight:500; margin-left:5px;">+ 관심기업 등록</button>
+    
+    {% set source = request.args.get('source', '') %}
+    {% if source == 'popup' or source == 'history_popup' %}
+        <!-- 팝업으로 열린 경우: 닫기 버튼만 표시 -->
+        <a href="javascript:window.close();" class="back-button" style="background:#dc3545;">닫기</a>
+    {% elif source == 'main' %}
+        <!-- 기업정보 조회에서 온 경우: 이전 페이지 버튼만 표시 -->
+        <a href="javascript:history.back();" class="back-button">이전 페이지</a>
+    {% else %}
+        <!-- 기본: 모든 버튼 표시 -->
+        <a href="{{ url_for('index') }}" class="back-button">기업정보 조회로 돌아가기</a>
+        <a href="javascript:history.back();" class="back-button">이전 페이지</a>
+    {% endif %}
+    
+    <span id="user-name-header" style="font-weight:bold; color:#333; margin-left:10px;">{{ user_name }}님</span>
+    </div>
+</header>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var closeXBtn = document.getElementById('close-x-btn');
+    if (closeXBtn) {
+        closeXBtn.onclick = function() {
+            window.close();
+        };
+    }
+});
+</script>
+
+<script>
+// 탭 전환 기능
+function showTab(tabId, element) {
+    console.log('showTab 함수 호출됨:', tabId, element);
+    
+    // 모든 탭 링크에서 active 클래스 제거
+    var tabLinks = document.getElementsByClassName('tab-link');
+    for (var i = 0; i < tabLinks.length; i++) {
+        tabLinks[i].classList.remove('active');
+    }
+    
+    // 모든 탭 컨텐트 숨기기
+    var tabPanes = document.getElementsByClassName('tab-pane');
+    for (var i = 0; i < tabPanes.length; i++) {
+        tabPanes[i].classList.remove('active');
+    }
+    
+    // 선택된 탭 보이기
+    element.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+    
+    // 접촉이력 탭일 때 데이터 로드
+    if (tabId === 'tab2') {
+        loadContactHistory();
+    }
+    
+    console.log('탭 전환 완료:', tabId);
+}
+
+// 개척등록 함수
+function registerPioneering() {
+    console.log('registerPioneering 함수 호출됨');
+    openPioneeringModal();
+}
+
+// 관심기업 등록 함수
+function registerToPipeline() {
+    console.log('관심기업 등록 함수 호출됨');
+    
+    const companyData = {
+        biz_no: '{{ company.basic.biz_no }}',
+        company_name: '{{ company.basic.company_name }}',
+        representative_name: '{{ company.basic.representative_name }}'
+    };
+    
+    // 같은 창에서 파이프라인 페이지로 이동 (기업 정보 포함하여 자동 등록 모달 열기)
+    const pipelineUrl = `/pipeline?register=true&biz_no=${encodeURIComponent(companyData.biz_no)}&company_name=${encodeURIComponent(companyData.company_name)}&representative=${encodeURIComponent(companyData.representative_name)}`;
+    
+    console.log('파이프라인 페이지로 이동:', pipelineUrl);
+    window.location.href = pipelineUrl;
+}
+</script>
+    </div>
+</header>
+
+        <div class="tab-nav">
+            <button class="tab-link active" data-tab="tab1" onclick="showTab('tab1', this)">기업 상세 조회</button>
+            <button class="tab-link" data-tab="tab3" onclick="showTab('tab3', this)">AI 서치</button>
+            <button class="tab-link" data-tab="tab2" onclick="showTab('tab2', this)">접촉이력 관리</button>
+        </div>
+
+        <div class="tab-content">
+            <div id="tab1" class="tab-pane active">
+                <div class="detail-main-grid">
+                    <div class="detail-left-column">
+                        <div class="detail-card">
+                            <h3>기본 정보</h3>
+                            <div class="info-grid">
+                                <div><strong>사업자번호</strong></div>
+                                <div>{{ company.basic.biz_no }}</div>
+                                <div><strong>대표자</strong></div>
+                                <div id="representative-display">
+                                    <span id="representative-name-text">{{ company.basic.representative_name }}</span>
+                                    {% if '*' in (company.basic.representative_name or '') %}
+                                    <button id="representative-edit-btn" onclick="enableRepresentativeEdit()" class="edit-name-btn">수정</button>
+                                    {% endif %}
+                                    <input type="text" id="representative-name-input" style="display:none; width:100px; padding:3px;" maxlength="20">
+                                    <button id="representative-save-btn" onclick="saveRepresentativeName()" class="save-name-btn" style="display:none;">저장</button>
+                                    <button id="representative-cancel-btn" onclick="cancelRepresentativeEdit()" class="cancel-name-btn" style="display:none;">취소</button>
+                                </div>
+                                <div><strong>설립일</strong></div>
+                                <div>{{ company.basic.establish_date }}</div>
+                                <div><strong>기업규모</strong></div>
+                                <div>{{ company.basic.company_size }}</div>
+                                <div><strong>신용등급</strong></div>
+                                <div>{{ company.basic.rating1 or 'N/A' }}</div>
+                                <div><strong>직원수</strong></div>
+                                <div>{{ company.basic.pension_count or 'N/A' }}</div>
+                                <div><strong>업종</strong></div>
+                                <div>{{ company.basic.industry_name }}</div>
+                                <div><strong>주소</strong></div>
+                                <div>{{ company.basic.address }}</div>
+                                <div><strong>단체계약여부</strong></div>
+                                <div><span class="status-{{ 'yes' if company.basic.group_transaction_yn == 'Y' else 'no' }}">{{ '유' if company.basic.group_transaction_yn == 'Y' else '무' }}</span></div>
+                                <div><strong>GFC거래유무</strong></div>
+                                <div><span class="status-{{ 'yes' if company.basic.gfc_transaction_yn == 'Y' else 'no' }}">{{ '유' if company.basic.gfc_transaction_yn == 'Y' else '무' }}</span></div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h3>인증 및 특허 정보</h3>
+                            <table class="certs-grid">
+                                <thead>
+                                    <tr>
+                                        <th>구분</th><th>인증/보유 여부</th><th>인정/출원일</th><th>만료일</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>기업부설연구소</td>
+                                        <td><span class="status-{{ 'yes' if company.additional.has_research_institute == '1' else 'no' }}">{{ '보유' if company.additional.has_research_institute == '1' else '미보유' }}</span></td>
+                                        <td>{{ company.additional.research_institute_date or '-' }}</td>
+                                        <td>-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>이노비즈</td>
+                                        <td><span class="status-{{ 'yes' if company.additional.is_innobiz == '1' else 'no' }}">{{ '인증' if company.additional.is_innobiz == '1' else '미인증' }}</span></td>
+                                        <td>{{ company.additional.innobiz_cert_date or '-' }}</td>
+                                        <td>{{ company.additional.innobiz_expiry_date or '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>메인비즈</td>
+                                        <td><span class="status-{{ 'yes' if company.additional.is_mainbiz == '1' else 'no' }}">{{ '인증' if company.additional.is_mainbiz == '1' else '미인증' }}</span></td>
+                                        <td>{{ company.additional.mainbiz_cert_date or '-' }}</td>
+                                        <td>{{ company.additional.mainbiz_expiry_date or '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>벤처인증</td>
+                                        <td><span class="status-{{ 'yes' if company.additional.is_venture == '1' else 'no' }}">{{ '인증' if company.additional.is_venture == '1' else '미인증' }}</span></td>
+                                        <td>{{ company.additional.venture_cert_date or '-' }}</td>
+                                        <td>{{ company.additional.venture_expiry_date or '-' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>특허</td>
+                                        <td colspan="3">
+                                            출원: <strong>{{ company.additional.patent_applications_count or 0 }}</strong>건 / 
+                                            등록: <strong>{{ company.additional.registered_patents_count or 0 }}</strong>건
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="detail-card">
+                            <h3>비상장주식가치 평가 (참고용)</h3>
+                            {% if company.stock_valuation and company.stock_valuation.total_shares_issued is defined %}
+                            <div class="info-grid">
+                                <div><strong>자산가치</strong></div>
+                                <div>{{ "{:,.0f}".format(company.stock_valuation.asset_value) if company.stock_valuation.asset_value else 'N/A' }} 원</div>
+                                <div><strong>수익가치</strong></div>
+                                <div>{{ "{:,.0f}".format(company.stock_valuation.profit_value) if company.stock_valuation.profit_value else 'N/A' }} 원</div>
+                                <div><strong>1주당 평가액</strong></div>
+                                <div><strong class="text-danger">{{ "{:,.0f}".format(company.stock_valuation.estimated_stock_value) if company.stock_valuation.estimated_stock_value else 'N/A' }} 원</strong></div>
+                                <div></div>
+                                <div><span class="text-primary-large">(발행주식수: {{ "{:,.0f}".format(company.stock_valuation.total_shares_issued) if company.stock_valuation.total_shares_issued else 'N/A' }} 주)</span></div>
+                            </div>
+                            {% else %}
+                                <p>재무 데이터가 부족하여 가치 평가 정보를 산출할 수 없습니다.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="detail-right-column">
+                        <div class="detail-card">
+                            <h3>재무 정보 (최근 3개년, 단위: 천원)</h3>
+                            {% if company.financials %}
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>항목</th>
+                                        {% for fin in company.financials %}<th class="text-right">{{ fin.fiscal_year }}년</th>{% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>매출액</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format((fin.sales_revenue / 1000)|round(0)) if fin.sales_revenue is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>당기순이익</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format((fin.operating_income / 1000)|round(0)) if fin.operating_income is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>자산총계</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format((fin.total_assets / 1000)|round(0)) if fin.total_assets is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr class="financial-separator"><td>자본총계</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format(fin.total_equity) if fin.total_equity is not none else '' }}</td> {% endfor %}</tr>
+                                    <tr><td>법인세비용</td>{% for fin in company.financials %} <td class="text-right">{{ "{:,.0f}".format((fin.corporate_tax / 1000)|round(0)) if fin.corporate_tax is not none else '' }}</td> {% endfor %}</tr>
+                                </tbody>
+                            </table>
+                            
+                            <!-- 핵심 재무 지표 (최근년도) - 좌우 분할 -->
+                            <div style="margin-top: 30px;">
+                                <h4>핵심 재무 지표 ({{ company.financials[0].fiscal_year }}년 기준, 단위: 천원)</h4>
+                                <div style="display: flex; gap: 20px;">
+                                    <!-- 왼쪽: 재무 지표 테이블 -->
+                                    <div style="flex: 1; min-width: 200px;">
+                                        <table class="results-table">
+                                            <tbody>
+                                                <tr><td><strong>자산총계</strong></td><td class="text-right"><strong>{{ "{:,.0f}".format((company.financials[0].total_assets / 1000)|round(0)) if company.financials[0].total_assets is not none else '' }}</strong></td></tr>
+                                                <tr><td><strong>이익잉여금</strong></td><td class="text-right"><strong>{{ "{:,.0f}".format((company.financials[0].retained_earnings / 1000)|round(0)) if company.financials[0].retained_earnings is not none else '' }}</strong></td></tr>
+                                                <tr><td>가지급금</td><td class="text-right">{{ "{:,.0f}".format((company.financials[0].advances_paid / 1000)|round(0)) if company.financials[0].advances_paid is not none else '' }}</td></tr>
+                                                <tr><td>가수금</td><td class="text-right">{{ "{:,.0f}".format((company.financials[0].advances_received / 1000)|round(0)) if company.financials[0].advances_received is not none else '' }}</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <!-- 오른쪽: 매출액/당기순이익 차트 -->
+                                    <div style="flex: 1; min-width: 250px;">
+                                        <canvas id="financialChart" style="max-height: 180px;"></canvas>
+                                        <div id="chartLegend" style="display: flex; justify-content: center; gap: 30px; margin-top: 8px; font-size: 12px;">
+                                            <span style="display: flex; align-items: center; gap: 5px;"><span style="display:inline-block; width:12px; height:12px; background:#4a9fd9; border-radius:2px;"></span>매출액</span>
+                                            <span style="display: flex; align-items: center; gap: 5px;"><span style="display:inline-block; width:12px; height:12px; background:#28a745; border-radius:2px;"></span>당기순이익</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}<p>재무 정보가 없습니다.</p>{% endif %}
+                        </div>
+                        <div class="detail-card">
+                            <h3>대표자 및 주주 정보</h3>
+                            <h4>대표자</h4>
+                            {% if company.representatives %}
+                            <table class="results-table">
+                                <thead><tr><th>성명</th><th>생년월일</th><th>성별</th><th>GFC여부</th><th>관리</th></tr></thead>
+                                <tbody>
+                                {% for rep in company.representatives %}
+                                <tr id="rep-row-{{ loop.index }}">
+                                    <td>{{ rep.name }}</td><td>{{ rep.birth_date }}</td><td>{{ rep.gender }}</td>
+                                    <td><span class="status-{{ 'yes' if rep.is_gfc == 'Y' else 'no' }}">{{ 'Y' if rep.is_gfc == 'Y' else 'N' }}</span></td>
+                                    <td>
+                                        {% if '*' in (rep.name or '') %}
+                                        <button onclick="deleteRepresentative('{{ company.basic.biz_no }}', '{{ rep.name }}', {{ loop.index }})" class="delete-btn-small">삭제</button>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}<p>대표자 정보가 없습니다.</p>{% endif %}
+                            {% set has_predicted = company.shareholders | selectattr("is_predicted", "equalto", true) | list | length > 0 %}
+                            {% set has_actual = company.shareholders | selectattr("is_predicted", "equalto", false) | list | length > 0 %}
+                            <h4>주주 구성 
+                                {% if has_predicted and not has_actual %}
+                                    <span style="font-weight: bold; color: #e74c3c; font-size: 14px;">(예측 주식수)</span>
+                                {% elif has_predicted and has_actual %}
+                                    <span style="font-weight: bold; color: #2980b9; font-size: 14px;">(실제 + 예측 주식수)</span>
+                                {% endif %}
+                            </h4>
+                            {% if company.shareholders %}
+                            <table class="results-table">
+                                <thead>
+                                    <tr>
+                                        <th>주주명</th>
+                                        <th {% if has_predicted and not has_actual %}title="발행주식수와 지분율을 기준으로 계산된 예측 주식수"{% endif %}>
+                                            주식수{% if has_predicted and not has_actual %} *{% endif %}
+                                        </th>
+                                        <th>지분율</th>
+                                        <th>주식가액</th>
+                                        <th>관계</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for holder in company.shareholders %}
+                                <tr id="shareholder-row-{{ loop.index }}">
+                                    <td>{{ holder.shareholder_name or '' }}</td>
+                                    <td style="text-align: right;{% if holder.is_predicted %} color: #666;{% endif %}" 
+                                        {% if holder.is_predicted %}title="예측 주식수 (발행주식수 × 지분율)"{% endif %}>
+                                        {{ "{:,.0f}".format(holder.stock_quantity|default(0)) }}주{% if holder.is_predicted %} *{% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="progress-container-improved">
+                                            <div class="progress-bar-improved" style="width: {{ holder.ownership_percent|default(0) }}%;"></div>
+                                            <div class="progress-text-improved progress-text-{% if (holder.ownership_percent|default(0)) < 15 %}dark{% else %}light{% endif %}">
+                                                {{ "{:.2f}".format(holder.ownership_percent|default(0)) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right;">{{ "{:,.0f}".format(holder.stock_value_amount|default(0)) }}원</td>
+                                    <td>{{ holder.relationship or '' }}</td>
+                                    <td>
+                                        {% if '*' in (holder.shareholder_name or '') %}
+                                        <button onclick="deleteShareholder('{{ company.basic.biz_no }}', '{{ holder.shareholder_name }}', {{ loop.index }})" class="delete-btn-small">삭제</button>
+                                        {% else %}
+                                        -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            {% if has_predicted %}
+                                <p style="font-size: 12px; color: #666; margin-top: 10px; font-style: italic;">
+                                    * 별표(*)가 표시된 주식수는 발행주식수와 지분율을 기준으로 계산된 예측값입니다.
+                                </p>
+                            {% endif %}
+                            {% else %}<p>주주 정보가 없습니다.</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 접촉이력 관리 탭 -->
+            <div id="tab2" class="tab-pane">
+                <div class="contact-history-container">
+                    <!-- 접촉이력 등록 폼 -->
+                    <div class="contact-form-section">
+                        <h3>접촉이력 등록</h3>
+                        <form id="contactHistoryForm" class="contact-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contactDate">접촉일시 *</label>
+                                    <input type="datetime-local" id="contactDate" name="contactDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactType">접촉유형 *</label>
+                                    <select id="contactType" name="contactType" required>
+                                        <option value="">선택하세요</option>
+                                        <option value="전화상담">전화상담</option>
+                                        <option value="문자발송">문자발송</option>
+                                        <option value="대면상담">대면상담</option>
+                                        <option value="선물전달">선물전달</option>
+                                        <option value="세미나">세미나</option>
+                                        <option value="DM발송">DM발송</option>
+                                        <option value="기타">기타</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactPerson">접촉담당자</label>
+                                    <input type="text" id="contactPerson" name="contactPerson" placeholder="접촉한 담당자명">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactMemo">접촉내용 *</label>
+                                <textarea id="contactMemo" name="contactMemo" rows="4" placeholder="접촉 내용을 상세히 입력하세요" required></textarea>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="submit" class="btn-primary">등록</button>
+                                <button type="button" class="btn-secondary" onclick="resetContactForm()">초기화</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- 접촉이력 목록 -->
+                    <div class="contact-history-section">
+                        <h3>{{ company.basic.company_name }} 접촉이력</h3>
+                        <div class="contact-history-list" id="contactHistoryList">
+                            <div class="loading">접촉이력을 불러오는 중...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI 서치 탭 -->
+            <div id="tab3" class="tab-pane">
+                <div class="ai-search-section">
+                    <h3>AI 기업 분석</h3>
+                    <div class="ai-analysis-container">
+                        <div class="analysis-status">
+                            <h4>AI 기업 분석 서비스</h4>
+                            <p>OpenAI GPT-4를 활용한 전문가 수준의 기업 분석을 제공합니다.</p>
+                            <div class="analysis-features">
+                                <div class="feature-item">- 투자은행 수준의 재무 분석</div>
+                                <div class="feature-item">- 업계 전문가 관점의 리스크 평가</div>
+                                <div class="feature-item">- 데이터 기반 투자 의견 제시</div>
+                            </div>
+                            <button class="analysis-btn" onclick="startAIAnalysis()">
+                                전문 AI 분석 시작
+                            </button>
+                        </div>
+                        <div class="analysis-results" id="aiAnalysisResults" style="display: none;">
+                            <div class="loading">
+                                <div class="loading-spinner"></div>
+                                <div>AI가 기업 데이터를 분석하고 있습니다...<br><small>투자은행 수준의 전문 분석을 생성 중입니다.</small></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 접촉이력 수정 모달 -->
+    <div id="editContactModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditContactModal()">&times;</span>
+            <h3>접촉이력 수정</h3>
+            <form id="editContactForm" class="contact-form">
+                <input type="hidden" id="editHistoryId" name="historyId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editContactDate">접촉일시 *</label>
+                        <input type="datetime-local" id="editContactDate" name="contactDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editContactType">접촉유형 *</label>
+                        <select id="editContactType" name="contactType" required>
+                            <option value="">선택하세요</option>
+                            <option value="전화상담">전화상담</option>
+                            <option value="문자발송">문자발송</option>
+                            <option value="대면상담">대면상담</option>
+                            <option value="선물전달">선물전달</option>
+                            <option value="세미나">세미나</option>
+                            <option value="DM발송">DM발송</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editContactPerson">접촉담당자</label>
+                        <input type="text" id="editContactPerson" name="contactPerson" placeholder="접촉한 담당자명">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editContactMemo">접촉내용 *</label>
+                    <textarea id="editContactMemo" name="contactMemo" rows="4" placeholder="접촉 내용을 상세히 입력하세요" required></textarea>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn-primary">수정</button>
+                    <button type="button" class="btn-danger" onclick="deleteContactHistory()">삭제</button>
+                    <button type="button" class="btn-secondary" onclick="closeEditContactModal()">취소</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+    /* 재무제표 스타일 */
+    .financial-separator td {
+        border-bottom: 2px solid #333 !important;
+        font-weight: bold;
+    }
+    
+    /* 대표자 이름 수정 버튼 스타일 */
+    .edit-name-btn, .save-name-btn, .cancel-name-btn {
+        padding: 3px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+    .edit-name-btn {
+        background: #ffc107;
+        color: #000;
+    }
+    .save-name-btn {
+        background: #28a745;
+        color: white;
+    }
+    .cancel-name-btn {
+        background: #6c757d;
+        color: white;
+    }
+    .edit-name-btn:hover { background: #e0a800; }
+    .save-name-btn:hover { background: #218838; }
+    .cancel-name-btn:hover { background: #545b62; }
+    
+    /* 삭제 버튼 스타일 (소형) */
+    .delete-btn-small {
+        padding: 3px 8px;
+        border: none;
+        border-radius: 4px;
+        background: #dc3545;
+        color: white;
+        cursor: pointer;
+        font-size: 11px;
+    }
+    .delete-btn-small:hover {
+        background: #c82333;
+    }
+    
+    /* 접촉이력 관리 스타일 */
+    .contact-history-container {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .contact-form-section {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .contact-form-section h3 {
+        margin-top: 0;
+        color: #333;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 10px;
+    }
+
+    .contact-form .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .contact-form .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .contact-form label {
+        font-weight: 500;
+        margin-bottom: 5px;
+        color: #333;
+    }
+
+    .contact-form input, .contact-form select, .contact-form textarea {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+    .contact-form input:focus, .contact-form select:focus, .contact-form textarea:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+
+    .form-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .btn-primary, .btn-secondary, .btn-danger {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+        margin: 0 5px;
+    }
+
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #545b62;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
+
+    .contact-history-section {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .contact-history-section h3 {
+        margin-top: 0;
+        color: #333;
+        border-bottom: 2px solid #28a745;
+        padding-bottom: 10px;
+    }
+
+    .contact-history-item {
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background: #f8f9fa;
+        transition: transform 0.2s;
+    }
+
+    .contact-history-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .contact-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .contact-info {
+        display: flex;
+        gap: 20px;
+        font-size: 14px;
+    }
+
+    .contact-type {
+        background: #007bff;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+    }
+
+    .contact-actions {
+        display: flex;
+        gap: 5px;
+    }
+
+    .action-btn {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .edit-btn {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .delete-btn {
+        background: #dc3545;
+        color: white;
+    }
+
+    .contact-content {
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        line-height: 1.5;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        font-style: italic;
+    }
+
+    /* 모달 스타일 */
+    .modal {
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 30px;
+        border-radius: 10px;
+        width: 80%;
+        max-width: 600px;
+        position: relative;
+    }
+
+    .close {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #aaa;
+    }
+
+    .close:hover {
+        color: #000;
+    }
+
+    /* 주주구성 지분율 개선 스타일 */
+    .progress-container-improved {
+        position: relative;
+        background: #e9ecef;
+        border-radius: 10px;
+        height: 28px; /* 높이 증가 */
+        overflow: visible;
+        min-width: 120px; /* 최소 폭 증가 */
+        border: 1px solid #dee2e6; /* 테두리 추가 */
+    }
+
+    .progress-bar-improved {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        height: 100%;
+        border-radius: 10px;
+        position: relative;
+        min-width: 3px; /* 최소 폭 증가 */
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); /* 깊이감 추가 */
+    }
+
+    .progress-text-improved {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-weight: bold;
+        font-size: 13px; /* 폰트 크기 증가 */
+        z-index: 10;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    .progress-text-dark {
+        color: #2d3436; /* 더 진한 검은색 */
+        text-shadow: 
+            1px 1px 2px rgba(255,255,255,0.9),
+            -1px -1px 2px rgba(255,255,255,0.9),
+            1px -1px 2px rgba(255,255,255,0.9),
+            -1px 1px 2px rgba(255,255,255,0.9); /* 4방향 그림자로 가독성 증대 */
+    }
+
+    .progress-text-light {
+        color: #ffffff;
+        text-shadow: 
+            1px 1px 3px rgba(0,0,0,0.8),
+            -1px -1px 3px rgba(0,0,0,0.8),
+            1px -1px 3px rgba(0,0,0,0.8),
+            -1px 1px 3px rgba(0,0,0,0.8); /* 4방향 그림자로 가독성 증대 */
+    }
+
+    @media (max-width: 768px) {
+        .contact-form .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .contact-info {
+            flex-direction: column;
+            gap: 5px;
+        }
+    }
+
+    /* AI 분석 스타일 */
+    .ai-search-section {
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .ai-analysis-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .analysis-status {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .analysis-btn {
+        background: linear-gradient(135deg, #2c5aa0, #4a9fd9);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 20px;
+    }
+
+    .analysis-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(44, 90, 160, 0.3);
+    }
+
+    .analysis-results {
+        margin-top: 20px;
+    }
+
+    .ai-analysis-report {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .analysis-section {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .analysis-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .analysis-section h5 {
+        color: #2c5aa0;
+        margin-bottom: 10px;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .analysis-section p {
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        font-size: 16px;
+    }
+    
+    .error {
+        text-align: center;
+        padding: 40px;
+        color: #e74c3c;
+        font-size: 16px;
+        background: #ffe6e6;
+        border-radius: 5px;
+    }
+    
+    .analysis-features {
+        margin: 20px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .feature-item {
+        color: #2c5aa0;
+        font-weight: 500;
+        font-size: 14px;
+    }
+    
+    .btn-icon {
+        margin-right: 8px;
+        font-size: 18px;
+    }
+    
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #2c5aa0;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .loading small {
+        color: #666;
+        font-size: 12px;
+    }
+    }
+
+    .analysis-section p {
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        font-size: 16px;
+    }
+
+    .error {
+        text-align: center;
+        padding: 20px;
+        background: #fee;
+        color: #c33;
+        border: 1px solid #fcc;
+        border-radius: 5px;
+        margin: 10px 0;
+    }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // 탭 전환 기능
+        const tabLinks = document.querySelectorAll('.tab-link');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+
+        tabLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                const tabId = link.getAttribute('data-tab');
+
+                tabLinks.forEach(item => item.classList.remove('active'));
+                tabPanes.forEach(item => item.classList.remove('active'));
+
+                link.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+
+                // 접촉이력 탭 클릭 시 데이터 로드
+                if (tabId === 'tab2') {
+                    loadContactHistory();
+                }
+            });
+        });
+
+        // 접촉이력 폼 제출 이벤트
+        document.getElementById('contactHistoryForm').addEventListener('submit', submitContactHistory);
+        document.getElementById('editContactForm').addEventListener('submit', updateContactHistory);
+    });
+
+    // 개척등록 모달 함수들
+    function openPioneeringModal() {
+        document.getElementById('pioneeringModal').style.display = 'block';
+        // 오늘 날짜를 기본값으로 설정
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('visitDate').value = today;
+    }
+
+    function closePioneeringModal() {
+        document.getElementById('pioneeringModal').style.display = 'none';
+        document.getElementById('pioneeringForm').reset();
+    }
+
+    // 개척등록 폼 제출
+    async function submitPioneeringForm() {
+        const visitDate = document.getElementById('visitDate').value;
+        const notes = document.getElementById('pioneeringNotes').value;
+        
+        if (!visitDate) {
+            alert('방문일자를 입력해주세요.');
+            return;
+        }
+        
+        // 날짜 검증: 과거일자 체크
+        const selectedDate = new Date(visitDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // 시간을 00:00:00으로 설정하여 날짜만 비교
+        
+        if (selectedDate < today) {
+            alert('과거 날짜는 등록할 수 없습니다. 오늘 이후의 날짜를 선택해주세요.');
+            return;
+        }
+        
+        // 주말 체크 (토요일: 6, 일요일: 0)
+        const dayOfWeek = selectedDate.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            if (!confirm('휴일입니다. 그래도 등록하시겠습니까?')) {
+                return;
+            }
+        }
+        
+        const formData = {
+            biz_no: '{{ company.basic.biz_no }}',
+            visit_date: visitDate,
+            notes: notes,
+            visitor_id: '{{ user_id }}'
+        };
+        
+        // 등록 버튼 비활성화
+        const submitBtn = document.querySelector('#pioneeringModal button[onclick="submitPioneeringForm()"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = '등록 중...';
+        
+        try {
+            const response = await fetch('/api/pioneering_targets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('개척 대상이 정상적으로 등록되었습니다.');
+                closePioneeringModal();
+                // 페이지 새로고침으로 최신 데이터 반영
+                location.reload();
+            } else {
+                alert(result.message || '등록에 실패했습니다.');
+            }
+        } catch (error) {
+            alert('등록 중 오류가 발생했습니다. 다시 시도해주세요.');
+        } finally {
+            // 등록 버튼 복원
+            const submitBtn = document.querySelector('#pioneeringModal button[onclick="submitPioneeringForm()"]');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '등록';
+            }
+        }
+    }
+
+    // 접촉이력 관련 함수들
+    let contactEditingId = null;
+
+    // 접촉이력 목록 로드
+    async function loadContactHistory() {
+        const bizNo = '{{ company.basic.biz_no }}';
+        const listContainer = document.getElementById('contactHistoryList');
+        
+        try {
+            listContainer.innerHTML = '<div class="loading">접촉이력을 불러오는 중...</div>';
+            
+            // 기존 API 사용 (/api/history_search)
+            const response = await fetch(`/api/history_search?biz_no=${bizNo}`);
+            const data = await response.json();
+            
+            // 기존 API는 배열로 직접 반환함
+            if (Array.isArray(data) && data.length > 0) {
+                displayContactHistory(data);
+            } else {
+                listContainer.innerHTML = '<div class="no-data">등록된 접촉이력이 없습니다.</div>';
+            }
+        } catch (error) {
+            console.error('접촉이력 로드 실패:', error);
+            listContainer.innerHTML = '<div class="no-data">접촉이력을 불러오는데 실패했습니다.</div>';
+        }
+    }
+
+    // 접촉이력 목록 표시
+    function displayContactHistory(historyList) {
+        const listContainer = document.getElementById('contactHistoryList');
+        
+        const historyHtml = historyList.map(history => `
+            <div class="contact-history-item">
+                <div class="contact-header">
+                    <div class="contact-info">
+                        <span class="contact-type">${history.contact_type || '기타'}</span>
+                        <span><strong>일시:</strong> ${formatDateTime(history.contact_datetime)}</span>
+                        ${history.contact_person ? `<span><strong>담당자:</strong> ${history.contact_person}</span>` : ''}
+                        <span><strong>등록자:</strong> ${history.registered_by}</span>
+                    </div>
+                    <div class="contact-actions">
+                        <button class="action-btn edit-btn" onclick="editContactHistory(${history.history_id})">수정</button>
+                        <button class="action-btn delete-btn" onclick="deleteContactHistory(${history.history_id})">삭제</button>
+                    </div>
+                </div>
+                <div class="contact-content">${history.memo || '내용 없음'}</div>
+            </div>
+        `).join('');
+        
+        listContainer.innerHTML = historyHtml;
+    }
+
+    // 접촉이력 등록
+    async function submitContactHistory(e) {
+        e.preventDefault();
+        
+        const form = document.getElementById('contactHistoryForm');
+        const formData = new FormData(form);
+        const bizNo = '{{ company.basic.biz_no }}';
+        
+        const contactData = {
+            biz_no: bizNo,
+            contact_datetime: formData.get('contactDate'),
+            contact_type: formData.get('contactType'),
+            contact_person: formData.get('contactPerson'),
+            memo: formData.get('contactMemo')
+        };
+
+        try {
+            const response = await fetch('/api/contact_history', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(contactData)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('접촉이력이 등록되었습니다.');
+                form.reset();
+                loadContactHistory(); // 목록 새로고침
+            } else {
+                alert('등록 실패: ' + result.message);
+            }
+        } catch (error) {
+            console.error('등록 실패:', error);
+            alert('접촉이력 등록 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 접촉이력 수정 폼 열기
+    async function editContactHistory(historyId) {
+        console.log(`>>> editContactHistory 호출 - historyId: ${historyId}`);
+        try {
+            const url = `/api/contact_history/${historyId}`;
+            console.log(`>>> API 호출 URL: ${url}`);
+            
+            const response = await fetch(url);
+            console.log(`>>> Response status: ${response.status}`);
+            console.log(`>>> Response headers:`, response.headers);
+            
+            const data = await response.json();
+            console.log(`>>> Response data:`, data);
+            
+            if (data.success && data.data) {
+                const history = data.data;
+                contactEditingId = historyId;
+                
+                console.log(`>>> 폼에 데이터 설정 중...`);
+                document.getElementById('editHistoryId').value = historyId;
+                document.getElementById('editContactDate').value = formatDateTimeForInput(history.contact_datetime);
+                document.getElementById('editContactType').value = history.contact_type;
+                document.getElementById('editContactPerson').value = history.contact_person || '';
+                document.getElementById('editContactMemo').value = history.memo || '';
+                
+                console.log(`>>> 모달 표시`);
+                document.getElementById('editContactModal').style.display = 'block';
+            } else {
+                console.error(`>>> API 응답 실패:`, data);
+                alert('접촉이력 정보를 불러올 수 없습니다. 서버 응답: ' + (data.message || '알 수 없는 오류'));
+            }
+        } catch (error) {
+            console.error('>>> 접촉이력 불러오기 실패:', error);
+            alert('접촉이력을 불러오는 중 네트워크 오류가 발생했습니다: ' + error.message);
+        }
+    }
+
+    // 접촉이력 수정
+    async function updateContactHistory(e) {
+        e.preventDefault();
+        
+        const form = document.getElementById('editContactForm');
+        const formData = new FormData(form);
+        const historyId = formData.get('historyId');
+        
+        const contactData = {
+            contact_datetime: formData.get('contactDate'),
+            contact_type: formData.get('contactType'),
+            contact_person: formData.get('contactPerson'),
+            memo: formData.get('contactMemo')
+        };
+
+        try {
+            const response = await fetch(`/api/contact_history/${historyId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(contactData)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('접촉이력이 수정되었습니다.');
+                closeEditContactModal();
+                loadContactHistory(); // 목록 새로고침
+            } else {
+                alert('수정 실패: ' + result.message);
+            }
+        } catch (error) {
+            console.error('수정 실패:', error);
+            alert('접촉이력 수정 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 접촉이력 삭제
+    async function deleteContactHistory(historyId) {
+        if (!confirm('이 접촉이력을 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/contact_history/${historyId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('접촉이력이 삭제되었습니다.');
+                loadContactHistory(); // 목록 새로고침
+            } else {
+                alert('삭제 실패: ' + result.message);
+            }
+        } catch (error) {
+            console.error('삭제 실패:', error);
+            alert('접촉이력 삭제 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 수정 모달 닫기
+    function closeEditContactModal() {
+        document.getElementById('editContactModal').style.display = 'none';
+        document.getElementById('editContactForm').reset();
+        contactEditingId = null;
+    }
+
+    // 접촉이력 삭제
+    async function deleteContactHistory() {
+        if (!contactEditingId) {
+            alert('삭제할 접촉이력을 찾을 수 없습니다.');
+            return;
+        }
+
+        if (!confirm('정말로 이 접촉이력을 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/contact_history/${contactEditingId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert('접촉이력이 성공적으로 삭제되었습니다.');
+                closeEditContactModal();
+                loadContactHistory(); // 목록 새로고침
+            } else {
+                alert(result.message || '삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('삭제 실패:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 접촉이력 폼 초기화
+    function resetContactForm() {
+        document.getElementById('contactHistoryForm').reset();
+    }
+
+    // 날짜/시간 포맷팅 함수들
+    function formatDateTime(dateTimeStr) {
+        if (!dateTimeStr) return '';
+        const date = new Date(dateTimeStr);
+        return date.toLocaleString('ko-KR');
+    }
+
+    function formatDateTimeForInput(dateTimeStr) {
+        if (!dateTimeStr) return '';
+        const date = new Date(dateTimeStr);
+        return date.toISOString().slice(0, 16);
+    }
+
+    // 모달 외부 클릭 시 닫기
+    window.onclick = function(event) {
+        const pioneeringModal = document.getElementById('pioneeringModal');
+        const editContactModal = document.getElementById('editContactModal');
+        
+        if (event.target === pioneeringModal) {
+            closePioneeringModal();
+        }
+        if (event.target === editContactModal) {
+            closeEditContactModal();
+        }
+    }
+
+    </script>
+
+    <!-- 개척등록 모달 -->
+    <div id="pioneeringModal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);">
+        <div style="background-color:white; margin:15% auto; padding:30px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+            <h2 style="margin-top:0; color:#28a745;">개척 대상 등록 (ych_P111)</h2>
+            <form id="pioneeringForm">
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:500;">기업명:</label>
+                    <input type="text" value="{{ company.basic.company_name }}" readonly style="width:100%; padding:10px; border:1px solid #ced4da; border-radius:5px; background:#f8f9fa; box-sizing:border-box;">
+                </div>
+                
+                <div style="margin-bottom:20px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:500;">사업자번호:</label>
+                    <input type="text" value="{{ company.basic.biz_no }}" readonly style="width:100%; padding:10px; border:1px solid #ced4da; border-radius:5px; background:#f8f9fa; box-sizing:border-box;">
+                </div>
+                
+                <div style="margin-bottom:20px;">
+                    <label for="visitDate" style="display:block; margin-bottom:5px; font-weight:500;">방문일자 *:</label>
+                    <input type="date" id="visitDate" required style="width:100%; padding:10px; border:1px solid #ced4da; border-radius:5px; box-sizing:border-box;">
+                </div>
+                
+                <div style="margin-bottom:30px;">
+                    <label for="pioneeringNotes" style="display:block; margin-bottom:5px; font-weight:500;">메모:</label>
+                    <textarea id="pioneeringNotes" placeholder="개척 관련 메모사항..." style="width:100%; padding:10px; border:1px solid #ced4da; border-radius:5px; min-height:80px; resize:vertical; box-sizing:border-box;"></textarea>
+                </div>
+                
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button type="button" onclick="closePioneeringModal()" style="padding:10px 20px; border:none; border-radius:5px; background:#6c757d; color:white; cursor:pointer;">취소</button>
+                    <button type="button" onclick="submitPioneeringForm()" style="padding:10px 20px; border:none; border-radius:5px; background:#28a745; color:white; cursor:pointer;">등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 스크롤 버튼 -->
+    <div id="scrollButtons" style="position: fixed; right: 20px; bottom: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px;">
+        <button onclick="scrollToTop()" title="맨 위로" style="
+            width: 50px; height: 50px; border-radius: 50%; 
+            background: #007bff; color: white; border: none; 
+            cursor: pointer; font-size: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        ">▲</button>
+        <button onclick="scrollToBottom()" title="맨 아래로" style="
+            width: 50px; height: 50px; border-radius: 50%; 
+            background: #28a745; color: white; border: none; 
+            cursor: pointer; font-size: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        ">▼</button>
+    </div>
+
+    <script>
+    // 스크롤 버튼 기능
+    function scrollToTop() {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
+
+    function scrollToBottom() {
+        window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+
+    // 스크롤 버튼 호버 효과
+    document.addEventListener('DOMContentLoaded', function() {
+        const scrollButtons = document.querySelectorAll('#scrollButtons button');
+        scrollButtons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1)';
+                this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+            });
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+                this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+            });
+        });
+    });
+
+    // AI 분석 기능
+    function startAIAnalysis() {
+        const resultsContainer = document.getElementById('aiAnalysisResults');
+        const statusContainer = document.querySelector('.analysis-status');
+        
+        // UI 업데이트
+        statusContainer.style.display = 'none';
+        resultsContainer.style.display = 'block';
+        resultsContainer.innerHTML = '<div class="loading">AI가 기업을 분석 중입니다...</div>';
+        
+        // 기업 정보 가져오기
+        const bizNo = '{{ company.basic.biz_no if company.basic else "" }}';
+        
+        if (!bizNo) {
+            resultsContainer.innerHTML = '<div class="error">기업 정보를 찾을 수 없습니다.</div>';
+            return;
+        }
+        
+        // AI 분석 API 호출
+        fetch('/api/ai_analysis', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                biz_no: bizNo,
+                analysis_type: 'comprehensive'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayAIAnalysis(data.analysis);
+            } else {
+                resultsContainer.innerHTML = '<div class="error">AI 분석 실패: ' + (data.message || '알 수 없는 오류') + '</div>';
+            }
+        })
+        .catch(error => {
+            console.error('AI 분석 오류:', error);
+            resultsContainer.innerHTML = '<div class="error">AI 분석 중 오류가 발생했습니다.</div>';
+        });
+    }
+    
+    function displayAIAnalysis(analysis) {
+        const resultsContainer = document.getElementById('aiAnalysisResults');
+        
+        let html = '<div class="ai-analysis-report">';
+        html += '<h4>AI 종합 분석 결과</h4>';
+        
+        if (analysis.summary) {
+            html += '<div class="analysis-section">';
+            html += '<h5>기업 개요</h5>';
+            html += '<p>' + analysis.summary + '</p>';
+            html += '</div>';
+        }
+        
+        if (analysis.financial_analysis) {
+            html += '<div class="analysis-section">';
+            html += '<h5>재무 분석</h5>';
+            html += '<p>' + analysis.financial_analysis + '</p>';
+            html += '</div>';
+        }
+        
+        if (analysis.risk_assessment) {
+            html += '<div class="analysis-section">';
+            html += '<h5>위험 평가</h5>';
+            html += '<p>' + analysis.risk_assessment + '</p>';
+            html += '</div>';
+        }
+        
+        if (analysis.recommendations) {
+            html += '<div class="analysis-section">';
+            html += '<h5>투자 추천</h5>';
+            html += '<p>' + analysis.recommendations + '</p>';
+            html += '</div>';
+        }
+        
+        html += '</div>';
+        resultsContainer.innerHTML = html;
+    }
+
+    // 대표자 이름 수정 기능
+    function enableRepresentativeEdit() {
+        const nameText = document.getElementById('representative-name-text');
+        const nameInput = document.getElementById('representative-name-input');
+        const editBtn = document.getElementById('representative-edit-btn');
+        const saveBtn = document.getElementById('representative-save-btn');
+        const cancelBtn = document.getElementById('representative-cancel-btn');
+        
+        // 현재 이름에서 마스킹 제거한 값을 입력 필드에 설정
+        const currentName = nameText.textContent.trim();
+        nameInput.value = currentName.replace(/\*/g, '');
+        
+        nameText.style.display = 'none';
+        editBtn.style.display = 'none';
+        nameInput.style.display = 'inline-block';
+        saveBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'inline-block';
+        nameInput.focus();
+    }
+
+    function cancelRepresentativeEdit() {
+        const nameText = document.getElementById('representative-name-text');
+        const nameInput = document.getElementById('representative-name-input');
+        const editBtn = document.getElementById('representative-edit-btn');
+        const saveBtn = document.getElementById('representative-save-btn');
+        const cancelBtn = document.getElementById('representative-cancel-btn');
+        
+        nameText.style.display = 'inline';
+        editBtn.style.display = 'inline-block';
+        nameInput.style.display = 'none';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+    }
+
+    async function saveRepresentativeName() {
+        const nameInput = document.getElementById('representative-name-input');
+        const newName = nameInput.value.trim();
+        const bizNo = '{{ company.basic.biz_no }}';
+        
+        if (!newName) {
+            alert('이름을 입력해주세요.');
+            return;
+        }
+        
+        if (!confirm('대표자 이름을 "' + newName + '"으로 수정하시겠습니까?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/update_representative_name', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ biz_no: bizNo, new_name: newName })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                alert('대표자 이름이 수정되었습니다.');
+                location.reload();
+            } else {
+                alert('수정 실패: ' + (result.message || '알 수 없는 오류'));
+            }
+        } catch (error) {
+            console.error('대표자 이름 수정 오류:', error);
+            alert('수정 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 대표자 정보 삭제 기능
+    async function deleteRepresentative(bizNo, repName, rowIndex) {
+        if (!confirm('대표자 "' + repName + '" 정보를 삭제하시겠습니까?\n\n※ 이 작업은 되돌릴 수 없습니다.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/delete_representative', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ biz_no: bizNo, name: repName })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                alert('대표자 정보가 삭제되었습니다.');
+                document.getElementById('rep-row-' + rowIndex).remove();
+            } else {
+                alert('삭제 실패: ' + (result.message || '알 수 없는 오류'));
+            }
+        } catch (error) {
+            console.error('대표자 삭제 오류:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 주주 정보 삭제 기능
+    async function deleteShareholder(bizNo, shareholderName, rowIndex) {
+        if (!confirm('주주 "' + shareholderName + '" 정보를 삭제하시겠습니까?\n\n※ 이 작업은 되돌릴 수 없습니다.')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/delete_shareholder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ biz_no: bizNo, shareholder_name: shareholderName })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                alert('주주 정보가 삭제되었습니다.');
+                document.getElementById('shareholder-row-' + rowIndex).remove();
+            } else {
+                alert('삭제 실패: ' + (result.message || '알 수 없는 오류'));
+            }
+        } catch (error) {
+            console.error('주주 삭제 오류:', error);
+            alert('삭제 중 오류가 발생했습니다.');
+        }
+    }
+    </script>
+    
+    <!-- Chart.js 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script>
+    // 재무 차트 초기화
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('financialChart');
+        if (!ctx) return;
+        
+        // 재무 데이터 가져오기 (Jinja2에서 전달)
+        const financialData = [
+            {% for fin in company.financials %}
+            {
+                year: {{ fin.fiscal_year }},
+                sales: {{ fin.sales_revenue / 1000 if fin.sales_revenue else 0 }},
+                profit: {{ fin.operating_income / 1000 if fin.operating_income else 0 }}
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ].reverse();
+        
+        if (financialData.length === 0) return;
+        
+        const years = financialData.map(d => d.year + '년');
+        const sales = financialData.map(d => d.sales);
+        const profits = financialData.map(d => d.profit);
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: '매출액',
+                        data: sales,
+                        backgroundColor: 'rgba(74, 159, 217, 0.7)',
+                        borderColor: 'rgba(74, 159, 217, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '당기순이익',
+                        data: profits,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw.toLocaleString() + '천원';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+    </script>
+</body>
+</html>
