@@ -1039,6 +1039,31 @@ def query_companies_data(args):
     if args.get('company_size') and args.get('company_size') != '전체':
         filters.append("b.company_size = ?")
         params.append(args.get('company_size'))
+    
+    # [ACCESS CONTROL] 파이프라인 등록 기업 제외 로직
+    # 로그인한 사용자가 파이프라인에 등록하지 않은(혹은 파트너가 등록하지 않은) 기업은 검색에서 제외
+    current_user_id = session.get('user_id')
+    if current_user_id:
+        allowed_managers = [current_user_id]
+        if current_user_id in ['ct0001', 'ct0002']:
+            allowed_managers = ['ct0001', 'ct0002']
+            
+        # 제외 대상: managed_companies에 있지만, manager_id가 allowed_managers에 없는 기업
+        mgr_placeholders = ','.join(['?'] * len(allowed_managers))
+        
+        # NOT IN (SELECT biz_reg_no FROM managed_companies WHERE manager_id NOT IN (...))
+        filters.append(f"""
+            b.biz_no NOT IN (
+                SELECT biz_reg_no FROM managed_companies 
+                WHERE manager_id NOT IN ({mgr_placeholders})
+            )
+        """)
+        # 주의: 이니셜라이징된 managed_companies 데이터가 없거나, 모두 내가 관리하는 경우 등
+        # 로직: "다른 사람이 관리 중인 기업"을 제외.
+        # 즉, managed_companies 테이블에 존재하면서, manager_id가 내 그룹(allowed_managers)에 속하지 않는 기업을 제외
+        
+        params.extend(allowed_managers) 
+
     # 지역(주소) 검색: 모든 키워드가 포함되어야 함
     if args.get('region'):
         region_keywords = [kw.strip() for kw in args.get('region').split() if kw.strip()]
@@ -2900,9 +2925,12 @@ def api_history_search():
                 # 전체 이력 조회 (필터 없음)
                 pass
             else:
-                # M(매니저), N(일반담당자)는 본인 등록건만 조회
-                filters.append("h.registered_by = ?")
-                params.append(user_id)
+                # M(매니저), N(일반담당자)는 본인(또는 파트너) 등록건만 조회
+                if user_id in ['ct0001', 'ct0002']:
+                    filters.append("h.registered_by IN ('ct0001', 'ct0002')")
+                else:
+                    filters.append("h.registered_by = ?")
+                    params.append(user_id)
 
         if request.args.get('start_date'):
             filters.append("h.contact_datetime >= ?")
@@ -5409,7 +5437,17 @@ def pipeline_dashboard_data():
         
         # 오늘 연락해야 할 기업
         today = datetime.now().strftime('%Y-%m-%d')
-        today_contacts_query = '''
+
+        # [ACCESS CONTROL] ct0001, ct0002 파트너십 로직 적용
+        target_managers = [user_id]
+        if user_id in ['ct0001', 'ct0002']:
+            target_managers = ['ct0001', 'ct0002']
+            
+        mgr_placeholders = ','.join(['?'] * len(target_managers))
+        
+        # 오늘 연락해야 할 기업
+        today = datetime.now().strftime('%Y-%m-%d')
+        today_contacts_query = f'''
             SELECT mc.id, mc.biz_reg_no, mc.manager_id, mc.status, mc.keyman_name,
                    mc.keyman_phone, mc.keyman_position, mc.keyman_email, mc.registration_reason,
                    mc.next_contact_date, mc.last_contact_date, mc.notes, mc.expected_amount,
@@ -5417,10 +5455,10 @@ def pipeline_dashboard_data():
                    cb.company_name, cb.representative_name 
             FROM managed_companies mc
             LEFT JOIN Company_Basic cb ON mc.biz_reg_no = cb.biz_no
-            WHERE mc.manager_id = ? AND mc.next_contact_date = ?
+            WHERE mc.manager_id IN ({mgr_placeholders}) AND mc.next_contact_date = ?
             ORDER BY mc.priority_level DESC
         '''
-        cursor.execute(today_contacts_query, (user_id, today))
+        cursor.execute(today_contacts_query, (*target_managers, today))
         today_contacts = cursor.fetchall()
         
         # 관리 소홀 기업 (상태별 알림 주기 적용)
@@ -5432,7 +5470,8 @@ def pipeline_dashboard_data():
         
         for status, days in status_periods.items():
             threshold_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
-            urgent_query = '''
+
+            urgent_query = f'''
                 SELECT mc.id, mc.biz_reg_no, mc.manager_id, mc.status, mc.keyman_name,
                        mc.keyman_phone, mc.keyman_position, mc.keyman_email, mc.registration_reason,
                        mc.next_contact_date, mc.last_contact_date, mc.notes, mc.expected_amount,
@@ -5440,16 +5479,17 @@ def pipeline_dashboard_data():
                        cb.company_name, cb.representative_name 
                 FROM managed_companies mc
                 LEFT JOIN Company_Basic cb ON mc.biz_reg_no = cb.biz_no
-                WHERE mc.manager_id = ? AND mc.status = ? 
+                WHERE mc.manager_id IN ({mgr_placeholders}) AND mc.status = ? 
                 AND (mc.last_contact_date IS NULL OR mc.last_contact_date < ?)
                 ORDER BY CASE WHEN mc.last_contact_date IS NULL THEN 0 ELSE 1 END, mc.last_contact_date ASC
             '''
-            cursor.execute(urgent_query, (user_id, status, threshold_date))
+            cursor.execute(urgent_query, (*target_managers, status, threshold_date))
             urgent_for_status = cursor.fetchall()
             urgent_companies.extend(urgent_for_status)
         
         # 전체 관리 기업 현황
-        total_query = '''
+        # 전체 관리 기업 현황
+        total_query = f'''
             SELECT mc.id, mc.biz_reg_no, mc.manager_id, mc.status, mc.keyman_name,
                    mc.keyman_phone, mc.keyman_position, mc.keyman_email, mc.registration_reason,
                    mc.next_contact_date, mc.last_contact_date, mc.notes, mc.expected_amount,
@@ -5457,21 +5497,22 @@ def pipeline_dashboard_data():
                    cb.company_name, cb.representative_name 
             FROM managed_companies mc
             LEFT JOIN Company_Basic cb ON mc.biz_reg_no = cb.biz_no
-            WHERE mc.manager_id = ?
+            WHERE mc.manager_id IN ({mgr_placeholders})
             ORDER BY mc.updated_at DESC
         '''
-        cursor.execute(total_query, (user_id,))
+        cursor.execute(total_query, tuple(target_managers))
         all_companies = cursor.fetchall()
         
         # 상태별 통계
-        stats_query = '''
+        # 상태별 통계
+        stats_query = f'''
             SELECT status, COUNT(*) as count, 
                    COALESCE(SUM(expected_amount), 0) as total_amount
             FROM managed_companies 
-            WHERE manager_id = ?
+            WHERE manager_id IN ({mgr_placeholders})
             GROUP BY status
         '''
-        cursor.execute(stats_query, (user_id,))
+        cursor.execute(stats_query, tuple(target_managers))
         status_stats = {row[0]: {'count': row[1], 'amount': row[2]} for row in cursor.fetchall()}
         
         return jsonify({
