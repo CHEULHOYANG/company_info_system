@@ -76,6 +76,33 @@
             gap: 0.5rem;
         }
 
+        /* Top Tabs */
+        .top-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 0.75rem;
+            padding: 0.25rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(203, 213, 225, 0.3);
+        }
+
+        .top-tab {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+
+        .top-tab.active {
+            background: white;
+            color: #3b82f6;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
         /* Quick Calculation Tabs */
         .quick-tabs {
             display: flex;
@@ -281,6 +308,12 @@
     <div class="container">
         <h1>💰 퇴직금 계산기</h1>
 
+        <!-- Mode Selection Tabs -->
+        <div class="top-tabs">
+            <div class="top-tab" data-mode="employee">일반 직원</div>
+            <div class="top-tab active" data-mode="executive">임원 / 대표이사</div>
+        </div>
+
         <!-- Quick Calculation Tabs -->
         <div class="quick-tabs">
             <button class="quick-tab" data-years="10" data-multiplier="1">10년 근무</button>
@@ -292,7 +325,7 @@
             <button class="quick-tab" data-years="15" data-multiplier="3">15년 3배수</button>
         </div>
 
-        <form id="retirementForm">
+        <form id="retirementForm" onsubmit="return false;">
             <div class="form-sections">
                 <!-- 기본 정보 -->
                 <div class="form-group">
@@ -329,56 +362,39 @@
                 </div>
             </div>
 
-            <div class="form-sections">
-                <!-- 임원 정보 -->
-                <div class="form-group">
-                    <h3>👔 직급 정보</h3>
-                    <div class="input-grid single">
-                        <div class="field-wrapper">
-                            <label>임원 이상 여부</label>
-                            <div class="radio-group">
-                                <label><input type="radio" name="executive" value="no" checked> 일반 직원</label>
-                                <label><input type="radio" name="executive" value="yes"> 임원/대표</label>
-                            </div>
-                        </div>
-
-                        <div class="field-wrapper" id="execMultiplierField" style="display:none;">
-                            <label for="execMultiplier">임원 퇴직소득 한도 배수</label>
-                            <input type="number" id="execMultiplier" min="0.1" max="10" step="0.1" value="2"
-                                placeholder="2.0">
-                            <div class="help-text" id="multiplierGuide">
-                                <strong>📅 법정 기준 (퇴사일 기준):</strong><br>
-                                • 2011년 이전: 정관 규정 (기본 1배수)<br>
-                                • 2012~2018년: 2배수<br>
-                                • 2019년 이후: 3배수
-                            </div>
-                        </div>
+            <div class="form-sections" id="execSection" style="display:none;">
+                <!-- 임원 전용: 기간별 배수 설정 -->
+                <div class="form-group" style="grid-column: span 2;">
+                    <h3>⚡ 임원 퇴직금 배수 설정 (기간별 분리)</h3>
+                    <div
+                        style="margin-bottom:1rem;padding:1rem;background:rgba(59,130,246,0.05);border-radius:0.5rem;border-left:3px solid #3b82f6;">
+                        <p style="font-size:0.75rem;color:#1e40af;margin:0;">
+                            <strong>📅 임원 퇴직금 한도 규정:</strong><br>
+                            2012년, 2020년 세법 개정으로 인해 근무 기간별로 다른 한도 배수가 적용됩니다.<br>
+                            아래 표에 정관에서 정한 배수를 입력하세요. (일반적으로 2011년 이전은 정관따름, 그 이후는 2~3배수)
+                        </p>
                     </div>
-                </div>
 
-                <!-- 영업용 시나리오 -->
-                <div class="form-group">
-                    <h3>📊 영업 시나리오</h3>
-                    <div class="input-grid single">
-                        <div class="field-wrapper">
-                            <label for="scenarioYears">시나리오 근무 년수</label>
-                            <input type="number" id="scenarioYears" min="1" max="50" step="1" value="10"
-                                placeholder="10">
-                            <div class="help-text">영업 제안용 근무 년수</div>
-                        </div>
-
-                        <div class="field-wrapper">
-                            <label for="scenarioMultiplier">시나리오 배수 (임원용)</label>
-                            <input type="number" id="scenarioMultiplier" min="1" max="5" step="0.5" value="1"
-                                placeholder="1.0">
-                            <div class="help-text">영업 제안용 배수 설정</div>
-                        </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
+                            <thead>
+                                <tr style="background:rgba(241,245,249,0.8);color:#475569;">
+                                    <th style="padding:0.75rem;text-align:left;border-radius:0.5rem 0 0 0.5rem;">구분</th>
+                                    <th style="padding:0.75rem;text-align:center;">기간</th>
+                                    <th style="padding:0.75rem;text-align:center;">근무일수</th>
+                                    <th style="padding:0.75rem;text-align:right;border-radius:0 0 0.5rem 0;">적용 배수</th>
+                                </tr>
+                            </thead>
+                            <tbody id="periodTableBody">
+                                <!-- JS로 동적 생성됨 -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
             <div class="button-container">
-                <button type="submit" class="calc-btn">💰 계산하기</button>
+                <button type="button" class="calc-btn" onclick="calculateRetirement()">💰 계산하기</button>
             </div>
         </form>
 
@@ -386,102 +402,179 @@
     </div>
 
     <script>
+        // Tab Logic
+        const topTabs = document.querySelectorAll('.top-tab');
+        const execSection = document.getElementById('execSection');
+        let currentMode = 'executive'; // 'employee' or 'executive'
+
+        topTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                topTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentMode = tab.dataset.mode;
+                updateUIState();
+                calculateRetirement();
+            });
+        });
+
+        function updateUIState() {
+            const isExec = currentMode === 'executive';
+            execSection.style.display = isExec ? 'grid' : 'none'; // Use grid for form-sections
+            document.getElementById('execSalaryField').style.display = isExec ? 'flex' : 'none'; // flex for field-wrapper
+
+            // Re-calculate split periods if executive
+            if (isExec) {
+                updatePeriodTable();
+            }
+        }
+
         // Quick Tab 기능
         const quickTabs = document.querySelectorAll('.quick-tab');
         const today = new Date();
         const leaveDate = document.getElementById('leaveDate');
         const joinDate = document.getElementById('joinDate');
-        const scenarioYears = document.getElementById('scenarioYears');
-        const scenarioMultiplier = document.getElementById('scenarioMultiplier');
-        const execRadios = document.getElementsByName('executive');
-        const execMultiplier = document.getElementById('execMultiplier');
 
         // 초기 날짜 설정
-        leaveDate.value = today.toISOString().split('T')[0];
-        const tenYearsAgo = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate());
-        joinDate.value = tenYearsAgo.toISOString().split('T')[0];
+        if (leaveDate) leaveDate.value = today.toISOString().split('T')[0];
+
+        if (joinDate) {
+            const tenYearsAgo = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate());
+            joinDate.value = tenYearsAgo.toISOString().split('T')[0];
+        }
 
         quickTabs.forEach(tab => {
             tab.addEventListener('click', function () {
-                // Active 상태 토글
                 quickTabs.forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
 
                 const years = parseInt(this.dataset.years);
                 const multiplier = parseFloat(this.dataset.multiplier);
 
-                // 입사일 자동 계산 (퇴사일 기준 역산)
+                // 입사일 자동 계산
                 const leaveD = new Date(leaveDate.value);
                 const joinD = new Date(leaveD.getFullYear() - years, leaveD.getMonth(), leaveD.getDate());
                 joinDate.value = joinD.toISOString().split('T')[0];
 
-                // 시나리오 필드 업데이트
-                scenarioYears.value = years;
-                scenarioMultiplier.value = multiplier;
-
-                // 배수가 1 이상이면 임원으로 설정
                 if (multiplier > 1) {
-                    execRadios[1].checked = true;
-                    execMultiplier.value = multiplier;
-                    toggleExecutiveFields(true);
+                    // Switch to Executive Tab automatically if multiplier > 1
+                    topTabs[1].click();
+                    // Set multipliers in table (simple approximation)
+                    setTimeout(() => {
+                        const m1 = document.getElementById('mul_pre2012');
+                        const m2 = document.getElementById('mul_2012_2019');
+                        const m3 = document.getElementById('mul_post2020');
+                        if (m1) m1.value = 1;
+                        if (m2) m2.value = multiplier;
+                        if (m3) m3.value = multiplier;
+                        calculateRetirement();
+                    }, 50);
                 } else {
-                    execRadios[0].checked = true;
-                    toggleExecutiveFields(false);
+                    topTabs[0].click();
                 }
             });
         });
 
-        // 임원 필드 토글
-        function toggleExecutiveFields(isExec) {
-            document.getElementById('execSalaryField').style.display = isExec ? 'block' : 'none';
-            document.getElementById('execMultiplierField').style.display = isExec ? 'block' : 'none';
+        if (leaveDate) {
+            leaveDate.addEventListener('change', () => {
+                if (currentMode === 'executive') updatePeriodTable();
+            });
+        }
+        if (joinDate) {
+            joinDate.addEventListener('change', () => {
+                if (currentMode === 'executive') updatePeriodTable();
+            });
         }
 
-        execRadios.forEach(radio => {
-            radio.addEventListener('change', function () {
-                const isExec = this.value === 'yes';
-                toggleExecutiveFields(isExec);
-                if (isExec) {
-                    updateMultiplierByLeaveDate();
-                }
-            });
-        });
+        function updatePeriodTable() {
+            const periods = splitServicePeriod(joinDate.value, leaveDate.value);
+            const tbody = document.getElementById('periodTableBody');
 
-        // 퇴사일 기준으로 법정 배수 자동 계산
-        function updateMultiplierByLeaveDate() {
-            const leave = new Date(leaveDate.value);
-            const leaveYear = leave.getFullYear();
-            let suggestedMultiplier = 1;
-
-            if (leaveYear <= 2011) {
-                suggestedMultiplier = 1; // 정관 규정 (기본값)
-            } else if (leaveYear >= 2012 && leaveYear <= 2018) {
-                suggestedMultiplier = 2; // 2012~2018년: 2배수
-            } else if (leaveYear >= 2019) {
-                suggestedMultiplier = 3; // 2019년 이후: 3배수
-            }
-
-            execMultiplier.value = suggestedMultiplier;
-
-            // 도움말 업데이트
-            const currentMultiplier = suggestedMultiplier;
-            const guideText = document.getElementById('multiplierGuide');
-            guideText.innerHTML = `
-                <strong>📅 법정 기준 (퇴사일 기준):</strong><br>
-                • 2011년 이전: 정관 규정 (기본 1배수)<br>
-                • 2012~2018년: 2배수<br>
-                • 2019년 이후: 3배수<br>
-                <span style="color:#3b82f6;font-weight:600;">→ 현재 퇴사일(${leaveYear}년)에 적용: ${currentMultiplier}배수</span>
+            tbody.innerHTML = `
+            <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:0.75rem;">1구간 (~2011.12.31)</td>
+                <td style="padding:0.75rem;text-align:center;color:#64748b;font-size:0.75rem;">
+                    \${periods.p1.start ? `\${ periods.p1.start } ~ \${ periods.p1.end } ` : '-'}
+                </td>
+                <td style="padding:0.75rem;text-align:center;">\${periods.p1.days}일</td>
+                <td style="padding:0.5rem 0.75rem;text-align:right;">
+                    <input type="number" id="mul_pre2012" value="1.0" step="0.1" min="0" 
+                        style="width:60px;padding:0.3rem;text-align:right;"> 배
+                </td>
+            </tr>
+            <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:0.75rem;">2구간 (2012.01.01~2019.12.31)</td>
+                <td style="padding:0.75rem;text-align:center;color:#64748b;font-size:0.75rem;">
+                    \${periods.p2.start ? `\${ periods.p2.start } ~ \${ periods.p2.end } ` : '-'}
+                </td>
+                <td style="padding:0.75rem;text-align:center;">\${periods.p2.days}일</td>
+                <td style="padding:0.5rem 0.75rem;text-align:right;">
+                    <input type="number" id="mul_2012_2019" value="2.0" step="0.1" min="0" 
+                        style="width:60px;padding:0.3rem;text-align:right;"> 배
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:0.75rem;">3구간 (2020.01.01~)</td>
+                <td style="padding:0.75rem;text-align:center;color:#64748b;font-size:0.75rem;">
+                    \${periods.p3.start ? `\${ periods.p3.start } ~ \${ periods.p3.end } ` : '-'}
+                </td>
+                <td style="padding:0.75rem;text-align:center;">\${periods.p3.days}일</td>
+                <td style="padding:0.5rem 0.75rem;text-align:right;">
+                    <input type="number" id="mul_post2020" value="3.0" step="0.1" min="0" 
+                        style="width:60px;padding:0.3rem;text-align:right;"> 배
+                </td>
+            </tr>
             `;
+
+            // Add input listeners
+            ['mul_pre2012', 'mul_2012_2019', 'mul_post2020'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', calculateRetirement);
+            });
+
+            calculateRetirement();
         }
 
-        // 퇴사일 변경 시 배수 자동 업데이트
-        leaveDate.addEventListener('change', function () {
-            const isExec = document.querySelector('input[name="executive"]:checked').value === 'yes';
-            if (isExec) {
-                updateMultiplierByLeaveDate();
+        function splitServicePeriod(startStr, endStr) {
+            const start = new Date(startStr);
+            const end = new Date(endStr);
+
+            if (start > end) return { p1: { days: 0 }, p2: { days: 0 }, p3: { days: 0 } };
+
+            // Boundaries
+            const b1 = new Date('2011-12-31');
+            const b2_start = new Date('2012-01-01');
+            const b2_end = new Date('2019-12-31');
+            const b3_start = new Date('2020-01-01');
+
+            function getOverlapDays(s, e, rS, rE) {
+                const actS = s > rS ? s : rS;
+                const actE = e < rE ? e : rE;
+                if (actS > actE) return 0;
+                return Math.floor((actE - actS) / (1000 * 60 * 60 * 24)) + 1;
             }
-        });
+
+            const p1Days = getOverlapDays(start, end, new Date('1900-01-01'), b1);
+            const p2Days = getOverlapDays(start, end, b2_start, b2_end);
+            const p3Days = getOverlapDays(start, end, b3_start, new Date('2099-12-31'));
+
+            return {
+                p1: {
+                    days: p1Days,
+                    start: p1Days > 0 ? (start < b1 ? startStr : '2012이전') : null,
+                    end: p1Days > 0 ? (end < b1 ? endStr : '2011-12-31') : null
+                },
+                p2: {
+                    days: p2Days,
+                    start: p2Days > 0 ? (start > b2_start ? startStr : '2012-01-01') : null,
+                    end: p2Days > 0 ? (end < b2_end ? endStr : '2019-12-31') : null
+                },
+                p3: {
+                    days: p3Days,
+                    start: p3Days > 0 ? (start > b3_start ? startStr : '2020-01-01') : null,
+                    end: p3Days > 0 ? endStr : null
+                }
+            };
+        }
 
         // 콤마 처리
         function addComma(x) {
@@ -498,6 +591,7 @@
             el.addEventListener('input', function () {
                 let val = el.value.replace(/[^\d]/g, '');
                 el.value = val ? addComma(val) : '';
+                calculateRetirement(); // Recalculate on input
             });
         }
 
@@ -510,99 +604,120 @@
             const leave = new Date(leaveDate.value);
             const last1y = parseInt(removeComma(document.getElementById('last1ySalary').value)) || 0;
             const last3y = parseInt(removeComma(document.getElementById('last3ySalary').value)) || 0;
-            const isExec = document.querySelector('input[name="executive"]:checked').value === 'yes';
-            const multiplier = isExec ? parseFloat(execMultiplier.value) || 1 : 1;
+            const isExec = currentMode === 'executive';
 
             // 재직일수 계산
-            const days = Math.floor((leave - join) / (1000 * 60 * 60 * 24));
-            if (days < 0) {
-                alert('퇴사일이 입사일보다 빠릅니다.');
-                return;
-            }
-
+            const days = Math.floor((leave - join) / (1000 * 60 * 60 * 24)); // Total diff
+            if (days < 0) return;
             const years = days / 365;
 
-            // 평균임금 계산
-            let avgSalary = 0;
+            // 평균임금 계산 
+            let avgMonthlySalary = 0;
             if (isExec && last3y > 0) {
-                avgSalary = last3y / 1080; // 3년 = 1080일
+                avgMonthlySalary = last3y / 36; // 3년 총급여 / 36개월 (단순)
             } else {
-                avgSalary = last1y / 360; // 1년 = 360일
+                avgMonthlySalary = last1y / 12; // 1년 총급여 / 12개월
             }
 
-            // 퇴직금 계산: 1년당 30일분
-            let retirePay = avgSalary * 30 * years;
-            let limitPay = null;
+            // 일평균임금 (통상 30일분)
+            const dailyWage = avgMonthlySalary / 30;
+
+            let totalRetirePay = 0;
+            let displayDetails = [];
 
             if (isExec) {
-                // 임원 한도 적용
-                limitPay = avgSalary * 30 * years * multiplier;
-                if (retirePay > limitPay) {
-                    retirePay = limitPay;
-                }
+                // 임원 계산 (구간별 배수 적용)
+                const mul1 = parseFloat(document.getElementById('mul_pre2012')?.value || 1);
+                const mul2 = parseFloat(document.getElementById('mul_2012_2019')?.value || 2);
+                const mul3 = parseFloat(document.getElementById('mul_post2020')?.value || 3);
+
+                const periods = splitServicePeriod(joinDate.value, leaveDate.value);
+
+                // P1 Pay
+                const p1Years = periods.p1.days / 365;
+                const p1Pay = avgMonthlySalary * p1Years * mul1;
+
+                // P2 Pay
+                const p2Years = periods.p2.days / 365;
+                const p2Pay = avgMonthlySalary * p2Years * mul2;
+
+                // P3 Pay
+                const p3Years = periods.p3.days / 365;
+                const p3Pay = avgMonthlySalary * p3Years * mul3;
+
+                totalRetirePay = p1Pay + p2Pay + p3Pay;
+
+                displayDetails = [
+                    { label: '1구간 (~11년)', amount: p1Pay, info: `\${periods.p1.days}일 x \${mul1}배` },
+                    { label: '2구간 (12~19년)', amount: p2Pay, info: `\${periods.p2.days}일 x \${mul2}배` },
+                    { label: '3구간 (20년~)', amount: p3Pay, info: `\${periods.p3.days}일 x \${mul3}배` }
+                ];
+            } else {
+                // 일반 직원 (법정퇴직금: 1년에 30일분 평균임금 -> 월평균임금 * 근속년수)
+                totalRetirePay = avgMonthlySalary * years;
             }
 
-            displayResult(years, avgSalary, retirePay, limitPay, isExec);
+            displayResult(years, avgMonthlySalary, totalRetirePay, isExec, displayDetails);
         }
 
-        function displayResult(years, avgSalary, retirePay, limitPay, isExec) {
+        function displayResult(years, avgSalary, totalRetirePay, isExec, details) {
             const resultDiv = document.getElementById('retireResult');
             const formatCurrency = (num) => Math.round(num).toLocaleString('ko-KR') + ' 원';
 
-            // 기본 퇴직금 계산 (한도 적용 전)
-            const basicRetirePay = avgSalary * 30 * years;
-            const isLimited = isExec && limitPay && basicRetirePay > limitPay;
+            let execDetailsHtml = '';
+            if (isExec) {
+                const rows = details.map(d => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8125rem;">
+                        <span>\${d.label} <span style="font-size:0.75rem;color:#94a3b8;">(\${d.info})</span></span>
+                        <span style="font-weight:600;color:#334155;">\${formatCurrency(d.amount)}</span>
+                    </div>
+                `).join('');
+
+                execDetailsHtml = `
+            <div style="background:rgba(241,245,249,0.8);border-radius:0.625rem;padding:1rem;margin-bottom:1rem;border:1px solid rgba(203,213,225,0.3);">
+                <h5 style="font-size:0.75rem;color:#64748b;margin-bottom:0.75rem;font-weight:600;">구간별 계산 내역</h5>
+                <div style="display:grid;gap:0.5rem;">
+                    \${rows}
+                </div>
+                <div style="height:1px;background:#cbd5e1;margin:0.75rem 0;"></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:0.875rem;font-weight:700;">합계</span>
+                    <span style="font-size:1rem;font-weight:700;color:#3b82f6;">\${formatCurrency(totalRetirePay)}</span>
+                </div>
+            </div>`;
+            }
+
+            const tipHtml = isExec ?
+                '임원 퇴직금은 <strong>최근 3년 평균급여 × 근속연수 × 정관 배수</strong>로 계산되며, 2012년/2020년 개정에 따라 기간별 한도가 달라집니다.' :
+                '일반 직원은 <strong>1년 근무 시 30일분의 평균임금</strong>(최근 3개월 기준 산정, 여기선 간편하게 연간총액/12)이 지급됩니다.';
 
             resultDiv.innerHTML = `
-                <h4 style="color:#1e293b;margin-bottom:1rem;font-size:0.9375rem;font-weight:600;display:flex;align-items:center;gap:0.5rem;">
-                    <span style="color:#3b82f6;">📊</span> 퇴직금 계산 결과
-                </h4>
-                <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;margin-bottom:1rem;">
-                    <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
-                        <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">재직기간</span>
-                        <span style="font-size:0.8125rem;font-weight:600;color:#1e293b;">${years.toFixed(2)} 년</span>
-                    </div>
-                    <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
-                        <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">일평균 임금</span>
-                        <span style="font-size:0.8125rem;font-weight:600;color:#1e293b;">${formatCurrency(avgSalary)}</span>
-                    </div>
+            <h4 style="color:#1e293b;margin-bottom:1rem;font-size:0.9375rem;font-weight:600;display:flex;align-items:center;gap:0.5rem;">
+                <span style="color:#3b82f6;">📊</span> 퇴직금 계산 결과
+            </h4>
+            <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;margin-bottom:1rem;">
+                <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
+                    <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">재직기간</span>
+                    <span style="font-size:0.8125rem;font-weight:600;color:#1e293b;">\${years.toFixed(2)} 년</span>
                 </div>
-                ${isExec ? `
-                <div style="background:rgba(241,245,249,0.8);border-radius:0.625rem;padding:1rem;margin-bottom:1rem;border:1px solid rgba(203,213,225,0.3);">
-                    <div style="display:grid;gap:0.625rem;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-size:0.75rem;color:#64748b;">① 기본 퇴직금</span>
-                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(basicRetirePay)}</span>
-                        </div>
-                        ${limitPay ? `
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-size:0.75rem;color:#64748b;">② 임원 한도 (세법상 최대)</span>
-                            <span style="font-size:0.875rem;font-weight:600;color:#f59e0b;">${formatCurrency(limitPay)}</span>
-                        </div>
-                        <div style="margin-top:0.375rem;padding:0.625rem;background:${isLimited ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)'};border-radius:0.375rem;border-left:3px solid ${isLimited ? '#ef4444' : '#10b981'};">
-                            <p style="font-size:0.6875rem;color:${isLimited ? '#991b1b' : '#065f46'};margin:0;line-height:1.4;">
-                                ${isLimited ?
-                            `<strong>⚠️ 한도 제한 적용:</strong> 기본 퇴직금이 세법상 한도를 초과하여 <strong>한도 금액까지만</strong> 받을 수 있습니다.` :
-                            `<strong>✅ 한도 내:</strong> 기본  퇴직금이 세법상 한도 이내이므로 <strong>전액</strong> 받을 수 있습니다.`
-                        }
-                            </p>
-                        </div>
-                        ` : ''}
-                    </div>
+                <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
+                    <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">월 평균 급여</span>
+                    <span style="font-size:0.8125rem;font-weight:600;color:#1e293b;">\${formatCurrency(avgSalary)}</span>
                 </div>
-                ` : ''}
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:linear-gradient(135deg,#10b981,#059669);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(16,185,129,0.3);">
-                    <span style="font-weight:600;font-size:0.875rem;">예상 퇴직금 (최종)</span>
-                    <span style="font-weight:700;font-size:1.25rem;">${formatCurrency(retirePay)}</span>
-                </div>
-                <div style="margin-top:1rem;padding:0.75rem;background:rgba(59,130,246,0.1);border-radius:0.5rem;border-left:3px solid #3b82f6;">
-                    <p style="font-size:0.75rem;color:#1e40af;margin:0;">
-                        <strong>💡 Tip:</strong> ${isExec ?
-                    '임원의 경우 <strong>배수는 한도</strong>를 의미합니다. 기본 퇴직금과 한도 중 <strong>작은 금액</strong>을 받습니다.' :
-                    '퇴직금은 재직기간 1년당 30일분의 평균임금으로 계산됩니다. 빠른 계산 탭을 사용하여 다양한 시나리오를 비교해보세요.'
-                }
-                    </p>
-                </div>
+            </div>
+
+            \${execDetailsHtml}
+
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:linear-gradient(135deg,#10b981,#059669);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(16,185,129,0.3);">
+                <span style="font-weight:600;font-size:0.875rem;">예상 퇴직금 (지급액)</span>
+                <span style="font-weight:700;font-size:1.25rem;">\${formatCurrency(totalRetirePay)}</span>
+            </div>
+
+            <div style="margin-top:1rem;padding:0.75rem;background:rgba(59,130,246,0.1);border-radius:0.5rem;border-left:3px solid #3b82f6;">
+                <p style="font-size:0.75rem;color:#1e40af;margin:0;">
+                    <strong>💡 Tip:</strong> \${tipHtml}
+                </p>
+            </div>
             `;
 
             resultDiv.style.display = 'block';
@@ -614,8 +729,9 @@
             calculateRetirement();
         });
 
-        // 페이지 로드 시 자동 계산
+        // 페이지 로드 시
         window.addEventListener('load', function () {
+            updateUIState(); // Ensure UI matches the default mode
             calculateRetirement();
         });
     </script>

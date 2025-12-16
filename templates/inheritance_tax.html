@@ -294,6 +294,24 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 공제 한도 안내 (New) -->
+                <div class="form-group">
+                    <h3>ℹ️ 공제 한도 가이드</h3>
+                    <div
+                        style="padding:1rem;background:rgba(16,185,129,0.05);border-radius:0.5rem;border-left:3px solid #10b981;">
+                        <div style="font-size:0.75rem;color:#059669;line-height:1.6;">
+                            <strong>💡 주요 공제 한도:</strong><br>
+                            • <strong>일괄공제:</strong> 5억원 (기초공제+기타인적공제 합계와 비교하여 큰 금액 적용)<br>
+                            • <strong>배우자공제:</strong> 최소 5억원 ~ 최대 30억원 (실제 상속받은 금액 한도)<br>
+                            • <strong>자녀공제:</strong> 1인당 5천만원 (기초공제 2억원과 합산)<br>
+                            • <strong>금융재산공제:</strong> 순금융재산의 20% (최조 2천만원, 최대 2억원)<br>
+                            <br>
+                            <span style="font-size:0.6875rem;color:#64748b;">* 일반적으로 배우자와 자녀가 있는 경우, [배우자 5억 + 일괄 5억 =
+                                최소 10억원]이 공제됩니다.</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="button-container">
@@ -346,21 +364,19 @@
             // 순상속재산가액 = 총상속재산 - 채무 - 장례비
             const netAssets = totalAssets - totalDebts - funeralExpense + priorDonation;
 
-            // 기초공제 (최소 2억)
-            const basicDeduction = 200000000;
+            // 1. 기초공제 + 인적공제 (자녀, 미성년자 등)
+            // 자녀 1인당 5천만원, 미성년자는 19세까지 남은 연수 * 1천만원(여기선 대략 10년 가정)
+            const itemizedDeduction = basicDeduction + (childCount * 50000000) + (minorCount * 100000000);
 
-            // 배우자공제 (최소 5억, 최대 30억)
-            let spouseDeduction = 0;
-            if (spouseCount > 0) {
-                spouseDeduction = Math.min(Math.max(netAssets * 0.5, 500000000), 3000000000);
-            }
+            // 2. 일괄공제 (5억)
+            const lumpSumDeduction = 500000000;
 
-            // 자녀공제 (1인당 5천만원, 미성년자는 추가로 나이별 공제)
-            const childDeduction = childCount * 50000000;
-            const minorDeduction = minorCount * 10 * 10000000; // 간단히 1억으로 계산
+            // 3. 적용할 일반공제 (Max)
+            // 배우자 단독 상속 등 특수 케이스 제외하고 일반적인 비교 적용
+            const commonDeduction = Math.max(itemizedDeduction, lumpSumDeduction);
 
-            // 총공제
-            const totalDeduction = basicDeduction + spouseDeduction + childDeduction + minorDeduction;
+            // 총공제 = 배우자공제 + 일반공제(일괄 or 기초+인적)
+            const totalDeduction = spouseDeduction + commonDeduction;
 
             // 과세표준
             const taxBase = Math.max(0, netAssets - totalDeduction);
@@ -386,10 +402,10 @@
                 taxRate = '50%';
             }
 
-            displayResult(totalAssets, totalDebts, funeralExpense, netAssets, totalDeduction, taxBase, tax, taxRate, spouseDeduction, childDeduction + minorDeduction);
+            displayResult(totalAssets, totalDebts, funeralExpense, netAssets, totalDeduction, taxBase, tax, taxRate, spouseDeduction, commonDeduction);
         }
 
-        function displayResult(totalAssets, totalDebts, funeralExpense, netAssets, totalDeduction, taxBase, tax, taxRate, spouseDeduction, childDeduction) {
+        function displayResult(totalAssets, totalDebts, funeralExpense, netAssets, totalDeduction, taxBase, tax, taxRate, spouseDeduction, commonDeduction) {
             const resultDiv = document.getElementById('inheritanceResult');
             const formatCurrency = (num) => Math.round(num).toLocaleString('ko-KR') + ' 원';
 
@@ -426,8 +442,8 @@
                             <span style="font-size:0.875rem;font-weight:700;color:#3b82f6;">${formatCurrency(spouseDeduction)}</span>
                         </div>
                         <div style="display:flex;flex-direction:column;padding:0.875rem;background:rgba(16,185,129,0.05);border-radius:0.5rem;border:1px solid rgba(16,185,129,0.2);">
-                            <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">자녀 공제</span>
-                            <span style="font-size:0.875rem;font-weight:700;color:#10b981;">${formatCurrency(childDeduction)}</span>
+                            <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">일괄/기타 공제</span>
+                            <span style="font-size:0.875rem;font-weight:700;color:#10b981;">${formatCurrency(commonDeduction)}</span>
                         </div>
                         <div style="display:flex;flex-direction:column;padding:0.875rem;background:rgba(241,245,249,0.8);border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
                             <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">과세표준</span>

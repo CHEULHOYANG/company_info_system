@@ -315,27 +315,30 @@
 
             let tax = 0;
             let taxRate = '';
-            if (taxBase <= 200000000) {
+            if (taxBase <= 100000000) {
                 tax = taxBase * 0.1;
                 taxRate = '10%';
             } else if (taxBase <= 500000000) {
-                tax = taxBase * 0.2 - 20000000;
+                tax = taxBase * 0.2 - 10000000;
                 taxRate = '20%';
             } else if (taxBase <= 1000000000) {
-                tax = taxBase * 0.3 - 70000000;
+                tax = taxBase * 0.3 - 60000000;
                 taxRate = '30%';
             } else if (taxBase <= 3000000000) {
-                tax = taxBase * 0.4 - 170000000;
+                tax = taxBase * 0.4 - 160000000;
                 taxRate = '40%';
             } else {
-                tax = taxBase * 0.5 - 470000000;
+                tax = taxBase * 0.5 - 460000000;
                 taxRate = '50%';
             }
 
-            displayResult(giftAmount, previousGifts, currentDeduction, taxBase, tax, taxRate);
+            const reportingCredit = Math.floor(tax * 0.03); // 신고세액공제 3%
+            const finalTax = Math.floor(tax - reportingCredit);
+
+            displayResult(giftAmount, previousGifts, currentDeduction, taxBase, tax, reportingCredit, finalTax, taxRate);
         }
 
-        function displayResult(giftAmount, previousGifts, currentDeduction, taxBase, tax, taxRate) {
+        function displayResult(giftAmount, previousGifts, currentDeduction, taxBase, tax, reportingCredit, finalTax, taxRate) {
             const resultDiv = document.getElementById('giftResult');
             const formatCurrency = (num) => Math.round(num).toLocaleString('ko-KR') + ' 원';
 
@@ -365,9 +368,20 @@
                     </div>
                 </div>
                 
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:linear-gradient(135deg,#8b5cf6,#6366f1);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(139,92,246,0.3);">
-                    <span style="font-weight:600;font-size:0.875rem;">예상 증여세 (적용세율: ${taxRate})</span>
-                    <span style="font-weight:700;font-size:1.25rem;">${formatCurrency(tax)}</span>
+                <div style="display:flex;flex-direction:column;gap:0.5rem;padding:1rem 1.25rem;background:linear-gradient(135deg,#8b5cf6,#6366f1);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(139,92,246,0.3);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;opacity:0.9;">
+                        <span style="font-weight:500;font-size:0.8125rem;">산출세액 (적용세율: ${taxRate})</span>
+                        <span style="font-weight:600;font-size:1rem;">${formatCurrency(tax)}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;opacity:0.9;">
+                        <span style="font-weight:500;font-size:0.8125rem;">신고세액공제 (3%)</span>
+                        <span style="font-weight:600;font-size:1rem;">- ${formatCurrency(reportingCredit)}</span>
+                    </div>
+                    <div style="height:1px;background:rgba(255,255,255,0.3);margin:0.25rem 0;"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-weight:700;font-size:1rem;">최종 납부세액</span>
+                        <span style="font-weight:700;font-size:1.5rem;">${formatCurrency(finalTax)}</span>
+                    </div>
                 </div>
                 
                 <div style="margin-top:1rem;padding:0.75rem;background:rgba(59,130,246,0.1);border-radius:0.5rem;border-left:3px solid #3b82f6;">
