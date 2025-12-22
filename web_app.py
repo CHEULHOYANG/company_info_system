@@ -596,6 +596,109 @@ def init_pipeline_tables():
     finally:
         conn.close()
 
+# YS Honers 테이블 초기화 함수
+def init_ys_honers_tables():
+    """YS Honers 관련 테이블들을 초기화합니다."""
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 팀원 관리 테이블
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS ys_team_members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                position TEXT NOT NULL,
+                phone TEXT,
+                bio TEXT,
+                photo_url TEXT,
+                display_order INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # 뉴스 관리 테이블
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS ys_news (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                category TEXT,
+                summary TEXT,
+                link_url TEXT,
+                publish_date DATE,
+                display_order INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # 상담 문의 테이블
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS ys_inquiries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                company TEXT,
+                phone TEXT NOT NULL,
+                checklist TEXT,
+                content TEXT,
+                status TEXT DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # 질문 관리 테이블 (새로 추가)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS ys_questions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                question_text TEXT NOT NULL,
+                display_order INTEGER DEFAULT 1,
+                is_active INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # 초기 팀원 데이터 삽입 (없는 경우)
+        cursor.execute("SELECT COUNT(*) FROM ys_team_members")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute('''
+                INSERT INTO ys_team_members (name, position, phone, bio, display_order)
+                VALUES 
+                ('양철호', '(수석팀장) Senior Team Leader', '010-0000-0000', 
+                 '삼성SDS, 하나은행, 삼성카드 재직, IT, 매출, 회계 및 포인트 경력, 물리적 기술적 보안관리, LMS 시스템 개발, 홈페이지 등 각종 플랫폼 구축가능', 1),
+                ('서은정', '(팀장) Team Leader', '010-0000-0000',
+                 'HSBC, 삼성생명, 삼성화재 재무설계 20년 경력, 변액연금, 펀드, M&A 전문 자격증 보유, 미스코리아 마포 진', 2)
+            ''')
+        
+        # 초기 질문 데이터 삽입 (없는 경우)
+        cursor.execute("SELECT COUNT(*) FROM ys_questions")
+        if cursor.fetchone()[0] == 0:
+            questions = [
+                "법인 설립 시 발기인수를 맞추기 위해 타인을 주주로 등록 하셨습니까?",
+                "대표이사 가지급금의 적절한 활용 및 처리 문제로 고민하고 계십니까?",
+                "누적된 이익잉여금의 효과적인 활용법(급여, 배당)을 고민중이십니까?",
+                "자녀에게 가업승계를 준비하고 계십니까?",
+                "퇴직금제도 운영으로 안정적인 노후 자금을 마련하고자 하십니까?",
+                "중소기업 인증제도(기업부설연구소, 이노비즈 등)를 활용하고 계십니까?",
+                "중대재해처벌법, 대비하고 계십니까?",
+                "대표님 유고시 발생할 수 있는 리스크헷지 방법에 대해 준비하고 계십니까?"
+            ]
+            for i, q in enumerate(questions, 1):
+                cursor.execute('''
+                    INSERT INTO ys_questions (question_text, display_order, is_active)
+                    VALUES (?, ?, 1)
+                ''', (q, i))
+        
+        conn.commit()
+        print("YS Honers 테이블 초기화 완료")
+        
+    except Exception as e:
+        print(f"YS Honers 테이블 초기화 실패: {e}")
+        conn.rollback()
+    finally:
+        conn.close()
+
 # 메인 비즈니스 테이블 초기화 함수
 def init_business_tables():
     """메인 비즈니스 테이블들을 초기화합니다. (기존 데이터 보존)"""
@@ -2808,6 +2911,7 @@ def main():
     
     # 사용자 권한 정보를 템플릿에 전달
     user_data = {
+        'user_id': session.get('user_id'),  # YS Honers 알림용
         'user_name': session.get('user_name'),
         'user_level': session.get('user_level', 'N'),
         'user_level_name': session.get('user_level_name', '일반담당자'),
@@ -5763,10 +5867,11 @@ def get_pipeline_contact_history(company_id):
     finally:
         conn.close()
 
-@app.route('/api/companies/search')
+@app.route('/api/ai-analysis', methods=['POST'])
 @app.route('/api/ai_analysis', methods=['POST'])
 def ai_analysis_stream():
     """AI 기업 분석 API (스트리밍)"""
+
     if not session.get('logged_in'):
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
     
@@ -6180,8 +6285,133 @@ def perform_ai_analysis(company_basic, financials, contact_history=None, shareho
     }
 
 # =======================================================
+# 그래프 시각화용 기업 분석 데이터 API
+# =======================================================
+
+@app.route('/api/company-analysis-data/<biz_no>')
+def get_company_analysis_data(biz_no):
+    """기업 분석 그래프용 데이터 API"""
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 기업 기본 정보
+        cursor.execute('''
+            SELECT company_name, representative_name, industry_name, address, 
+                   pension_count, capital, establishment_date
+            FROM Company_Basic 
+            WHERE biz_no = ?
+        ''', (biz_no,))
+        basic_row = cursor.fetchone()
+        
+        if not basic_row:
+            return jsonify({"success": False, "message": "기업 정보를 찾을 수 없습니다"}), 404
+        
+        company_info = {
+            "company_name": basic_row[0] or "",
+            "representative_name": basic_row[1] or "",
+            "industry_name": basic_row[2] or "",
+            "address": basic_row[3] or "",
+            "employee_count": basic_row[4] or 0,
+            "capital": basic_row[5] or 0,
+            "establishment_date": basic_row[6] or ""
+        }
+        
+        # 주주 정보 (전체)
+        cursor.execute('''
+            SELECT shareholder_name, relationship, ownership_percent, total_shares_owned
+            FROM Company_Shareholder 
+            WHERE biz_no = ? 
+            ORDER BY CAST(COALESCE(ownership_percent, '0') AS REAL) DESC
+        ''', (biz_no,))
+        
+        shareholders = []
+        for row in cursor.fetchall():
+            try:
+                percent = float(row[2]) if row[2] else 0.0
+            except:
+                percent = 0.0
+            try:
+                shares = int(float(row[3])) if row[3] else 0
+            except:
+                shares = 0
+            shareholders.append({
+                "name": row[0] or "미상",
+                "relationship": row[1] or "",
+                "ownership_percent": percent,
+                "shares": shares
+            })
+        
+        # 재무 정보 (최근 3년)
+        cursor.execute('''
+            SELECT fiscal_year, sales_revenue, operating_income, net_income,
+                   total_assets, total_equity, retained_earnings
+            FROM Company_Financial 
+            WHERE biz_no = ? 
+            ORDER BY fiscal_year DESC 
+            LIMIT 3
+        ''', (biz_no,))
+        
+        financials = []
+        for row in cursor.fetchall():
+            financials.append({
+                "year": row[0] or "",
+                "sales_revenue": row[1] or 0,
+                "operating_income": row[2] or 0,
+                "net_income": row[3] or 0,
+                "total_assets": row[4] or 0,
+                "total_equity": row[5] or 0,
+                "retained_earnings": row[6] or 0
+            })
+        
+        # 접촉이력 (최근 20건)
+        cursor.execute('''
+            SELECT contact_datetime, contact_type, contact_person, memo, registered_by
+            FROM Contact_History 
+            WHERE biz_no = ? 
+            ORDER BY contact_datetime DESC 
+            LIMIT 20
+        ''', (biz_no,))
+        
+        contact_history = []
+        contact_type_counts = {}
+        for row in cursor.fetchall():
+            contact_type = row[1] or "기타"
+            contact_history.append({
+                "datetime": row[0] or "",
+                "type": contact_type,
+                "person": row[2] or "",
+                "memo": row[3] or "",
+                "registered_by": row[4] or ""
+            })
+            contact_type_counts[contact_type] = contact_type_counts.get(contact_type, 0) + 1
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "company_info": company_info,
+                "shareholders": shareholders,
+                "financials": financials,
+                "contact_history": contact_history,
+                "contact_type_summary": contact_type_counts
+            }
+        })
+        
+    except Exception as e:
+        print(f"기업 분석 데이터 조회 오류: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+# =======================================================
 # 대표자 및 주주 정보 수정 API 엔드포인트
 # =======================================================
+
 
 @app.route('/api/update-ceo-name', methods=['POST'])
 def update_ceo_name():
@@ -6309,7 +6539,384 @@ def update_share_count():
         return jsonify({'success': False, 'message': f'업데이트 중 오류가 발생했습니다: {str(e)}'}), 500
 
 
+# ============================================
+# YS Honers 페이지 라우트
+# ============================================
+
+@app.route('/lys')
+def lys_main():
+    """YS Honers 메인 페이지"""
+    conn = get_db_connection()
+    try:
+        # 팀원 정보 조회
+        team_members = conn.execute('''
+            SELECT * FROM ys_team_members ORDER BY display_order
+        ''').fetchall()
+        
+        # 뉴스 정보 조회 (최신 6개)
+        news_items = conn.execute('''
+            SELECT * FROM ys_news ORDER BY publish_date DESC, id DESC LIMIT 6
+        ''').fetchall()
+        
+        return render_template('lys_main.html', 
+                               team_members=[dict(row) for row in team_members],
+                               news_items=[dict(row) for row in news_items])
+    except Exception as e:
+        print(f"LYS 메인 페이지 오류: {e}")
+        return render_template('lys_main.html', team_members=[], news_items=[])
+    finally:
+        conn.close()
+
+@app.route('/lys/inquiry')
+def lys_inquiry():
+    """YS Honers 상담신청 페이지"""
+    conn = get_db_connection()
+    try:
+        questions = conn.execute('''
+            SELECT * FROM ys_questions WHERE is_active = 1 ORDER BY display_order
+        ''').fetchall()
+        return render_template('lys_inquiry.html', questions=[dict(q) for q in questions])
+    except Exception as e:
+        print(f"질문 조회 오류: {e}")
+        return render_template('lys_inquiry.html', questions=[])
+    finally:
+        conn.close()
+
+@app.route('/lys/admin', methods=['GET', 'POST'])
+def lys_admin():
+    """YS Honers 관리자 페이지"""
+    # 비밀번호 인증
+    ADMIN_PASSWORD = 'admin1234!'
+    
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == ADMIN_PASSWORD:
+            session['lys_admin_auth'] = True
+        else:
+            return render_template('lys_admin_login.html', error='비밀번호가 올바르지 않습니다.')
+    
+    # 인증 확인
+    if not session.get('lys_admin_auth'):
+        return render_template('lys_admin_login.html', error=None)
+    
+    conn = get_db_connection()
+    try:
+        # 팀원 정보 조회
+        team_members = conn.execute('''
+            SELECT * FROM ys_team_members ORDER BY display_order
+        ''').fetchall()
+        
+        # 뉴스 정보 조회
+        news_items = conn.execute('''
+            SELECT * FROM ys_news ORDER BY display_order, id
+        ''').fetchall()
+        
+        # 상담 문의 조회
+        inquiries_raw = conn.execute('''
+            SELECT * FROM ys_inquiries ORDER BY created_at DESC
+        ''').fetchall()
+        
+        # 질문 목록 조회
+        quiz_questions = conn.execute('''
+            SELECT * FROM ys_questions ORDER BY display_order
+        ''').fetchall()
+        
+        # 체크리스트 JSON 파싱
+        import json
+        inquiries = []
+        for inq in inquiries_raw:
+            inq_dict = dict(inq)
+            if inq_dict.get('checklist'):
+                try:
+                    inq_dict['checklist_parsed'] = json.loads(inq_dict['checklist'])
+                except:
+                    inq_dict['checklist_parsed'] = []
+            else:
+                inq_dict['checklist_parsed'] = []
+            inquiries.append(inq_dict)
+        
+        # 문의 확인 처리 (새 문의를 read로 변경)
+        conn.execute('''
+            UPDATE ys_inquiries SET status = 'read' WHERE status = 'new' OR status IS NULL
+        ''')
+        conn.commit()
+        
+        return render_template('lys_admin.html',
+                               team_members=[dict(row) for row in team_members],
+                               news_items=[dict(row) for row in news_items],
+                               inquiries=inquiries,
+                               quiz_questions=[dict(row) for row in quiz_questions])
+    except Exception as e:
+        print(f"LYS 관리자 페이지 오류: {e}")
+        return render_template('lys_admin.html', team_members=[], news_items=[], inquiries=[], quiz_questions=[])
+    finally:
+        conn.close()
+
+@app.route('/lys/admin/logout')
+def lys_admin_logout():
+    """관리자 로그아웃"""
+    session.pop('lys_admin_auth', None)
+    return redirect('/lys')
+
+@app.route('/lys/team')
+def lys_team():
+    """YS Honers 전문가 소개 페이지"""
+    conn = get_db_connection()
+    try:
+        team_members = conn.execute('''
+            SELECT * FROM ys_team_members ORDER BY display_order
+        ''').fetchall()
+        return render_template('lys_team.html', 
+                               team_members=[dict(row) for row in team_members])
+    except Exception as e:
+        print(f"LYS 팀 페이지 오류: {e}")
+        return render_template('lys_team.html', team_members=[])
+    finally:
+        conn.close()
+
+# ============================================
+# YS Honers API 엔드포인트
+# ============================================
+
+@app.route('/api/lys/team', methods=['GET', 'POST', 'PUT'])
+def api_lys_team():
+    """팀원 정보 API"""
+    conn = get_db_connection()
+    try:
+        if request.method == 'GET':
+            team_members = conn.execute('''
+                SELECT * FROM ys_team_members ORDER BY display_order
+            ''').fetchall()
+            return jsonify({'success': True, 'data': [dict(row) for row in team_members]})
+        
+        elif request.method == 'POST':
+            data = request.get_json()
+            conn.execute('''
+                INSERT INTO ys_team_members (name, position, phone, bio, photo_url, display_order)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (data.get('name'), data.get('position'), data.get('phone'),
+                  data.get('bio'), data.get('photo_url'), data.get('display_order', 1)))
+            conn.commit()
+            return jsonify({'success': True, 'message': '팀원이 추가되었습니다.'})
+        
+        elif request.method == 'PUT':
+            data = request.get_json()
+            conn.execute('''
+                UPDATE ys_team_members 
+                SET name=?, position=?, phone=?, bio=?, photo_url=?, updated_at=CURRENT_TIMESTAMP
+                WHERE id=?
+            ''', (data.get('name'), data.get('position'), data.get('phone'),
+                  data.get('bio'), data.get('photo_url'), data.get('id')))
+            conn.commit()
+            return jsonify({'success': True, 'message': '팀원 정보가 업데이트되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/lys/team/<int:team_id>', methods=['DELETE'])
+def api_lys_team_delete(team_id):
+    """팀원 삭제 API"""
+    conn = get_db_connection()
+    try:
+        conn.execute('DELETE FROM ys_team_members WHERE id=?', (team_id,))
+        conn.commit()
+        return jsonify({'success': True, 'message': '팀원이 삭제되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/lys/news', methods=['GET', 'POST', 'PUT'])
+def api_lys_news():
+    """뉴스 API"""
+    conn = get_db_connection()
+    try:
+        if request.method == 'GET':
+            news_items = conn.execute('''
+                SELECT * FROM ys_news ORDER BY publish_date DESC, id DESC
+            ''').fetchall()
+            return jsonify({'success': True, 'data': [dict(row) for row in news_items]})
+        
+        elif request.method == 'POST':
+            data = request.get_json()
+            conn.execute('''
+                INSERT INTO ys_news (title, category, summary, link_url, publish_date, display_order)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (data.get('title'), data.get('category'), data.get('summary'),
+                  data.get('link_url'), data.get('publish_date'), data.get('display_order', 1)))
+            conn.commit()
+            return jsonify({'success': True, 'message': '뉴스가 추가되었습니다.'})
+        
+        elif request.method == 'PUT':
+            data = request.get_json()
+            conn.execute('''
+                UPDATE ys_news 
+                SET title=?, category=?, summary=?, link_url=?, publish_date=?, updated_at=CURRENT_TIMESTAMP
+                WHERE id=?
+            ''', (data.get('title'), data.get('category'), data.get('summary'),
+                  data.get('link_url'), data.get('publish_date'), data.get('id')))
+            conn.commit()
+            return jsonify({'success': True, 'message': '뉴스가 업데이트되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/lys/news/<int:news_id>', methods=['DELETE'])
+def api_lys_news_delete(news_id):
+    """뉴스 삭제 API"""
+    conn = get_db_connection()
+    try:
+        conn.execute('DELETE FROM ys_news WHERE id=?', (news_id,))
+        conn.commit()
+        return jsonify({'success': True, 'message': '뉴스가 삭제되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/lys/inquiry', methods=['GET', 'POST'])
+def api_lys_inquiry():
+    """상담 문의 API"""
+    conn = get_db_connection()
+    try:
+        if request.method == 'GET':
+            inquiries = conn.execute('''
+                SELECT * FROM ys_inquiries ORDER BY created_at DESC
+            ''').fetchall()
+            return jsonify({'success': True, 'data': [dict(row) for row in inquiries]})
+        
+        elif request.method == 'POST':
+            data = request.get_json()
+            import json
+            checklist = json.dumps(data.get('checklist', []), ensure_ascii=False) if data.get('checklist') else None
+            
+            conn.execute('''
+                INSERT INTO ys_inquiries (name, company, phone, checklist, content, status)
+                VALUES (?, ?, ?, ?, ?, 'new')
+            ''', (data.get('name'), data.get('company'), data.get('phone'),
+                  checklist, data.get('content')))
+            conn.commit()
+            return jsonify({'success': True, 'message': '상담 문의가 등록되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/lys/inquiry/<int:inquiry_id>', methods=['DELETE'])
+def api_lys_inquiry_delete(inquiry_id):
+    """상담 문의 삭제 API"""
+    conn = get_db_connection()
+    try:
+        conn.execute('DELETE FROM ys_inquiries WHERE id=?', (inquiry_id,))
+        conn.commit()
+        return jsonify({'success': True, 'message': '문의가 삭제되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/lys/upload', methods=['POST'])
+def api_lys_upload():
+    """이미지 업로드 API"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'message': '파일이 선택되지 않았습니다.'}), 400
+        
+        # 파일 저장
+        import uuid
+        filename = f"{int(time.time() * 1000)}-{file.filename}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        return jsonify({
+            'success': True, 
+            'message': '파일이 업로드되었습니다.',
+            'url': f'/uploads/{filename}'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/lys/save-all', methods=['POST'])
+def api_lys_save_all():
+    """전체 데이터 저장 API (팀원+뉴스)"""
+    conn = get_db_connection()
+    try:
+        data = request.get_json()
+        
+        # 팀원 정보 업데이트
+        if 'team' in data:
+            for member in data['team']:
+                if member.get('id'):
+                    conn.execute('''
+                        UPDATE ys_team_members 
+                        SET name=?, position=?, phone=?, bio=?, photo_url=?, updated_at=CURRENT_TIMESTAMP
+                        WHERE id=?
+                    ''', (member.get('name'), member.get('position'), member.get('phone'),
+                          member.get('bio'), member.get('photo_url'), member.get('id')))
+        
+        # 뉴스 정보 업데이트
+        if 'news' in data:
+            for news in data['news']:
+                if news.get('id'):
+                    conn.execute('''
+                        UPDATE ys_news 
+                        SET title=?, category=?, summary=?, link_url=?, publish_date=?, updated_at=CURRENT_TIMESTAMP
+                        WHERE id=?
+                    ''', (news.get('title'), news.get('category'), news.get('summary'),
+                          news.get('link_url'), news.get('publish_date'), news.get('id')))
+                else:
+                    conn.execute('''
+                        INSERT INTO ys_news (title, category, summary, link_url, publish_date)
+                        VALUES (?, ?, ?, ?, ?)
+                    ''', (news.get('title'), news.get('category'), news.get('summary'),
+                          news.get('link_url'), news.get('publish_date')))
+        
+        conn.commit()
+        return jsonify({'success': True, 'message': '변경사항이 저장되었습니다.'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/lys/inquiry/unread-count')
+def api_lys_inquiry_unread_count():
+    """미확인 상담 문의 개수 조회 (ct0001, ct0002용)"""
+    conn = get_db_connection()
+    try:
+        # 상태가 'new'인 문의 개수 조회
+        result = conn.execute('''
+            SELECT COUNT(*) as count FROM ys_inquiries WHERE status = 'new' OR status IS NULL
+        ''').fetchone()
+        count = result['count'] if result else 0
+        return jsonify({'success': True, 'count': count})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e), 'count': 0})
+    finally:
+        conn.close()
+
+@app.route('/api/lys/inquiry/mark-read', methods=['POST'])
+def api_lys_inquiry_mark_read():
+    """모든 상담 문의를 확인함으로 표시"""
+    conn = get_db_connection()
+    try:
+        conn.execute('''
+            UPDATE ys_inquiries SET status = 'read' WHERE status = 'new' OR status IS NULL
+        ''')
+        conn.commit()
+        return jsonify({'success': True, 'message': '모든 문의가 확인 처리되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        conn.close()
+
 if __name__ == '__main__':
+
 
     print("=== 애플리케이션 시작 ===")
     print(f"Flask 앱 디렉터리: {app_dir}")
@@ -6343,6 +6950,12 @@ if __name__ == '__main__':
         print("? 영업 파이프라인 테이블 초기화 완료")
     except Exception as e:
         print(f"? 영업 파이프라인 테이블 초기화 실패: {e}")
+    
+    try:
+        init_ys_honers_tables()
+        print("? YS Honers 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? YS Honers 테이블 초기화 실패: {e}")
     
     # 서버 시작
     port = int(os.environ.get('PORT', 5000))

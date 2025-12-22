@@ -423,7 +423,137 @@
                 alert('팝업 차단기가 활성화되어 있습니다. 팝업을 허용해주세요.');
             }
         }
+
+        // YS Honers 상담 문의 알림 (ct0001, ct0002용)
+        document.addEventListener('DOMContentLoaded', async function () {
+            const userId = '{{ user_id }}';
+            if (userId === 'ct0001' || userId === 'ct0002') {
+                try {
+                    const response = await fetch('/api/lys/inquiry/unread-count');
+                    const data = await response.json();
+                    if (data.success && data.count > 0) {
+                        showYsHonersNotification(data.count);
+                    }
+                } catch (error) {
+                    console.error('YS Honers 알림 확인 실패:', error);
+                }
+            }
+        });
+
+        function showYsHonersNotification(count) {
+            const overlay = document.createElement('div');
+            overlay.id = 'ys-notification-overlay';
+            overlay.innerHTML = `
+                <div class="ys-notification-popup">
+                    <div class="ys-notification-icon">🔔</div>
+                    <h3>YS Honers 상담 문의 알림</h3>
+                    <p>새로운 상담 문의가 <strong>${count}건</strong> 있습니다.</p>
+                    <div class="ys-notification-buttons">
+                        <button onclick="goToYsAdmin()">관리자 페이지로 이동</button>
+                        <button onclick="closeYsNotification()" class="secondary">나중에 확인</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        function goToYsAdmin() {
+            window.location.href = '/lys/admin';
+        }
+
+        function closeYsNotification() {
+            const overlay = document.getElementById('ys-notification-overlay');
+            if (overlay) overlay.remove();
+        }
     </script>
+    <style>
+        #ys-notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .ys-notification-popup {
+            background: white;
+            border-radius: 16px;
+            padding: 32px 40px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .ys-notification-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .ys-notification-popup h3 {
+            color: #1e3a5f;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .ys-notification-popup p {
+            color: #64748b;
+            margin-bottom: 24px;
+        }
+
+        .ys-notification-popup strong {
+            color: #3b82f6;
+        }
+
+        .ys-notification-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .ys-notification-buttons button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .ys-notification-buttons button:first-child {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .ys-notification-buttons button:first-child:hover {
+            background: #2563eb;
+        }
+
+        .ys-notification-buttons button.secondary {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .ys-notification-buttons button.secondary:hover {
+            background: #e2e8f0;
+        }
+    </style>
 </head>
 
 <body>

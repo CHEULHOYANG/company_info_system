@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YS Honors - Corporate Consulting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            color: #1a1a1a;
+            background: #fff;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0 40px;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 65px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .logo img {
+            height: 28px;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 17px;
+            color: #1e3a5f;
+        }
+
+        .logo-subtitle {
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        .nav {
+            display: flex;
+            gap: 28px;
+        }
+
+        .nav a {
+            color: #374151;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav a:hover {
+            color: #3b82f6;
+        }
+
+        .cta-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* Hero Section - 800px height matching render */
+        .hero {
+            height: 800px;
+            margin-top: 0;
+            padding-top: 65px;
+            background: linear-gradient(rgba(30, 30, 35, 0.55), rgba(30, 30, 35, 0.55)),
+                url('/static/images/hero_bg.png') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+
+        .hero-content {
+            max-width: 700px;
+            padding: 0 20px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.35);
+            color: #93c5fd;
+            padding: 8px 20px;
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 28px;
+            border: 1px solid rgba(93, 168, 255, 0.35);
+        }
+
+        .hero h1 {
+            font-size: 72px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            letter-spacing: -1px;
+        }
+
+        .hero h1 strong {
+            font-weight: 700;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 36px;
+            line-height: 1.8;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        /* Samsung Partner Section */
+        .partner-section {
+            background: #fff;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .partner-section p {
+            font-size: 11px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+
+        .partner-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 48px;
+            flex-wrap: wrap;
+        }
+
+        .partner-logo {
+            height: 32px;
+            filter: grayscale(100%);
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+
+        .partner-logo:hover {
+            filter: grayscale(0%);
+            opacity: 1;
+        }
+
+        /* Services Section */
+        .section {
+            padding: 70px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .section-header p {
+            color: #6b7280;
+            font-size: 15px;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        /* Hover effect - darken/lift */
+        .service-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15);
+            transform: translateY(-4px);
+        }
+
+        /* Gray icons with blue background */
+        .service-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: #eff6ff;
+            transition: all 0.25s ease;
+        }
+
+        .service-icon svg {
+            width: 26px;
+            height: 26px;
+            stroke: #94a3b8;
+            fill: none;
+            stroke-width: 1.5;
+            transition: stroke 0.25s ease;
+        }
+
+        .service-card:hover .service-icon {
+            background: #3b82f6;
+        }
+
+        .service-card:hover .service-icon svg {
+            stroke: white;
+        }
+
+        .service-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+
+        .service-card p {
+            color: #6b7280;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .service-card a {
+            color: #3b82f6;
+            font-size: 13px;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 12px;
+        }
+
+        /* CTA Banner */
+        .cta-banner {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+            padding: 50px 40px;
+        }
+
+        .cta-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .cta-banner h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .cta-banner p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+
+        .cta-banner .btn-white {
+            display: inline-block;
+            background: white;
+            color: #1e3a5f;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* News Section */
+        .news-section {
+            background: #f9fafb;
+            padding: 70px 20px;
+        }
+
+        .news-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .news-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .news-header a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .news-subtitle {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .news-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.25s;
+        }
+
+        .news-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .news-category {
+            display: inline-block;
+            color: #3b82f6;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .news-card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1f2937;
+            line-height: 1.5;
+        }
+
+        .news-card h3 a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .news-card h3 a:hover {
+            color: #3b82f6;
+        }
+
+        .news-card p {
+            color: #6b7280;
+            font-size: 13px;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .news-date {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        /* Footer */
+        .footer {
+            background: #fff;
+            border-top: 1px solid #e5e7eb;
+            padding: 50px 20px 24px;
+        }
+
+        .footer-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 48px;
+        }
+
+        .footer h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+
+        .footer p {
+            color: #6b7280;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .footer a {
+            color: #3b82f6;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .footer-bottom {
+            max-width: 1100px;
+            margin: 32px auto 0;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .nav {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .hero {
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .services-grid,
+            .news-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr;
+                gap: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-container">
+            <a href="/lys" class="logo">
+                <img src="/static/images/logo.png" alt="YS Honors">
+                <div>
+                    <div class="logo-text">YS Honors</div>
+                    <div class="logo-subtitle">Corporate Consulting</div>
+                </div>
+            </a>
+            <nav class="nav">
+                <a href="/lys">홈</a>
+                <a href="/lys/team">전문가 소개</a>
+                <a href="#services">컨설팅 분야</a>
+                <a href="#news">경영 뉴스</a>
+            </nav>
+            <a href="/lys/inquiry" class="cta-btn">상담신청</a>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">Premium Corporate Consulting</div>
+            <h1>신뢰의 연결고리<strong>YS Honors</strong></h1>
+            <p>양철호 & 서은정 두 전문가의 완벽한 협업으로<br>고객사와의 끊어지지 않는 신뢰 관계를 약속합니다.</p>
+            <div class="hero-buttons">
+                <a href="/lys/inquiry" class="btn-primary">무료 CEO 자가진단 →</a>
+                <a href="/lys/team" class="btn-outline">전문가 소개</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="partner-section">
+        <p>With Samsung Financial Networks</p>
+        <div class="partner-logos">
+            <img src="/static/images/samsung_text.png" alt="Samsung" class="partner-logo">
+            <img src="/static/images/samsung_family_office.png" alt="Samsung Family Office" class="partner-logo">
+        </div>
+    </section>
+
+    <section class="section" id="services">
+        <div class="section-header">
+            <h2>컨설팅 분야</h2>
+            <p>기업의 생애주기에 맞춘 최적의 솔루션을 제안합니다.</p>
+        </div>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="7" height="9" rx="1" />
+                        <rect x="14" y="3" width="7" height="5" rx="1" />
+                        <rect x="14" y="12" width="7" height="9" rx="1" />
+                        <rect x="3" y="16" width="7" height="5" rx="1" />
+                    </svg>
+                </div>
+                <h3>경영지원 컨설팅</h3>
+                <p>법인전환, 제도정비, 가업승계 등 기업 경영에 필요한 맞춤형 솔루션을 제공합니다.</p>
+                <a href="/lys/inquiry">자세히 보기 →</a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 17l6-6 4 4 8-8" />
+                        <path d="M17 7h4v4" />
+                    </svg>
+                </div>
+                <h3>자금/투자 자문</h3>
+                <p>운전자금 확보, 정책자금 활용, 투자 포트폴리오 구성을 통한 자산 증대를 지원합니다.</p>
+                <a href="/lys/inquiry">자세히 보기 →</a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="4" y="4" width="16" height="16" rx="2" />
+                        <line x1="4" y1="10" x2="20" y2="10" />
+                        <line x1="10" y1="4" x2="10" y2="20" />
+                    </svg>
+                </div>
+                <h3>세무/노무 관리</h3>
+                <p>절세 전략 수립, 노무 리스크 관리, 4대보험 최적화 등 실질적인 경영 효율화를 돕습니다.</p>
+                <a href="/lys/inquiry">자세히 보기 →</a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        <path d="M21 21v-2a4 4 0 0 0-3-3.85" />
+                    </svg>
+                </div>
+                <h3>가업승계 전략</h3>
+                <p>세금 부담을 최소화하고 경영권을 안정적으로 이양하는 전략을 수립합니다.</p>
+                <a href="/lys/inquiry">자세히 보기 →</a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <path d="M3 9h18" />
+                        <path d="M9 21V9" />
+                    </svg>
+                </div>
+                <h3>주식 가치 평가</h3>
+                <p>비상장 주식의 정확한 가치 평가를 통해 이동 및 증여 시점을 분석합니다.</p>
+                <a href="/lys/inquiry">자세히 보기 →</a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                        <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                </div>
+                <h3>기업부설연구소</h3>
+                <p>연구소 설립 및 벤처 인증을 통한 세액 공제 및 가산점 혜택을 지원합니다.</p>
+                <a href="/lys/inquiry">자세히 보기 →</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-banner">
+        <div class="cta-container">
+            <h2>경영 고민, 혼자 고민하지 마세요.</h2>
+            <p>간단한 설문을 통해 귀사에 꼭 필요한 솔루션을 진단해드립니다.</p>
+            <a href="/lys/inquiry" class="btn-white">지금 바로 문의하기</a>
+        </div>
+    </section>
+
+    <section class="news-section" id="news">
+        <div class="news-container">
+            <div class="news-header">
+                <h2>경영 인사이트</h2>
+                <a href="https://blog.naver.com/ssneobiz" target="_blank">블로그 더보기 →</a>
+            </div>
+            <p class="news-subtitle">블로그의 최신 경영 정보와 세미나 소식을 전해드립니다.</p>
+            <div class="news-grid">
+                {% for news in news_items %}
+                <div class="news-card">
+                    <div class="news-category">{{ news.category or '경영' }}</div>
+                    <h3><a href="{{ news.link_url or '#' }}" target="_blank">{{ news.title }}</a></h3>
+                    <p>{{ news.summary }}</p>
+                    <div class="news-date">{{ news.publish_date }}</div>
+                </div>
+                {% else %}
+                <div class="news-card">
+                    <div class="news-category">증여세</div>
+                    <h3><a href="https://blog.naver.com/ssneobiz" target="_blank">부모님이 자녀 증여세 대신 내주면?</a></h3>
+                    <p>'증여세 대납' 행위는 또 다른 증여로 간주되어 추가적인 증여세가 부과될 수 있습니다</p>
+                    <div class="news-date">2025-08-04</div>
+                </div>
+                <div class="news-card">
+                    <div class="news-category">가업승계</div>
+                    <h3><a href="https://blog.naver.com/ssneobiz" target="_blank">대표님의 '가업(家業)', 100년 기업의 초석을 다지는 지혜</a>
+                    </h3>
+                    <p>가업승계 절차와 전략, 그리고 100년 기업을 위한 경영 철학에 대해 논의합니다.</p>
+                    <div class="news-date">2025-06-12</div>
+                </div>
+                <div class="news-card">
+                    <div class="news-category">세금</div>
+                    <h3><a href="https://blog.naver.com/ssneobiz" target="_blank">장롱 속 금팔면 세금 낼까?</a></h3>
+                    <p>장롱 속 개인 소장 금, 팔면 양도소득세 낼까? 원칙적으로 NO!</p>
+                    <div class="news-date">2025-05-12</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div>
+                <h4>YS Honors Corporate Consulting</h4>
+                <p>신뢰의 연결고리, YS 아너스<br>고객사와의 끊어지지 않는 신뢰 관계를 약속합니다.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <a href="/lys">홈</a>
+                <a href="/lys/team">전문가 소개</a>
+                <a href="https://blog.naver.com/ssneobiz" target="_blank">블로그</a>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>문의: <a href="/lys/inquiry">상담신청 페이지</a>를 이용해주세요.</p>
+                <p>관리자 로그인: <a href="/lys/admin">Admin</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 YS Honors. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+
+</html>

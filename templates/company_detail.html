@@ -8,7 +8,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>상세정보 (ych_p110) - {{ company.company_name if company else '기업 상세 정보' }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20251118">
+    <script src="/static/js/chart.umd.min.js"></script>
     <style>
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
         body {
             background: linear-gradient(135deg, #0a1f3b 0%, #2c5aa0 35%, #4a9fd9 100%);
             min-height: 100vh;
@@ -1414,23 +1425,65 @@
             <!-- AI 서치 탭 -->
             <div id="ai-search" class="tab-panel">
                 <div class="ai-comprehensive-analysis">
-                    <!-- 종합 분석 리포트 섹션 -->
-                    <div class="analysis-header">
-                        <h3>AI 종합 분석 리포트</h3>
-                        <button class="analysis-button" onclick="startComprehensiveAnalysis()">분석 실행</button>
+                    <!-- 분석 헤더 -->
+                    <div class="analysis-header"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #2c5aa0, #4a9fd9); border-radius: 10px;">
+                        <h3 style="margin: 0; color: white; font-size: 20px;">📊 AI 종합 분석 리포트</h3>
+                        <button class="analysis-button" onclick="startEnhancedAnalysis()"
+                            style="padding: 10px 25px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                            🔄 분석 실행
+                        </button>
                     </div>
 
-                    <div class="comprehensive-report" id="comprehensiveReport">
-                        <div class="loading-animation">
-                            <div class="spinner"></div>
-                            <p>분석을 위해 버튼을 클릭하세요.</p>
-                            <div class="analysis-steps" id="analysisSteps">
+                    <!-- 그래프 영역 -->
+                    <div id="chartsSection" class="analysis-charts-grid"
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                        <!-- 주주 지분율 파이차트 -->
+                        <div class="chart-card"
+                            style="background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <h4 style="margin: 0 0 15px 0; color: #2c5aa0; font-size: 16px;">🏢 주주 지분 구조</h4>
+                            <div style="height: 280px; position: relative;">
+                                <canvas id="shareholderChart"></canvas>
+                            </div>
+                            <div id="shareholderLegend" style="margin-top: 10px; font-size: 12px; color: #666;"></div>
+                        </div>
+
+                        <!-- 재무 실적 추이 차트 -->
+                        <div class="chart-card"
+                            style="background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                            <h4 style="margin: 0 0 15px 0; color: #2c5aa0; font-size: 16px;">📈 재무 실적 추이 (3개년)</h4>
+                            <div style="height: 280px; position: relative;">
+                                <canvas id="financialChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 접촉이력 요약 -->
+                    <div id="contactSummarySection"
+                        style="background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px;">
+                        <h4 style="margin: 0 0 15px 0; color: #2c5aa0; font-size: 16px;">📞 접촉이력 요약</h4>
+                        <div id="contactSummary" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <div style="padding: 20px; text-align: center; color: #666;">접촉이력 데이터를 불러오는 중...</div>
+                        </div>
+                    </div>
+
+                    <!-- AI 분석 보고서 -->
+                    <div class="comprehensive-report" id="comprehensiveReport"
+                        style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div class="loading-animation" style="text-align: center; padding: 40px;">
+                            <div class="spinner"
+                                style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #2c5aa0; border-radius: 50%; margin: 0 auto 20px; animation: spin 1s linear infinite;">
+                            </div>
+                            <p style="color: #666;">분석을 위해 상단의 <strong>분석 실행</strong> 버튼을 클릭하세요.</p>
+                            <div class="analysis-steps" id="analysisSteps"
+                                style="margin-top: 15px; font-size: 14px; color: #888;">
                                 <div class="step">AI 분석 대기 중...</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -1440,6 +1493,440 @@
         let currentCompanyName = '{{ company.company_name if company else "동화에이스" }}';
         let analysisCompleted = false;
         let analysisStepInterval = null; // 애니메이션 제어용 전역 변수
+        let shareholderChart = null;
+        let financialChart = null;
+
+        // 개선된 분석 시작 함수 (그래프 + AI 분석)
+        function startEnhancedAnalysis() {
+            console.log('[DEBUG] startEnhancedAnalysis 시작');
+
+            // 분석 상태 초기화
+            analysisCompleted = false;
+
+            // 로딩 상태 표시
+            const reportDiv = document.getElementById('comprehensiveReport');
+            reportDiv.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #2c5aa0; border-radius: 50%; margin: 0 auto 20px; animation: spin 1s linear infinite;"></div>
+                    <p style="color: #666;">📊 기업 데이터를 분석하고 있습니다...</p>
+                    <div id="analysisSteps" style="margin-top: 15px; font-size: 14px; color: #888;"></div>
+                </div>
+            `;
+
+            // 분석 단계 애니메이션
+            const steps = [
+                '📁 기업 기본 정보 수집 중...',
+                '👥 주주 구조 분석 중...',
+                '📈 재무 데이터 분석 중...',
+                '📞 접촉이력 분석 중...',
+                '🤖 AI 종합 분석 생성 중...'
+            ];
+
+            let stepIndex = 0;
+            const analysisSteps = document.getElementById('analysisSteps');
+
+            analysisStepInterval = setInterval(() => {
+                if (stepIndex < steps.length && analysisSteps) {
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = 'step';
+                    stepDiv.textContent = steps[stepIndex];
+                    stepDiv.style.marginTop = '5px';
+                    analysisSteps.appendChild(stepDiv);
+                    stepIndex++;
+                }
+            }, 1500);
+
+            // 1. 그래프 데이터 로드
+            fetch(`/api/company-analysis-data/${currentBizNo}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 그래프 렌더링
+                        renderShareholderChart(data.data.shareholders);
+                        renderFinancialChart(data.data.financials);
+                        renderContactSummary(data.data.contact_type_summary, data.data.contact_history);
+
+                        // 2. AI 분석 요청
+                        return performEnhancedAIAnalysis(data.data);
+                    } else {
+                        throw new Error(data.message || '데이터 로드 실패');
+                    }
+                })
+                .catch(error => {
+                    console.error('[ERROR] 분석 오류:', error);
+                    clearInterval(analysisStepInterval);
+                    showAnalysisError('데이터 분석 중 오류가 발생했습니다: ' + error.message);
+                });
+        }
+
+        // 주주 지분율 파이차트 렌더링
+        function renderShareholderChart(shareholders) {
+            const ctx = document.getElementById('shareholderChart');
+            if (!ctx) return;
+
+            // 기존 차트 제거
+            if (shareholderChart) {
+                shareholderChart.destroy();
+            }
+
+            if (!shareholders || shareholders.length === 0) {
+                document.getElementById('shareholderLegend').innerHTML = '<p style="color: #999; text-align: center;">주주 정보가 없습니다</p>';
+                return;
+            }
+
+            // 상위 5명 + 기타 처리
+            const top5 = shareholders.slice(0, 5);
+            const othersTotal = shareholders.slice(5).reduce((sum, s) => sum + s.ownership_percent, 0);
+
+            const labels = top5.map(s => s.name.substring(0, 8) + (s.name.length > 8 ? '...' : ''));
+            const dataValues = top5.map(s => s.ownership_percent);
+
+            if (othersTotal > 0) {
+                labels.push('기타');
+                dataValues.push(othersTotal);
+            }
+
+            const colors = ['#2c5aa0', '#4a9fd9', '#28a745', '#ffc107', '#dc3545', '#6f42c1'];
+
+            shareholderChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: { size: 11 },
+                                padding: 8
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.label + ': ' + context.raw.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 범례 업데이트
+            const legendHtml = top5.map((s, i) =>
+                `<span style="display: inline-block; margin-right: 10px;"><span style="display: inline-block; width: 10px; height: 10px; background: ${colors[i]}; margin-right: 3px; border-radius: 2px;"></span>${s.name}: ${s.ownership_percent.toFixed(1)}%</span>`
+            ).join('');
+            document.getElementById('shareholderLegend').innerHTML = legendHtml;
+        }
+
+        // 재무 실적 추이 차트 렌더링
+        function renderFinancialChart(financials) {
+            const ctx = document.getElementById('financialChart');
+            if (!ctx) return;
+
+            // 기존 차트 제거
+            if (financialChart) {
+                financialChart.destroy();
+            }
+
+            if (!financials || financials.length === 0) {
+                ctx.parentElement.innerHTML = '<p style="color: #999; text-align: center; padding-top: 100px;">재무 데이터가 없습니다</p>';
+                return;
+            }
+
+            // 연도순 정렬 (오래된 것부터)
+            const sortedData = [...financials].reverse();
+            const labels = sortedData.map(f => f.year + '년');
+
+            financialChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '매출액',
+                            data: sortedData.map(f => f.sales_revenue / 100000000), // 억원 단위
+                            backgroundColor: 'rgba(44, 90, 160, 0.8)',
+                            borderColor: '#2c5aa0',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '영업이익',
+                            data: sortedData.map(f => f.operating_income / 100000000), // 억원 단위
+                            backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                            borderColor: '#28a745',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { font: { size: 11 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return context.dataset.label + ': ' + context.raw.toFixed(0) + '억원';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '억원'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 접촉이력 요약 렌더링
+        function renderContactSummary(typeSummary, contactHistory) {
+            const container = document.getElementById('contactSummary');
+            if (!container) return;
+
+            if (!typeSummary || Object.keys(typeSummary).length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">접촉이력이 없습니다</p>';
+                return;
+            }
+
+            const typeColors = {
+                '방문': '#2c5aa0',
+                '전화': '#28a745',
+                '이메일': '#ffc107',
+                '회의': '#6f42c1',
+                '기타': '#6c757d'
+            };
+
+            let html = '';
+            for (const [type, count] of Object.entries(typeSummary)) {
+                const color = typeColors[type] || '#6c757d';
+                html += `
+                    <div style="background: ${color}; color: white; padding: 15px 20px; border-radius: 10px; text-align: center; min-width: 80px;">
+                        <div style="font-size: 24px; font-weight: bold;">${count}</div>
+                        <div style="font-size: 12px; opacity: 0.9;">${type}</div>
+                    </div>
+                `;
+            }
+
+            // 최근 접촉 정보 추가
+            if (contactHistory && contactHistory.length > 0) {
+                const latest = contactHistory[0];
+                html += `
+                    <div style="background: #f8f9fa; padding: 15px 20px; border-radius: 10px; flex: 1; min-width: 200px;">
+                        <div style="font-size: 12px; color: #666; margin-bottom: 5px;">최근 접촉</div>
+                        <div style="font-weight: 600; color: #333;">${latest.datetime || '-'}</div>
+                        <div style="font-size: 13px; color: #666;">${latest.type} - ${latest.person || '미상'}</div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // 개선된 AI 분석 실행
+        function performEnhancedAIAnalysis(analysisData) {
+            return fetch('/api/ai-analysis', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    biz_no: currentBizNo,
+                    company_name: currentCompanyName
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    clearInterval(analysisStepInterval);
+
+                    if (data.success && data.analysis) {
+                        displayEnhancedReport(data.analysis, analysisData);
+                        analysisCompleted = true;
+                    } else {
+                        throw new Error(data.message || 'AI 분석 실패');
+                    }
+                })
+                .catch(error => {
+                    clearInterval(analysisStepInterval);
+                    console.error('[ERROR] AI 분석 오류:', error);
+                    showAnalysisError('AI 분석 중 오류가 발생했습니다: ' + error.message);
+                });
+        }
+
+        // 개선된 보고서 표시
+        function displayEnhancedReport(analysis, analysisData) {
+            const reportDiv = document.getElementById('comprehensiveReport');
+
+            // 영업 제안 섹션 생성
+            const salesProposal = generateSalesProposal(analysisData);
+
+            reportDiv.innerHTML = `
+                <div style="border-bottom: 2px solid #4a9fd9; margin-bottom: 20px; padding-bottom: 10px;">
+                    <h2 style="color: #2c5aa0; margin: 0; font-size: 18px;">🤖 AI 종합 분석 결과</h2>
+                </div>
+                
+                <div style="display: grid; gap: 20px;">
+                    <!-- 기업 개요 -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #2c5aa0;">
+                        <h4 style="color: #2c5aa0; margin: 0 0 10px 0;">📋 기업 개요</h4>
+                        <p style="line-height: 1.8; color: #333; margin: 0;">${analysis.summary || '분석 정보가 없습니다.'}</p>
+                    </div>
+                    
+                    <!-- 재무 분석 -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #28a745;">
+                        <h4 style="color: #28a745; margin: 0 0 10px 0;">📈 재무 분석</h4>
+                        <p style="line-height: 1.8; color: #333; margin: 0;">${analysis.financial_analysis || '재무 분석 정보가 없습니다.'}</p>
+                    </div>
+                    
+                    <!-- 리스크 평가 -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #ffc107;">
+                        <h4 style="color: #e6a800; margin: 0 0 10px 0;">⚠️ 위험 평가 및 과제</h4>
+                        <p style="line-height: 1.8; color: #333; margin: 0;">${analysis.risk_assessment || '위험 평가 정보가 없습니다.'}</p>
+                    </div>
+                    
+                    <!-- 영업 제안 (새로 추가) -->
+                    <div style="background: linear-gradient(135deg, #e8f5e8, #f0fff0); padding: 20px; border-radius: 10px; border: 2px solid #28a745;">
+                        <h4 style="color: #28a745; margin: 0 0 15px 0;">💼 이 기업에 제안할 상품/서비스</h4>
+                        ${salesProposal}
+                    </div>
+                    
+                    <!-- 개선 권고 -->
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #6f42c1;">
+                        <h4 style="color: #6f42c1; margin: 0 0 10px 0;">🎯 개선 권고 사항</h4>
+                        <p style="line-height: 1.8; color: #333; margin: 0;">${analysis.recommendations || '개선 권고 정보가 없습니다.'}</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; text-align: right; font-size: 12px; color: #888;">
+                    * 본 분석은 AI에 의해 생성되었으며, 참고용으로만 활용하시기 바랍니다.
+                </div>
+                <div style="margin-top: 15px; text-align: center;">
+                    <button onclick="analysisCompleted=false; startEnhancedAnalysis();" 
+                            style="padding: 10px 25px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        🔄 다시 분석하기
+                    </button>
+                </div>
+            `;
+        }
+
+        // 영업 제안 생성
+        function generateSalesProposal(data) {
+            const proposals = [];
+
+            // 주주 구조 기반 제안
+            if (data.shareholders && data.shareholders.length > 0) {
+                const totalOwnership = data.shareholders.reduce((sum, s) => sum + s.ownership_percent, 0);
+                if (data.shareholders[0].ownership_percent > 50) {
+                    proposals.push({
+                        icon: '👤',
+                        title: '가업승계/상속 컨설팅',
+                        reason: `대주주 지분율 ${data.shareholders[0].ownership_percent.toFixed(1)}%로 집중됨`,
+                        priority: 'high'
+                    });
+                }
+            }
+
+            // 재무 분석 기반 제안
+            if (data.financials && data.financials.length > 0) {
+                const latestFinancial = data.financials[0];
+
+                if (latestFinancial.sales_revenue > 10000000000) { // 100억 이상
+                    proposals.push({
+                        icon: '💰',
+                        title: '기업 자금 관리 서비스',
+                        reason: `매출액 ${(latestFinancial.sales_revenue / 100000000).toFixed(0)}억원 규모`,
+                        priority: 'high'
+                    });
+                }
+
+                if (latestFinancial.operating_income > 0) {
+                    proposals.push({
+                        icon: '📊',
+                        title: '절세 컨설팅',
+                        reason: '영업이익 발생 기업',
+                        priority: 'medium'
+                    });
+                }
+
+                if (latestFinancial.retained_earnings > 1000000000) { // 10억 이상
+                    proposals.push({
+                        icon: '🏦',
+                        title: '자산관리/투자 서비스',
+                        reason: `이익잉여금 ${(latestFinancial.retained_earnings / 100000000).toFixed(0)}억원 보유`,
+                        priority: 'high'
+                    });
+                }
+            }
+
+            // 접촉이력 기반 제안
+            if (data.contact_history && data.contact_history.length > 0) {
+                const memos = data.contact_history.map(c => c.memo).join(' ');
+                if (memos.includes('보험') || memos.includes('연금')) {
+                    proposals.push({
+                        icon: '🛡️',
+                        title: '기업보험/연금 강화 제안',
+                        reason: '이전 접촉에서 관련 니즈 파악됨',
+                        priority: 'high'
+                    });
+                }
+            }
+
+            // 기본 제안
+            if (proposals.length === 0) {
+                proposals.push({
+                    icon: '📋',
+                    title: '기업현황분석 리포트',
+                    reason: '첫 미팅용 자료',
+                    priority: 'medium'
+                });
+                proposals.push({
+                    icon: '🤝',
+                    title: '니즈파악 미팅',
+                    reason: '추가 정보 수집 필요',
+                    priority: 'medium'
+                });
+            }
+
+            // HTML 생성
+            let html = '<div style="display: grid; gap: 10px;">';
+            proposals.forEach((p, i) => {
+                const priorityColor = p.priority === 'high' ? '#dc3545' : '#ffc107';
+                html += `
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 12px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                        <span style="font-size: 24px;">${p.icon}</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #333;">${p.title}</div>
+                            <div style="font-size: 12px; color: #666;">${p.reason}</div>
+                        </div>
+                        <span style="background: ${priorityColor}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px;">
+                            ${p.priority === 'high' ? '추천' : '고려'}
+                        </span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            return html;
+        }
+
 
         // 탭 전환 함수
         function showTab(tabId, clickedButton) {
@@ -1455,7 +1942,7 @@
 
                 // AI 서치 탭 선택 시 자동 분석 시작
                 if (tabId === 'ai-search' && !analysisCompleted) {
-                    setTimeout(startComprehensiveAnalysis, 300);
+                    setTimeout(startEnhancedAnalysis, 300);
                 }
                 // 접촉이력 탭 선택 시 데이터 로드
                 if (tabId === 'contact-history') {

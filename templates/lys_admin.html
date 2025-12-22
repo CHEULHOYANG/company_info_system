@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지 - YS Honors</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #f8fafc;
+            color: #1a1a1a;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn-danger:hover {
+            background: #fecaca;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 32px;
+        }
+
+        .tab {
+            padding: 12px 0;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #3b82f6;
+        }
+
+        .tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Team Member Card */
+        .member-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .member-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+        }
+
+        /* News Card */
+        .news-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .news-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .news-item-header h4 {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        /* Inquiry Card */
+        .inquiry-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .inquiry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .inquiry-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .inquiry-company {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .inquiry-date {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .inquiry-phone {
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        .inquiry-checklist {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .inquiry-checklist h5 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .inquiry-checklist ul {
+            list-style: disc;
+            padding-left: 20px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .inquiry-content {
+            margin-top: 12px;
+            padding: 12px;
+            background: #fef3c7;
+            border-radius: 8px;
+        }
+
+        .inquiry-content h5 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 6px;
+        }
+
+        .inquiry-content p {
+            font-size: 14px;
+            color: #78350f;
+        }
+
+        /* Upload */
+        .upload-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .upload-row input[type="text"] {
+            flex: 1;
+        }
+
+        .upload-btn {
+            padding: 10px 16px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .upload-btn:hover {
+            background: #e5e7eb;
+        }
+
+        /* Delete button */
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+        }
+
+        .delete-btn:hover {
+            background: #fee2e2;
+            border-radius: 4px;
+        }
+
+        /* Add news button */
+        .add-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: white;
+            border: 1px dashed #d1d5db;
+            border-radius: 8px;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            width: fit-content;
+            margin-bottom: 24px;
+        }
+
+        .add-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        /* Navbar link to main */
+        .back-link {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-link:hover {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>관리자 페이지</h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="saveAll()">💾 변경사항 저장</button>
+                <a href="/lys/admin/logout" class="btn btn-secondary">🚪 로그아웃</a>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="team">팀원 관리</div>
+            <div class="tab" data-tab="news">뉴스/블로그 관리</div>
+            <div class="tab" data-tab="inquiry">상담 문의</div>
+            <div class="tab" data-tab="questions">진단 질문 관리</div>
+        </div>
+
+        <!-- 팀원 관리 -->
+        <div id="team" class="tab-content active">
+            {% for member in team_members %}
+            <div class="member-card" data-member-id="{{ member.id }}">
+                <h3>{{ member.name }} ({{ member.position }})</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>이름</label>
+                        <input type="text" name="name" value="{{ member.name }}">
+                    </div>
+                    <div class="form-group">
+                        <label>직책</label>
+                        <input type="text" name="position" value="{{ member.position }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>연락처</label>
+                    <input type="text" name="phone" value="{{ member.phone or '' }}">
+                </div>
+                <div class="form-group">
+                    <label>이력/소개</label>
+                    <textarea name="bio">{{ member.bio or '' }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>프로필 이미지 URL</label>
+                    <div class="upload-row">
+                        <input type="text" name="photo_url" value="{{ member.photo_url or '' }}">
+                        <label class="upload-btn">
+                            업로드
+                            <input type="file" accept="image/*" style="display:none"
+                                onchange="uploadImage(this, '{{ member.id }}')">
+                        </label>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- 뉴스/블로그 관리 -->
+        <div id="news" class="tab-content">
+            <button class="add-btn" onclick="addNews()">+ 뉴스 추가</button>
+
+            <div id="news-list">
+                {% for news in news_items %}
+                <div class="news-item" data-news-id="{{ news.id }}">
+                    <div class="news-item-header">
+                        <h4>뉴스 #{{ loop.index }}</h4>
+                        <button class="delete-btn" onclick="deleteNews({{ news.id }})">🗑</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>제목</label>
+                            <input type="text" name="title" value="{{ news.title }}">
+                        </div>
+                        <div class="form-group">
+                            <label>카테고리</label>
+                            <input type="text" name="category" value="{{ news.category or '' }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>요약</label>
+                        <textarea name="summary">{{ news.summary or '' }}</textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>링크 URL</label>
+                            <input type="text" name="link_url" value="{{ news.link_url or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label>날짜</label>
+                            <input type="date" name="publish_date" value="{{ news.publish_date or '' }}">
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p style="color: #64748b;">등록된 뉴스가 없습니다. "뉴스 추가" 버튼을 클릭하여 추가하세요.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 상담 문의 -->
+        <div id="inquiry" class="tab-content">
+            {% for inq in inquiries %}
+            <div class="inquiry-item">
+                <div class="inquiry-header">
+                    <div>
+                        <div class="inquiry-name">{{ inq.name }} <span class="inquiry-company">({{ inq.company or '회사
+                                미입력' }})</span></div>
+                        <div class="inquiry-date">{{ inq.created_at }}</div>
+                    </div>
+                    <div class="inquiry-phone">{{ inq.phone }}</div>
+                </div>
+                {% if inq.checklist_parsed %}
+                <div class="inquiry-checklist">
+                    <h5>진단 체크리스트:</h5>
+                    <ul>
+                        {% for item in inq.checklist_parsed %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if inq.content %}
+                <div class="inquiry-content">
+                    <h5>기타 문의사항:</h5>
+                    <p>{{ inq.content }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <p style="color: #64748b;">등록된 상담 문의가 없습니다.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <a href="/lys" class="back-link">🏢 YS Honors 메인으로</a>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Save all changes
+        async function saveAll() {
+            const teamData = [];
+            document.querySelectorAll('.member-card').forEach(card => {
+                teamData.push({
+                    id: card.dataset.memberId,
+                    name: card.querySelector('[name="name"]').value,
+                    position: card.querySelector('[name="position"]').value,
+                    phone: card.querySelector('[name="phone"]').value,
+                    bio: card.querySelector('[name="bio"]').value,
+                    photo_url: card.querySelector('[name="photo_url"]').value
+                });
+            });
+
+            const newsData = [];
+            document.querySelectorAll('.news-item').forEach(item => {
+                newsData.push({
+                    id: item.dataset.newsId || null,
+                    title: item.querySelector('[name="title"]').value,
+                    category: item.querySelector('[name="category"]').value,
+                    summary: item.querySelector('[name="summary"]').value,
+                    link_url: item.querySelector('[name="link_url"]').value,
+                    publish_date: item.querySelector('[name="publish_date"]').value
+                });
+            });
+
+            try {
+                const response = await fetch('/api/lys/save-all', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ team: teamData, news: newsData })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('변경사항이 저장되었습니다.');
+                } else {
+                    alert('저장 실패: ' + result.message);
+                }
+            } catch (error) {
+                alert('오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // Add news
+        let newsCounter = {{ news_items| length }} + 1;
+        function addNews() {
+            const newsList = document.getElementById('news-list');
+            const newsHtml = `
+                <div class="news-item" data-news-id="">
+                    <div class="news-item-header">
+                        <h4>뉴스 #${newsCounter++}</h4>
+                        <button class="delete-btn" onclick="this.parentElement.parentElement.remove()">🗑</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>제목</label>
+                            <input type="text" name="title" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>카테고리</label>
+                            <input type="text" name="category" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>요약</label>
+                        <textarea name="summary"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>링크 URL</label>
+                            <input type="text" name="link_url" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>날짜</label>
+                            <input type="date" name="publish_date" value="">
+                        </div>
+                    </div>
+                </div>
+            `;
+            newsList.insertAdjacentHTML('afterbegin', newsHtml);
+        }
+
+        // Delete news
+        async function deleteNews(id) {
+            if (!confirm('이 뉴스를 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await fetch(`/api/lys/news/${id}`, { method: 'DELETE' });
+                const result = await response.json();
+
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('삭제 실패: ' + result.message);
+                }
+            } catch (error) {
+                alert('오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // Upload image
+        async function uploadImage(input, memberId) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/lys/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    const card = document.querySelector(`[data-member-id="${memberId}"]`);
+                    card.querySelector('[name="photo_url"]').value = result.url;
+                    alert('이미지가 업로드되었습니다.');
+                } else {
+                    alert('업로드 실패: ' + result.message);
+                }
+            } catch (error) {
+                alert('오류가 발생했습니다: ' + error.message);
+            }
+        }
+    </script>
+</body>
+
+</html>

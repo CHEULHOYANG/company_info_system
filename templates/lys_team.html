@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전문가 소개 - YS Honors</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            color: #1a1a1a;
+            background: #f8fafc;
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0 40px;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .logo img {
+            height: 36px;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 20px;
+            color: #1e3a5f;
+        }
+
+        .logo-subtitle {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .nav {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav a {
+            color: #475569;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav a:hover {
+            color: #1d4ed8;
+        }
+
+        .cta-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #3b7eb0 100%);
+            padding: 80px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .page-header h1 {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .page-header p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        /* Team Section */
+        .team-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 80px 20px;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 32px;
+        }
+
+        /* Team Card */
+        .team-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            padding: 32px;
+            display: flex;
+            gap: 28px;
+            transition: all 0.3s;
+        }
+
+        .team-card:hover {
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .team-photo {
+            width: 140px;
+            height: 160px;
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: #6366f1;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .team-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .team-info {
+            flex: 1;
+        }
+
+        .team-info h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .team-position {
+            color: #3b82f6;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .team-contact {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .team-bio {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .team-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .team-tag {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #1e3a5f, #2563eb);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .cta-section h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .cta-section p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 24px;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background: white;
+            color: #1e3a5f;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Footer */
+        .footer {
+            background: #f8fafc;
+            border-top: 1px solid #e5e7eb;
+            padding: 60px 20px 30px;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 60px;
+        }
+
+        .footer h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+        }
+
+        .footer p {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .footer a {
+            color: #3b82f6;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 40px auto 0;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+            .nav {
+                display: none;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .team-card {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .team-tags {
+                justify-content: center;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-container">
+            <a href="/lys" class="logo">
+                <img src="/static/images/logo.png" alt="YS Honors">
+                <div>
+                    <div class="logo-text">YS Honors</div>
+                    <div class="logo-subtitle">Corporate Consulting</div>
+                </div>
+            </a>
+            <nav class="nav">
+                <a href="/lys">홈</a>
+                <a href="/lys/team">전문가 소개</a>
+                <a href="/lys#services">컨설팅 분야</a>
+                <a href="/lys#news">경영 뉴스</a>
+            </nav>
+            <a href="/lys/inquiry" class="cta-btn">상담신청</a>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <h1>전문가 소개</h1>
+        <p>대한민국 최고의 컨설팅 전문가들이 귀사와 함께합니다.</p>
+    </section>
+
+    <section class="team-section">
+        <div class="team-grid">
+            {% for member in team_members %}
+            <div class="team-card">
+                <div class="team-photo">
+                    {% if member.photo_url %}
+                    <img src="{{ member.photo_url }}" alt="{{ member.name }}">
+                    {% else %}
+                    👤
+                    {% endif %}
+                </div>
+                <div class="team-info">
+                    <h3>{{ member.name }}</h3>
+                    <div class="team-position">{{ member.position }}</div>
+                    {% if member.phone %}
+                    <div class="team-contact">Contact:</div>
+                    {% endif %}
+                    <div class="team-bio">{{ member.bio }}</div>
+                    <div class="team-tags">
+                        {% if '삼성' in member.bio %}
+                        <span class="team-tag">삼성SDS</span>
+                        {% endif %}
+                        {% if 'IT' in member.bio or '기술' in member.bio %}
+                        <span class="team-tag">IT/회계/보안</span>
+                        {% endif %}
+                        {% if 'LMS' in member.bio or '홈페이지' in member.bio %}
+                        <span class="team-tag">국방부 LMS</span>
+                        {% endif %}
+                        {% if 'HSBC' in member.bio or '금융' in member.bio %}
+                        <span class="team-tag">금융경력 20년</span>
+                        {% endif %}
+                        {% if '재무설계' in member.bio or '생명' in member.bio %}
+                        <span class="team-tag">삼성생명/화재</span>
+                        {% endif %}
+                        {% if 'M&A' in member.bio or '펀드' in member.bio %}
+                        <span class="team-tag">M&A 전문가</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="team-card" style="grid-column: 1 / -1; justify-content: center;">
+                <p style="color: #64748b; text-align: center;">전문가 정보가 준비 중입니다.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <h2>전문가와 직접 상담하세요</h2>
+        <p>귀사의 현황에 맞는 맞춤 컨설팅을 제공해드립니다.</p>
+        <a href="/lys/inquiry" class="btn-primary">무료 상담 신청하기</a>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div>
+                <h4>YS Honors Corporate Consulting</h4>
+                <p>신뢰의 연결고리, YS 아너스<br>고객사와의 끊어지지 않는 신뢰 관계를 약속합니다.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <a href="/lys">홈</a>
+                <a href="/lys/team">전문가 소개</a>
+                <a href="https://blog.naver.com/ssneobiz" target="_blank">블로그</a>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>문의: <a href="/lys/inquiry">상담신청 페이지</a>를 이용해주세요.</p>
+                <p>관리자 로그인: <a href="/lys/admin">Admin</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 YS Honors. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+
+</html>

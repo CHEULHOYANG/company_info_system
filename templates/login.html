@@ -1006,6 +1006,42 @@
             // 비밀번호 변경 모달은 외부 클릭으로 닫히지 않도록 함 (보안상 필수)
         }
     </script>
+
+    <!-- YS Honers BI 링크 -->
+    <a href="/lys" class="ys-honers-link">
+        YS Honers BI
+    </a>
+
+    <style>
+        .ys-honers-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .ys-honers-link:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+
+        .ys-honers-link::before {
+            content: '🏢 ';
+        }
+    </style>
 </body>
 
 </html>

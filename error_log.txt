@@ -1,0 +1,50 @@
+Local DB: G:\company_project_system\company_database.db
+=== Application Initialization ===
+Environment: Local
+Database Path: G:\company_project_system\company_database.db
+? Database file exists: G:\company_project_system\company_database.db
+? Database connection successful
+User tables already exist with data - skipping initialization
+User tables initialized successfully
+=== Initialization Complete ===
+Populating Test DB...
+User tables initialized successfully
+영업 파이프라인 테이블 초기화 완료
+Creating new business tables...
+Business tables initialized successfully
+Test DB Populated.
+
+--- Testing Pipeline Visibility ---
+ct0001 sees: ['101', '102']
+[PASS] ct0001 sees both own and partner's companies.
+[PASS] ct0001 does not see ct0003's company.
+ct0003 sees: ['103']
+[PASS] ct0003 sees only own company.
+
+--- Testing Search Exclusion ---
+ct0003 search for CompanyA_P1 result count: 0
+[PASS] CompanyA_P1 is hidden from ct0003.
+ct0003 search for CompanyC_L3 result count: 1
+[PASS] ct0003 found own company.
+[PASS] Free company is visible.
+
+--- Testing Contact History ---
+>>> /api/history_search 라우트 진입
+접속 user_id: ct0002
+쿼리 실행: 
+            SELECT
+                h.history_id,
+                h.contact_datetime,
+                h.biz_no,
+                b.company_name,
+                h.contact_type,
+                h.contact_person,
+                h.memo,
+                h.registered_by
+            FROM Contact_History h
+            LEFT JOIN Company_Basic b ON h.biz_no = b.biz_no
+         WHERE h.registered_by IN ('ct0001', 'ct0002') ORDER BY h.contact_datetime DESC
+파라미터: []
+조회된 결과 수: 1
+ct0002 history sees registrants: ['ct0001']
+[PASS] ct0002 sees ct0001's history.
