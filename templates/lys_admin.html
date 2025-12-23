@@ -7,6 +7,7 @@
     <title>관리자 페이지 - YS Honors</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -375,6 +376,210 @@
         .back-link:hover {
             background: #f1f5f9;
         }
+
+        /* Checklist Grid Table */
+        .inquiry-checklist-grid {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .checklist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .checklist-header h5 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin: 0;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .checklist-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .checklist-table thead {
+            background: #f9fafb;
+        }
+
+        .checklist-table th {
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .checklist-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .checklist-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .answer-cell {
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .answer-yes {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .answer-no {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        /* Inquiry List Item (Collapsible) */
+        .inquiry-list-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .inquiry-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .inquiry-list-header:hover {
+            background: #f9fafb;
+        }
+
+        .inquiry-list-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex: 1;
+        }
+
+        .inquiry-list-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1a1a1a;
+            min-width: 100px;
+        }
+
+        .inquiry-list-company {
+            color: #64748b;
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .inquiry-list-phone {
+            font-weight: 500;
+            color: #374151;
+            font-size: 14px;
+            min-width: 120px;
+        }
+
+        .inquiry-list-date {
+            color: #94a3b8;
+            font-size: 13px;
+            min-width: 150px;
+        }
+
+        .inquiry-list-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-xs {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .toggle-icon {
+            margin-left: 8px;
+            color: #94a3b8;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .inquiry-list-item.expanded .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .inquiry-detail {
+            padding: 0 20px 20px 20px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        /* Question Management */
+        .question-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .question-number {
+            background: #3b82f6;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: #f3f4f6;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover {
+            background: #e5e7eb;
+        }
     </style>
 </head>
 
@@ -384,7 +589,7 @@
             <h1>관리자 페이지</h1>
             <div class="header-actions">
                 <button class="btn btn-primary" onclick="saveAll()">💾 변경사항 저장</button>
-                <a href="/lys/admin/logout" class="btn btn-secondary">🚪 로그아웃</a>
+                <a href="/lys" class="btn btn-secondary">🏠 홈페이지</a>
             </div>
         </div>
 
@@ -478,35 +683,89 @@
         <!-- 상담 문의 -->
         <div id="inquiry" class="tab-content">
             {% for inq in inquiries %}
-            <div class="inquiry-item">
-                <div class="inquiry-header">
-                    <div>
-                        <div class="inquiry-name">{{ inq.name }} <span class="inquiry-company">({{ inq.company or '회사
-                                미입력' }})</span></div>
-                        <div class="inquiry-date">{{ inq.created_at }}</div>
+            <div class="inquiry-list-item" data-inquiry-id="{{ inq.id }}">
+                <div class="inquiry-list-header" onclick="toggleInquiryDetail({{ inq.id }})">
+                    <div class="inquiry-list-info">
+                        <span class="inquiry-list-name">{{ inq.name }}</span>
+                        <span class="inquiry-list-company">{{ inq.company or '회사 미입력' }}</span>
+                        <span class="inquiry-list-phone">{{ inq.phone }}</span>
+                        <span class="inquiry-list-date">{{ inq.created_at }}</span>
                     </div>
-                    <div class="inquiry-phone">{{ inq.phone }}</div>
+                    <div class="inquiry-list-actions">
+                        <button class="btn btn-xs btn-primary"
+                            onclick="event.stopPropagation(); exportChecklistPDF({{ inq.id }})">📄 PDF</button>
+                        <button class="btn btn-xs btn-danger"
+                            onclick="event.stopPropagation(); deleteInquiry({{ inq.id }})">🗑 삭제</button>
+                        <span class="toggle-icon">▼</span>
+                    </div>
                 </div>
-                {% if inq.checklist_parsed %}
-                <div class="inquiry-checklist">
-                    <h5>진단 체크리스트:</h5>
-                    <ul>
-                        {% for item in inq.checklist_parsed %}
-                        <li>{{ item }}</li>
-                        {% endfor %}
-                    </ul>
+                <div class="inquiry-detail" id="inquiry-detail-{{ inq.id }}" style="display:none;">
+                    {% if quiz_questions %}
+                    <div class="inquiry-checklist-grid">
+                        <h5 style="margin-bottom:12px;">진단 체크리스트</h5>
+                        <table class="checklist-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px">번호</th>
+                                    <th>질문</th>
+                                    <th style="width: 80px">답변</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for question in quiz_questions %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ question.question_text }}</td>
+                                    <td class="answer-cell">
+                                        {% if question.question_text in inq.checklist_parsed %}
+                                        <span class="answer-yes">○</span>
+                                        {% else %}
+                                        <span class="answer-no">✕</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                    {% if inq.content %}
+                    <div class="inquiry-content" style="margin-top:16px;">
+                        <h5>기타 문의사항:</h5>
+                        <p>{{ inq.content }}</p>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
-                {% if inq.content %}
-                <div class="inquiry-content">
-                    <h5>기타 문의사항:</h5>
-                    <p>{{ inq.content }}</p>
-                </div>
-                {% endif %}
             </div>
             {% else %}
             <p style="color: #64748b;">등록된 상담 문의가 없습니다.</p>
             {% endfor %}
+        </div>
+
+        <!-- 진단 질문 관리 -->
+        <div id="questions" class="tab-content">
+            <button class="add-btn" onclick="addQuestion()">+ 질문 추가</button>
+
+            <div id="questions-list">
+                {% for q in quiz_questions %}
+                <div class="question-item" data-question-id="{{ q.id }}">
+                    <div class="question-header">
+                        <span class="question-number">{{ loop.index }}</span>
+                        <div class="question-actions">
+                            <button class="btn-icon" onclick="moveQuestion({{ q.id }}, 'up')" title="위로">↑</button>
+                            <button class="btn-icon" onclick="moveQuestion({{ q.id }}, 'down')" title="아래로">↓</button>
+                            <button class="btn-icon" onclick="deleteQuestion({{ q.id }})">🗑</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>질문 내용</label>
+                        <textarea name="question_text" rows="2">{{ q.question_text }}</textarea>
+                    </div>
+                </div>
+                {% else %}
+                <p style="color: #64748b;">등록된 질문이 없습니다. "질문 추가" 버튼을 클릭하여 추가하세요.</p>
+                {% endfor %}
+            </div>
         </div>
     </div>
 
@@ -646,6 +905,157 @@
                     alert('이미지가 업로드되었습니다.');
                 } else {
                     alert('업로드 실패: ' + result.message);
+                }
+            } catch (error) {
+                alert('오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // PDF export function
+        function exportChecklistPDF(inquiryId) {
+            const inquiryItem = document.querySelector(`[data-inquiry-id="${inquiryId}"]`);
+            const table = inquiryItem.querySelector('.checklist-table').cloneNode(true);
+            const nameElement = inquiryItem.querySelector('.inquiry-name');
+            const companyElement = inquiryItem.querySelector('.inquiry-company');
+            const dateElement = inquiryItem.querySelector('.inquiry-date');
+            const phoneElement = inquiryItem.querySelector('.inquiry-phone');
+
+            const name = nameElement ? nameElement.textContent.trim() : '정보 없음';
+            const company = companyElement ? companyElement.textContent.replace(/[()]/g, '').trim() : '정보 없음';
+            const date = dateElement ? dateElement.textContent.trim() : '';
+            const phone = phoneElement ? phoneElement.textContent.trim() : '';
+
+            // PDF 컨텐츠 생성
+            const pdfContent = document.createElement('div');
+            pdfContent.style.padding = '40px';
+            pdfContent.style.background = 'white';
+            pdfContent.style.color = 'black';
+            pdfContent.innerHTML = `
+                <h1 style="text-align:center;margin-bottom:10px;font-size:24px;color:#1a1a1a;">YS Honors CEO 자가진단 체크리스트</h1>
+                <p style="text-align:center;color:#666;margin-bottom:30px;font-size:14px;">작성일: ${date}</p>
+                <div style="margin-bottom:30px;font-size:14px;color:#1a1a1a;">
+                    <p style="margin:5px 0;"><strong>성함:</strong> ${name}</p>
+                    <p style="margin:5px 0;"><strong>회사:</strong> ${company}</p>
+                    <p style="margin:5px 0;"><strong>연락처:</strong> ${phone}</p>
+                </div>
+                ${table.outerHTML}
+            `;
+
+            // 테이블 스타일 적용
+            const pdfTable = pdfContent.querySelector('.checklist-table');
+            pdfTable.style.width = '100%';
+            pdfTable.style.borderCollapse = 'collapse';
+            pdfTable.style.marginTop = '20px';
+
+            pdfTable.querySelectorAll('th, td').forEach(cell => {
+                cell.style.border = '1px solid #ddd';
+                cell.style.padding = '10px';
+                cell.style.textAlign = 'left';
+                cell.style.color = '#1a1a1a';
+            });
+
+            pdfTable.querySelectorAll('th').forEach(th => {
+                th.style.backgroundColor = '#f3f4f6';
+                th.style.fontWeight = '600';
+            });
+
+            // html2pdf 옵션
+            const opt = {
+                margin: 15,
+                filename: `YS_Honors_진단서_${name}_${new Date().toISOString().split('T')[0]}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(pdfContent).save();
+        }
+
+        // Toggle inquiry detail
+        function toggleInquiryDetail(inquiryId) {
+            const item = document.querySelector(`[data-inquiry-id="${inquiryId}"]`);
+            const detail = document.getElementById(`inquiry-detail-${inquiryId}`);
+
+            if (detail.style.display === 'none') {
+                detail.style.display = 'block';
+                item.classList.add('expanded');
+            } else {
+                detail.style.display = 'none';
+                item.classList.remove('expanded');
+            }
+        }
+
+        // Delete inquiry
+        async function deleteInquiry(inquiryId) {
+            if (!confirm('이 상담 문의를 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await fetch(`/api/lys/inquiry/${inquiryId}`, { method: 'DELETE' });
+                const result = await response.json();
+
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('삭제 실패: ' + result.message);
+                }
+            } catch (error) {
+                alert('오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // Add question
+        let questionCounter = {{ quiz_questions| length }} + 1;
+        function addQuestion() {
+            const questionsList = document.getElementById('questions-list');
+            const questionHtml = `
+                <div class="question-item" data-question-id="">
+                    <div class="question-header">
+                        <span class="question-number">${questionCounter++}</span>
+                        <div class="question-actions">
+                            <button class="btn-icon" onclick="this.parentElement.parentElement.parentElement.remove()">🗑</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>질문 내용</label>
+                        <textarea name="question_text" rows="2"></textarea>
+                    </div>
+                </div>
+            `;
+            questionsList.insertAdjacentHTML('beforeend', questionHtml);
+        }
+
+        // Delete question
+        async function deleteQuestion(questionId) {
+            if (!confirm('이 질문을 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await fetch(`/api/lys/question/${questionId}`, { method: 'DELETE' });
+                const result = await response.json();
+
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('삭제 실패: ' + result.message);
+                }
+            } catch (error) {
+                alert('오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // Move question
+        async function moveQuestion(questionId, direction) {
+            try {
+                const response = await fetch(`/api/lys/question/${questionId}/move`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ direction: direction })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('이동 실패: ' + result.message);
                 }
             } catch (error) {
                 alert('오류가 발생했습니다: ' + error.message);

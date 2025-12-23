@@ -182,33 +182,78 @@
             transition: width 0.4s ease;
         }
 
-        /* Card Slider - 세로 카드 */
+        /* Card Slider - 세로 카드 with 3D perspective */
         .card-slider {
             position: relative;
             width: 100%;
-            overflow: hidden;
+            overflow: visible;
+            perspective: 1200px;
         }
 
         .cards-track {
-            display: flex;
-            transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+            position: relative;
+            width: 100%;
         }
 
-        /* Question Card - 세로 (Portrait) */
+        /* Question Card - 세로 (Portrait) with 3D animations */
         .question-card {
-            flex-shrink: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             max-width: 640px;
             background: rgba(30, 41, 59, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
-            padding: 60px 40px;
+            padding: 70px 50px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            min-height: 420px;
+            min-height: 480px;
+            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .question-card.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0) rotateZ(0deg) scale(1);
+        }
+
+        .question-card.card-swipe-left {
+            animation: swipeLeft 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+        }
+
+        .question-card.card-swipe-right {
+            animation: swipeRight 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+        }
+
+        @keyframes swipeLeft {
+            0% {
+                transform: translateX(0) rotateZ(0deg) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(-80%) rotateZ(-45deg) scale(0.8);
+                opacity: 0;
+            }
+        }
+
+        @keyframes swipeRight {
+            0% {
+                transform: translateX(0) rotateZ(0deg) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(80%) rotateZ(45deg) scale(0.8);
+                opacity: 0;
+            }
         }
 
         .question-text {
@@ -225,9 +270,9 @@
         }
 
         .answer-btn {
-            padding: 15px 36px;
+            padding: 18px 42px;
             border-radius: 12px;
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 600;
             cursor: pointer;
             border: none;
@@ -261,39 +306,42 @@
         }
 
         .contact-card {
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: white;
+            border: none;
             border-radius: 20px;
-            padding: 48px 40px;
+            padding: 32px 36px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(0, 0, 0, 0.05);
         }
 
         .contact-title {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             text-align: center;
-            margin-bottom: 12px;
-            color: white;
+            margin-bottom: 8px;
+            color: #1f2937;
         }
 
         .contact-subtitle {
             text-align: center;
-            color: rgba(255, 255, 255, 0.6);
+            color: #6b7280;
             font-size: 15px;
-            margin-bottom: 36px;
+            margin-bottom: 24px;
         }
 
         .selected-items {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 32px;
+            padding: 16px;
+            margin-bottom: 24px;
         }
 
         .selected-items h4 {
             font-size: 15px;
-            color: #93c5fd;
-            margin-bottom: 16px;
+            color: #2563eb;
+            margin-bottom: 12px;
+            font-weight: 600;
         }
 
         .selected-list {
@@ -303,33 +351,34 @@
         }
 
         .selected-tag {
-            background: rgba(59, 130, 246, 0.2);
-            color: white;
+            background: #dbeafe;
+            color: #1e40af;
             padding: 8px 16px;
             border-radius: 20px;
             font-size: 14px;
+            font-weight: 500;
         }
 
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 16px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-size: 14px;
-            color: rgba(255, 255, 255, 0.9);
+            color: #374151;
             font-weight: 500;
         }
 
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 14px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px 14px;
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
             border-radius: 10px;
-            color: white;
+            color: #1f2937;
             font-size: 15px;
             font-family: inherit;
             transition: all 0.2s;
@@ -339,7 +388,8 @@
         .form-group textarea:focus {
             outline: none;
             border-color: #3b82f6;
-            background: rgba(255, 255, 255, 0.08);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .form-group textarea {
@@ -347,41 +397,24 @@
             min-height: 120px;
         }
 
-        .submit-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 36px;
-        }
-
-        button.submit-btn,
-        button.download-btn {
-            flex: 1;
-            padding: 16px;
+        button.submit-btn {
+            width: 100%;
+            padding: 14px;
             border: none;
             border-radius: 10px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-        }
-
-        button.submit-btn {
             background: #3b82f6;
             color: white;
+            margin-top: 24px;
         }
 
         button.submit-btn:hover {
             background: #2563eb;
-        }
-
-        button.download-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        button.download-btn:hover {
-            background: rgba(255, 255, 255, 0.18);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
 
         /* Footer */
@@ -449,8 +482,13 @@
             }
 
             .question-card {
-                padding: 40px 24px;
-                min-height: 380px;
+                padding: 50px 28px;
+                min-height: 420px;
+            }
+
+            .answer-btn {
+                padding: 16px 36px;
+                font-size: 16px;
             }
 
             .question-text {
@@ -512,8 +550,8 @@
                     <div class="question-card" data-question-id="{{ question.id }}">
                         <div class="question-text">{{ question.question_text }}</div>
                         <div class="button-group">
-                            <button class="answer-btn btn-pass" onclick="answerQuestion(false)">✕ PASS</button>
-                            <button class="answer-btn btn-select" onclick="answerQuestion(true)">✓ 선택</button>
+                            <button class="answer-btn btn-pass" onclick="answerQuestion(false)">✕ 아니오</button>
+                            <button class="answer-btn btn-select" onclick="answerQuestion(true)">✓ 예</button>
                         </div>
                     </div>
                     {% endfor %}
@@ -524,7 +562,7 @@
         <!-- Contact Form -->
         <div class="contact-form">
             <div class="contact-card">
-                <div class="contact-title">상담 신청</div>
+                <div class="contact-title">상담신청 제출</div>
                 <div class="contact-subtitle">선택하신 항목을 확인하고 연락처를 입력해주세요</div>
 
                 <div class="selected-items">
@@ -549,10 +587,7 @@
                         <label>기타 문의사항</label>
                         <textarea name="content" placeholder="추가로 궁금하신 점이나 상담받고 싶은 내용을 자유롭게 입력해주세요."></textarea>
                     </div>
-                    <div class="submit-buttons">
-                        <button type="button" class="download-btn" onclick="downloadPDF()">📄 PDF 저장</button>
-                        <button type="submit" class="submit-btn">제출하기</button>
-                    </div>
+                    <button type="submit" class="submit-btn">제출하기</button>
                 </form>
             </div>
         </div>
@@ -599,6 +634,14 @@
             document.querySelector('.start-screen').style.display = 'none';
             document.querySelector('.quiz-container').style.display = 'block';
             updateProgress();
+            showCurrentCard();
+        }
+
+        function showCurrentCard() {
+            const cards = document.querySelectorAll('.question-card');
+            if (currentQuestion < cards.length) {
+                cards[currentQuestion].classList.add('active');
+            }
         }
 
         function updateProgress() {
@@ -608,21 +651,32 @@
         }
 
         function answerQuestion(selected) {
+            const cards = document.querySelectorAll('.question-card');
+            const currentCard = cards[currentQuestion];
+
             if (selected) {
                 selectedQuestions.push(questions[currentQuestion].question_text);
+                // 예(Yes) - 오른쪽으로 스와이프
+                currentCard.classList.add('card-swipe-right');
+            } else {
+                // 아니오(No) - 왼쪽으로 스와이프
+                currentCard.classList.add('card-swipe-left');
             }
 
             currentQuestion++;
 
-            if (currentQuestion < questions.length) {
-                // 슬라이드 애니메이션
-                const track = document.getElementById('cardsTrack');
-                track.style.transform = `translateX(-${currentQuestion * 100}%)`;
-                updateProgress();
-            } else {
-                // 모든 질문 완료
-                showContactForm();
-            }
+            // 애니메이션 완료 후 다음 카드 표시
+            setTimeout(() => {
+                currentCard.classList.remove('active');
+
+                if (currentQuestion < questions.length) {
+                    showCurrentCard();
+                    updateProgress();
+                } else {
+                    // 모든 질문 완료
+                    showContactForm();
+                }
+            }, 600);
         }
 
         function showContactForm() {

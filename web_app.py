@@ -6842,6 +6842,12 @@ def api_lys_upload():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    """업로드된 파일 제공"""
+    from flask import send_from_directory
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 @app.route('/api/lys/save-all', methods=['POST'])
 def api_lys_save_all():
     """전체 데이터 저장 API (팀원+뉴스)"""
