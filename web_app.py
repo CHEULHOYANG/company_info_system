@@ -7174,8 +7174,37 @@ def upload_individual_business_excel():
             conn = get_db_connection()
             cursor = conn.cursor()
             
+            # 테이블 존재 확인 및 생성
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS individual_business_owners (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    company_name TEXT,
+                    representative_name TEXT,
+                    birth_year TEXT,
+                    establishment_year TEXT,
+                    is_family_shareholder TEXT,
+                    is_other_shareholder TEXT,
+                    industry_type TEXT,
+                    financial_year TEXT,
+                    employee_count TEXT,
+                    total_assets TEXT,
+                    total_capital TEXT,
+                    revenue TEXT,
+                    net_income TEXT,
+                    address TEXT,
+                    business_number TEXT,
+                    phone_number TEXT,
+                    fax_number TEXT,
+                    memo TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            conn.commit()
+            
             success_count = 0
             fail_count = 0
+            first_error = None
+            skip_count = 0
             
             for _, row in df.iterrows():
                 try:
@@ -7213,6 +7242,7 @@ def upload_individual_business_excel():
                             data[db_col] = val
                     
                     if not data.get('company_name'):
+                        skip_count += 1
                         continue
                         
                     # 중복 확인 및 업데이트/삽입
@@ -7242,14 +7272,16 @@ def upload_individual_business_excel():
                     success_count += 1
                 except Exception as e:
                     print(f"Row processing error: {e}")
+                    if first_error is None:
+                        first_error = str(e)
                     fail_count += 1
                     
             conn.commit()
             conn.close()
             
             return jsonify({
-                'success': True, 
-                'message': f'총 {success_count}건 처리 완료 (실패 {fail_count}건)'
+                'success': True if success_count > 0 else False, 
+                'message': f'총 {success_count}건 처리 완료 (실패 {fail_count}건, 스킵 {skip_count}건)' + (f' | 첫번째 오류: {first_error}' if first_error else '')
             })
             
         except Exception as e:
