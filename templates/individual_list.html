@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개인사업자(전단계) 관리</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f6fa;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+            padding-top: 180px;
+            /* 헤더 + 검색 섹션 고정을 위한 상단 여백 */
+            background-color: #f4f7f6;
+            color: var(--text-color);
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* 헤더 고정 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #357abd;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .main-container {
+            padding: 2rem;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .action-bar {
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #596275;
+        }
+
+        tr:hover {
+            background-color: #f1f2f6;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .file-upload-area {
+            border: 2px dashed var(--border-color);
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        /* 플로팅 스크롤 버튼 */
+        .floating-buttons {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 200;
+        }
+
+        .floating-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .floating-btn:hover {
+            background: #357abd;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>개인사업자(전단계) 관리</h1>
+        <div class="header-actions">
+            <a href="/" class="btn btn-secondary">메인으로</a>
+            <a href="/logout" class="btn btn-secondary">로그아웃</a>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- 검색 폼 (고정) -->
+        <div class="search-section"
+            style="background: white; padding: 1rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: fixed; top: 60px; left: 0; right: 0; z-index: 99;">
+            <form method="GET" action="/individual_businesses" id="searchForm">
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">기업명</label>
+                        <input type="text" name="company_name" value="{{ search.company_name or '' }}"
+                            placeholder="기업명 검색"
+                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">사업자번호</label>
+                        <input type="text" name="business_number" value="{{ search.business_number or '' }}"
+                            placeholder="사업자번호 검색"
+                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">주소</label>
+                        <input type="text" name="address" value="{{ search.address or '' }}" placeholder="주소 검색"
+                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">매출액(억) 범위</label>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <input type="number" name="revenue_min" value="{{ search.revenue_min or '' }}"
+                                placeholder="최소" step="0.1"
+                                style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <span>~</span>
+                            <input type="number" name="revenue_max" value="{{ search.revenue_max or '' }}"
+                                placeholder="최대" step="0.1"
+                                style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">당기순이익(억) 범위</label>
+                        <div style="display: flex; gap: 5px; align-items: center;">
+                            <input type="number" name="net_income_min" value="{{ search.net_income_min or '' }}"
+                                placeholder="최소" step="0.1"
+                                style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <span>~</span>
+                            <input type="number" name="net_income_max" value="{{ search.net_income_max or '' }}"
+                                placeholder="최대" step="0.1"
+                                style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary">검색</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetSearch()">초기화</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="action-bar">
+            <button class="btn btn-success" onclick="openUploadModal()">엑셀 일괄 등록</button>
+            <button class="btn btn-primary" onclick="openAddModal()">신규 등록</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50px;">순번</th>
+                    <th>사업자번호</th>
+                    <th>기업명</th>
+                    <th style="width: 80px; max-width: 80px;">대표자명</th>
+                    <th>나이(생년)</th>
+                    <th>주소</th>
+                    <th>업종</th>
+                    <th>설립년도</th>
+                    <th>재무년도</th>
+                    <th>매출액(억)</th>
+                    <th>당기순이익(억)</th>
+                    <th style="width: 90px; white-space: nowrap;">등록일</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in businesses %}
+                <tr class="clickable-row" onclick="openDetailModal('{{ item.id }}')" style="cursor: pointer;"
+                    data-id="{{ item.id }}" data-business-number="{{ item.business_number or '' }}"
+                    data-company-name="{{ item.company_name or '' }}"
+                    data-representative="{{ item.representative_name or '' }}"
+                    data-birth-year="{{ item.birth_year or '' }}" data-address="{{ item.address or '' }}"
+                    data-industry="{{ item.industry_type or '' }}"
+                    data-establishment="{{ item.establishment_year or '' }}"
+                    data-financial-year="{{ item.financial_year or '' }}" data-revenue="{{ item.revenue or '' }}"
+                    data-net-income="{{ item.net_income or '' }}" data-phone="{{ item.phone_number or '' }}"
+                    data-created="{{ item.created_at[:10] if item.created_at else '' }}">
+                    <td style="text-align: center;">{{ loop.index }}</td>
+                    <td>{{ item.business_number or '' }}</td>
+                    <td>{{ item.company_name or '' }}</td>
+                    <td style="max-width: 80px; overflow: hidden; text-overflow: ellipsis;">{{ item.representative_name
+                        or '' }}</td>
+                    <td>{{ item.birth_year or '' }}</td>
+                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;"
+                        title="{{ item.address or '' }}">{{ item.address or '' }}</td>
+                    <td>{{ item.industry_type or '' }}</td>
+                    <td>{{ item.establishment_year or '' }}</td>
+                    <td>{{ item.financial_year or '' }}</td>
+                    <td>{{ item.revenue or '' }}</td>
+                    <td>{{ item.net_income or '' }}</td>
+                    <td style="white-space: nowrap;">{{ item.created_at[:10] if item.created_at else '' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="12" style="text-align: center; padding: 2rem;">등록된 데이터가 없습니다.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>기업 등록</h2>
+                <button class="close-btn" onclick="closeModal('addModal')">&times;</button>
+            </div>
+            <form id="addForm" onsubmit="submitAddForm(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>기업명 *</label>
+                        <input type="text" name="company_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>대표자명</label>
+                        <input type="text" name="representative_name">
+                    </div>
+                    <div class="form-group">
+                        <label>사업자번호</label>
+                        <input type="text" name="business_number">
+                    </div>
+                    <div class="form-group">
+                        <label>업종</label>
+                        <input type="text" name="industry_type">
+                    </div>
+                    <div class="form-group">
+                        <label>출생년도</label>
+                        <input type="number" name="birth_year" placeholder="YYYY">
+                    </div>
+                    <div class="form-group">
+                        <label>설립년도</label>
+                        <input type="number" name="establishment_year" placeholder="YYYY">
+                    </div>
+                    <div class="form-group">
+                        <label>가족주주 여부</label>
+                        <select name="is_family_shareholder">
+                            <option value="N">N</option>
+                            <option value="Y">Y</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>타인주주 여부</label>
+                        <select name="is_other_shareholder">
+                            <option value="N">N</option>
+                            <option value="Y">Y</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>재무제표 연도</label>
+                        <input type="number" name="financial_year" placeholder="YYYY">
+                    </div>
+                    <div class="form-group">
+                        <label>종업원 수</label>
+                        <input type="number" name="employee_count">
+                    </div>
+                    <div class="form-group">
+                        <label>총자산(억)</label>
+                        <input type="number" name="total_assets" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>자본총계(억)</label>
+                        <input type="number" name="total_capital" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>매출액(억)</label>
+                        <input type="number" name="revenue" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>당기순이익(억)</label>
+                        <input type="number" name="net_income" step="0.1">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>사업장 주소</label>
+                        <input type="text" name="address">
+                    </div>
+                    <div class="form-group">
+                        <label>전화번호</label>
+                        <input type="text" name="phone_number">
+                    </div>
+                    <div class="form-group">
+                        <label>FAX 번호</label>
+                        <input type="text" name="fax_number">
+                    </div>
+                </div>
+                <div style="margin-top: 20px; text-align: right;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addModal')">취소</button>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>엑셀 일괄 등록</h2>
+                <button class="close-btn" onclick="closeModal('uploadModal')">&times;</button>
+            </div>
+            <form id="uploadForm" onsubmit="submitUpload(event)">
+                <div class="file-upload-area">
+                    <input type="file" name="file" accept=".xlsx, .xls" required>
+                    <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
+                        .xlsx 또는 .xls 파일을 선택해주세요.<br>
+                        (기업명, 대표자명, 사업자번호 등)
+                    </p>
+                </div>
+                <div style="text-align: right;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('uploadModal')">취소</button>
+                    <button type="submit" class="btn btn-success">업로드 및 처리</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Detail Modal (기업 상세 조회) -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2 id="detailModalTitle">기업 상세 정보</h2>
+                <button class="close-btn" onclick="closeModal('detailModal')">&times;</button>
+            </div>
+
+            <!-- 기업 기본 정보 -->
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--primary-color);">■ 기본 정보</h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    <div><strong>사업자번호</strong><br><span id="detail_business_number">-</span></div>
+                    <div><strong>기업명</strong><br><span id="detail_company_name">-</span></div>
+                    <div><strong>대표자명</strong><br><span id="detail_representative">-</span></div>
+                    <div><strong>생년</strong><br><span id="detail_birth_year">-</span></div>
+                    <div><strong>업종</strong><br><span id="detail_industry">-</span></div>
+                    <div><strong>설립년도</strong><br><span id="detail_establishment">-</span></div>
+                    <div><strong>전화번호</strong><br><span id="detail_phone">-</span></div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <strong>주소</strong><br><span id="detail_address">-</span>
+                </div>
+            </div>
+
+            <!-- 재무 정보 -->
+            <div style="background: #e8f4fd; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--primary-color);">■ 재무 정보</h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                    <div><strong>재무년도</strong><br><span id="detail_financial_year">-</span></div>
+                    <div><strong>매출액(억)</strong><br><span id="detail_revenue">-</span></div>
+                    <div><strong>당기순이익(억)</strong><br><span id="detail_net_income">-</span></div>
+                </div>
+            </div>
+
+            <!-- 메모 입력 -->
+            <div style="margin-bottom: 1.5rem;">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--primary-color);">■ 메모</h3>
+                <textarea id="detail_memo" rows="3"
+                    style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; resize: vertical;"
+                    placeholder="메모를 입력하세요..."></textarea>
+                <div style="margin-top: 10px; text-align: right;">
+                    <button class="btn btn-primary" onclick="saveMemo()">메모 저장</button>
+                </div>
+            </div>
+
+            <!-- 히스토리 섹션 -->
+            <div style="margin-bottom: 1rem;">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--primary-color);">■ 접촉 히스토리</h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <select id="history_type"
+                        style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                        <option value="전화">전화</option>
+                        <option value="방문">방문</option>
+                        <option value="이메일">이메일</option>
+                        <option value="미팅">미팅</option>
+                        <option value="기타">기타</option>
+                    </select>
+                    <input type="text" id="history_content" placeholder="내용을 입력하세요"
+                        style="flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    <button class="btn btn-success" onclick="addHistory()">추가</button>
+                </div>
+                <div id="history_list"
+                    style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px;">
+                    <div style="padding: 1rem; text-align: center; color: #999;">히스토리가 없습니다.</div>
+                </div>
+            </div>
+
+            <input type="hidden" id="detail_id">
+
+            <!-- 닫기 버튼 -->
+            <div
+                style="text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <button class="btn btn-secondary" onclick="closeModal('detailModal')"
+                    style="min-width: 120px;">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAddModal() {
+            document.getElementById('addModal').style.display = 'flex';
+        }
+
+        function openUploadModal() {
+            document.getElementById('uploadModal').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function resetSearch() {
+            // 모든 검색 입력 필드 초기화
+            document.querySelector('input[name="company_name"]').value = '';
+            document.querySelector('input[name="business_number"]').value = '';
+            document.querySelector('input[name="address"]').value = '';
+            document.querySelector('input[name="revenue_min"]').value = '';
+            document.querySelector('input[name="revenue_max"]').value = '';
+            document.querySelector('input[name="net_income_min"]').value = '';
+            document.querySelector('input[name="net_income_max"]').value = '';
+            // 필터 없이 페이지 리로드
+            window.location.href = '/individual_businesses';
+        }
+
+        async function submitAddForm(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+
+            try {
+                const response = await fetch('/individual_businesses/add', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('등록되었습니다.');
+                    location.reload();
+                } else {
+                    alert('오류: ' + result.message);
+                }
+            } catch (error) {
+                alert('서버 오류가 발생했습니다.');
+                console.error(error);
+            }
+        }
+
+        async function submitUpload(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+
+            // Show loading state
+            const btn = event.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = '처리 중...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/individual_businesses/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert('오류: ' + result.message);
+                }
+            } catch (error) {
+                alert('서버 오류가 발생했습니다.');
+                console.error(error);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Close modal on outside click
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // 맨 위/맨 아래로 스크롤
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function scrollToBottom() {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        // 상세 조회 모달 열기
+        function openDetailModal(id) {
+            // 클릭한 행에서 데이터 가져오기
+            const row = document.querySelector(`tr[data-id="${id}"]`);
+            if (!row) return;
+
+            document.getElementById('detail_id').value = id;
+            document.getElementById('detail_business_number').textContent = row.dataset.businessNumber || '-';
+            document.getElementById('detail_company_name').textContent = row.dataset.companyName || '-';
+            document.getElementById('detail_representative').textContent = row.dataset.representative || '-';
+            document.getElementById('detail_birth_year').textContent = row.dataset.birthYear || '-';
+            document.getElementById('detail_address').textContent = row.dataset.address || '-';
+            document.getElementById('detail_industry').textContent = row.dataset.industry || '-';
+            document.getElementById('detail_establishment').textContent = row.dataset.establishment || '-';
+            document.getElementById('detail_phone').textContent = row.dataset.phone || '-';
+            document.getElementById('detail_financial_year').textContent = row.dataset.financialYear || '-';
+            document.getElementById('detail_revenue').textContent = row.dataset.revenue || '-';
+            document.getElementById('detail_net_income').textContent = row.dataset.netIncome || '-';
+
+            document.getElementById('detailModalTitle').textContent = row.dataset.companyName || '기업 상세 정보';
+
+            // 메모와 히스토리 로드
+            loadMemoAndHistory(id);
+
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        // 메모와 히스토리 로드
+        async function loadMemoAndHistory(id) {
+            try {
+                const response = await fetch(`/individual_businesses/${id}/detail`);
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('detail_memo').value = result.data.memo || '';
+                    renderHistory(result.data.history || []);
+                }
+            } catch (error) {
+                console.error('데이터 로드 오류:', error);
+            }
+        }
+
+        // 메모 저장
+        async function saveMemo() {
+            const id = document.getElementById('detail_id').value;
+            const memo = document.getElementById('detail_memo').value;
+
+            try {
+                const response = await fetch(`/individual_businesses/${id}/memo`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ memo })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('메모가 저장되었습니다.');
+                } else {
+                    alert('오류: ' + result.message);
+                }
+            } catch (error) {
+                alert('서버 오류가 발생했습니다.');
+                console.error(error);
+            }
+        }
+
+        // 히스토리 추가
+        async function addHistory() {
+            const id = document.getElementById('detail_id').value;
+            const type = document.getElementById('history_type').value;
+            const content = document.getElementById('history_content').value.trim();
+
+            if (!content) {
+                alert('내용을 입력해주세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/individual_businesses/${id}/history`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, content })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('history_content').value = '';
+                    loadMemoAndHistory(id); // 히스토리 다시 로드
+                } else {
+                    alert('오류: ' + result.message);
+                }
+            } catch (error) {
+                alert('서버 오류가 발생했습니다.');
+                console.error(error);
+            }
+        }
+
+        // 히스토리 렌더링
+        function renderHistory(historyList) {
+            const container = document.getElementById('history_list');
+
+            if (!historyList || historyList.length === 0) {
+                container.innerHTML = '<div style="padding: 1rem; text-align: center; color: #999;">히스토리가 없습니다.</div>';
+                return;
+            }
+
+            let html = '';
+            historyList.forEach(item => {
+                const typeColor = {
+                    '전화': '#3498db',
+                    '방문': '#2ecc71',
+                    '이메일': '#9b59b6',
+                    '미팅': '#e67e22',
+                    '기타': '#95a5a6'
+                }[item.type] || '#95a5a6';
+
+                html += `
+                    <div style="padding: 10px 15px; border-bottom: 1px solid #eee; display: flex; align-items: flex-start; gap: 10px;">
+                        <span style="background: ${typeColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; white-space: nowrap;">${item.type}</span>
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.9rem;">${item.content}</div>
+                            <div style="font-size: 0.75rem; color: #999; margin-top: 5px;">${item.created_at}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+    </script>
+
+    <!-- 플로팅 스크롤 버튼 -->
+    <div class="floating-buttons">
+        <button class="floating-btn" onclick="scrollToTop()" title="맨 위로">↑</button>
+        <button class="floating-btn" onclick="scrollToBottom()" title="맨 아래로">↓</button>
+    </div>
+</body>
+
+</html>

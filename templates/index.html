@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
-    <title>±â¾÷ Á¤º¸ Á¶È¸ (ych_m010)</title>
+    <title>ê¸°ì—… ì •ë³´ ì¡°íšŒ (ych_m010)</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body {
@@ -12,7 +13,7 @@
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         .container {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
@@ -24,7 +25,7 @@
             max-width: 1400px;
             width: 95%;
         }
-        
+
         header {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(5px);
@@ -36,21 +37,22 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         h1 {
             color: #4a90e2;
             font-size: 28px;
             font-weight: 600;
             margin: 0;
         }
-        
+
         .header-subtext {
             font-size: 16px;
             font-weight: normal;
             opacity: 0.9;
         }
-        
-        .back-button, .logout-button-new {
+
+        .back-button,
+        .logout-button-new {
             background: rgba(108, 117, 125, 0.8);
             color: white;
             text-decoration: none;
@@ -61,13 +63,14 @@
             transition: all 0.3s ease;
             font-weight: 500;
         }
-        
-        .back-button:hover, .logout-button-new:hover {
+
+        .back-button:hover,
+        .logout-button-new:hover {
             background: rgba(108, 117, 125, 1);
             transform: translateY(-1px);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
-        
+
         .subscription-badge {
             font-size: 12px;
             padding: 4px 8px;
@@ -76,7 +79,7 @@
             backdrop-filter: blur(5px);
             border: 1px solid rgba(0, 0, 0, 0.1);
         }
-        
+
         .main-actions {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(5px);
@@ -88,7 +91,7 @@
             gap: 15px;
             flex-wrap: wrap;
         }
-        
+
         .action-button {
             background: linear-gradient(45deg, #4CAF50, #45a049);
             color: white;
@@ -101,22 +104,22 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
-        
+
         .action-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
-        
+
         .reset-button {
             background: linear-gradient(45deg, #ff9800, #f57c00);
             box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
         }
-        
+
         .excel-button {
             background: linear-gradient(45deg, #2196f3, #1976d2);
             box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
         }
-        
+
         .search-container {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(5px);
@@ -125,14 +128,15 @@
             margin-bottom: 25px;
             border: 1px solid rgba(0, 0, 0, 0.1);
         }
-        
+
         .search-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
         }
-        
-        .search-grid input, .search-grid select {
+
+        .search-grid input,
+        .search-grid select {
             background: white;
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -141,28 +145,29 @@
             transition: all 0.3s ease;
             color: #333;
         }
-        
-        .search-grid input:focus, .search-grid select:focus {
+
+        .search-grid input:focus,
+        .search-grid select:focus {
             outline: none;
             border-color: #007bff;
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
         }
-        
+
         .range-input {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
+
         .range-input input {
             flex: 1;
         }
-        
+
         .range-input span {
             color: #333;
             font-weight: 500;
         }
-        
+
         .results-container {
             background: white;
             border-radius: 10px;
@@ -171,17 +176,17 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 25px;
         }
-        
+
         .results-table {
             width: 100%;
             border-collapse: collapse;
         }
-        
+
         .results-table thead {
             background: linear-gradient(45deg, #b3d9ff, #87ceeb);
             color: #000;
         }
-        
+
         .results-table th {
             padding: 15px;
             text-align: left;
@@ -189,48 +194,48 @@
             font-size: 14px;
             color: #000;
         }
-        
+
         .results-table tbody tr:nth-child(even) {
             background: #e3f2fd;
         }
-        
+
         .results-table tbody tr:nth-child(odd) {
             background: #f0f8ff;
         }
-        
+
         .results-table tbody tr:hover {
             background: #bbdefb;
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        
+
         .results-table td {
             padding: 12px 15px;
             border-bottom: 1px solid #eee;
             font-size: 14px;
             color: #000;
         }
-        
+
         .text-center {
             text-align: center;
         }
-        
+
         .text-right {
             text-align: right;
         }
-        
+
         .loading {
             text-align: center;
             font-style: italic;
             color: #666;
         }
-        
+
         .footer-actions {
             display: flex;
             justify-content: center;
             margin: 20px 0;
         }
-        
+
         #load-next-btn {
             background: linear-gradient(45deg, #9c27b0, #673ab7);
             color: white;
@@ -243,12 +248,12 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
         }
-        
+
         #load-next-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
         }
-        
+
         .scroll-buttons {
             position: fixed;
             right: 30px;
@@ -257,7 +262,7 @@
             flex-direction: column;
             gap: 10px;
         }
-        
+
         .scroll-buttons button {
             background: rgba(108, 117, 125, 0.8);
             color: white;
@@ -271,37 +276,37 @@
             border: 1px solid rgba(108, 117, 125, 0.3);
             transition: all 0.3s ease;
         }
-        
+
         .scroll-buttons button:hover {
             background: rgba(108, 117, 125, 1);
             transform: translateY(-2px);
         }
-        
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
                 padding: 20px;
             }
-            
+
             header {
                 flex-direction: column;
                 gap: 15px;
                 text-align: center;
             }
-            
+
             .main-actions {
                 justify-content: center;
             }
-            
+
             .scroll-buttons {
                 right: 15px;
                 bottom: 15px;
             }
-            
+
             .results-table {
                 font-size: 12px;
             }
-            
+
             .results-table th,
             .results-table td {
                 padding: 8px;
@@ -310,72 +315,76 @@
     </style>
     <script src="{{ url_for('static', filename='js/auto-logout.js') }}"></script>
 </head>
+
 <body>
     <div class="container">
         <header>
-            <h1>±â¾÷ Á¤º¸ Á¶È¸ (ych_m010) <span id="results-count" class="header-subtext"></span></h1>
+            <h1>ê¸°ì—… ì •ë³´ ì¡°íšŒ (ych_m010) <span id="results-count" class="header-subtext"></span></h1>
             <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px; flex-wrap: wrap;">
-                <a href="{{ url_for('history_search') }}" class="back-button">Á¢ÃËÀÌ·Â Á¶È¸</a>
-                <a href="{{ url_for('main') }}" class="back-button">¸ŞÀÎÀ¸·Î</a>
-                <span style="font-weight:bold; color:#333;">{{ user_name }}´Ô</span>
+                <a href="{{ url_for('history_search') }}" class="back-button">ì ‘ì´‰ì´ë ¥ ì¡°íšŒ</a>
+                <a href="{{ url_for('main') }}" class="back-button">ë©”ì¸ìœ¼ë¡œ</a>
+                <span style="font-weight:bold; color:#333;">{{ user_name }}ë‹˜</span>
                 {% if subscription_info %}
-                    {% if subscription_info.days_remaining > 0 %}
-                        <span class="subscription-badge" style="color:#28a745; background:rgba(40, 167, 69, 0.2);">
-                            {% if subscription_info.subscription_type == 'ANNUAL' %}
-                                ¿¬°£ ±¸µ¶ ({{ subscription_info.days_remaining }}ÀÏ ³²À½)
-                            {% elif subscription_info.subscription_type == 'MONTHLY' %}
-                                ¿ù°£ ±¸µ¶ ({{ subscription_info.days_remaining }}ÀÏ ³²À½)
-                            {% else %}
-                                ¹«·á ±¸µ¶ ({{ subscription_info.days_remaining }}ÀÏ ³²À½)
-                            {% endif %}
-                        </span>
-                    {% elif subscription_info.days_remaining == 0 %}
-                        <span class="subscription-badge" style="color:#dc3545; background:rgba(220, 53, 69, 0.2);">
-                            ¿À´Ã ¸¸·á
-                        </span>
+                {% if subscription_info.days_remaining > 0 %}
+                <span class="subscription-badge" style="color:#28a745; background:rgba(40, 167, 69, 0.2);">
+                    {% if subscription_info.subscription_type == 'ANNUAL' %}
+                    ì—°ê°„ êµ¬ë… ({{ subscription_info.days_remaining }}ì¼ ë‚¨ìŒ)
+                    {% elif subscription_info.subscription_type == 'MONTHLY' %}
+                    ì›”ê°„ êµ¬ë… ({{ subscription_info.days_remaining }}ì¼ ë‚¨ìŒ)
                     {% else %}
-                        <span class="subscription-badge" style="color:#dc3545; background:rgba(220, 53, 69, 0.2);">
-                            ±¸µ¶ ¸¸·á ({{ subscription_info.days_remaining|abs }}ÀÏ Áö³²)
-                        </span>
+                    ë¬´ë£Œ êµ¬ë… ({{ subscription_info.days_remaining }}ì¼ ë‚¨ìŒ)
                     {% endif %}
+                </span>
+                {% elif subscription_info.days_remaining == 0 %}
+                <span class="subscription-badge" style="color:#dc3545; background:rgba(220, 53, 69, 0.2);">
+                    ì˜¤ëŠ˜ ë§Œë£Œ
+                </span>
                 {% else %}
-                    <span class="subscription-badge" style="color:#007bff; background:rgba(0, 123, 255, 0.2);">
-                        Ã¹´Ş ¹«·á Ã¼Çè
-                    </span>
+                <span class="subscription-badge" style="color:#dc3545; background:rgba(220, 53, 69, 0.2);">
+                    êµ¬ë… ë§Œë£Œ ({{ subscription_info.days_remaining|abs }}ì¼ ì§€ë‚¨)
+                </span>
                 {% endif %}
-                <a href="{{ url_for('logout') }}" class="logout-button-new">·Î±×¾Æ¿ô</a>
+                {% else %}
+                <span class="subscription-badge" style="color:#007bff; background:rgba(0, 123, 255, 0.2);">
+                    ì²«ë‹¬ ë¬´ë£Œ ì²´í—˜
+                </span>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="logout-button-new">ë¡œê·¸ì•„ì›ƒ</a>
             </div>
         </header>
 
         <div class="main-actions">
+            <button type="button" class="action-button" onclick="location.href='/individual_businesses'"
+                style="background: linear-gradient(45deg, #FF9800, #F57C00);">ê°œì¸ì‚¬ì—…ì(ì „ë‹¨ê³„) ê´€ë¦¬</button>
             {% if session.get('user_id') in ['ct0001','ct0002'] %}
-            <button type="button" id="excel-download-button" class="action-button excel-button">¿¢¼¿ÀúÀå</button>
+            <button type="button" id="excel-download-button" class="action-button excel-button">ì—‘ì…€ì €ì¥</button>
             {% else %}
-            <button type="button" class="action-button excel-button" disabled style="opacity:0.45;cursor:not-allowed;">¿¢¼¿ÀúÀå</button>
+            <button type="button" class="action-button excel-button" disabled
+                style="opacity:0.45;cursor:not-allowed;">ì—‘ì…€ì €ì¥</button>
             {% endif %}
-            <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">ÃÊ±âÈ­</button>
-            <button type="button" id="search-button" class="action-button search-button">°Ë»ö</button>
+            <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">ì´ˆê¸°í™”</button>
+            <button type="button" id="search-button" class="action-button search-button">ê²€ìƒ‰</button>
         </div>
 
         <div class="search-container">
             <form id="search-form" class="search-grid" onsubmit="return false;">
-                <input type="text" name="company_name" placeholder="±â¾÷¸í">
-                <input type="text" name="biz_no" placeholder="»ç¾÷ÀÚ¹øÈ£">
-                <input type="text" name="industry_name" placeholder="¾÷Á¾¸í">
+                <input type="text" name="company_name" placeholder="ê¸°ì—…ëª…">
+                <input type="text" name="biz_no" placeholder="ì‚¬ì—…ìë²ˆí˜¸">
+                <input type="text" name="industry_name" placeholder="ì—…ì¢…ëª…">
                 <select name="company_size">
-                    <option value="ÀüÃ¼">±â¾÷±Ô¸ğ (ÀüÃ¼)</option>
-                    <option value="´ë±â¾÷">´ë±â¾÷</option>
-                    <option value="Áß°ß±â¾÷">Áß°ß±â¾÷</option>
-                    <option value="Áß¼Ò±â¾÷">Áß¼Ò±â¾÷</option>
-                    <option value="¼Ò±â¾÷">¼Ò±â¾÷</option>
-                    <option value="ÇÑ½ÃÁß¼Ò±â¾÷">ÇÑ½ÃÁß¼Ò±â¾÷</option>
-                    <option value="±âÅ¸">±âÅ¸</option>
+                    <option value="ì „ì²´">ê¸°ì—…ê·œëª¨ (ì „ì²´)</option>
+                    <option value="ëŒ€ê¸°ì—…">ëŒ€ê¸°ì—…</option>
+                    <option value="ì¤‘ê²¬ê¸°ì—…">ì¤‘ê²¬ê¸°ì—…</option>
+                    <option value="ì¤‘ì†Œê¸°ì—…">ì¤‘ì†Œê¸°ì—…</option>
+                    <option value="ì†Œê¸°ì—…">ì†Œê¸°ì—…</option>
+                    <option value="í•œì‹œì¤‘ì†Œê¸°ì—…">í•œì‹œì¤‘ì†Œê¸°ì—…</option>
+                    <option value="ê¸°íƒ€">ê¸°íƒ€</option>
                 </select>
-                <input type="text" name="region" placeholder="Áö¿ª (¿¹: ¼­¿ï °­³²)">
+                <input type="text" name="region" placeholder="ì§€ì—­ (ì˜ˆ: ì„œìš¸ ê°•ë‚¨)">
                 <div class="range-input">
-                    <input type="number" name="ret_min" placeholder="ÀÌÀÍÀ×¿©±İ Min (¹é¸¸)">
+                    <input type="number" name="ret_min" placeholder="ì´ìµì‰ì—¬ê¸ˆ Min (ë°±ë§Œ)">
                     <span>~</span>
-                    <input type="number" name="ret_max" placeholder="ÀÌÀÍÀ×¿©±İ Max (¹é¸¸)">
+                    <input type="number" name="ret_max" placeholder="ì´ìµì‰ì—¬ê¸ˆ Max (ë°±ë§Œ)">
                 </div>
             </form>
         </div>
@@ -384,85 +393,85 @@
             <table class="results-table">
                 <thead>
                     <tr>
-                        <th style="width: 5%;">¼ø¹ø</th>
-                        <th>»ç¾÷ÀÚ¹øÈ£</th>
-                        <th>±â¾÷¸í</th>
-                        <th>´ëÇ¥ÀÚ¸í</th>
-                        <th>¾÷Á¾</th>
-                        <th style="width: 25%;">ÁÖ¼Ò</th>
-                        <th>ÃÖ½Å³âµµ</th>
-                        <th>ÀÚ»êÃÑ°è(¹é¸¸)</th>
-                        <th>¸ÅÃâ¾×(¹é¸¸)</th>
-                        <th>ÀÌÀÍÀ×¿©±İ(¹é¸¸)</th>
+                        <th style="width: 5%;">ìˆœë²ˆ</th>
+                        <th>ì‚¬ì—…ìë²ˆí˜¸</th>
+                        <th>ê¸°ì—…ëª…</th>
+                        <th>ëŒ€í‘œìëª…</th>
+                        <th>ì—…ì¢…</th>
+                        <th style="width: 25%;">ì£¼ì†Œ</th>
+                        <th>ìµœì‹ ë…„ë„</th>
+                        <th>ìì‚°ì´ê³„(ë°±ë§Œ)</th>
+                        <th>ë§¤ì¶œì•¡(ë°±ë§Œ)</th>
+                        <th>ì´ìµì‰ì—¬ê¸ˆ(ë°±ë§Œ)</th>
                     </tr>
                 </thead>
                 <tbody id="company-list">
-                    </tbody>
+                </tbody>
             </table>
         </div>
-        
+
         <div class="footer-actions">
-             <button id="load-next-btn" style="display:none;">´ÙÀ½</button>
+            <button id="load-next-btn" style="display:none;">ë‹¤ìŒ</button>
         </div>
     </div>
 
     <div class="scroll-buttons">
-        <button id="scroll-top">¡ã</button>
-        <button id="scroll-bottom">¡å</button>
+        <button id="scroll-top">â–²</button>
+        <button id="scroll-bottom">â–¼</button>
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const companyList = document.getElementById('company-list');
-        const searchButton = document.getElementById('search-button');
-        const searchForm = document.getElementById('search-form');
-        const resultsCountSpan = document.getElementById('results-count');
-        const resetButton = document.getElementById('reset-button');
-    const excelButton = document.getElementById('excel-download-button');
-        const loadNextBtn = document.getElementById('load-next-btn');
+        document.addEventListener('DOMContentLoaded', function () {
+            const companyList = document.getElementById('company-list');
+            const searchButton = document.getElementById('search-button');
+            const searchForm = document.getElementById('search-form');
+            const resultsCountSpan = document.getElementById('results-count');
+            const resetButton = document.getElementById('reset-button');
+            const excelButton = document.getElementById('excel-download-button');
+            const loadNextBtn = document.getElementById('load-next-btn');
 
-        let currentPage = 1;
-        let isFetching = false;
+            let currentPage = 1;
+            let isFetching = false;
 
-        function fetchCompanies(page = 1) {
-            if (isFetching) return;
-            isFetching = true;
-            
-            // '´ÙÀ½' ¹öÆ° Å¬¸¯ ½Ã¿¡´Â ±âÁ¸ ¸ñ·ÏÀ» À¯ÁöÇÏ°í ·Îµù Ç¥½Ã¸¦ ÇÏÁö ¾ÊÀ½
-            if (page === 1) {
-                companyList.innerHTML = '<tr><td colspan="10" class="loading">°Ë»ö Áß...</td></tr>';
-            }
-            
-            const formData = new FormData(searchForm);
-            const params = new URLSearchParams(formData);
-            params.set('page', page);
+            function fetchCompanies(page = 1) {
+                if (isFetching) return;
+                isFetching = true;
 
-            fetch(`/api/companies?${params.toString()}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (page === 1) {
-                        companyList.innerHTML = ''; // »õ °Ë»ö ½Ã ±âÁ¸ ¸ñ·Ï ÃÊ±âÈ­
-                    }
-                    resultsCountSpan.textContent = `Á¶È¸°Ç¼ö : ${data.totalRows.toLocaleString()}°Ç`;
+                // 'ë‹¤ìŒ' ë²„íŠ¼ í´ë¦­ ì‹œì—ëŠ” ê¸°ì¡´ ëª©ë¡ì„ ìœ ì§€í•˜ê³  ë¡œë”© í‘œì‹œë¥¼ í•˜ì§€ ì•ŠìŒ
+                if (page === 1) {
+                    companyList.innerHTML = '<tr><td colspan="10" class="loading">ê²€ìƒ‰ ì¤‘...</td></tr>';
+                }
 
-                    if (data.companies.length === 0 && page === 1) {
-                        companyList.innerHTML = '<tr><td colspan="10">°Ë»ö °á°ú°¡ ¾ø½À´Ï´Ù.</td></tr>';
-                        loadNextBtn.style.display = 'none';
-                        return;
-                    }
+                const formData = new FormData(searchForm);
+                const params = new URLSearchParams(formData);
+                params.set('page', page);
 
-                    const baseIndex = data.offset || (page - 1) * 50;
-                    data.companies.forEach((company, index) => {
-                        const row = document.createElement('tr');
-                        const rowNum = baseIndex + index + 1;
-                        
-                        // ¹é¸¸ ´ÜÀ§·Î º¯È¯ÇÏ´Â ÇÔ¼ö
-                        const formatToMillion = (value) => {
-                            if (value === null || value === undefined) return '';
-                            return Math.round(value / 1000000).toLocaleString();
-                        };
+                fetch(`/api/companies?${params.toString()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (page === 1) {
+                            companyList.innerHTML = ''; // ìƒˆ ê²€ìƒ‰ ì‹œ ê¸°ì¡´ ëª©ë¡ ì´ˆê¸°í™”
+                        }
+                        resultsCountSpan.textContent = `ì¡°íšŒê±´ìˆ˜ : ${data.totalRows.toLocaleString()}ê±´`;
 
-                        row.innerHTML = `
+                        if (data.companies.length === 0 && page === 1) {
+                            companyList.innerHTML = '<tr><td colspan="10">ê²€ìƒ‰ ê²°ê³¼ê°€ ì—†ìŠµë‹ˆë‹¤.</td></tr>';
+                            loadNextBtn.style.display = 'none';
+                            return;
+                        }
+
+                        const baseIndex = data.offset || (page - 1) * 50;
+                        data.companies.forEach((company, index) => {
+                            const row = document.createElement('tr');
+                            const rowNum = baseIndex + index + 1;
+
+                            // ë°±ë§Œ ë‹¨ìœ„ë¡œ ë³€í™˜í•˜ëŠ” í•¨ìˆ˜
+                            const formatToMillion = (value) => {
+                                if (value === null || value === undefined) return '';
+                                return Math.round(value / 1000000).toLocaleString();
+                            };
+
+                            row.innerHTML = `
                             <td class="text-center">${rowNum}</td>
                             <td class="text-center" data-biz-no="${company.biz_no}">${company.biz_no}</td>
                             <td data-biz-no="${company.biz_no}">${company.company_name}</td>
@@ -474,81 +483,82 @@
                             <td class="text-right">${formatToMillion(company.sales_revenue)}</td>
                             <td class="text-right">${formatToMillion(company.retained_earnings)}</td>
                         `;
-                        
-                        // Çà Å¬¸¯ ÀÌº¥Æ® Ãß°¡ - ±â¾÷ »ó¼¼ Á¶È¸ ÆäÀÌÁö·Î ÀÌµ¿
-                        row.style.cursor = 'pointer';
-                        row.title = 'Å¬¸¯ÇÏ¸é »ó¼¼ Á¤º¸¸¦ È®ÀÎÇÒ ¼ö ÀÖ½À´Ï´Ù';
-                        row.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            
-                            // »ç¾÷ÀÚ¹øÈ£¿¡¼­ ÇÏÀÌÇÂ Á¦°ÅÇÏ¿© Á¤È®ÇÑ ¶ó¿ìÆÃ º¸Àå
-                            const cleanBizNo = company.biz_no.replace(/-/g, '');
-                            const detailUrl = `/company_detail/${cleanBizNo}?source=main`;
-                            
-                            console.log('±â¾÷ Å¬¸¯:', company.company_name, '»ç¾÷ÀÚ¹øÈ£:', cleanBizNo, 'URL:', detailUrl);
-                            
-                            // °°Àº Ã¢¿¡¼­ »ó¼¼Á¶È¸ ÆäÀÌÁö ¿­±â (ÆË¾÷ Â÷´Ü ¹æÁö)
-                            window.location.href = detailUrl;
+
+                            // í–‰ í´ë¦­ ì´ë²¤íŠ¸ ì¶”ê°€ - ê¸°ì—… ìƒì„¸ ì¡°íšŒ í˜ì´ì§€ë¡œ ì´ë™
+                            row.style.cursor = 'pointer';
+                            row.title = 'í´ë¦­í•˜ë©´ ìƒì„¸ ì •ë³´ë¥¼ í™•ì¸í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤';
+                            row.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                // ì‚¬ì—…ìë²ˆí˜¸ì—ì„œ í•˜ì´í”ˆ ì œê±°í•˜ì—¬ ì •í™•í•œ ë¼ìš°íŒ… ë³´ì¥
+                                const cleanBizNo = company.biz_no.replace(/-/g, '');
+                                const detailUrl = `/company_detail/${cleanBizNo}?source=main`;
+
+                                console.log('ê¸°ì—… í´ë¦­:', company.company_name, 'ì‚¬ì—…ìë²ˆí˜¸:', cleanBizNo, 'URL:', detailUrl);
+
+                                // ê°™ì€ ì°½ì—ì„œ ìƒì„¸ì¡°íšŒ í˜ì´ì§€ ì—´ê¸° (íŒì—… ì°¨ë‹¨ ë°©ì§€)
+                                window.location.href = detailUrl;
+                            });
+
+                            companyList.appendChild(row);
                         });
-                        
-                        companyList.appendChild(row);
+
+                        if (data.hasNextPage) {
+                            loadNextBtn.style.display = 'block';
+                            currentPage = page + 1;
+                        } else {
+                            loadNextBtn.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Failed to fetch companies:', error);
+                        companyList.innerHTML = '<tr><td colspan="11">ë°ì´í„° ì¡°íšŒ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.</td></tr>';
+                    })
+                    .finally(() => {
+                        isFetching = false;
                     });
-
-                    if (data.hasNextPage) {
-                        loadNextBtn.style.display = 'block';
-                        currentPage = page + 1;
-                    } else {
-                        loadNextBtn.style.display = 'none';
-                    }
-                })
-                .catch(error => {
-                    console.error('Failed to fetch companies:', error);
-                    companyList.innerHTML = '<tr><td colspan="11">µ¥ÀÌÅÍ Á¶È¸ Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.</td></tr>';
-                })
-                .finally(() => {
-                    isFetching = false;
-                });
-        }
-
-        searchButton.addEventListener('click', () => {
-             currentPage = 1; // °Ë»ö ¹öÆ° Å¬¸¯ ½Ã Ç×»ó 1ÆäÀÌÁöºÎÅÍ
-             fetchCompanies(currentPage);
-        });
-        
-        loadNextBtn.addEventListener('click', () => {
-            fetchCompanies(currentPage);
-        });
-
-        searchForm.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                searchButton.click();
             }
-        });
 
-        resetButton.addEventListener('click', () => {
-            searchForm.reset();
+            searchButton.addEventListener('click', () => {
+                currentPage = 1; // ê²€ìƒ‰ ë²„íŠ¼ í´ë¦­ ì‹œ í•­ìƒ 1í˜ì´ì§€ë¶€í„°
+                fetchCompanies(currentPage);
+            });
+
+            loadNextBtn.addEventListener('click', () => {
+                fetchCompanies(currentPage);
+            });
+
+            searchForm.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchButton.click();
+                }
+            });
+
+            resetButton.addEventListener('click', () => {
+                searchForm.reset();
+                fetchCompanies(1);
+            });
+
+            if (excelButton) {
+                excelButton.addEventListener('click', () => {
+                    const formData = new FormData(searchForm);
+                    const params = new URLSearchParams(formData);
+                    window.location.href = `/export_excel?${params.toString()}`;
+                });
+            }
+
+            const scrollTopBtn = document.getElementById('scroll-top');
+            const scrollBottomBtn = document.getElementById('scroll-bottom');
+            scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+            scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+
             fetchCompanies(1);
         });
 
-        if (excelButton) {
-            excelButton.addEventListener('click', () => {
-                const formData = new FormData(searchForm);
-                const params = new URLSearchParams(formData);
-                window.location.href = `/export_excel?${params.toString()}`;
-            });
-        }
-
-        const scrollTopBtn = document.getElementById('scroll-top');
-        const scrollBottomBtn = document.getElementById('scroll-bottom');
-        scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-        scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
-
-        fetchCompanies(1);
-    });
-    
 
     </script>
 </body>
+
 </html>

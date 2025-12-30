@@ -840,6 +840,54 @@ def init_business_tables():
     finally:
         conn.close()
 
+# 개인사업자(전단계) 테이블 초기화 함수
+def init_individual_business_tables():
+    """개인사업자(전단계) 관리 테이블을 초기화합니다."""
+    conn = get_db_connection()
+    try:
+        # 기존 테이블 존재 여부 확인
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='individual_business_owners';")
+        table_exists = cursor.fetchone()
+        
+        if table_exists:
+            print("Individual business tables already exist - skipping initialization")
+            return
+            
+        print("Creating individual business tables...")
+        
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS individual_business_owners (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_name TEXT NOT NULL,         -- 기업명
+                representative_name TEXT,           -- 대표자명
+                birth_year INTEGER,                 -- 출생년도
+                establishment_year INTEGER,         -- 설립년도
+                is_family_shareholder TEXT DEFAULT 'N', -- 가족주주 여부
+                is_other_shareholder TEXT DEFAULT 'N',  -- 타인주주 여부
+                industry_type TEXT,                 -- 업종
+                financial_year INTEGER,             -- 재무제표 연도
+                employee_count INTEGER,             -- 종업원수
+                total_assets INTEGER,               -- 총자산 (억)
+                total_capital INTEGER,              -- 자본총계 (억)
+                revenue INTEGER,                    -- 매출액 (억)
+                net_income INTEGER,                 -- 당기순이익 (억)
+                address TEXT,                       -- 사업장주소
+                business_number TEXT UNIQUE,        -- 사업자번호
+                phone_number TEXT,                  -- 전화번호
+                fax_number TEXT,                    -- fax번호
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        conn.commit()
+        print("Individual business tables initialized successfully")
+        
+    except Exception as e:
+        print(f"Error initializing individual business tables: {e}")
+    finally:
+        conn.close()
+
 # 패스워드 규칙 검증 함수
 def validate_password(password):
     """
@@ -6921,6 +6969,421 @@ def api_lys_inquiry_mark_read():
     finally:
         conn.close()
 
+# --- 개인사업자(전단계) 관리 라우트 ---
+
+@app.route('/individual_businesses')
+def individual_business_list():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # 검색 파라미터 가져오기
+    company_name = request.args.get('company_name', '').strip()
+    business_number = request.args.get('business_number', '').strip()
+    address = request.args.get('address', '').strip()
+    revenue_min = request.args.get('revenue_min', '').strip()
+    revenue_max = request.args.get('revenue_max', '').strip()
+    net_income_min = request.args.get('net_income_min', '').strip()
+    net_income_max = request.args.get('net_income_max', '').strip()
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 동적 SQL 쿼리 구성
+        query = "SELECT * FROM individual_business_owners WHERE 1=1"
+        params = []
+        
+        if company_name:
+            query += " AND company_name LIKE ?"
+            params.append(f'%{company_name}%')
+        
+        if business_number:
+            query += " AND business_number LIKE ?"
+            params.append(f'%{business_number}%')
+        
+        if address:
+            query += " AND address LIKE ?"
+            params.append(f'%{address}%')
+        
+        if revenue_min:
+            query += " AND CAST(revenue AS REAL) >= ?"
+            params.append(float(revenue_min))
+        
+        if revenue_max:
+            query += " AND CAST(revenue AS REAL) <= ?"
+            params.append(float(revenue_max))
+        
+        if net_income_min:
+            query += " AND CAST(net_income AS REAL) >= ?"
+            params.append(float(net_income_min))
+        
+        if net_income_max:
+            query += " AND CAST(net_income AS REAL) <= ?"
+            params.append(float(net_income_max))
+        
+        query += " ORDER BY created_at DESC"
+        
+        cursor.execute(query, params)
+        businesses = cursor.fetchall()
+        
+        # 검색 파라미터를 템플릿에 전달
+        search_params = {
+            'company_name': company_name,
+            'business_number': business_number,
+            'address': address,
+            'revenue_min': revenue_min,
+            'revenue_max': revenue_max,
+            'net_income_min': net_income_min,
+            'net_income_max': net_income_max
+        }
+        
+        return render_template('individual_list.html', businesses=businesses, search=search_params)
+    except Exception as e:
+        print(f"Error fetching individual businesses: {e}")
+        return render_template('individual_list.html', businesses=[], error=str(e), search={})
+    finally:
+        conn.close()
+
+@app.route('/individual_businesses/add', methods=['POST'])
+def add_individual_business():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'})
+    
+    try:
+        data = request.form
+        
+        # 필수 필드 확인
+        if not data.get('company_name'):
+            return jsonify({'success': False, 'message': '기업명은 필수입니다.'})
+            
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute('''
+                INSERT INTO individual_business_owners (
+                    company_name, representative_name, birth_year, establishment_year,
+                    is_family_shareholder, is_other_shareholder, industry_type,
+                    financial_year, employee_count, total_assets, total_capital,
+                    revenue, net_income, address, business_number, phone_number, fax_number
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                data.get('company_name'),
+                data.get('representative_name'),
+                data.get('birth_year'),
+                data.get('establishment_year'),
+                data.get('is_family_shareholder', 'N'),
+                data.get('is_other_shareholder', 'N'),
+                data.get('industry_type'),
+                data.get('financial_year'),
+                data.get('employee_count'),
+                data.get('total_assets'),
+                data.get('total_capital'),
+                data.get('revenue'),
+                data.get('net_income'),
+                data.get('address'),
+                data.get('business_number'),
+                data.get('phone_number'),
+                data.get('fax_number')
+            ))
+            conn.commit()
+            return jsonify({'success': True, 'message': '등록되었습니다.'})
+        except sqlite3.IntegrityError:
+            return jsonify({'success': False, 'message': '이미 등록된 사업자번호입니다.'})
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)})
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/individual_businesses/upload', methods=['POST'])
+def upload_individual_business_excel():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'})
+        
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': '파일이 없습니다.'})
+        
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': '선택된 파일이 없습니다.'})
+        
+    if file and (file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
+        try:
+            # 엑셀 파일 읽기
+            df = pd.read_excel(file)
+            
+            # 컬럼명 정리 (공백 제거)
+            df.columns = [str(col).strip() for col in df.columns]
+            print(f"엑셀 컬럼명: {list(df.columns)}")  # 디버깅용 로그
+            
+            # 컬럼명 정규화 함수 (공백, 특수문자 제거)
+            def normalize_col(col):
+                return col.replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '')
+            
+            # 정규화된 컬럼명 매핑 생성
+            normalized_cols = {normalize_col(col): col for col in df.columns}
+            print(f"정규화된 컬럼명: {normalized_cols}")  # 디버깅용 로그
+            
+            # 컬럼 매핑 (엑셀 헤더 -> DB 컬럼) - 정규화된 이름으로 매핑
+            column_map_normalized = {
+                '기업명': 'company_name',
+                '대표자명': 'representative_name',
+                '출생년도': 'birth_year',
+                '설립년도': 'establishment_year',
+                '가족주주여부': 'is_family_shareholder',
+                '타인주주여부': 'is_other_shareholder',
+                '업종': 'industry_type',
+                '재무제표연도': 'financial_year',
+                '기준연도': 'financial_year',
+                '종업원수': 'employee_count',
+                '종업원수(명)': 'employee_count',
+                '총자산': 'total_assets',
+                '총자산(억)': 'total_assets',
+                '자본총계': 'total_capital',
+                '자본총계(억)': 'total_capital',
+                '매출액': 'revenue',
+                '매출액(억)': 'revenue',
+                '당기순이익': 'net_income',
+                '당기순이익(억)': 'net_income',
+                '사업장주소': 'address',
+                '사업자주소': 'address',
+                '주소': 'address',
+                '사업자번호': 'business_number',
+                '전화번호': 'phone_number',
+            }
+            
+            # 실제 엑셀 컬럼명을 기반으로 매핑 생성
+            column_map = {}
+            for norm_key, db_col in column_map_normalized.items():
+                # 정규화된 키로 매칭
+                if norm_key in normalized_cols:
+                    column_map[normalized_cols[norm_key]] = db_col
+                # 원본 컬럼에도 직접 확인
+                for excel_col in df.columns:
+                    if norm_key in normalize_col(excel_col):
+                        column_map[excel_col] = db_col
+            
+            print(f"최종 매핑: {column_map}")  # 디버깅용 로그
+            
+            # 엑셀 헤더에 (억) 포함 여부 확인 (이미 억 단위인지)
+            already_in_billion = any('(억)' in str(col) or '억' in str(col) for col in df.columns)
+            
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            success_count = 0
+            fail_count = 0
+            
+            for _, row in df.iterrows():
+                try:
+                    # 데이터 정리
+                    data = {}
+                    for kor_col, db_col in column_map.items():
+                        if kor_col in row:
+                            val = row[kor_col]
+                            if pd.isna(val):
+                                val = None
+                            else:
+                                # 년도 필드 처리 (.0 제거)
+                                if db_col in ['birth_year', 'establishment_year', 'financial_year']:
+                                    try:
+                                        val = str(int(float(val)))
+                                    except (ValueError, TypeError):
+                                        val = str(val) if val else None
+                                # 재무 데이터 처리
+                                elif db_col in ['total_assets', 'total_capital', 'revenue', 'net_income']:
+                                    try:
+                                        num_val = float(val)
+                                        # 이미 억 단위면 그대로, 아니면 변환
+                                        if not already_in_billion:
+                                            val = round(num_val / 100000000, 1)
+                                        else:
+                                            val = num_val  # 이미 억 단위
+                                    except (ValueError, TypeError):
+                                        val = None
+                                # 종업원수 처리 (.0 제거)
+                                elif db_col == 'employee_count':
+                                    try:
+                                        val = str(int(float(val)))
+                                    except (ValueError, TypeError):
+                                        val = str(val) if val else None
+                            data[db_col] = val
+                    
+                    if not data.get('company_name'):
+                        continue
+                        
+                    # 중복 확인 및 업데이트/삽입
+                    cursor.execute("SELECT id FROM individual_business_owners WHERE business_number = ?", (data.get('business_number'),))
+                    existing = cursor.fetchone()
+                    
+                    if existing:
+                        # 업데이트
+                        set_clause = ', '.join([f"{k} = ?" for k in data.keys()])
+                        values = list(data.values())
+                        values.append(data.get('business_number'))
+                        
+                        cursor.execute(f'''
+                            UPDATE individual_business_owners 
+                            SET {set_clause}
+                            WHERE business_number = ?
+                        ''', values)
+                    else:
+                        # 삽입
+                        columns = ', '.join(data.keys())
+                        placeholders = ', '.join(['?' for _ in data])
+                        cursor.execute(f'''
+                            INSERT INTO individual_business_owners ({columns})
+                            VALUES ({placeholders})
+                        ''', list(data.values()))
+                        
+                    success_count += 1
+                except Exception as e:
+                    print(f"Row processing error: {e}")
+                    fail_count += 1
+                    
+            conn.commit()
+            conn.close()
+            
+            return jsonify({
+                'success': True, 
+                'message': f'총 {success_count}건 처리 완료 (실패 {fail_count}건)'
+            })
+            
+        except Exception as e:
+            return jsonify({'success': False, 'message': f'엑셀 처리 중 오류: {str(e)}'})
+            
+    return jsonify({'success': False, 'message': '엑셀 파일만 업로드 가능합니다.'})
+
+# --- 개인사업자 상세 조회 및 메모/히스토리 API ---
+
+@app.route('/individual_businesses/<int:id>/detail')
+def get_individual_business_detail(id):
+    """개인사업자 상세 정보, 메모, 히스토리 조회"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'})
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 메모 컬럼 존재 확인 및 추가
+        cursor.execute("PRAGMA table_info(individual_business_owners)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if 'memo' not in columns:
+            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN memo TEXT")
+            conn.commit()
+        
+        # 히스토리 테이블 생성
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS individual_business_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                business_id INTEGER NOT NULL,
+                type TEXT,
+                content TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (business_id) REFERENCES individual_business_owners(id)
+            )
+        ''')
+        conn.commit()
+        
+        # 데이터 조회
+        cursor.execute("SELECT memo FROM individual_business_owners WHERE id = ?", (id,))
+        row = cursor.fetchone()
+        memo = row['memo'] if row else ''
+        
+        # 히스토리 조회
+        cursor.execute('''
+            SELECT type, content, created_at FROM individual_business_history
+            WHERE business_id = ? ORDER BY created_at DESC
+        ''', (id,))
+        history = [{'type': h['type'], 'content': h['content'], 'created_at': h['created_at']} for h in cursor.fetchall()]
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'memo': memo,
+                'history': history
+            }
+        })
+    except Exception as e:
+        print(f"상세 조회 오류: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        conn.close()
+
+@app.route('/individual_businesses/<int:id>/memo', methods=['POST'])
+def save_individual_business_memo(id):
+    """개인사업자 메모 저장"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'})
+    
+    try:
+        data = request.get_json()
+        memo = data.get('memo', '')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 메모 컬럼 존재 확인 및 추가
+        cursor.execute("PRAGMA table_info(individual_business_owners)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if 'memo' not in columns:
+            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN memo TEXT")
+        
+        cursor.execute("UPDATE individual_business_owners SET memo = ? WHERE id = ?", (memo, id))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': '메모가 저장되었습니다.'})
+    except Exception as e:
+        print(f"메모 저장 오류: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/individual_businesses/<int:id>/history', methods=['POST'])
+def add_individual_business_history(id):
+    """개인사업자 히스토리 추가"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'})
+    
+    try:
+        data = request.get_json()
+        history_type = data.get('type', '기타')
+        content = data.get('content', '')
+        
+        if not content:
+            return jsonify({'success': False, 'message': '내용을 입력해주세요.'})
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 히스토리 테이블 생성 (없으면)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS individual_business_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                business_id INTEGER NOT NULL,
+                type TEXT,
+                content TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (business_id) REFERENCES individual_business_owners(id)
+            )
+        ''')
+        
+        cursor.execute('''
+            INSERT INTO individual_business_history (business_id, type, content)
+            VALUES (?, ?, ?)
+        ''', (id, history_type, content))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': '히스토리가 추가되었습니다.'})
+    except Exception as e:
+        print(f"히스토리 추가 오류: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
 if __name__ == '__main__':
 
 
@@ -6962,6 +7425,12 @@ if __name__ == '__main__':
         print("? YS Honers 테이블 초기화 완료")
     except Exception as e:
         print(f"? YS Honers 테이블 초기화 실패: {e}")
+    
+    try:
+        init_individual_business_tables()
+        print("? 개인사업자 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? 개인사업자 테이블 초기화 실패: {e}")
     
     # 서버 시작
     port = int(os.environ.get('PORT', 5000))
