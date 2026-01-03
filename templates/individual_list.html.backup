@@ -246,23 +246,23 @@
             background: #357abd;
             transform: scale(1.1);
         }
-
+    
         /* Elegant section dividers */
         .modal-section {
             padding: 16px 24px;
             border-bottom: 1px solid #e8e8e8;
         }
-
+        
         .modal-section:last-child {
             border-bottom: none;
         }
-
+        
         .modal-header-custom {
             padding: 18px 24px;
             border-bottom: 2px solid #4a90e2;
             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
         }
-
+        
         .modal-section h3 {
             font-size: 14px;
             font-weight: 600;
@@ -271,7 +271,7 @@
             padding-left: 10px;
             border-left: 3px solid #4a90e2;
         }
-
+        
         .info-row {
             display: grid;
             grid-template-columns: 120px 1fr;
@@ -279,7 +279,7 @@
             margin-bottom: 10px;
             font-size: 13px;
         }
-
+        
         .info-row label {
             color: #5a6c7d;
             font-weight: 500;
@@ -287,17 +287,17 @@
             align-items: center;
             gap: 6px;
         }
-
+        
         .info-row .value {
             color: #2c3e50;
         }
-
+        
         /* Icon styles */
         .field-icon {
             color: #4a90e2;
             font-size: 14px;
         }
-
+        
         /* Compact input styles */
         .modal-section input[type="text"],
         .modal-section input[type="date"],
@@ -307,11 +307,11 @@
             padding: 6px 10px;
             line-height: 1.4;
         }
-
+        
         .modal-section textarea {
             min-height: 80px;
         }
-
+    
         /* Premium modal design */
         .modal-content h2 {
 
@@ -320,10 +320,10 @@
             color: #2c3e50;
             margin: 0;
             padding: 20px 24px 16px 24px;
-
+            
             position: relative;
         }
-
+        
         /* Uniform grid layout for all sections */
         .detail-grid {
             display: grid;
@@ -332,23 +332,23 @@
             padding: 16px 24px;
             border-bottom: 1px solid #f0f0f0;
         }
-
-        .detail-grid>div {
+        
+        .detail-grid > div {
             display: contents;
         }
-
+        
         .detail-grid strong {
             color: #5a6c7d;
             font-weight: 500;
             font-size: 13px;
         }
-
+        
         .detail-grid span,
         .detail-grid a {
             color: #2c3e50;
             font-size: 13px;
         }
-
+        
         /* Section headers with elegant style */
         .section-header {
             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
@@ -361,7 +361,7 @@
             align-items: center;
             gap: 8px;
         }
-
+        
         .section-header::before {
             content: '';
             width: 3px;
@@ -369,14 +369,14 @@
             background: #4a90e2;
             border-radius: 2px;
         }
-
+        
         /* Memo and history sections */
         .memo-section,
         .history-section {
             padding: 16px 24px;
             background: #fafbfc;
         }
-
+        
         .memo-section textarea {
             width: 100%;
             min-height: 100px;
@@ -388,13 +388,13 @@
             resize: vertical;
             font-family: inherit;
         }
-
+        
         .memo-section textarea:focus {
             outline: none;
             border-color: #4a90e2;
             box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
         }
-
+        
         /* Status radio buttons */
         .status-group {
             display: flex;
@@ -402,7 +402,7 @@
             align-items: center;
             padding: 12px 0;
         }
-
+        
         .status-group label {
             display: flex;
             align-items: center;
@@ -411,32 +411,32 @@
             cursor: pointer;
             color: #5a6c7d;
         }
-
+        
         .status-group input[type="radio"] {
             cursor: pointer;
         }
-
+        
         /* Compact spacing */
         .modal-section {
             padding: 0;
         }
-
-
-
+        
+        
+    
         /* Fix: Single border lines only */
         .modal-section {
             padding: 0;
             border-bottom: none !important;
         }
-
+        
         .detail-grid {
             border-bottom: 1px solid #e8e8e8;
         }
-
+        
         .section-header {
             border-bottom: 1px solid #e8e8e8;
         }
-
+        
         /* Fix: Align section titles properly */
         .section-header {
             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
@@ -449,7 +449,7 @@
             align-items: center;
             gap: 8px;
         }
-
+        
         .section-header::before {
             content: '';
             width: 3px;
@@ -457,14 +457,14 @@
             background: #4a90e2;
             border-radius: 2px;
         }
-
+        
         /* Ensure memo and history sections are properly aligned */
         .memo-section,
         .history-section {
             padding: 16px 24px;
             background: #fafbfc;
         }
-
+        
         /* Use section-header class for memo and history titles */
         h3.section-title {
             background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
@@ -478,7 +478,7 @@
             align-items: center;
             gap: 8px;
         }
-
+        
         h3.section-title::before {
             content: '';
             width: 3px;
@@ -487,7 +487,7 @@
             border-radius: 2px;
         }
 
-
+    
         /* Emphasize financial values */
         #detail_revenue,
         #detail_net_income {
@@ -495,6 +495,19 @@
             font-weight: 700 !important;
             color: #2c3e50 !important;
         }
+
+    
+        /* Status button styles */
+        .status-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .status-btn:active {
+            transform: translateY(0);
+        }
+
     </style>
 </head>
 
@@ -792,88 +805,57 @@
                 <textarea id="detail_memo" rows="3"
                     style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; resize: vertical;"
                     placeholder="메모를 입력하세요..."></textarea>
-                <div style="margin-top: 16px;">
-
-                    <!-- Status Selector -->
-
-                    <div style="margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #5a6c7d;">진행 상태:</div>
-
-                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px;">
-
-                        <button type="button" class="status-btn" data-status="접촉대기" onclick="selectStatus(this, '접촉대기')"
-                            style="padding: 10px 6px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; color: #666; white-space: nowrap;">
-
-                            접촉대기
-
+                    
+                    <!-- Status Selector Section -->
+                    <div style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: 8px; border: 1px solid #e8e8e8;">
+                        <div style="font-size: 13px; font-weight: 600; color: #2c3e50; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                            <span style="width: 3px; height: 14px; background: #4a90e2; border-radius: 2px;"></span>
+                            진행 상태 선택
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px;">
+                            <button type="button" class="status-btn" data-status="접촉대기" 
+                                    onclick="selectStatusClean(this, '접촉대기')"
+                                    style="padding: 10px 8px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; color: #666;">
+                                접촉대기
+                            </button>
+                            <button type="button" class="status-btn" data-status="접촉중"
+                                    onclick="selectStatusClean(this, '접촉중')"
+                                    style="padding: 10px 8px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; color: #666;">
+                                접촉중
+                            </button>
+                            <button type="button" class="status-btn" data-status="접촉해제"
+                                    onclick="selectStatusClean(this, '접촉해제')"
+                                    style="padding: 10px 8px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; color: #666;">
+                                접촉해제
+                            </button>
+                            <button type="button" class="status-btn" data-status="완료"
+                                    onclick="selectStatusClean(this, '완료')"
+                                    style="padding: 10px 8px; border: 2px solid #4a90e2; background: #4a90e2; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;">
+                                완료
+                            </button>
+                            <button type="button" class="status-btn" data-status="실패"
+                                    onclick="selectStatusClean(this, '실패')"
+                                    style="padding: 10px 8px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; color: #666;">
+                                실패
+                            </button>
+                        </div>
+                        <input type="hidden" id="selected_status" value="완료">
+                        <button onclick="saveMemo()" 
+                                style="width: 100%; padding: 13px; background: linear-gradient(135deg, #28a745 0%, #34ce57 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 3px 6px rgba(40,167,69,0.3); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 10px rgba(40,167,69,0.35)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 6px rgba(40,167,69,0.3)'">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            메모 및 상태 저장
                         </button>
-
-                        <button type="button" class="status-btn" data-status="접촉중" onclick="selectStatus(this, '접촉중')"
-                            style="padding: 10px 6px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; color: #666; white-space: nowrap;">
-
-                            접촉중
-
-                        </button>
-
-                        <button type="button" class="status-btn" data-status="접촉해제" onclick="selectStatus(this, '접촉해제')"
-                            style="padding: 10px 6px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; color: #666; white-space: nowrap;">
-
-                            접촉해제
-
-                        </button>
-
-                        <button type="button" class="status-btn" data-status="완료" onclick="selectStatus(this, '완료')"
-                            style="padding: 10px 6px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; color: #666; white-space: nowrap;">
-
-                            완료
-
-                        </button>
-
-                        <button type="button" class="status-btn" data-status="실패" onclick="selectStatus(this, '실패')"
-                            style="padding: 10px 6px; border: 2px solid #e0e0e0; background: white; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; color: #666; white-space: nowrap;">
-
-                            실패
-
-                        </button>
-
                     </div>
-
-                    <input type="hidden" id="selected_status" value="">
-
-                    <button onclick="saveMemo()"
-                        style="width: 100%; padding: 13px; background: linear-gradient(135deg, #28a745 0%, #34ce57 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 3px 6px rgba(40,167,69,0.25); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;"
-                        onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 10px rgba(40,167,69,0.35)'"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 6px rgba(40,167,69,0.25)'">
-
-                        <span style="font-size: 16px;">💾</span>
-
-                        메모 및 상태 저장
-
-                    </button>
-
-                </div>
-
-            </div>
-
-            <!-- 히스토리 섹션 -->
-            <div style="margin-bottom: 1rem;">
-                <h3 class="section-title">접촉 히스토리</h3>
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <select id="history_type"
-                        style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
-                        <option value="전화">전화</option>
-                        <option value="방문">방문</option>
-                        <option value="이메일">이메일</option>
-                        <option value="미팅">미팅</option>
-                        <option value="기타">기타</option>
-                    </select>
-                    <input type="text" id="history_content" placeholder="내용을 입력하세요"
-                        style="flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
-                    <button class="btn btn-success" onclick="addHistory()">추가</button>
-                </div>
-                <div id="history_list"
-                    style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px;">
-                    <div style="padding: 1rem; text-align: center; color: #999;">히스토리가 없습니다.</div>
-                </div>
+                <div
+                    style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+                    
+                    
             </div>
 
             <input type="hidden" id="detail_id">
@@ -927,7 +909,7 @@
 
                 if (result.success) {
                     alert('등록되었습니다.');
-                    reloadWithCurrentParams();
+                    location.reload();
                 } else {
                     alert('오류: ' + result.message);
                 }
@@ -957,7 +939,7 @@
 
                 if (result.success) {
                     alert(result.message);
-                    reloadWithCurrentParams();
+                    location.reload();
                 } else {
                     alert('오류: ' + result.message);
                 }
@@ -983,11 +965,6 @@
         }
         function scrollToBottom() {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }
-
-        // URL 파라미터를 유지하면서 리로드
-        function reloadWithCurrentParams() {
-            window.location.href = window.location.href;
         }
 
         // 상세 조회 모달 열기
@@ -1025,28 +1002,6 @@
             document.getElementById('detailModal').style.display = 'flex';
         }
 
-        // 모든 상태 버튼 선택 해제
-        function resetAllStatusButtons() {
-            document.querySelectorAll('.status-btn').forEach(btn => {
-                btn.style.background = 'white';
-                btn.style.color = '#666';
-                btn.style.borderColor = '#e0e0e0';
-            });
-        }
-
-        // 상태 버튼 선택
-        function selectStatus(btn, status) {
-            document.querySelectorAll('.status-btn').forEach(b => {
-                b.style.background = 'white';
-                b.style.color = '#666';
-                b.style.borderColor = '#e0e0e0';
-            });
-            btn.style.background = '#4a90e2';
-            btn.style.color = 'white';
-            btn.style.borderColor = '#4a90e2';
-            document.getElementById('selected_status').value = status;
-        }
-
         // 메모와 히스토리 로드
         async function loadMemoAndHistory(id) {
             try {
@@ -1056,18 +1011,13 @@
                 if (result.success) {
                     document.getElementById('detail_memo').value = result.data.memo || '';
 
-                    // 상태 설정 (기존 상태가 있는 경우에만 버튼 선택)
-                    const status = result.data.status;
-                    if (status) {
-                        const statusBtn = document.querySelector(`.status-btn[data-status="${status}"]`);
-                        if (statusBtn) selectStatus(statusBtn, status);
-                        document.getElementById('history_status').value = status;
-                        document.getElementById('selected_status').value = status;
-                    } else {
-                        // 초기 상태: 아무 버튼도 선택하지 않음
-                        resetAllStatusButtons();
-                        document.getElementById('selected_status').value = '';
-                    }
+                    // 상태 설정 (없으면 접촉대기)
+                    const status = result.data.status || '접촉대기';
+                    const statusBtn = document.querySelector(`.status-btn[data-status="${status}"]`);
+            if (statusBtn) {
+                selectStatus(statusBtn, status);
+            }
+                    document.getElementById('history_status').value = status;
 
                     renderHistory(result.data.history || []);
                 }
@@ -1080,7 +1030,7 @@
         async function saveMemo() {
             const id = document.getElementById('detail_id').value;
             const memo = document.getElementById('detail_memo').value;
-            const status = document.getElementById('selected_status')?.value || '접촉대기';
+            const status = document.getElementById('selected_status').value || '완료';
 
             try {
                 const response = await fetch(`/individual_businesses/${id}/memo`, {
@@ -1092,8 +1042,8 @@
                 const result = await response.json();
                 if (result.success) {
                     alert('저장되었습니다.');
-                    // 리스트 갱신을 위해 현재 파라미터 유지하며 리로드
-                    reloadWithCurrentParams();
+                    // 리스트의 상태 배지 업데이트 등은 복잡하므로 새로고침 유도하거나 생략
+                    // 필요시: location.reload();
                 } else {
                     alert('오류: ' + result.message);
                 }
@@ -1170,6 +1120,26 @@
 
             container.innerHTML = html;
         }
+    
+        // Status button selection
+        // Status button selection with clear visual feedback
+        );
+            btn.style.background = '#4a90e2';
+            btn.style.color = 'white';
+            btn.style.borderColor = '#4a90e2';
+            document.getElementById('selected_status').value = status;
+        });
+            
+            // Add selected style to clicked button
+            btn.style.background = '#4a90e2';
+            btn.style.color = 'white';
+            btn.style.borderColor = '#4a90e2';
+            btn.style.borderWidth = '2px';
+            
+            // Update hidden input
+            document.getElementById('selected_status').value = status;
+        }
+
     </script>
 
     <!-- 플로팅 스크롤 버튼 -->
@@ -1285,20 +1255,39 @@
                 btn.disabled = false;
             }
         }
-
-        // 페이지 로드 시 URL 파라미터로 검색 폼 값 복원
-        window.addEventListener('DOMContentLoaded', function () {
-            const urlParams = new URLSearchParams(window.location.search);
-
-            // 진행상태 드롭다운 복원
-            const statusParam = urlParams.get('status');
-            if (statusParam) {
-                const statusSelect = document.querySelector('select[name="status"]');
-                if (statusSelect) {
-                    statusSelect.value = statusParam;
-                }
-            }
+    
+        // Status button selection
+        // Status button selection with clear visual feedback
+        );
+            btn.style.background = '#4a90e2';
+            btn.style.color = 'white';
+            btn.style.borderColor = '#4a90e2';
+            document.getElementById('selected_status').value = status;
         });
+            
+            // Add selected style to clicked button
+            btn.style.background = '#4a90e2';
+            btn.style.color = 'white';
+            btn.style.borderColor = '#4a90e2';
+            btn.style.borderWidth = '2px';
+            
+            // Update hidden input
+            document.getElementById('selected_status').value = status;
+        }
+
+    
+        function selectStatusClean(btn, status) {
+            document.querySelectorAll('.status-btn').forEach(b => {
+                b.style.background = 'white';
+                b.style.color = '#666';
+                b.style.borderColor = '#e0e0e0';
+            });
+            btn.style.background = '#4a90e2';
+            btn.style.color = 'white';
+            btn.style.borderColor = '#4a90e2';
+            document.getElementById('selected_status').value = status;
+        }
+
     </script>
 </body>
 

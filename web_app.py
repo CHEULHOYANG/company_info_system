@@ -7400,7 +7400,7 @@ def get_individual_business_detail(id):
             return jsonify({'success': False, 'message': '기업 정보를 찾을 수 없습니다.'})
 
         memo = row['memo'] if row else ''
-        status = row['status'] if 'status' in row.keys() and row['status'] else '접촉대기'
+        status = row['status'] if 'status' in row.keys() and row['status'] else None
         assigned_user_id = row['assigned_user_id'] if 'assigned_user_id' in row.keys() else None
         
         # 히스토리 조회
