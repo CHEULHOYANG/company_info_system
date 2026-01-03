@@ -149,14 +149,16 @@
         }
 
         .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 8px;
+            background: white;
+            padding: 0;
+            border-radius: 12px;
+            max-width: 700px;
             width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
+            max-height: 85vh;
             overflow-y: auto;
-            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            font-size: 13px;
+            line-height: 1.4;
         }
 
         .modal-header {
@@ -244,6 +246,256 @@
             background: #357abd;
             transform: scale(1.1);
         }
+    
+        /* Elegant section dividers */
+        .modal-section {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .modal-section:last-child {
+            border-bottom: none;
+        }
+        
+        .modal-header-custom {
+            padding: 18px 24px;
+            border-bottom: 2px solid #4a90e2;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
+        
+        .modal-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a90e2;
+            margin: 0 0 12px 0;
+            padding-left: 10px;
+            border-left: 3px solid #4a90e2;
+        }
+        
+        .info-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 12px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        
+        .info-row label {
+            color: #5a6c7d;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .info-row .value {
+            color: #2c3e50;
+        }
+        
+        /* Icon styles */
+        .field-icon {
+            color: #4a90e2;
+            font-size: 14px;
+        }
+        
+        /* Compact input styles */
+        .modal-section input[type="text"],
+        .modal-section input[type="date"],
+        .modal-section select,
+        .modal-section textarea {
+            font-size: 13px;
+            padding: 6px 10px;
+            line-height: 1.4;
+        }
+        
+        .modal-section textarea {
+            min-height: 80px;
+        }
+    
+        /* Premium modal design */
+        .modal-content h2 {
+
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+            padding: 20px 24px 16px 24px;
+            
+            position: relative;
+        }
+        
+        /* Uniform grid layout for all sections */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 140px 1fr 140px 1fr;
+            gap: 12px 20px;
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .detail-grid > div {
+            display: contents;
+        }
+        
+        .detail-grid strong {
+            color: #5a6c7d;
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        .detail-grid span,
+        .detail-grid a {
+            color: #2c3e50;
+            font-size: 13px;
+        }
+        
+        /* Section headers with elegant style */
+        .section-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 14px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a90e2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-header::before {
+            content: '';
+            width: 3px;
+            height: 16px;
+            background: #4a90e2;
+            border-radius: 2px;
+        }
+        
+        /* Memo and history sections */
+        .memo-section,
+        .history-section {
+            padding: 16px 24px;
+            background: #fafbfc;
+        }
+        
+        .memo-section textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.5;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .memo-section textarea:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+        
+        /* Status radio buttons */
+        .status-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            padding: 12px 0;
+        }
+        
+        .status-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #5a6c7d;
+        }
+        
+        .status-group input[type="radio"] {
+            cursor: pointer;
+        }
+        
+        /* Compact spacing */
+        .modal-section {
+            padding: 0;
+        }
+        
+        
+    
+        /* Fix: Single border lines only */
+        .modal-section {
+            padding: 0;
+            border-bottom: none !important;
+        }
+        
+        .detail-grid {
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .section-header {
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        /* Fix: Align section titles properly */
+        .section-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 14px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a90e2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-header::before {
+            content: '';
+            width: 3px;
+            height: 16px;
+            background: #4a90e2;
+            border-radius: 2px;
+        }
+        
+        /* Ensure memo and history sections are properly aligned */
+        .memo-section,
+        .history-section {
+            padding: 16px 24px;
+            background: #fafbfc;
+        }
+        
+        /* Use section-header class for memo and history titles */
+        h3.section-title {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 14px 24px;
+            margin: 0;
+            border-bottom: 1px solid #e8e8e8;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a90e2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        h3.section-title::before {
+            content: '';
+            width: 3px;
+            height: 16px;
+            background: #4a90e2;
+            border-radius: 2px;
+        }
+
+    
+        /* Emphasize financial values */
+        #detail_revenue,
+        #detail_net_income {
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            color: #2c3e50 !important;
+        }
+
     </style>
 </head>
 
@@ -281,6 +533,18 @@
                             style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
                     </div>
                     <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">진행상태</label>
+                        <select name="status"
+                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <option value="전체" {% if search.status=='전체' %}selected{% endif %}>전체</option>
+                            <option value="접촉대기" {% if search.status=='접촉대기' %}selected{% endif %}>접촉대기</option>
+                            <option value="접촉중" {% if search.status=='접촉중' %}selected{% endif %}>접촉중</option>
+                            <option value="접촉해제" {% if search.status=='접촉해제' %}selected{% endif %}>접촉해제</option>
+                            <option value="완료" {% if search.status=='완료' %}selected{% endif %}>완료</option>
+                            <option value="실패" {% if search.status=='실패' %}selected{% endif %}>실패</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
                         <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">매출액(억) 범위</label>
                         <div style="display: flex; gap: 5px; align-items: center;">
                             <input type="number" name="revenue_min" value="{{ search.revenue_min or '' }}"
@@ -295,10 +559,6 @@
                     <div class="form-group" style="margin: 0;">
                         <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">당기순이익(억) 범위</label>
                         <div style="display: flex; gap: 5px; align-items: center;">
-                            <input type="number" name="net_income_min" value="{{ search.net_income_min or '' }}"
-                                placeholder="최소" step="0.1"
-                                style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
-                            <span>~</span>
                             <input type="number" name="net_income_max" value="{{ search.net_income_max or '' }}"
                                 placeholder="최대" step="0.1"
                                 style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
@@ -348,7 +608,14 @@
                     data-created="{{ item.created_at[:10] if item.created_at else '' }}">
                     <td style="text-align: center;">{{ loop.index }}</td>
                     <td>{{ item.business_number or '' }}</td>
-                    <td>{{ item.company_name or '' }}</td>
+                    <td>
+                        {{ item.company_name or '' }}
+                        {% if item.status and item.status != '접촉대기' %}
+                        <span class="status-badge {{ 'status-contact' if item.status == '접촉중' else 'status-other' }}">
+                            {{ item.status }}
+                        </span>
+                        {% endif %}
+                    </td>
                     <td style="max-width: 80px; overflow: hidden; text-overflow: ellipsis;">{{ item.representative_name
                         or '' }}</td>
                     <td>{{ item.birth_year or '' }}</td>
@@ -522,18 +789,34 @@
 
             <!-- 메모 입력 -->
             <div style="margin-bottom: 1.5rem;">
-                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--primary-color);">■ 메모</h3>
+                <h3 class="section-title">메모</h3>
                 <textarea id="detail_memo" rows="3"
                     style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; resize: vertical;"
                     placeholder="메모를 입력하세요..."></textarea>
-                <div style="margin-top: 10px; text-align: right;">
-                    <button class="btn btn-primary" onclick="saveMemo()">메모 저장</button>
+                <div
+                    style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+                    <div id="memo_status_group" style="display: flex; gap: 10px; align-items: center;">
+                        <label style="font-size: 0.9rem; font-weight: 500; margin: 0;">접촉 상태:</label>
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.9rem;">
+                            <input type="radio" name="memo_status" value="접촉대기" style="cursor: pointer;">
+                            <span>접촉대기</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.9rem;">
+                            <input type="radio" name="memo_status" value="접촉중" style="cursor: pointer;">
+                            <span>접촉중</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.9rem;">
+                            <input type="radio" name="memo_status" value="완료" checked style="cursor: pointer;">
+                            <span>완료</span>
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveMemo()">메모 및 상태 저장</button>
                 </div>
             </div>
 
             <!-- 히스토리 섹션 -->
             <div style="margin-bottom: 1rem;">
-                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--primary-color);">■ 접촉 히스토리</h3>
+                <h3 class="section-title">접촉 히스토리</h3>
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                     <select id="history_type"
                         style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
@@ -672,7 +955,15 @@
             document.getElementById('detail_business_number').textContent = row.dataset.businessNumber || '-';
             document.getElementById('detail_company_name').textContent = row.dataset.companyName || '-';
             document.getElementById('detail_representative').textContent = row.dataset.representative || '-';
-            document.getElementById('detail_birth_year').textContent = row.dataset.birthYear || '-';
+            const birthYear = row.dataset.birthYear || '-';
+            const birthYearSpan = document.getElementById('detail_birth_year');
+            if (birthYear !== '-') {
+                const currentYear = new Date().getFullYear();
+                const age = currentYear - parseInt(birthYear);
+                birthYearSpan.textContent = `${birthYear} (${age}세)`;
+            } else {
+                birthYearSpan.textContent = '-';
+            }
             document.getElementById('detail_address').textContent = row.dataset.address || '-';
             document.getElementById('detail_industry').textContent = row.dataset.industry || '-';
             document.getElementById('detail_establishment').textContent = row.dataset.establishment || '-';
@@ -697,6 +988,12 @@
 
                 if (result.success) {
                     document.getElementById('detail_memo').value = result.data.memo || '';
+
+                    // 상태 설정 (없으면 접촉대기)
+                    const status = result.data.status || '접촉대기';
+                    const radioBtn = document.querySelector(`input[name="memo_status"][value="${status}"]`); if (radioBtn) radioBtn.checked = true;
+                    document.getElementById('history_status').value = status;
+
                     renderHistory(result.data.history || []);
                 }
             } catch (error) {
@@ -708,17 +1005,20 @@
         async function saveMemo() {
             const id = document.getElementById('detail_id').value;
             const memo = document.getElementById('detail_memo').value;
+            const status = document.querySelector('input[name="memo_status"]:checked')?.value || '완료';
 
             try {
                 const response = await fetch(`/individual_businesses/${id}/memo`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ memo })
+                    body: JSON.stringify({ memo, status })
                 });
 
                 const result = await response.json();
                 if (result.success) {
-                    alert('메모가 저장되었습니다.');
+                    alert('저장되었습니다.');
+                    // 리스트의 상태 배지 업데이트 등은 복잡하므로 새로고침 유도하거나 생략
+                    // 필요시: location.reload();
                 } else {
                     alert('오류: ' + result.message);
                 }
@@ -733,6 +1033,7 @@
             const id = document.getElementById('detail_id').value;
             const type = document.getElementById('history_type').value;
             const content = document.getElementById('history_content').value.trim();
+            const status = document.getElementById('history_status').value;
 
             if (!content) {
                 alert('내용을 입력해주세요.');
@@ -743,13 +1044,13 @@
                 const response = await fetch(`/individual_businesses/${id}/history`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type, content })
+                    body: JSON.stringify({ type, content, status })
                 });
 
                 const result = await response.json();
                 if (result.success) {
                     document.getElementById('history_content').value = '';
-                    loadMemoAndHistory(id); // 히스토리 다시 로드
+                    loadMemoAndHistory(id); // 히스토리 및 상태 다시 로드
                 } else {
                     alert('오류: ' + result.message);
                 }
@@ -783,7 +1084,10 @@
                         <span style="background: ${typeColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; white-space: nowrap;">${item.type}</span>
                         <div style="flex: 1;">
                             <div style="font-size: 0.9rem;">${item.content}</div>
-                            <div style="font-size: 0.75rem; color: #999; margin-top: 5px;">${item.created_at}</div>
+                            <div style="font-size: 0.75rem; color: #999; margin-top: 5px;">
+                                ${item.created_at} 
+                                ${item.created_by ? ` | ${item.created_by}` : ''}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -798,6 +1102,115 @@
         <button class="floating-btn" onclick="scrollToTop()" title="맨 위로">↑</button>
         <button class="floating-btn" onclick="scrollToBottom()" title="맨 아래로">↓</button>
     </div>
+
+    <!-- 더보기 버튼 (Load More) -->
+    <div style="text-align: center; margin: 2rem 0;">
+        <button id="loadMoreBtn" class="btn btn-primary" onclick="loadMore()"
+            style="padding: 1rem 3rem; font-size: 1.1rem; width: 100%; max-width: 500px;">
+            다음 50건 더보기
+        </button>
+    </div>
+
+    <script>
+        let currentOffset = 50;
+        const limit = 50;
+
+        async function loadMore() {
+            const btn = document.getElementById('loadMoreBtn');
+            const originalText = btn.innerText;
+            btn.innerText = '로딩 중...';
+            btn.disabled = true;
+
+            try {
+                // 현재 URL의 쿼리 파라미터 가져오기 (검색 조건 유지)
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('ajax', 'true');
+                urlParams.set('offset', currentOffset);
+                urlParams.set('limit', limit);
+
+                const response = await fetch(`/individual_businesses?${urlParams.toString()}`);
+                const result = await response.json();
+
+                if (result.success && result.data.length > 0) {
+                    const tbody = document.querySelector('table tbody');
+
+                    // 데이터가 없다는 메시지가 있다면 제거
+                    const noDataRow = tbody.querySelector('tr td[colspan="12"]');
+                    if (noDataRow) {
+                        tbody.innerHTML = '';
+                    }
+
+                    result.data.forEach((item, index) => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'clickable-row';
+                        tr.style.cursor = 'pointer';
+                        tr.onclick = () => openDetailModal(item.id);
+
+                        // 데이터 속성 설정
+                        tr.dataset.id = item.id;
+                        tr.dataset.businessNumber = item.business_number || '';
+                        tr.dataset.companyName = item.company_name || '';
+                        tr.dataset.representative = item.representative_name || '';
+                        tr.dataset.birthYear = item.birth_year || '';
+                        tr.dataset.address = item.address || '';
+                        tr.dataset.industry = item.industry_type || '';
+                        tr.dataset.establishment = item.establishment_year || '';
+                        tr.dataset.financialYear = item.financial_year || '';
+                        tr.dataset.revenue = item.revenue || '';
+                        tr.dataset.netIncome = item.net_income || '';
+                        tr.dataset.phone = item.phone_number || '';
+                        tr.dataset.created = item.created_at || '';
+
+                        const globalIndex = currentOffset + index + 1;
+
+                        // 상태 배지 HTML 생성
+                        let statusHtml = '';
+                        if (item.status && item.status !== '접촉대기') {
+                            const badgeClass = item.status === '접촉중' ? 'status-contact' : 'status-other';
+                            statusHtml = `<span class="status-badge ${badgeClass}">${item.status}</span>`;
+                        }
+
+                        tr.innerHTML = `
+                            <td style="text-align: center;">${globalIndex}</td>
+                            <td>${item.business_number || ''}</td>
+                            <td>${item.company_name || ''} ${statusHtml}</td>
+                            <td style="max-width: 80px; overflow: hidden; text-overflow: ellipsis;">${item.representative_name || ''}</td>
+                            <td>${item.birth_year || ''}</td>
+                            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${item.address || ''}">${item.address || ''}</td>
+                            <td>${item.industry_type || ''}</td>
+                            <td>${item.establishment_year || ''}</td>
+                            <td>${item.financial_year || ''}</td>
+                            <td>${item.revenue || ''}</td>
+                            <td>${item.net_income || ''}</td>
+                            <td style="white-space: nowrap;">${item.created_at || ''}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    currentOffset += limit;
+
+                    // 가져온 데이터가 요청한 limit보다 적으면 더보기 버튼 숨기기
+                    if (result.data.length < limit) {
+                        btn.style.display = 'none';
+                    }
+                } else {
+                    // 더 이상 데이터가 없으면 버튼 숨기기
+                    btn.style.display = 'none';
+                    if (currentOffset === 50 && (!result.data || result.data.length === 0)) {
+                        // 초기 로드 시 데이터가 없는 경우는 이미 템플릿에서 처리됨
+                    } else {
+                        alert('더 이상 데이터가 없습니다.');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading more data:', error);
+                alert('데이터를 불러오는 중 오류가 발생했습니다.');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
 </body>
 
 </html>

@@ -354,8 +354,7 @@
         </header>
 
         <div class="main-actions">
-            <button type="button" class="action-button" onclick="location.href='/individual_businesses'"
-                style="background: linear-gradient(45deg, #FF9800, #F57C00);">개인사업자(전단계) 관리</button>
+
             {% if session.get('user_id') in ['ct0001','ct0002'] %}
             <button type="button" id="excel-download-button" class="action-button excel-button">엑셀저장</button>
             {% else %}

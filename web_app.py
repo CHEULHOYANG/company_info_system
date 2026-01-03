@@ -6349,7 +6349,7 @@ def get_company_analysis_data(biz_no):
         # 기업 기본 정보
         cursor.execute('''
             SELECT company_name, representative_name, industry_name, address, 
-                   pension_count, capital, establishment_date
+                   pension_count, establish_date
             FROM Company_Basic 
             WHERE biz_no = ?
         ''', (biz_no,))
@@ -6364,8 +6364,7 @@ def get_company_analysis_data(biz_no):
             "industry_name": basic_row[2] or "",
             "address": basic_row[3] or "",
             "employee_count": basic_row[4] or 0,
-            "capital": basic_row[5] or 0,
-            "establishment_date": basic_row[6] or ""
+            "establish_date": basic_row[5] or ""
         }
         
         # 주주 정보 (전체)
@@ -6984,14 +6983,59 @@ def individual_business_list():
     revenue_max = request.args.get('revenue_max', '').strip()
     net_income_min = request.args.get('net_income_min', '').strip()
     net_income_max = request.args.get('net_income_max', '').strip()
+    status_filter = request.args.get('status', '전체').strip() # 접촉대기, 접촉중, 접촉해제, 완료  등
+    
+    # 페이징 파라미터
+    try:
+        limit = int(request.args.get('limit', 50))
+        offset = int(request.args.get('offset', 0))
+    except ValueError:
+        limit = 50
+        offset = 0
+        
+    is_ajax = request.args.get('ajax', 'false').lower() == 'true'
+    user_id = session.get('user_id')
     
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
+
+        # 컬럼 존재 확인 및 추가 (assigned_user_id, status)
+        cursor.execute("PRAGMA table_info(individual_business_owners)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if 'assigned_user_id' not in columns:
+            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN assigned_user_id TEXT")
+        if 'status' not in columns:
+            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN status TEXT DEFAULT '접촉대기'")
+        conn.commit()
         
         # 동적 SQL 쿼리 구성
         query = "SELECT * FROM individual_business_owners WHERE 1=1"
         params = []
+
+        # === 프라이버시 및 상태 필터링 로직 ===
+        # ct0001, ct0002는 모든 데이터 열람 가능
+        if user_id in ['ct0001', 'ct0002']:
+             pass # 제한 없음
+        else:
+            # 일반 사용자는 "다른 사람이 접촉중"인 건은 볼 수 없음
+            # 즉, (assigned_user_id IS NULL) OR (assigned_user_id = 내아이디) OR (status = '접촉해제')
+            # '접촉중'이면서 '다른 사람'인 것만 제외하면 됨
+            query += " AND (assigned_user_id IS NULL OR assigned_user_id = ? OR status = '접촉해제')"
+            params.append(user_id)
+
+        # 상태 필터 (전체, 접촉대기, 접촉중, 접촉해제 등)
+        if status_filter and status_filter != '전체':
+            if status_filter == '접촉중':
+                 # 내 접촉중인 것만 (일반 유저의 경우 위 조건과 결합되어 자연스럽게 내것만 나옴, 관리자는 전체 접촉중)
+                 if user_id not in ['ct0001', 'ct0002']:
+                     query += " AND status = '접촉중' AND assigned_user_id = ?"
+                     params.append(user_id)
+                 else:
+                     query += " AND status = '접촉중'"
+            else:
+                 query += " AND status = ?"
+                 params.append(status_filter)
         
         if company_name:
             query += " AND company_name LIKE ?"
@@ -7021,10 +7065,33 @@ def individual_business_list():
             query += " AND CAST(net_income AS REAL) <= ?"
             params.append(float(net_income_max))
         
-        query += " ORDER BY created_at DESC"
+        query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+        params.append(limit)
+        params.append(offset)
         
         cursor.execute(query, params)
         businesses = cursor.fetchall()
+        
+        # AJAX 요청이면 JSON 반환
+        if is_ajax:
+            business_list = []
+            for item in businesses:
+                business_list.append({
+                    'id': item['id'],
+                    'business_number': item['business_number'],
+                    'company_name': item['company_name'],
+                    'representative_name': item['representative_name'],
+                    'birth_year': item['birth_year'],
+                    'address': item['address'],
+                    'industry_type': item['industry_type'],
+                    'establishment_year': item['establishment_year'],
+                    'financial_year': item['financial_year'],
+                    'revenue': item['revenue'],
+                    'net_income': item['net_income'],
+                    'created_at': item['created_at'][:10] if item['created_at'] else '',
+                    'phone_number': item['phone_number']
+                })
+            return jsonify({'success': True, 'data': business_list})
         
         # 검색 파라미터를 템플릿에 전달
         search_params = {
@@ -7301,12 +7368,15 @@ def get_individual_business_detail(id):
     try:
         cursor = conn.cursor()
         
-        # 메모 컬럼 존재 확인 및 추가
+        # 컬럼 존재 확인 및 추가
         cursor.execute("PRAGMA table_info(individual_business_owners)")
         columns = [col[1] for col in cursor.fetchall()]
+        if 'assigned_user_id' not in columns:
+            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN assigned_user_id TEXT")
+        if 'status' not in columns:
+            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN status TEXT DEFAULT '접촉대기'")
         if 'memo' not in columns:
             cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN memo TEXT")
-            conn.commit()
         
         # 히스토리 테이블 생성
         cursor.execute('''
@@ -7316,27 +7386,36 @@ def get_individual_business_detail(id):
                 type TEXT,
                 content TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by TEXT,
                 FOREIGN KEY (business_id) REFERENCES individual_business_owners(id)
             )
         ''')
         conn.commit()
         
         # 데이터 조회
-        cursor.execute("SELECT memo FROM individual_business_owners WHERE id = ?", (id,))
+        cursor.execute("SELECT * FROM individual_business_owners WHERE id = ?", (id,))
         row = cursor.fetchone()
+        
+        if not row:
+            return jsonify({'success': False, 'message': '기업 정보를 찾을 수 없습니다.'})
+
         memo = row['memo'] if row else ''
+        status = row['status'] if 'status' in row.keys() and row['status'] else '접촉대기'
+        assigned_user_id = row['assigned_user_id'] if 'assigned_user_id' in row.keys() else None
         
         # 히스토리 조회
         cursor.execute('''
-            SELECT type, content, created_at FROM individual_business_history
+            SELECT type, content, created_at, created_by FROM individual_business_history
             WHERE business_id = ? ORDER BY created_at DESC
         ''', (id,))
-        history = [{'type': h['type'], 'content': h['content'], 'created_at': h['created_at']} for h in cursor.fetchall()]
+        history = [{'type': h['type'], 'content': h['content'], 'created_at': h['created_at'], 'created_by': h['created_by']} for h in cursor.fetchall()]
         
         return jsonify({
             'success': True,
             'data': {
                 'memo': memo,
+                'status': status,
+                'assigned_user_id': assigned_user_id,
                 'history': history
             }
         })
@@ -7348,42 +7427,74 @@ def get_individual_business_detail(id):
 
 @app.route('/individual_businesses/<int:id>/memo', methods=['POST'])
 def save_individual_business_memo(id):
-    """개인사업자 메모 저장"""
+    """개인사업자 메모 및 상태 저장"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': '로그인이 필요합니다.'})
+    
+    current_user_id = session.get('user_id')
     
     try:
         data = request.get_json()
         memo = data.get('memo', '')
+        new_status = data.get('status') # 상태 변경 요청이 있을 경우
         
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # 메모 컬럼 존재 확인 및 추가
-        cursor.execute("PRAGMA table_info(individual_business_owners)")
-        columns = [col[1] for col in cursor.fetchall()]
-        if 'memo' not in columns:
-            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN memo TEXT")
+        # 현재 상태 및 담당자 조회
+        cursor.execute("SELECT status, assigned_user_id FROM individual_business_owners WHERE id = ?", (id,))
+        row = cursor.fetchone()
         
-        cursor.execute("UPDATE individual_business_owners SET memo = ? WHERE id = ?", (memo, id))
+        if not row:
+            conn.close()
+            return jsonify({'success': False, 'message': '기업 정보를 찾을 수 없습니다.'})
+
+        current_status = row['status']
+        assigned_user_id = row['assigned_user_id']
+        
+        updates = ["memo = ?"]
+        params = [memo]
+        
+        # 상태 업데이트 로직
+        if new_status and new_status != current_status:
+            updates.append("status = ?")
+            params.append(new_status)
+            
+            # 접촉중으로 변경 시, 담당자가 없으면 현재 사용자로 지정
+            if new_status == '접촉중' and not assigned_user_id:
+                updates.append("assigned_user_id = ?")
+                params.append(current_user_id)
+            
+            # 접촉해제로 변경 시, 담당자를 유지할지 해제할지? 
+            # -> 보통 해제하면 다른 사람이 가져갈 수 있어야 하므로 assigned_user_id를 NULL로 하거나, 
+            #    그냥 '접촉해제' 상태로 두면 리스트 필터링에서 보이게 되므로(status='접촉해제') OK.
+            #    여기서는 담당자 정보는 이력상 남겨두고 상태만 변경함. (다른 사람이 '접촉중'으로 변경 시 덮어써짐)
+            
+        params.append(id)
+        
+        cursor.execute(f"UPDATE individual_business_owners SET {', '.join(updates)} WHERE id = ?", params)
         conn.commit()
         conn.close()
         
-        return jsonify({'success': True, 'message': '메모가 저장되었습니다.'})
+        return jsonify({'success': True, 'message': '저장되었습니다.'})
     except Exception as e:
         print(f"메모 저장 오류: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/individual_businesses/<int:id>/history', methods=['POST'])
 def add_individual_business_history(id):
-    """개인사업자 히스토리 추가"""
+    """개인사업자 히스토리 추가 및 상태 변경"""
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': '로그인이 필요합니다.'})
+    
+    current_user_id = session.get('user_id')
+    current_user_name = session.get('user_name', current_user_id)
     
     try:
         data = request.get_json()
         history_type = data.get('type', '기타')
         content = data.get('content', '')
+        new_status = data.get('status')
         
         if not content:
             return jsonify({'success': False, 'message': '내용을 입력해주세요.'})
@@ -7391,22 +7502,40 @@ def add_individual_business_history(id):
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # 히스토리 테이블 생성 (없으면)
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS individual_business_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                business_id INTEGER NOT NULL,
-                type TEXT,
-                content TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (business_id) REFERENCES individual_business_owners(id)
-            )
-        ''')
+        # 히스토리 추가
+        # created_by 컬럼이 있는지 확인 (history 테이블)
+        cursor.execute("PRAGMA table_info(individual_business_history)")
+        cols = [c[1] for c in cursor.fetchall()]
+        if 'created_by' not in cols:
+             cursor.execute("ALTER TABLE individual_business_history ADD COLUMN created_by TEXT")
         
         cursor.execute('''
-            INSERT INTO individual_business_history (business_id, type, content)
-            VALUES (?, ?, ?)
-        ''', (id, history_type, content))
+            INSERT INTO individual_business_history (business_id, type, content, created_by)
+            VALUES (?, ?, ?, ?)
+        ''', (id, history_type, content, current_user_name))
+        
+        # 상태 업데이트 로직
+        if new_status:
+            cursor.execute("SELECT status, assigned_user_id FROM individual_business_owners WHERE id = ?", (id,))
+            row = cursor.fetchone()
+            if row:
+                current_status = row['status']
+                assigned_user_id = row['assigned_user_id']
+                
+                if new_status != current_status:
+                    updates = ["status = ?"]
+                    params = [new_status]
+                    
+                    if new_status == '접촉중' and not assigned_user_id:
+                        updates.append("assigned_user_id = ?")
+                        params.append(current_user_id)
+                    elif new_status == '접촉중' and assigned_user_id and assigned_user_id != current_user_id:
+                        # 이미 다른 담당자가 있는데 접촉중으로 바꾼다면? -> 강제 탈취 (마지막 접촉자 기준)
+                        updates.append("assigned_user_id = ?")
+                        params.append(current_user_id)
+                        
+                    params.append(id)
+                    cursor.execute(f"UPDATE individual_business_owners SET {', '.join(updates)} WHERE id = ?", params)
         
         conn.commit()
         conn.close()

@@ -1,0 +1,43 @@
+px; resize: vertical;"
+                    placeholder="메모를 입력하세요..."></textarea>
+                <div
+                    style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+                    <select id="memo_status"
+                        style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                        <option value="접촉대기">접촉대기</option>
+                        <option value="접촉중">접촉중</option>
+                        <option value="접촉해제">접촉해제</option>
+                        <option value="완료">완료</option>
+                        <option value="실패">실패</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="saveMemo()">메모 및 상태 저장</button>
+                </div>
+            </div>
+
+            <!-- 히스토리 섹션 -->
+            <div style="margin-bottom: 1rem;">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--primary-color);">■ 접촉 히스토리</h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <select id="history_type"
+                        style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                        <option value="전화">전화</option>
+                        <option value="방문">방문</option>
+                        <option value="이메일">이메일</option>
+                        <option value="미팅">미팅</option>
+                        <option value="기타">기타</option>
+                    </select>
+                    <select id="history_status"
+                        style="padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; min-width: 100px;">
+                        <option value="">상태변경</option>
+                        <option value="접촉대기">접촉대기</option>
+                        <option value="접촉중">접촉중</option>
+                        <option value="접촉해제">접촉해제</option>
+                        <option value="완료">완료</option>
+                        <option value="실패">실패</option>
+                    </select>
+                    <input type="text" id="history_content" placeholder="내용을 입력하세요"
+                        style="flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    <button class="btn btn-success" onclick="addHistory()">추가</button>
+                </div>
+                <div id="history_list"
+                    style="max-height: 200px; overflow-y: aut
