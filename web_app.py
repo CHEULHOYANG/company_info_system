@@ -7799,12 +7799,7 @@ def manage_blog():
         conn.close()
 
 # 아티팩트 이미지 서빙 (중요)
-@app.route('/artifact_image/<filename>')
-def get_artifact_image(filename):
-    # Artifact directory path
-    artifact_dir = r"C:\Users\yangga\.gemini\antigravity\brain\379b89a0-0c34-45d1-815d-3c8661d646f8"
-    return send_from_directory(artifact_dir, filename)
-
+if __name__ == '__main__':
     # 앱 시작 시 테이블 초기화
     print("\n=== 데이터베이스 테이블 초기화 ===")
     try:
