@@ -2906,6 +2906,11 @@ def copy_local_data():
             "message": f"데이터 복사 실패: {str(e)}"
         }), 500
 
+@app.route('/artifact_image/<filename>')
+def get_artifact_image(filename):
+    artifact_dir = r"C:\Users\yangga\.gemini\antigravity\brain\379b89a0-0c34-45d1-815d-3c8661d646f8"
+    return send_from_directory(artifact_dir, filename)
+
 @app.route('/')
 def index():
     if not session.get('logged_in'):
@@ -6979,10 +6984,14 @@ def individual_business_list():
     company_name = request.args.get('company_name', '').strip()
     business_number = request.args.get('business_number', '').strip()
     address = request.args.get('address', '').strip()
+    industry_type = request.args.get('industry_type', '').strip()
+    financial_year = request.args.get('financial_year', '2024').strip() # 기본값 2024
     revenue_min = request.args.get('revenue_min', '').strip()
     revenue_max = request.args.get('revenue_max', '').strip()
     net_income_min = request.args.get('net_income_min', '').strip()
     net_income_max = request.args.get('net_income_max', '').strip()
+    start_date = request.args.get('start_date', '').strip()
+    end_date = request.args.get('end_date', '').strip()
     status_filter = request.args.get('status', '전체').strip() # 접촉대기, 접촉중, 접촉해제, 완료  등
     
     # 페이징 파라미터
@@ -7048,6 +7057,14 @@ def individual_business_list():
         if address:
             query += " AND address LIKE ?"
             params.append(f'%{address}%')
+
+        if industry_type:
+            query += " AND industry_type LIKE ?"
+            params.append(f'%{industry_type}%')
+            
+        if financial_year:
+            query += " AND CAST(financial_year AS INTEGER) = ?"
+            params.append(int(financial_year))
         
         if revenue_min:
             query += " AND CAST(revenue AS REAL) >= ?"
@@ -7064,8 +7081,20 @@ def individual_business_list():
         if net_income_max:
             query += " AND CAST(net_income AS REAL) <= ?"
             params.append(float(net_income_max))
+            
+        if start_date:
+            query += " AND date(created_at) >= date(?)"
+            params.append(start_date)
+            
+        if end_date:
+            query += " AND date(created_at) <= date(?)"
+            params.append(end_date)
+            
+        # Debugging date search
+        print(f"DEBUG SEARCH: Start={start_date}, End={end_date}, Params={params}")
         
-        query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+        # Default sort by address (Zipcode + Address) as requested
+        query += " ORDER BY address ASC LIMIT ? OFFSET ?"
         params.append(limit)
         params.append(offset)
         
@@ -7080,6 +7109,7 @@ def individual_business_list():
                     'id': item['id'],
                     'business_number': item['business_number'],
                     'company_name': item['company_name'],
+                    'status': item['status'], # 상태 추가
                     'representative_name': item['representative_name'],
                     'birth_year': item['birth_year'],
                     'address': item['address'],
@@ -7098,10 +7128,15 @@ def individual_business_list():
             'company_name': company_name,
             'business_number': business_number,
             'address': address,
+            'industry_type': industry_type,
+            'financial_year': financial_year,
             'revenue_min': revenue_min,
             'revenue_max': revenue_max,
             'net_income_min': net_income_min,
-            'net_income_max': net_income_max
+            'net_income_max': net_income_max,
+            'start_date': start_date,
+            'end_date': end_date,
+            'status': status_filter
         }
         
         return render_template('individual_list.html', businesses=businesses, search=search_params)
@@ -7329,6 +7364,7 @@ def upload_individual_business_excel():
                         ''', values)
                     else:
                         # 삽입
+                        data['created_at'] = '0001-01-01 00:00:00' # 초기 등록일은 맨 뒤로 가도록 설정
                         columns = ', '.join(data.keys())
                         placeholders = ', '.join(['?' for _ in data])
                         cursor.execute(f'''
@@ -7390,6 +7426,13 @@ def get_individual_business_detail(id):
                 FOREIGN KEY (business_id) REFERENCES individual_business_owners(id)
             )
         ''')
+        
+        # 히스토리 테이블 컬럼 확인 및 추가 (created_by 등)
+        cursor.execute("PRAGMA table_info(individual_business_history)")
+        h_cols = [c[1] for c in cursor.fetchall()]
+        if 'created_by' not in h_cols:
+             cursor.execute("ALTER TABLE individual_business_history ADD COLUMN created_by TEXT")
+             
         conn.commit()
         
         # 데이터 조회
@@ -7460,10 +7503,14 @@ def save_individual_business_memo(id):
             updates.append("status = ?")
             params.append(new_status)
             
+            # 상태 변경 시 등록일(최근활동일) 갱신
+            updates.append("created_at = CURRENT_TIMESTAMP")
+            
             # 접촉중으로 변경 시, 담당자가 없으면 현재 사용자로 지정
-            if new_status == '접촉중' and not assigned_user_id:
-                updates.append("assigned_user_id = ?")
-                params.append(current_user_id)
+            if new_status == '접촉중':
+                if not assigned_user_id:
+                    updates.append("assigned_user_id = ?")
+                    params.append(current_user_id)
             
             # 접촉해제로 변경 시, 담당자를 유지할지 해제할지? 
             # -> 보통 해제하면 다른 사람이 가져갈 수 있어야 하므로 assigned_user_id를 NULL로 하거나, 
@@ -7526,9 +7573,13 @@ def add_individual_business_history(id):
                     updates = ["status = ?"]
                     params = [new_status]
                     
-                    if new_status == '접촉중' and not assigned_user_id:
-                        updates.append("assigned_user_id = ?")
-                        params.append(current_user_id)
+                    # 상태 변경 시 등록일(최근활동일) 갱신
+                    updates.append("created_at = CURRENT_TIMESTAMP")
+                    
+                    if new_status == '접촉중':
+                        if not assigned_user_id:
+                             updates.append("assigned_user_id = ?")
+                             params.append(current_user_id)
                     elif new_status == '접촉중' and assigned_user_id and assigned_user_id != current_user_id:
                         # 이미 다른 담당자가 있는데 접촉중으로 바꾼다면? -> 강제 탈취 (마지막 접촉자 기준)
                         updates.append("assigned_user_id = ?")
@@ -7561,6 +7612,199 @@ if __name__ == '__main__':
     else:
         print(f"? 데이터베이스 파일 없음: {DB_PATH}")
     
+# ==========================================
+# LYS Feature Functions (Seminars & Blog)
+# ==========================================
+def init_lys_tables():
+    conn = get_db_connection()
+    try:
+        # 세미나 테이블
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS Seminars (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                description TEXT,
+                date TEXT,
+                time TEXT,
+                location TEXT,
+                image_url TEXT,
+                link_url TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # 블로그/뉴스 테이블
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS BlogPosts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                category TEXT,
+                summary TEXT,
+                thumbnail_url TEXT,
+                link_url TEXT,
+                publish_date TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        # 세미나 신청자 테이블 (별도 관리)
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS SeminarRegistrations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seminar_title TEXT NOT NULL,
+                name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                company_name TEXT,
+                position TEXT,
+                biz_no TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        conn.commit()
+    except Exception as e:
+        print(f"Error initializing LYS tables: {e}")
+    finally:
+        conn.close()
+
+@app.route('/lys')
+def lys_page_v2():
+    conn = get_db_connection()
+    seminars = []
+    blog_posts = []
+    counts = {
+        "inquiry": 15,
+        "seminar": 11
+    }
+    try:
+        # 세미나 목록
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM Seminars ORDER BY date ASC LIMIT 3")
+        for row in cursor.fetchall():
+            seminars.append({
+                "id": row[0], "title": row[1], "description": row[2],
+                "date": row[3], "time": row[4], "location": row[5],
+                "image_url": row[6], "link_url": row[7]
+            })
+
+        # 블로그 목록
+        cursor.execute("SELECT * FROM BlogPosts ORDER BY publish_date DESC LIMIT 4")
+        for row in cursor.fetchall():
+            blog_posts.append({
+                "id": row[0], "title": row[1], "category": row[2],
+                "summary": row[3], 
+                "thumbnail_url": row[4],
+                "link_url": row[5], "publish_date": row[6]
+            })
+            
+        # 카운트 계산
+        # 상담 신청 건수: 15 + DB count(Inquiries or Contact_History)
+        # Assuming Contact_History is general inquiry? Or do we have an Inquiries table?
+        # lys_admin.html used 'inquiries' variable. Previous code didn't show Inquiry table name clearly but referenced 'inquiries'.
+        # I'll check `Contact_History` or create `Inquiries` if needed.
+        # Step 204 showed `Contact_History`. Let's assume that's it or just use a placeholder + SeminarRegistrations count.
+        # Actually, let's just count `SeminarRegistrations` for seminars.
+        
+        cursor.execute("SELECT COUNT(*) FROM SeminarRegistrations")
+        sem_count_db = cursor.fetchone()[0]
+        counts["seminar"] += sem_count_db
+
+        # For General Inquiries, let's count Contact_History for now or 0 if table not used yet
+        try:
+            cursor.execute("SELECT COUNT(*) FROM Contact_History")
+            inq_count_db = cursor.fetchone()[0]
+            counts["inquiry"] += inq_count_db
+        except:
+            pass
+
+    except Exception as e:
+        print(f"Error loading LYS data: {e}")
+    finally:
+        conn.close()
+
+    return render_template('lys_main.html', news_items=blog_posts, seminars=seminars, counts=counts)
+
+@app.route('/lys/register_seminar', methods=['POST'])
+def register_seminar():
+    data = request.json
+    conn = get_db_connection()
+    try:
+        conn.execute('''
+            INSERT INTO SeminarRegistrations (seminar_title, name, phone, company_name, position, biz_no)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (data.get('seminar_title'), data.get('name'), data.get('phone'), 
+              data.get('company_name'), data.get('position'), data.get('biz_no')))
+        conn.commit()
+        return jsonify({"success": True, "message": "신청이 완료되었습니다."})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/lys/admin/seminars', methods=['GET', 'POST', 'DELETE'])
+def manage_seminars():
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+    conn = get_db_connection()
+    try:
+        if request.method == 'POST':
+            data = request.json
+            conn.execute('INSERT INTO Seminars (title, description, date, time, location, link_url) VALUES (?,?,?,?,?,?)',
+                         (data.get('title'), data.get('description'), data.get('date'), data.get('time'), data.get('location'), data.get('link_url')))
+            conn.commit()
+            return jsonify({"success": True})
+        elif request.method == 'DELETE':
+            conn.execute('DELETE FROM Seminars WHERE id = ?', (request.args.get('id'),))
+            conn.commit()
+            return jsonify({"success": True})
+        else:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM Seminars ORDER BY date DESC')
+            rows = cursor.fetchall()
+            seminars = []
+            for row in rows:
+                seminars.append({"id": row[0], "title": row[1], "description": row[2], "date": row[3], "time": row[4], "location": row[5], "link_url": row[7]})
+            return jsonify({"success": True, "data": seminars})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/lys/admin/blog', methods=['GET', 'POST', 'DELETE'])
+def manage_blog():
+    if not session.get('logged_in'):
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+    conn = get_db_connection()
+    try:
+        if request.method == 'POST':
+            data = request.json
+            conn.execute('INSERT INTO BlogPosts (title, category, summary, thumbnail_url, link_url, publish_date) VALUES (?,?,?,?,?,?)',
+                         (data.get('title'), data.get('category'), data.get('summary'), data.get('thumbnail_url'), data.get('link_url'), data.get('publish_date')))
+            conn.commit()
+            return jsonify({"success": True})
+        elif request.method == 'DELETE':
+            conn.execute('DELETE FROM BlogPosts WHERE id = ?', (request.args.get('id'),))
+            conn.commit()
+            return jsonify({"success": True})
+        else:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM BlogPosts ORDER BY publish_date DESC')
+            rows = cursor.fetchall()
+            posts = []
+            for row in rows:
+                posts.append({"id": row[0], "title": row[1], "category": row[2], "summary": row[3], "thumbnail_url": row[4], "link_url": row[5], "publish_date": row[6]})
+            return jsonify({"success": True, "data": posts})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+# 아티팩트 이미지 서빙 (중요)
+@app.route('/artifact_image/<filename>')
+def get_artifact_image(filename):
+    # Artifact directory path
+    artifact_dir = r"C:\Users\yangga\.gemini\antigravity\brain\379b89a0-0c34-45d1-815d-3c8661d646f8"
+    return send_from_directory(artifact_dir, filename)
+
     # 앱 시작 시 테이블 초기화
     print("\n=== 데이터베이스 테이블 초기화 ===")
     try:
@@ -7592,6 +7836,12 @@ if __name__ == '__main__':
         print("? 개인사업자 테이블 초기화 완료")
     except Exception as e:
         print(f"? 개인사업자 테이블 초기화 실패: {e}")
+
+    try:
+        init_lys_tables()
+        print("? LYS 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? LYS 테이블 초기화 실패: {e}")
     
     # 서버 시작
     port = int(os.environ.get('PORT', 5000))

@@ -495,6 +495,28 @@
             font-weight: 700 !important;
             color: #2c3e50 !important;
         }
+
+        /* Status Row Colors */
+        .status-row-contacting {
+            background-color: #e3f2fd !important;
+        }
+
+        .status-row-completed {
+            background-color: #e8f5e9 !important;
+        }
+
+        .status-row-failed {
+            background-color: #ffebee !important;
+        }
+
+        .status-row-released {
+            background-color: #f5f5f5 !important;
+        }
+
+        /* Ensure hover effect is visible */
+        .clickable-row:hover {
+            filter: brightness(0.95);
+        }
     </style>
 </head>
 
@@ -558,10 +580,26 @@
                     <div class="form-group" style="margin: 0;">
                         <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">당기순이익(억) 범위</label>
                         <div style="display: flex; gap: 5px; align-items: center;">
+                            <input type="number" name="net_income_min" value="{{ search.net_income_min or '' }}"
+                                placeholder="최소" step="0.1"
+                                style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <span>~</span>
                             <input type="number" name="net_income_max" value="{{ search.net_income_max or '' }}"
                                 placeholder="최대" step="0.1"
                                 style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
                         </div>
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">업종</label>
+                        <input type="text" name="industry_type" value="{{ search.industry_type or '' }}"
+                            placeholder="업종 검색"
+                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">재무년도</label>
+                        <input type="number" name="financial_year" value="{{ search.financial_year or '' }}"
+                            placeholder="YYYY"
+                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <button type="submit" class="btn btn-primary">검색</button>
@@ -580,6 +618,7 @@
             <thead>
                 <tr>
                     <th style="width: 50px;">순번</th>
+                    <th style="width: 80px; text-align: center;">상태</th>
                     <th>사업자번호</th>
                     <th>기업명</th>
                     <th style="width: 80px; max-width: 80px;">대표자명</th>
@@ -595,8 +634,19 @@
             </thead>
             <tbody>
                 {% for item in businesses %}
-                <tr class="clickable-row" onclick="openDetailModal('{{ item.id }}')" style="cursor: pointer;"
-                    data-id="{{ item.id }}" data-business-number="{{ item.business_number or '' }}"
+                {% set status_class = '' %}
+                {% if item.status == '접촉중' %}
+                {% set status_class = 'status-row-contacting' %}
+                {% elif item.status == '완료' %}
+                {% set status_class = 'status-row-completed' %}
+                {% elif item.status == '실패' %}
+                {% set status_class = 'status-row-failed' %}
+                {% elif item.status == '접촉해제' %}
+                {% set status_class = 'status-row-released' %}
+                {% endif %}
+                <tr class="clickable-row {{ status_class }}" onclick="openDetailModal('{{ item.id }}')"
+                    style="cursor: pointer;" data-id="{{ item.id }}"
+                    data-business-number="{{ item.business_number or '' }}"
                     data-company-name="{{ item.company_name or '' }}"
                     data-representative="{{ item.representative_name or '' }}"
                     data-birth-year="{{ item.birth_year or '' }}" data-address="{{ item.address or '' }}"
@@ -604,16 +654,21 @@
                     data-establishment="{{ item.establishment_year or '' }}"
                     data-financial-year="{{ item.financial_year or '' }}" data-revenue="{{ item.revenue or '' }}"
                     data-net-income="{{ item.net_income or '' }}" data-phone="{{ item.phone_number or '' }}"
-                    data-created="{{ item.created_at[:10] if item.created_at else '' }}">
+                    data-created="{{ item.created_at[:10] if item.created_at else '' }}"
+                    data-status="{{ item.status or '' }}">
                     <td style="text-align: center;">{{ loop.index }}</td>
-                    <td>{{ item.business_number or '' }}</td>
-                    <td>
-                        {{ item.company_name or '' }}
-                        {% if item.status and item.status != '접촉대기' %}
+                    <td style="text-align: center;">
+                        {% if item.status %}
                         <span class="status-badge {{ 'status-contact' if item.status == '접촉중' else 'status-other' }}">
                             {{ item.status }}
                         </span>
+                        {% else %}
+                        <span class="status-badge" style="background: #e0e0e0; color: #666;">접촉대기</span>
                         {% endif %}
+                    </td>
+                    <td>{{ item.business_number or '' }}</td>
+                    <td>
+                        {{ item.company_name or '' }}
                     </td>
                     <td style="max-width: 80px; overflow: hidden; text-overflow: ellipsis;">{{ item.representative_name
                         or '' }}</td>
@@ -1057,11 +1112,10 @@
                     document.getElementById('detail_memo').value = result.data.memo || '';
 
                     // 상태 설정 (기존 상태가 있는 경우에만 버튼 선택)
-                    const status = result.data.status;
                     if (status) {
                         const statusBtn = document.querySelector(`.status-btn[data-status="${status}"]`);
                         if (statusBtn) selectStatus(statusBtn, status);
-                        document.getElementById('history_status').value = status;
+                        // document.getElementById('history_status').value = status; // Element Removed
                         document.getElementById('selected_status').value = status;
                     } else {
                         // 초기 상태: 아무 버튼도 선택하지 않음
@@ -1092,8 +1146,41 @@
                 const result = await response.json();
                 if (result.success) {
                     alert('저장되었습니다.');
-                    // 리스트 갱신을 위해 현재 파라미터 유지하며 리로드
-                    reloadWithCurrentParams();
+
+                    // DOM 업데이트 (리로드 없이)
+                    const row = document.querySelector(`tr[data-id="${id}"]`);
+                    if (row) {
+                        // 상태 배지 업데이트
+                        const nameCell = row.cells[2]; // 기업명+상태 셀
+                        let statusHtml = '';
+                        // 기업명만 추출 (배지 제거)
+                        // 기존 HTML 구조: <td>기업명 <span...>상태</span></td>
+                        // 텍스트 노드만 가져오거나 dataset에서 복원
+                        const companyName = row.dataset.companyName || '';
+
+                        if (status) {
+                            const badgeClass = status === '접촉중' ? 'status-contact' : 'status-other';
+                            statusHtml = `<span class="status-badge ${badgeClass}">${status}</span>`;
+                        } else {
+                            statusHtml = `<span class="status-badge" style="background: #e0e0e0; color: #666;">접촉대기</span>`;
+                        }
+
+                        // 분리된 상태 컬럼 업데이트 (인덱스 1)
+                        const statusCell = row.cells[1];
+                        statusCell.innerHTML = statusHtml;
+
+                        // 데이터셋 업데이트
+                        row.dataset.status = status;
+
+                        // 행 색상 클래스 업데이트
+                        row.classList.remove('status-row-contacting', 'status-row-completed', 'status-row-failed', 'status-row-released');
+                        if (status === '접촉중') row.classList.add('status-row-contacting');
+                        else if (status === '완료') row.classList.add('status-row-completed');
+                        else if (status === '실패') row.classList.add('status-row-failed');
+                        else if (status === '접촉해제') row.classList.add('status-row-released');
+                    }
+
+                    closeModal('detailModal');
                 } else {
                     alert('오류: ' + result.message);
                 }
@@ -1108,7 +1195,7 @@
             const id = document.getElementById('detail_id').value;
             const type = document.getElementById('history_type').value;
             const content = document.getElementById('history_content').value.trim();
-            const status = document.getElementById('history_status').value;
+            const status = document.getElementById('selected_status').value; // 현재 선택된 상태 사용
 
             if (!content) {
                 alert('내용을 입력해주세요.');
@@ -1125,7 +1212,25 @@
                 const result = await response.json();
                 if (result.success) {
                     document.getElementById('history_content').value = '';
-                    loadMemoAndHistory(id); // 히스토리 및 상태 다시 로드
+                    // 히스토리 목록만 다시 로드
+                    loadMemoAndHistory(id);
+
+                    // 리스트의 상태 배지도 업데이트 (히스토리 추가 시 상태 변경 가능성 있음)
+                    const row = document.querySelector(`tr[data-id="${id}"]`);
+                    if (row && status) {
+                        const statusCell = row.cells[1];
+                        const badgeClass = status === '접촉중' ? 'status-contact' : 'status-other';
+                        statusCell.innerHTML = `<span class="status-badge ${badgeClass}">${status}</span>`;
+                        row.dataset.status = status;
+
+                        // 행 색상 클래스 업데이트
+                        row.classList.remove('status-row-contacting', 'status-row-completed', 'status-row-failed', 'status-row-released');
+                        if (status === '접촉중') row.classList.add('status-row-contacting');
+                        else if (status === '완료') row.classList.add('status-row-completed');
+                        else if (status === '실패') row.classList.add('status-row-failed');
+                        else if (status === '접촉해제') row.classList.add('status-row-released');
+                    }
+
                 } else {
                     alert('오류: ' + result.message);
                 }
@@ -1217,7 +1322,15 @@
 
                     result.data.forEach((item, index) => {
                         const tr = document.createElement('tr');
-                        tr.className = 'clickable-row';
+
+                        // 상태에 따른 행 클래스 결정
+                        let statusClass = '';
+                        if (item.status === '접촉중') statusClass = 'status-row-contacting';
+                        else if (item.status === '완료') statusClass = 'status-row-completed';
+                        else if (item.status === '실패') statusClass = 'status-row-failed';
+                        else if (item.status === '접촉해제') statusClass = 'status-row-released';
+
+                        tr.className = `clickable-row ${statusClass}`;
                         tr.style.cursor = 'pointer';
                         tr.onclick = () => openDetailModal(item.id);
 
@@ -1235,20 +1348,24 @@
                         tr.dataset.netIncome = item.net_income || '';
                         tr.dataset.phone = item.phone_number || '';
                         tr.dataset.created = item.created_at || '';
+                        tr.dataset.status = item.status || '';
 
                         const globalIndex = currentOffset + index + 1;
 
                         // 상태 배지 HTML 생성
                         let statusHtml = '';
-                        if (item.status && item.status !== '접촉대기') {
+                        if (item.status) {
                             const badgeClass = item.status === '접촉중' ? 'status-contact' : 'status-other';
                             statusHtml = `<span class="status-badge ${badgeClass}">${item.status}</span>`;
+                        } else {
+                            statusHtml = `<span class="status-badge" style="background: #e0e0e0; color: #666;">접촉대기</span>`;
                         }
 
                         tr.innerHTML = `
                             <td style="text-align: center;">${globalIndex}</td>
+                            <td style="text-align: center;">${statusHtml}</td>
                             <td>${item.business_number || ''}</td>
-                            <td>${item.company_name || ''} ${statusHtml}</td>
+                            <td>${item.company_name || ''}</td>
                             <td style="max-width: 80px; overflow: hidden; text-overflow: ellipsis;">${item.representative_name || ''}</td>
                             <td>${item.birth_year || ''}</td>
                             <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${item.address || ''}">${item.address || ''}</td>
