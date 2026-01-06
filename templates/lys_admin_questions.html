@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지 - 진단 항목 관리</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .admin-header {
+            background: #fff;
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: center;
+        }
+
+        .admin-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .admin-nav a {
+            text-decoration: none;
+            color: #6b7280;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .admin-nav a.active {
+            background: #111827;
+            color: white;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .btn-primary {
+            background: #111827;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .question-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .question-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .question-item:first-child {
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .drag-handle {
+            color: #9ca3af;
+            margin-right: 20px;
+            cursor: grab;
+            padding: 5px;
+        }
+
+        .question-order {
+            width: 30px;
+            color: #9ca3af;
+            font-size: 14px;
+            text-align: center;
+            margin-right: 15px;
+        }
+
+        .question-text {
+            flex: 1;
+            font-size: 15px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .question-type {
+            font-size: 13px;
+            color: #6b7280;
+            margin-right: 20px;
+            background: #f3f4f6;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .action-links i {
+            color: #60a5fa;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .action-links i.fa-trash-alt {
+            color: #f87171;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-header">
+        <h1 style="font-size: 24px; margin: 0;">관리자 페이지</h1>
+        <div class="admin-nav">
+            <a href="/lys/admin/seminars">세미나 관리</a>
+            <a href="/lys/admin/registrations">세미나 신청자 관리</a>
+            <a href="/lys/admin/questions" class="active">진단 항목 관리</a>
+            <a href="/lys">사이트 관리</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <h2>새 질문 등록</h2>
+                <div style="font-size: 13px; color: #6b7280;">현재 질문 수: {{ questions|length }} / 15</div>
+            </div>
+            <form method="POST">
+                <div class="form-group">
+                    <label class="form-label">질문 내용</label>
+                    <input type="text" name="question" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">답변 유형</label>
+                    <input type="text" name="type" class="form-control" value="네/아니오" placeholder="네/아니오">
+                </div>
+                <button type="submit" class="btn-primary">질문 추가</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>등록된 질문 목록 (드래그하여 순서 변경)</h2>
+            <div
+                style="display: flex; padding: 10px 15px; background: #f9fafb; border-bottom: 2px solid #e5e7eb; font-size: 13px; font-weight: 600; color: #374151;">
+                <div style="width: 30px; margin-right: 20px;">이동</div>
+                <div style="width: 30px; margin-right: 15px; text-align: center;">순서</div>
+                <div style="flex: 1;">질문</div>
+                <div style="margin-right: 20px; width: 80px;">유형</div>
+                <div style="width: 60px; text-align: center;">관리</div>
+            </div>
+            <ul class="question-list" id="questionList">
+                {% for q in questions %}
+                <li class="question-item" data-id="{{ q.id }}">
+                    <div class="drag-handle"><i class="fas fa-grip-vertical"></i></div>
+                    <div class="question-order">{{ q.display_order }}</div>
+                    <div class="question-text">{{ q.question_text }}</div>
+                    <div class="question-type">{{ q.type }}</div>
+                    <div class="action-links">
+                        <!-- Edit placeholder -->
+                        <i class="fas fa-edit"></i>
+                        <form action="/lys/admin/questions/{{ q.id }}/delete" method="POST" style="display:inline;"
+                            onsubmit="return confirm('삭제하시겠습니까?');">
+                            <button type="submit" style="background:none; border:none; padding:0;"><i
+                                    class="fas fa-trash-alt"></i></button>
+                        </form>
+                    </div>
+                </li>
+                {% else %}
+                <li class="question-item">등록된 질문이 없습니다.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const el = document.getElementById('questionList');
+        const sortable = Sortable.create(el, {
+            handle: '.drag-handle',
+            animation: 150,
+            onEnd: function (evt) {
+                // Update order numbers visually
+                const items = el.querySelectorAll('.question-item');
+                const order = [];
+                items.forEach((item, index) => {
+                    item.querySelector('.question-order').innerText = index + 1;
+                    order.push(item.dataset.id);
+                });
+
+                // Send new order to server
+                fetch('/lys/admin/questions/reorder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order: order })
+                }).then(res => res.json())
+                    .then(data => {
+                        if (!data.success) alert('순서 저장 실패');
+                    });
+            }
+        });
+    </script>
+</body>
+
+</html>

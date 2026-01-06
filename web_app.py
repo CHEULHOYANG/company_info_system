@@ -6609,15 +6609,221 @@ def lys_main():
         news_items = conn.execute('''
             SELECT * FROM ys_news ORDER BY publish_date DESC, id DESC LIMIT 6
         ''').fetchall()
+
+        # 세미나 정보 조회 (미래 일정 순)
+        today = datetime.now().strftime('%Y-%m-%d')
+        seminars = conn.execute('''
+            SELECT * FROM Seminars 
+            WHERE date >= ? 
+            ORDER BY date ASC, time ASC
+        ''', (today,)).fetchall()
+        
+        # 카운트 정보 조회
+        try:
+            seminar_count = conn.execute('SELECT COUNT(*) FROM SeminarRegistrations').fetchone()[0]
+        except:
+            seminar_count = 0
+            
+        try:
+            inquiry_count = conn.execute('SELECT COUNT(*) FROM ys_inquiries').fetchone()[0]
+        except:
+            inquiry_count = 0
+            
+        counts = {
+            'seminar': seminar_count,
+            'inquiry': inquiry_count
+        }
         
         return render_template('lys_main.html', 
                                team_members=[dict(row) for row in team_members],
-                               news_items=[dict(row) for row in news_items])
+                               news_items=[dict(row) for row in news_items],
+                               seminars=[dict(row) for row in seminars],
+                               counts=counts)
     except Exception as e:
         print(f"LYS 메인 페이지 오류: {e}")
-        return render_template('lys_main.html', team_members=[], news_items=[])
+        # 오류 시 빈 데이터로 렌더링 (크래시 방지)
+        return render_template('lys_main.html', 
+                               team_members=[], 
+                               news_items=[], 
+                               seminars=[], 
+                               counts={'seminar': 0, 'inquiry': 0})
     finally:
         conn.close()
+
+@app.route('/api/seminar/register', methods=['POST'])
+def register_seminar_api():
+    """세미나 참가 신청 API"""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"success": False, "message": "데이터가 없습니다."}), 400
+            
+        required_fields = ['seminar_title', 'name', 'phone', 'biz_no']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({"success": False, "message": f"필수 항목이 누락되었습니다: {field}"}), 400
+        
+        conn = get_db_connection()
+        try:
+            conn.execute('''
+                INSERT INTO SeminarRegistrations 
+                (seminar_title, name, phone, company_name, position, biz_no)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (
+                data['seminar_title'],
+                data['name'],
+                data['phone'],
+                data.get('company_name', ''),
+                data.get('position', ''),
+                data['biz_no']
+            ))
+            conn.commit()
+            return jsonify({"success": True, "message": "세미나 참가 신청이 완료되었습니다."})
+        except Exception as e:
+            conn.rollback()
+            return jsonify({"success": False, "message": f"데이터베이스 오류: {str(e)}"}), 500
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        return jsonify({"success": False, "message": f"서버 오류: {str(e)}"}), 500
+
+# --- LYS ADMIN ROUTES START ---
+@app.route('/lys/admin/seminars', methods=['GET', 'POST'])
+def lys_admin_seminars():
+    """세미나 관리 페이지"""
+    if not session.get('lys_admin_auth'):
+        return redirect('/lys/admin')
+        
+    conn = get_db_connection()
+    try:
+        if request.method == 'POST':
+            # 세미나 추가
+            title = request.form['title']
+            date = request.form['date']
+            time = request.form['time']
+            location = request.form['location']
+            max_attendees = request.form.get('max_attendees', 0)
+            description = request.form.get('description', '')
+            
+            cursor = conn.execute('''
+                INSERT INTO Seminars (title, date, time, location, description, max_attendees)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (title, date, time, location, description, max_attendees))
+            seminar_id = cursor.lastrowid
+            
+            # 세션 추가
+            sessions = request.form.getlist('session_title[]')
+            session_times = request.form.getlist('session_time[]')
+            instructors = request.form.getlist('session_instructor[]')
+            
+            for i in range(len(sessions)):
+                if sessions[i]:
+                    conn.execute('''
+                        INSERT INTO SeminarSessions (seminar_id, session_time, title, instructor)
+                        VALUES (?, ?, ?, ?)
+                    ''', (seminar_id, session_times[i], sessions[i], instructors[i]))
+            
+            conn.commit()
+            return redirect('/lys/admin/seminars')
+            
+        seminars = conn.execute('SELECT * FROM Seminars ORDER BY date DESC').fetchall()
+        return render_template('lys_admin_seminars.html', seminars=[dict(row) for row in seminars])
+    except Exception as e:
+        print(f"세미나 관리 오류: {e}")
+        return str(e), 500
+    finally:
+        conn.close()
+
+@app.route('/lys/admin/seminars/<int:id>/delete', methods=['POST'])
+def lys_admin_delete_seminar(id):
+    if not session.get('lys_admin_auth'): return redirect('/lys/admin')
+    conn = get_db_connection()
+    try:
+        conn.execute('DELETE FROM Seminars WHERE id = ?', (id,))
+        conn.execute('DELETE FROM SeminarSessions WHERE seminar_id = ?', (id,)) # CASCADE simulation if needed
+        conn.commit()
+    finally:
+        conn.close()
+    return redirect('/lys/admin/seminars')
+
+@app.route('/lys/admin/registrations')
+def lys_admin_registrations():
+    """세미나 신청자 관리 페이지"""
+    if not session.get('lys_admin_auth'):
+        return redirect('/lys/admin')
+        
+    conn = get_db_connection()
+    try:
+        registrations = conn.execute('''
+            SELECT * FROM SeminarRegistrations ORDER BY created_at DESC
+        ''').fetchall()
+        return render_template('lys_admin_registrations.html', registrations=[dict(row) for row in registrations])
+    finally:
+        conn.close()
+
+@app.route('/lys/admin/registrations/<int:id>/delete', methods=['POST'])
+def lys_admin_delete_registration(id):
+    if not session.get('lys_admin_auth'): return redirect('/lys/admin')
+    conn = get_db_connection()
+    try:
+        conn.execute('DELETE FROM SeminarRegistrations WHERE id = ?', (id,))
+        conn.commit()
+    finally:
+        conn.close()
+    return redirect('/lys/admin/registrations')
+
+@app.route('/lys/admin/questions', methods=['GET', 'POST'])
+def lys_admin_questions():
+    """진단 질문 관리 페이지"""
+    if not session.get('lys_admin_auth'):
+        return redirect('/lys/admin')
+        
+    conn = get_db_connection()
+    try:
+        if request.method == 'POST':
+            question_text = request.form['question']
+            q_type = request.form['type']
+            # Get next display order
+            max_order = conn.execute('SELECT MAX(display_order) FROM ys_questions').fetchone()[0] or 0
+            
+            conn.execute('''
+                INSERT INTO ys_questions (question_text, type, display_order, is_active)
+                VALUES (?, ?, ?, 1)
+            ''', (question_text, q_type, max_order + 1))
+            conn.commit()
+            return redirect('/lys/admin/questions')
+            
+        questions = conn.execute('SELECT * FROM ys_questions ORDER BY display_order ASC').fetchall()
+        return render_template('lys_admin_questions.html', questions=[dict(row) for row in questions])
+    finally:
+        conn.close()
+
+@app.route('/lys/admin/questions/reorder', methods=['POST'])
+def lys_admin_reorder_questions():
+    if not session.get('lys_admin_auth'): return jsonify({'success': False}), 403
+    try:
+        order_data = request.json['order'] # List of IDs in new order
+        conn = get_db_connection()
+        for index, q_id in enumerate(order_data):
+            conn.execute('UPDATE ys_questions SET display_order = ? WHERE id = ?', (index + 1, q_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/lys/admin/questions/<int:id>/delete', methods=['POST'])
+def lys_admin_delete_question(id):
+    if not session.get('lys_admin_auth'): return redirect('/lys/admin')
+    conn = get_db_connection()
+    try:
+        conn.execute('DELETE FROM ys_questions WHERE id = ?', (id,))
+        conn.commit()
+    finally:
+        conn.close()
+    return redirect('/lys/admin/questions')
+# --- LYS ADMIN ROUTES END ---
 
 @app.route('/lys/inquiry')
 def lys_inquiry():

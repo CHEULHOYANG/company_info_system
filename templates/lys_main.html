@@ -1046,6 +1046,135 @@
             <p>© 2025 YS Honors. All rights reserved.</p>
         </div>
     </footer>
+    <!-- SEMINAR REGISTRATION MODAL -->
+    <div id="seminarModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+        <div
+            style="background: white; width: 90%; max-width: 500px; padding: 40px; border-radius: 12px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
+            <button onclick="closeSeminarModal()"
+                style="position: absolute; top: 20px; right: 20px; border: none; background: none; font-size: 24px; cursor: pointer; color: #999;">&times;</button>
+
+            <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 8px; color: #1f2937;">세미나 참가 신청</h3>
+            <p id="modalSeminarTitle" style="color: #3b82f6; font-weight: 600; margin-bottom: 4px;"></p>
+            <p id="modalSeminarDate" style="color: #6b7280; font-size: 14px; margin-bottom: 24px;"></p>
+
+            <form id="seminarForm" onsubmit="submitSeminar(event)">
+                <input type="hidden" id="seminar_title" name="seminar_title">
+
+                <div style="margin-bottom: 16px;">
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">이름
+                        *</label>
+                    <input type="text" id="name" name="name" required
+                        style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;">
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">연락처
+                        *</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="010-0000-0000"
+                        style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                    <div>
+                        <label
+                            style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">회사명
+                            *</label>
+                        <input type="text" id="company_name" name="company_name" required
+                            style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;">
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">직급</label>
+                        <input type="text" id="position" name="position"
+                            style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label
+                        style="display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">사업자등록번호
+                        *</label>
+                    <input type="text" id="biz_no" name="biz_no" required placeholder="000-00-00000"
+                        style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;">
+                </div>
+
+                <button type="submit" class="cta-btn" style="width: 100%; border: none; cursor: pointer;">신청하기</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Modal Logic
+        function openSeminarModal(title, date, time) {
+            document.getElementById('seminarModal').style.display = 'flex';
+            document.getElementById('modalSeminarTitle').innerText = title;
+            document.getElementById('modalSeminarDate').innerText = `${date} | ${time}`;
+            document.getElementById('seminar_title').value = title;
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
+        function closeSeminarModal() {
+            document.getElementById('seminarModal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        // Close on outside click
+        document.getElementById('seminarModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeSeminarModal();
+            }
+        });
+
+        // Submit Form
+        async function submitSeminar(event) {
+            event.preventDefault();
+
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = '처리중...';
+            submitBtn.disabled = true;
+
+            const formData = {
+                seminar_title: document.getElementById('seminar_title').value,
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value,
+                company_name: document.getElementById('company_name').value,
+                position: document.getElementById('position').value,
+                biz_no: document.getElementById('biz_no').value
+            };
+
+            try {
+                const response = await fetch('/api/seminar/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('세미나 신청이 완료되었습니다.\n담당자가 확인 후 연락드리겠습니다.');
+                    closeSeminarModal();
+                    event.target.reset(); // Reset form
+                    // Reload page to update counters (optional)
+                    window.location.reload();
+                } else {
+                    alert('신청 실패: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('서버 통신 중 오류가 발생했습니다.');
+            } finally {
+                submitBtn.innerText = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+    </script>
 </body>
 
 </html>

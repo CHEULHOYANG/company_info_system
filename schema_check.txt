@@ -1,0 +1,2 @@
+ys_questions: ['id', 'question_text', 'display_order', 'is_active', 'created_at', 'updated_at']
+Seminars: ['id', 'title', 'description', 'date', 'time', 'location', 'image_url', 'link_url', 'created_at']

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지 - 세미나 신청자 관리</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .admin-header {
+            background: #fff;
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: center;
+        }
+
+        .admin-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .admin-nav a {
+            text-decoration: none;
+            color: #6b7280;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 500;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .admin-nav a.active {
+            background: #111827;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #111827;
+            padding-bottom: 15px;
+            display: inline-block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .delete-btn {
+            color: #ef4444;
+            border: 1px solid #fecaca;
+            background: #fef2f2;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-header">
+        <h1 style="font-size: 24px; margin: 0;">관리자 페이지</h1>
+        <div class="admin-nav">
+            <a href="/lys/admin/seminars">세미나 관리</a>
+            <a href="/lys/admin/registrations" class="active">세미나 신청자 관리</a>
+            <a href="/lys/admin/questions">진단 항목 관리</a>
+            <a href="/lys">사이트 관리</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>세미나 신청자 목록</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>신청일</th>
+                        <th>세미나명</th>
+                        <th>신청자명</th>
+                        <th>소속/직책</th>
+                        <th>연락처</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reg in registrations %}
+                    <tr>
+                        <td>{{ reg.created_at[:10] }}</td>
+                        <td style="font-weight: 600; color: #111827;">{{ reg.seminar_title }}</td>
+                        <td>{{ reg.name }}</td>
+                        <td>{{ reg.company_name }} {{ reg.position }}<div style="font-size: 11px; color: #9ca3af;">{{
+                                reg.biz_no }}</div>
+                        </td>
+                        <td>{{ reg.phone }}</td>
+                        <td>
+                            <form action="/lys/admin/registrations/{{ reg.id }}/delete" method="POST"
+                                onsubmit="return confirm('이 신청 내역을 삭제하시겠습니까?');">
+                                <button type="submit" class="delete-btn">삭제</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="empty-state">신청 내역이 없습니다.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
