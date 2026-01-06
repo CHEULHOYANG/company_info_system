@@ -91,35 +91,88 @@
             font-size: 13px;
         }
 
-        /* Hero Section - 800px height matching render */
         .hero {
             height: 800px;
             margin-top: 0;
             padding-top: 65px;
-            background: linear-gradient(rgba(30, 30, 35, 0.55), rgba(30, 30, 35, 0.55)),
+            background: linear-gradient(rgba(30, 30, 35, 0.4), rgba(30, 30, 35, 0.4)),
                 url('/static/images/hero_bg.png') center/cover no-repeat;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             color: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Ken Burns Effect for Hero Background */
+        @keyframes subtleZoom {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.1);
+            }
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('/static/images/hero_bg.png') center/cover no-repeat;
+            opacity: 1;
+            /* Adjust if needed, but linear-gradient is on .hero */
+            z-index: -1;
+            animation: subtleZoom 20s infinite alternate linear;
+        }
+
+        /* Since .hero has the image in background shorthand, allow ::before to handle animation if possible, 
+           or just animate background-size on .hero. animate background-size is smoother widely. */
+
+        .hero {
+            background: linear-gradient(rgba(30, 30, 35, 0.5), rgba(30, 30, 35, 0.5)),
+                url('/static/images/hero_bg.png') center/cover no-repeat;
+            animation: heroBgAnimate 30s infinite alternate ease-in-out;
+        }
+
+        @keyframes heroBgAnimate {
+            0% {
+                background-size: 100% auto;
+                background-position: center center;
+            }
+
+            100% {
+                background-size: 110% auto;
+                background-position: center center;
+            }
+        }
+
+        /* Fallback for bg anim if cover ratio varies */
+        @media (max-width: 1200px) {
+            .hero {
+                animation: none;
+                background-size: cover;
+            }
         }
 
         .hero-content {
             max-width: 700px;
             padding: 0 20px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeUp 1s ease-out forwards 0.5s;
         }
 
-        .hero-badge {
-            display: inline-block;
-            background: rgba(59, 130, 246, 0.35);
-            color: #93c5fd;
-            padding: 8px 20px;
-            border-radius: 24px;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 28px;
-            border: 1px solid rgba(93, 168, 255, 0.35);
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .hero h1 {
@@ -128,19 +181,15 @@
             margin-bottom: 20px;
             line-height: 1.2;
             letter-spacing: -1px;
-        }
-
-        .hero h1 strong {
-            font-weight: 700;
-            display: block;
-            margin-top: 4px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
         .hero p {
             font-size: 20px;
-            color: rgba(255, 255, 255, 0.85);
+            color: rgba(255, 255, 255, 0.95);
             margin-bottom: 36px;
             line-height: 1.8;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .hero-buttons {
@@ -533,6 +582,10 @@
                 <a href="#services">컨설팅 분야</a>
                 <a href="#news">경영 뉴스</a>
             </nav>
+            <div class="header-stats" style="font-size: 13px; color: #666; text-align: right; margin-right: 20px;">
+                <div>세미나 참석: <strong>{{ counts['seminar'] }}명</strong></div>
+                <div>상담 신청: <strong>{{ counts['inquiry'] }}건</strong></div>
+            </div>
             <a href="/lys/inquiry" class="cta-btn">상담신청</a>
         </div>
     </header>
@@ -549,6 +602,131 @@
         </div>
     </section>
 
+    <!-- EXCLUSIVE SEMINARS SECTION -->
+    <section class="section" style="padding: 80px 20px; background: #fdfbf7;">
+        <div class="section-header">
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 36px; color: #1e3a5f;">Exclusive Seminars</h2>
+            <p>세무, 자산관리, 기업 경영 전략에 대한 전문가들의 심도 있는 세미나에 초대합니다.</p>
+        </div>
+
+        <div class="seminar-grid"
+            style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1100px; margin: 0 auto;">
+            {% if seminars %}
+            {% for seminar in seminars %}
+            <div class="seminar-card"
+                style="display: flex; flex-direction: column; background: white; border-radius: 12px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; border: 1px solid #f0f0f0;">
+                <!-- Date & Badge -->
+                <div style="display: flex; justify-content: space-between; margin-bottom: 24px;">
+                    <span
+                        style="background: #f3f4f6; color: #374151; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: 600;">{{
+                        seminar.date }}</span>
+                    <span
+                        style="border: 1px solid #e5e7eb; color: #6b7280; padding: 6px 12px; border-radius: 4px; font-size: 13px;">{{
+                        seminar.time }}</span>
+                </div>
+
+                <!-- Title -->
+                <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 12px; min-height: 56px;">{{
+                    seminar.title }}</h3>
+                <p style="font-size: 14px; color: #6b7280; line-height: 1.6; margin-bottom: 40px; min-height: 44px;">{{
+                    seminar.description }}</p>
+
+                <!-- Gold Number -->
+                <div
+                    style="position: absolute; right: 24px; top: 80px; font-family: 'Playfair Display', serif; font-size: 64px; font-weight: 700; color: #f3e8c9; opacity: 1; font-style: italic;">
+                    0{{ loop.index }}</div>
+
+                <!-- Location & Button -->
+                <div style="margin-top: auto;">
+                    <div style="font-size: 13px; color: #9ca3af; margin-bottom: 16px;">📍 {{ seminar.location }}</div>
+                    <button
+                        onclick="openSeminarModal('{{ seminar.title }}', '{{ seminar.date }}', '{{ seminar.time }}')"
+                        style="display: block; width: 100%; border: 1px solid #1f2937; background: transparent; text-align: center; padding: 12px; border-radius: 8px; cursor: pointer; color: #1f2937; font-weight: 600; transition: all 0.2s;">참가
+                        신청하기</button>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <!-- Placeholders matching the user image design -->
+            <div class="seminar-card"
+                style="display: flex; flex-direction: column; background: white; border-radius: 12px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; border: 1px solid #f0f0f0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 24px;">
+                    <span
+                        style="background: #f3f4f6; color: #374151; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: 600;">1월
+                        27일 (화)</span>
+                    <span
+                        style="border: 1px solid #e5e7eb; color: #6b7280; padding: 6px 12px; border-radius: 4px; font-size: 13px;">10:00
+                        - 11:50</span>
+                </div>
+                <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 12px;">세법 법인 대표 CEO 절세를 위한
+                </h3>
+                <p style="font-size: 14px; color: #6b7280; line-height: 1.6; margin-bottom: 40px;">법인 증여 상속 누가 먼저
+                    하나<br>정말 혁신적이고 국세청 세무조사 무조건 따른다</p>
+                <div
+                    style="position: absolute; right: 24px; top: 80px; font-family: 'Playfair Display', serif; font-size: 64px; font-weight: 700; color: #f3e8c9; font-style: italic;">
+                    01</div>
+                <div>
+                    <div style="font-size: 13px; color: #9ca3af; margin-bottom: 16px;">📍 삼성생명 서초사옥 35층</div>
+                    <button onclick="openSeminarModal('세법 법인 대표 CEO 절세를 위한', '1월 27일 (화)', '10:00 - 11:50')"
+                        style="display: block; width: 100%; border: 1px solid #1f2937; background: transparent; text-align: center; padding: 12px; border-radius: 8px; cursor: pointer; color: #1f2937; font-weight: 600; transition: all 0.2s;">참가
+                        신청하기</button>
+                </div>
+            </div>
+
+            <div class="seminar-card"
+                style="display: flex; flex-direction: column; background: white; border-radius: 12px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; border: 1px solid #f0f0f0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 24px;">
+                    <span
+                        style="background: #f3f4f6; color: #374151; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: 600;">1월
+                        27일 (화)</span>
+                    <span
+                        style="border: 1px solid #e5e7eb; color: #6b7280; padding: 6px 12px; border-radius: 4px; font-size: 13px;">10:00
+                        - 11:50</span>
+                </div>
+                <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 12px;">법인 결산 후 필수점검 세미나
+                </h3>
+                <p style="font-size: 14px; color: #6b7280; line-height: 1.6; margin-bottom: 40px;">법인 결산 후 필수점검
+                    세미나<br>법인 결산 후 필수점검 세미나2</p>
+                <div
+                    style="position: absolute; right: 24px; top: 80px; font-family: 'Playfair Display', serif; font-size: 64px; font-weight: 700; color: #f3e8c9; font-style: italic;">
+                    02</div>
+                <div>
+                    <div style="font-size: 13px; color: #9ca3af; margin-bottom: 16px;">📍 삼성생명 서초사옥 35층</div>
+                    <button onclick="openSeminarModal('법인 결산 후 필수점검 세미나', '1월 27일 (화)', '10:00 - 11:50')"
+                        style="display: block; width: 100%; border: 1px solid #1f2937; background: transparent; text-align: center; padding: 12px; border-radius: 8px; cursor: pointer; color: #1f2937; font-weight: 600; transition: all 0.2s;">참가
+                        신청하기</button>
+                </div>
+            </div>
+
+            <div class="seminar-card"
+                style="display: flex; flex-direction: column; background: white; border-radius: 12px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; border: 1px solid #f0f0f0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 24px;">
+                    <span
+                        style="background: #f3f4f6; color: #374151; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: 600;">1월
+                        29일 (목)</span>
+                    <span
+                        style="border: 1px solid #e5e7eb; color: #6b7280; padding: 6px 12px; border-radius: 4px; font-size: 13px;">14:00
+                        - 16:00</span>
+                </div>
+                <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 12px;">세법개정 리뷰 및 결산 후 법인 필수
+                    점검 사항</h3>
+                <p style="font-size: 14px; color: #6b7280; line-height: 1.6; margin-bottom: 40px;">미 국 세 법 의 이 해 와 활
+                    용<br>미국 시민권자 소득세신고 및 해외 금융 계좌 보고</p>
+                <div
+                    style="position: absolute; right: 24px; top: 80px; font-family: 'Playfair Display', serif; font-size: 64px; font-weight: 700; color: #f3e8c9; font-style: italic;">
+                    03</div>
+                <div>
+                    <div style="font-size: 13px; color: #9ca3af; margin-bottom: 16px;">📍 강남 FP 센터</div>
+                    <button onclick="openSeminarModal('세법개정 리뷰 및 결산 후 법인 필수 점검 사항', '1월 29일 (목)', '14:00 - 16:00')"
+                        style="display: block; width: 100%; border: 1px solid #1f2937; background: transparent; text-align: center; padding: 12px; border-radius: 8px; cursor: pointer; color: #1f2937; font-weight: 600; transition: all 0.2s;">참가
+                        신청하기</button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Partner Section (Moved below Seminars) -->
     <section class="partner-section">
         <p>With Samsung Financial Networks</p>
         <div class="partner-logos">
@@ -574,7 +752,7 @@
                 </div>
                 <h3>경영지원 컨설팅</h3>
                 <p>법인전환, 제도정비, 가업승계 등 기업 경영에 필요한 맞춤형 솔루션을 제공합니다.</p>
-                <a href="/lys/inquiry">자세히 보기 →</a>
+                <!-- <a href="/lys/inquiry">자세히 보기 →</a> -->
             </div>
             <div class="service-card">
                 <div class="service-icon">
@@ -585,7 +763,7 @@
                 </div>
                 <h3>자금/투자 자문</h3>
                 <p>운전자금 확보, 정책자금 활용, 투자 포트폴리오 구성을 통한 자산 증대를 지원합니다.</p>
-                <a href="/lys/inquiry">자세히 보기 →</a>
+                <!-- <a href="/lys/inquiry">자세히 보기 →</a> -->
             </div>
             <div class="service-card">
                 <div class="service-icon">
@@ -597,7 +775,7 @@
                 </div>
                 <h3>세무/노무 관리</h3>
                 <p>절세 전략 수립, 노무 리스크 관리, 4대보험 최적화 등 실질적인 경영 효율화를 돕습니다.</p>
-                <a href="/lys/inquiry">자세히 보기 →</a>
+                <!-- <a href="/lys/inquiry">자세히 보기 →</a> -->
             </div>
             <div class="service-card">
                 <div class="service-icon">
@@ -610,7 +788,7 @@
                 </div>
                 <h3>가업승계 전략</h3>
                 <p>세금 부담을 최소화하고 경영권을 안정적으로 이양하는 전략을 수립합니다.</p>
-                <a href="/lys/inquiry">자세히 보기 →</a>
+                <!-- <a href="/lys/inquiry">자세히 보기 →</a> -->
             </div>
             <div class="service-card">
                 <div class="service-icon">
@@ -622,7 +800,7 @@
                 </div>
                 <h3>주식 가치 평가</h3>
                 <p>비상장 주식의 정확한 가치 평가를 통해 이동 및 증여 시점을 분석합니다.</p>
-                <a href="/lys/inquiry">자세히 보기 →</a>
+                <!-- <a href="/lys/inquiry">자세히 보기 →</a> -->
             </div>
             <div class="service-card">
                 <div class="service-icon">
@@ -636,7 +814,7 @@
                 </div>
                 <h3>기업부설연구소</h3>
                 <p>연구소 설립 및 벤처 인증을 통한 세액 공제 및 가산점 혜택을 지원합니다.</p>
-                <a href="/lys/inquiry">자세히 보기 →</a>
+                <!-- <a href="/lys/inquiry">자세히 보기 →</a> -->
             </div>
         </div>
     </section>
@@ -651,43 +829,200 @@
 
     <section class="news-section" id="news">
         <div class="news-container">
-            <div class="news-header">
-                <h2>경영 인사이트</h2>
-                <a href="https://blog.naver.com/ssneobiz" target="_blank">블로그 더보기 →</a>
+            <div class="news-header-wrap" style="text-align: center; margin-bottom: 50px;">
+                <h2 style="font-size: 32px; font-weight: 700; color: #1a1a1a;">경영 인사이트 & 세미나</h2>
+                <p style="color: #666; font-size: 16px; margin-top: 10px;">YS Honors가 제공하는 전문적인 경영 정보와 심도 있는 세미나 소식</p>
             </div>
-            <p class="news-subtitle">블로그의 최신 경영 정보와 세미나 소식을 전해드립니다.</p>
-            <div class="news-grid">
+
+            <style>
+                .aesthetic-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 30px;
+                }
+
+                .aesthetic-card {
+                    position: relative;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    background: white;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .aesthetic-card:hover {
+                    transform: translateY(-8px);
+                    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+                }
+
+                .card-image {
+                    height: 240px;
+                    background-size: cover;
+                    background-position: center;
+                    position: relative;
+                }
+
+                .card-image::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.3) 100%);
+                }
+
+                .card-content {
+                    padding: 30px;
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .card-tag {
+                    display: inline-block;
+                    padding: 6px 12px;
+                    background: #f0f4ff;
+                    color: #3b82f6;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    margin-bottom: 16px;
+                    align-self: flex-start;
+                }
+
+                .card-title {
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: #1a1a1a;
+                    margin-bottom: 12px;
+                    line-height: 1.4;
+                }
+
+                .card-desc {
+                    color: #666;
+                    font-size: 14px;
+                    line-height: 1.6;
+                    margin-bottom: 20px;
+                    flex: 1;
+                }
+
+                .card-meta {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    color: #888;
+                    font-size: 13px;
+                    border-top: 1px solid #eee;
+                    padding-top: 20px;
+                }
+
+                .read-more {
+                    color: #1a1a1a;
+                    font-weight: 600;
+                    text-decoration: none;
+                }
+
+                .read-more:hover {
+                    text-decoration: underline;
+                    color: #3b82f6;
+                }
+            </style>
+
+            <div class="aesthetic-grid">
+                {% if news_items %}
                 {% for news in news_items %}
-                <div class="news-card">
-                    <div class="news-category">{{ news.category or '경영' }}</div>
-                    <h3><a href="{{ news.link_url or '#' }}" target="_blank">{{ news.title }}</a></h3>
-                    <p>{{ news.summary }}</p>
-                    <div class="news-date">{{ news.publish_date }}</div>
-                </div>
-                {% else %}
-                <div class="news-card">
-                    <div class="news-category">증여세</div>
-                    <h3><a href="https://blog.naver.com/ssneobiz" target="_blank">부모님이 자녀 증여세 대신 내주면?</a></h3>
-                    <p>'증여세 대납' 행위는 또 다른 증여로 간주되어 추가적인 증여세가 부과될 수 있습니다</p>
-                    <div class="news-date">2025-08-04</div>
-                </div>
-                <div class="news-card">
-                    <div class="news-category">가업승계</div>
-                    <h3><a href="https://blog.naver.com/ssneobiz" target="_blank">대표님의 '가업(家業)', 100년 기업의 초석을 다지는 지혜</a>
-                    </h3>
-                    <p>가업승계 절차와 전략, 그리고 100년 기업을 위한 경영 철학에 대해 논의합니다.</p>
-                    <div class="news-date">2025-06-12</div>
-                </div>
-                <div class="news-card">
-                    <div class="news-category">세금</div>
-                    <h3><a href="https://blog.naver.com/ssneobiz" target="_blank">장롱 속 금팔면 세금 낼까?</a></h3>
-                    <p>장롱 속 개인 소장 금, 팔면 양도소득세 낼까? 원칙적으로 NO!</p>
-                    <div class="news-date">2025-05-12</div>
+                <div class="aesthetic-card scroll-reveal">
+                    <!-- Use dynamic thumbnail_url, strictly default if missing -->
+                    <div class="card-image"
+                        style="background-image: url('{{ news.thumbnail_url or url_for('get_artifact_image', filename='korean_knot_bg.png') }}');">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-tag">{{ news.category or '경영/세미나' }}</span>
+                        <h3 class="card-title">{{ news.title }}</h3>
+                        <p class="card-desc">{{ news.summary }}</p>
+                        <div class="card-meta">
+                            <span>{{ news.publish_date }}</span>
+                            <a href="{{ news.link_url or '#' }}" target="_blank" class="read-more">View Article →</a>
+                        </div>
+                    </div>
                 </div>
                 {% endfor %}
+                {% else %}
+                <!-- Default Blog Cards (Only if no DB data) -->
+                <div class="aesthetic-card scroll-reveal">
+                    <div class="card-image"
+                        style="background-image: url('{{ url_for('get_artifact_image', filename='korean_knot_bg.png') }}');">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-tag">가업승계 & 증여</span>
+                        <h3 class="card-title">100년 기업을 위한 연결고리, 가업승계 전략</h3>
+                        <p class="card-desc">전통 매듭처럼 견고하게. 세금 부담을 최소화하고 경영권을 안정적으로 이양하는 YS Honors만의 프리미엄 승계 전략을 만나보세요.
+                        </p>
+                        <div class="card-meta">
+                            <span>2025.06.12</span>
+                            <a href="https://blog.naver.com/ssneobiz" target="_blank" class="read-more">View Article
+                                →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aesthetic-card scroll-reveal">
+                    <div class="card-image"
+                        style="background-image: url('{{ url_for('get_artifact_image', filename='korean_celadon_bg.png') }}');">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-tag">세무 & 자산관리</span>
+                        <h3 class="card-title">변치 않는 가치, 투명한 자산관리 솔루션</h3>
+                        <p class="card-desc">청자의 고결함처럼 투명하고 체계적인 세무 관리와 자산 증식 포트폴리오. 귀사의 재무 건전성을 예술의 경지로 끌어올립니다.</p>
+                        <div class="card-meta">
+                            <span>2025.08.04</span>
+                            <a href="https://blog.naver.com/ssneobiz" target="_blank" class="read-more">View Article
+                                →</a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="https://blog.naver.com/ssneobiz" target="_blank" class="btn-outline"
+                    style="color: #3b82f6; border-color: #3b82f6; background: transparent;">블로그 전체보기</a>
             </div>
         </div>
     </section>
+
+    <!-- Scroll Reveal Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            // Add reveal classes to specific elements
+            const revealElements = document.querySelectorAll('.service-card, .news-card, .aesthetic-card, .partner-section');
+            revealElements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                el.style.transition = `all 0.8s ease ${index * 0.1}s`; // Staggered delay
+                observer.observe(el);
+            });
+        });
+    </script>
 
     <footer class="footer">
         <div class="footer-container">
