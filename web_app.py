@@ -4,7 +4,7 @@ import os
 import sqlite3
 import io
 import time
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for, Response, send_file
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for, Response, send_file, send_from_directory
 from datetime import datetime
 import pytz
 import pandas as pd
@@ -12,6 +12,8 @@ import math
 import csv
 from werkzeug.utils import secure_filename
 from jinja2 import FileSystemLoader, TemplateNotFound
+import requests
+from bs4 import BeautifulSoup
 
 # .env 파일에서 환경 변수 로드
 from dotenv import load_dotenv
@@ -626,12 +628,20 @@ def init_ys_honers_tables():
                 category TEXT,
                 summary TEXT,
                 link_url TEXT,
+                thumbnail_url TEXT,
                 publish_date DATE,
                 display_order INTEGER DEFAULT 1,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        
+        # Check if thumbnail_url column exists in ys_news (migration)
+        try:
+            cursor.execute("SELECT thumbnail_url FROM ys_news LIMIT 1")
+        except:
+            print("Adding thumbnail_url column to ys_news")
+            cursor.execute("ALTER TABLE ys_news ADD COLUMN thumbnail_url TEXT")
         
         # 상담 문의 테이블
         cursor.execute('''
@@ -658,8 +668,92 @@ def init_ys_honers_tables():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+
+        # 세미나 관리 테이블 (수정: max_attendees 추가)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS ys_seminars (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                date TEXT NOT NULL,
+                time TEXT NOT NULL,
+                location TEXT NOT NULL,
+                description TEXT,
+                max_attendees INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         
-        # 초기 팀원 데이터 삽입 (없는 경우)
+        # 세미나 세션(스케줄) 테이블 (새로 추가)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS ys_seminar_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seminar_id INTEGER NOT NULL,
+                time_range TEXT NOT NULL,
+                title TEXT NOT NULL,
+                speaker TEXT,
+                description TEXT,
+                location_note TEXT,
+                display_order INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (seminar_id) REFERENCES ys_seminars (id) ON DELETE CASCADE
+            )
+        ''')
+        
+        # Check if max_attendees column exists in ys_seminars (migration)
+        try:
+            cursor.execute("SELECT max_attendees FROM ys_seminars LIMIT 1")
+        except:
+            cursor.execute("ALTER TABLE ys_seminars ADD COLUMN max_attendees INTEGER DEFAULT 0")
+
+        
+        # 세미나 참가 신청 테이블 (보강)
+        # 세미나 참가 신청 테이블 (보강)
+        # 세미나 참가 신청 테이블 (보강)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS SeminarRegistrations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seminar_title TEXT,
+                name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                company_name TEXT,
+                position TEXT,
+                biz_no TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # SeminarRegistrations 테이블 마이그레이션 (컬럼 확인 및 추가)
+        try:
+            cursor.execute("SELECT created_at FROM SeminarRegistrations LIMIT 1")
+        except:
+            print("Adding created_at column to SeminarRegistrations")
+            cursor.execute("ALTER TABLE SeminarRegistrations ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+            
+        try:
+            cursor.execute("SELECT seminar_title FROM SeminarRegistrations LIMIT 1")
+        except:
+            print("Adding seminar_title column to SeminarRegistrations")
+            cursor.execute("ALTER TABLE SeminarRegistrations ADD COLUMN seminar_title TEXT")
+            
+        try:
+            cursor.execute("SELECT company_name FROM SeminarRegistrations LIMIT 1")
+        except:
+            print("Adding company_name column to SeminarRegistrations")
+            cursor.execute("ALTER TABLE SeminarRegistrations ADD COLUMN company_name TEXT")
+            
+        try:
+            cursor.execute("SELECT position FROM SeminarRegistrations LIMIT 1")
+        except:
+            print("Adding position column to SeminarRegistrations")
+            cursor.execute("ALTER TABLE SeminarRegistrations ADD COLUMN position TEXT")
+            
+        try:
+            cursor.execute("SELECT biz_no FROM SeminarRegistrations LIMIT 1")
+        except:
+            print("Adding biz_no column to SeminarRegistrations")
+            cursor.execute("ALTER TABLE SeminarRegistrations ADD COLUMN biz_no TEXT")
+    
+    # 초기 팀원 데이터 삽입 (없는 경우)
         cursor.execute("SELECT COUNT(*) FROM ys_team_members")
         if cursor.fetchone()[0] == 0:
             cursor.execute('''
@@ -670,6 +764,21 @@ def init_ys_honers_tables():
                 ('서은정', '(팀장) Team Leader', '010-0000-0000',
                  'HSBC, 삼성생명, 삼성화재 재무설계 20년 경력, 변액연금, 펀드, M&A 전문 자격증 보유, 미스코리아 마포 진', 2)
             ''')
+        
+        # 초기 세미나 데이터 삽입 (없는 경우)
+        cursor.execute("SELECT COUNT(*) FROM ys_seminars")
+        if cursor.fetchone()[0] == 0:
+            initial_seminars = [
+                ('세법 법인 대표 CEO 절세를 위한', '1월 27일 (화)', '10:00 - 11:50', '삼성생명 서초사옥 35층', '법인 증여 상속 누가 먼저 하나<br>정말 혁신적이고 국세청 세무조사 무조건 따른다'),
+                ('법인 결산 후 필수점검 세미나', '1월 27일 (화)', '10:00 - 11:50', '삼성생명 서초사옥 35층', '법인 결산 후 필수점검 세미나<br>법인 결산 후 필수점검 세미나2'),
+                ('세법개정 리뷰 및 결산 후 법인 필수 점검 사항', '1월 29일 (목)', '14:00 - 16:00', '강남 FP 센터', '미 국 세 법 의 이 해 와 활 용<br>미국 시민권자 소득세신고 및 해외 금융 계좌 보고')
+            ]
+            
+            for s in initial_seminars:
+                cursor.execute('''
+                    INSERT INTO ys_seminars (title, date, time, location, description)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', s)
         
         # 초기 질문 데이터 삽입 (없는 경우)
         cursor.execute("SELECT COUNT(*) FROM ys_questions")
@@ -1253,7 +1362,7 @@ def logout():
 # --- 접촉이력 조회 라우트 추가 ---
 @app.route('/history')
 def history_search():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
     return render_template('history.html', user_name=session.get('user_name'))
 
@@ -1288,7 +1397,7 @@ def login():
 
 @app.route('/change-password-first-time', methods=['GET', 'POST'])
 def change_password_first_time():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
     
     if request.method == 'POST':
@@ -2348,7 +2457,7 @@ def download_database_page():
 @app.route('/db_management_popup')
 def db_management_popup():
     """팝업용 DB 관리 페이지"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
     
     user_level = session.get('user_level', 'N')
@@ -2913,7 +3022,7 @@ def get_artifact_image(filename):
 
 @app.route('/')
 def index():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
 
     user_id = session.get('user_id')
@@ -2956,7 +3065,7 @@ def index():
 
 @app.route('/main')
 def main():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
     
     # 구독 정보 조회
@@ -2978,7 +3087,7 @@ def main():
 # --- 접촉이력 데이터 조회 API 추가 ---
 @app.route('/api/contact_history_csv', methods=['GET', 'POST'])
 def contact_history_csv():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     if request.method == 'GET':
         # 본인이 등록한 Contact_History만 CSV로 반환 (관리자는 전체 조회 가능)
@@ -3047,7 +3156,7 @@ def contact_history_csv():
 @app.route('/api/history_search')
 def api_history_search():
     print(">>> /api/history_search 라우트 진입")  # 라우트 진입 확인용 로그
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
 
     try:
@@ -3122,7 +3231,7 @@ def api_history_search():
 # ▼▼▼ [수정] get_companies 함수 ▼▼▼
 @app.route('/api/companies')
 def get_companies():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     try:
         page = request.args.get('page', 1, type=int)
@@ -3155,7 +3264,7 @@ def get_companies():
 
 @app.route('/export_excel')
 def export_excel():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
     try:
         import xlsxwriter  # ensure xlsxwriter is installed
@@ -3185,7 +3294,7 @@ def export_excel():
 @app.route('/company/<biz_no>')
 @app.route('/company_detail/<biz_no>')  # 추가 라우트 경로
 def company_detail(biz_no):
-    if not session.get('logged_in'): return redirect(url_for('login'))
+    if 'user_id' not in session: return redirect(url_for('login'))
     
     source_page = request.args.get('source')
     is_popup = (source_page == 'history_popup')
@@ -3338,7 +3447,7 @@ def company_detail(biz_no):
 @app.route('/api/update_representative_name', methods=['POST'])
 def update_representative_name():
     """기본정보의 대표자 이름 수정"""
-    if not session.get('logged_in'): 
+    if 'user_id' not in session: 
         return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
     
     try:
@@ -3371,7 +3480,7 @@ def update_representative_name():
 @app.route('/api/delete_representative', methods=['POST'])
 def delete_representative():
     """대표자 정보 삭제 (마스킹된 데이터)"""
-    if not session.get('logged_in'): 
+    if 'user_id' not in session: 
         return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
     
     try:
@@ -3403,7 +3512,7 @@ def delete_representative():
 @app.route('/api/delete_shareholder', methods=['POST'])
 def delete_shareholder():
     """주주 정보 삭제 (마스킹된 데이터)"""
-    if not session.get('logged_in'): 
+    if 'user_id' not in session: 
         return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
     
     try:
@@ -3434,7 +3543,7 @@ def delete_shareholder():
 @app.route('/api/contact_history', methods=['GET'])
 def get_contact_history():
     """특정 기업의 접촉이력 조회"""
-    if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
+    if 'user_id' not in session: return jsonify({"error": "Unauthorized"}), 401
     
     biz_no = request.args.get('biz_no')
     if not biz_no:
@@ -3489,7 +3598,7 @@ def get_contact_history():
 @app.route('/api/contact_history/<int:history_id>', methods=['GET'])
 def get_contact_history_detail(history_id):
     """개별 접촉이력 상세 조회"""
-    if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
+    if 'user_id' not in session: return jsonify({"error": "Unauthorized"}), 401
     
     # 디버깅을 위한 로그 추가
     print(f">>> 접촉이력 조회 요청 - history_id: {history_id}")
@@ -3543,7 +3652,7 @@ def get_contact_history_detail(history_id):
 @app.route('/api/contact_history/<int:history_id>', methods=['PUT'])
 def update_contact_history(history_id):
     """개별 접촉이력 수정"""
-    if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
+    if 'user_id' not in session: return jsonify({"error": "Unauthorized"}), 401
     
     data = request.json
     user_id = session.get('user_id', 'unknown')
@@ -3605,7 +3714,7 @@ def update_contact_history(history_id):
 
 @app.route('/api/contact_history', methods=['POST', 'PUT'])
 def handle_contact_history():
-    if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
+    if 'user_id' not in session: return jsonify({"error": "Unauthorized"}), 401
     
     data = request.json
     user_id = session.get('user_id', 'unknown')
@@ -3706,7 +3815,7 @@ def handle_contact_history():
 @app.route('/api/contact_history/<int:history_id>', methods=['DELETE'])
 def delete_contact_history(history_id):
     """접촉이력 삭제 (권한 체크 포함)"""
-    if not session.get('logged_in'): return jsonify({"error": "Unauthorized"}), 401
+    if 'user_id' not in session: return jsonify({"error": "Unauthorized"}), 401
     
     conn = get_db_connection()
     try:
@@ -3804,7 +3913,7 @@ def industrial_accident():
 # --- 비용등록 관리 라우트 ---
 @app.route('/expense_management')
 def expense_management():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
     
     user_data = {
@@ -3821,7 +3930,7 @@ def expense_management():
 @app.route('/view_receipt/<int:expense_id>')
 def view_receipt(expense_id):
     """영수증 파일 보기 (여러 파일 지원)"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
         
     try:
@@ -3882,7 +3991,7 @@ def view_receipt(expense_id):
 @app.route('/view_single_receipt/<int:expense_id>/<int:file_index>')
 def view_single_receipt(expense_id, file_index):
     """개별 영수증 파일 보기"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
         
     try:
@@ -3931,7 +4040,7 @@ def view_single_receipt(expense_id, file_index):
 @app.route('/download_receipt/<int:expense_id>')
 def download_receipt(expense_id):
     """영수증 파일 다운로드"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
         
     try:
@@ -3972,7 +4081,7 @@ def download_receipt(expense_id):
 
 @app.route('/sales_management')
 def sales_management():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
     
     user_data = {
@@ -3993,7 +4102,7 @@ def clevel_management():
 # --- 사용자 관리 라우트 (메인관리자, 서브관리자만 접근 가능) ---
 @app.route('/user_management')
 def user_management():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
     
     user_level = session.get('user_level', 'N')
@@ -4005,7 +4114,7 @@ def user_management():
 # --- 사용자 목록 API ---
 @app.route('/api/users')
 def get_users():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_level = session.get('user_level', 'N')
@@ -4026,7 +4135,7 @@ def get_users():
 # --- 사용자 추가/수정 API ---
 @app.route('/api/users', methods=['POST', 'PUT'])
 def manage_user():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_level = session.get('user_level', 'N')
@@ -4086,7 +4195,7 @@ def manage_user():
 # --- 비밀번호 변경 API ---
 @app.route('/api/users/<user_id>/password', methods=['PUT'])
 def change_password(user_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     current_user_id = session.get('user_id')
@@ -4153,7 +4262,7 @@ def change_password(user_id):
 # --- 비밀번호 초기화 API ---
 @app.route('/api/users/<user_id>/reset-password', methods=['PUT'])
 def reset_password(user_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_level = session.get('user_level', 'N')
@@ -4196,7 +4305,7 @@ def reset_password(user_id):
 
 @app.route('/api/users/<user_id>/delete', methods=['DELETE'])
 def delete_user(user_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_level = session.get('user_level', 'N')
@@ -4325,7 +4434,7 @@ def signup_request():
 # --- 가입 신청 목록 조회 API ---
 @app.route('/api/signup-requests')
 def get_signup_requests():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_level = session.get('user_level', 'N')
@@ -4348,7 +4457,7 @@ def get_signup_requests():
 # --- 가입 신청 승인/거절 API ---
 @app.route('/api/signup-requests/<int:request_id>/process', methods=['PUT'])
 def process_signup_request(request_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_level = session.get('user_level', 'N')
@@ -4513,7 +4622,7 @@ def resubmit_signup(user_id):
 # --- 구독 관리 API ---
 @app.route('/api/subscriptions', methods=['GET'])
 def get_subscriptions():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_level = session.get('user_level', 'N')
@@ -4551,7 +4660,7 @@ def get_subscriptions():
 
 @app.route('/api/subscriptions', methods=['POST'])
 def create_subscription():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_level = session.get('user_level', 'N')
@@ -4627,7 +4736,7 @@ def create_subscription():
 
 @app.route('/api/subscriptions/<user_id>', methods=['DELETE'])
 def delete_subscription(user_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_level = session.get('user_level', 'N')
@@ -4646,7 +4755,7 @@ def delete_subscription(user_id):
 
 @app.route('/api/payment_history/<int:payment_id>', methods=['DELETE'])
 def delete_payment_history(payment_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_level = session.get('user_level', 'N')
@@ -4677,7 +4786,7 @@ def delete_payment_history(payment_id):
 # --- 비용등록 관리 API ---
 @app.route('/api/expenses', methods=['GET'])
 def get_expenses():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_id = session.get('user_id')
@@ -4710,7 +4819,7 @@ def get_expenses():
 
 @app.route('/api/expenses', methods=['POST'])
 def add_expense():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     data = request.json
@@ -4736,7 +4845,7 @@ def add_expense():
 
 @app.route('/api/expenses/<int:expense_id>', methods=['PUT'])
 def update_expense(expense_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     data = request.json
@@ -4772,7 +4881,7 @@ def update_expense(expense_id):
 
 @app.route('/api/expenses/<int:expense_id>', methods=['DELETE'])
 def delete_expense(expense_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_id = session.get('user_id')
@@ -4800,7 +4909,7 @@ def delete_expense(expense_id):
 # --- C-Level 개척관리 API ---
 @app.route('/api/clevel_targets', methods=['GET'])
 def get_clevel_targets():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_id = session.get('user_id')
@@ -4833,7 +4942,7 @@ def get_clevel_targets():
 
 @app.route('/api/clevel_targets', methods=['POST'])
 def add_clevel_target():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     data = request.json
@@ -4861,7 +4970,7 @@ def add_clevel_target():
 
 @app.route('/api/clevel_targets/<int:target_id>', methods=['PUT'])
 def update_clevel_target(target_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     data = request.json
@@ -4899,7 +5008,7 @@ def update_clevel_target(target_id):
 
 @app.route('/api/clevel_targets/<int:target_id>', methods=['DELETE'])
 def delete_clevel_target(target_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_id = session.get('user_id')
@@ -4927,7 +5036,7 @@ def delete_clevel_target(target_id):
 # --- 개척대상 기업 관리 API ---
 @app.route('/api/pioneering_targets', methods=['GET'])
 def get_pioneering_targets():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_id = session.get('user_id')
@@ -4960,7 +5069,7 @@ def get_pioneering_targets():
 
 @app.route('/api/pioneering_targets', methods=['POST'])
 def add_pioneering_target():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
     
     try:
@@ -5014,7 +5123,7 @@ def add_pioneering_target():
 
 @app.route('/api/pioneering_targets/<int:target_id>', methods=['DELETE'])
 def delete_pioneering_target(target_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_id = session.get('user_id')
@@ -5041,7 +5150,7 @@ def delete_pioneering_target(target_id):
 
 @app.route('/api/pioneering_targets/<int:target_id>/visit', methods=['PUT'])
 def mark_target_visited(target_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     conn = get_db_connection()
@@ -5062,7 +5171,7 @@ def mark_target_visited(target_id):
 
 @app.route('/api/pioneering_targets/upload', methods=['POST'])
 def upload_pioneering_csv():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     if 'file' not in request.files:
@@ -5107,7 +5216,7 @@ def upload_pioneering_csv():
 # --- 영업비용 관리 API ---
 @app.route('/api/sales_expenses', methods=['GET'])
 def get_sales_expenses():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_id = session.get('user_id')
@@ -5146,7 +5255,7 @@ def get_sales_expenses():
 
 @app.route('/api/sales_expenses', methods=['POST'])
 def add_sales_expense():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_id = session.get('user_id')
@@ -5209,7 +5318,7 @@ def add_sales_expense():
 
 @app.route('/api/sales_expenses/<int:expense_id>', methods=['PUT'])
 def update_sales_expense(expense_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_id = session.get('user_id')
@@ -5295,7 +5404,7 @@ def update_sales_expense(expense_id):
 
 @app.route('/api/sales_expenses/<int:expense_id>', methods=['DELETE'])
 def delete_sales_expense(expense_id):
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
     user_id = session.get('user_id')
@@ -5323,7 +5432,7 @@ def delete_sales_expense(expense_id):
 # --- 개척대상 기업 CSV 처리 API ---
 @app.route('/api/pioneering_targets_csv', methods=['GET', 'POST'])
 def pioneering_targets_csv():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     
     if request.method == 'GET':
@@ -5423,7 +5532,7 @@ def pioneering_targets_csv():
 # --- 영업비용 CSV 처리 API ---
 @app.route('/api/sales_expenses_csv', methods=['GET', 'POST'])
 def sales_expenses_csv():
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
     
     if request.method == 'GET':
@@ -5514,7 +5623,7 @@ def sales_expenses_csv():
 @app.route('/api/change-password', methods=['POST'])
 def api_change_password():
     """비밀번호 변경 API"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"success": False, "message": "로그인이 필요합니다."}), 401
     
     data = request.get_json()
@@ -5569,7 +5678,7 @@ def api_change_password():
 @app.route('/pipeline')
 def sales_pipeline():
     """영업 파이프라인 대시보드"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return redirect(url_for('login'))
     
     user_id = session.get('user_id')
@@ -5583,7 +5692,7 @@ def sales_pipeline():
 @app.route('/api/pipeline/dashboard')
 def pipeline_dashboard_data():
     """파이프라인 대시보드 데이터 API"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
     
     user_id = session.get('user_id')
@@ -5693,7 +5802,7 @@ def pipeline_dashboard_data():
 @app.route('/api/pipeline/company', methods=['POST'])
 def add_managed_company():
     """관심 기업 등록"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
     
     user_id = session.get('user_id')
@@ -5745,7 +5854,7 @@ def add_managed_company():
 @app.route('/api/pipeline/company/<int:company_id>', methods=['PUT'])
 def update_managed_company(company_id):
     """관심 기업 정보 수정"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
     
     user_id = session.get('user_id')
@@ -5790,7 +5899,7 @@ def update_managed_company(company_id):
 @app.route('/api/pipeline/company/<int:company_id>', methods=['DELETE'])
 def delete_managed_company(company_id):
     """관심 기업 삭제 (접촉 이력 포함)"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
     
     user_id = session.get('user_id')
@@ -5831,7 +5940,7 @@ def delete_managed_company(company_id):
 @app.route('/api/pipeline/contact', methods=['POST'])
 def add_contact_history():
     """접촉 이력 등록"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
     
     user_id = session.get('user_id')
@@ -5889,7 +5998,7 @@ def add_contact_history():
 @app.route('/api/pipeline/contact/<int:company_id>')
 def get_pipeline_contact_history(company_id):
     """특정 기업의 접촉 이력 조회"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
     
     user_id = session.get('user_id')
@@ -5925,7 +6034,7 @@ def get_pipeline_contact_history(company_id):
 def ai_analysis_stream():
     """AI 기업 분석 API (스트리밍)"""
 
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
     
     data = request.get_json()
@@ -6344,7 +6453,7 @@ def perform_ai_analysis(company_basic, financials, contact_history=None, shareho
 @app.route('/api/company-analysis-data/<biz_no>')
 def get_company_analysis_data(biz_no):
     """기업 분석 그래프용 데이터 API"""
-    if not session.get('logged_in'):
+    if 'user_id' not in session:
         return jsonify({"success": False, "message": "로그인이 필요합니다"}), 401
     
     conn = get_db_connection()
@@ -6609,14 +6718,24 @@ def lys_main():
         news_items = conn.execute('''
             SELECT * FROM ys_news ORDER BY publish_date DESC, id DESC LIMIT 6
         ''').fetchall()
-
+        
         # 세미나 정보 조회 (미래 일정 순)
-        today = datetime.now().strftime('%Y-%m-%d')
-        seminars = conn.execute('''
-            SELECT * FROM Seminars 
-            WHERE date >= ? 
+        seminars_rows = conn.execute('''
+            SELECT * FROM ys_seminars 
             ORDER BY date ASC, time ASC
-        ''', (today,)).fetchall()
+        ''').fetchall()
+        
+        seminars = []
+        for row in seminars_rows:
+            seminar = dict(row)
+            # 해당 세미나의 세션 조회
+            sessions = conn.execute('''
+                SELECT * FROM ys_seminar_sessions 
+                WHERE seminar_id = ? 
+                ORDER BY display_order ASC, id ASC
+            ''', (seminar['id'],)).fetchall()
+            seminar['sessions'] = [dict(s) for s in sessions]
+            seminars.append(seminar)
         
         # 카운트 정보 조회
         try:
@@ -6689,7 +6808,7 @@ def register_seminar_api():
         return jsonify({"success": False, "message": f"서버 오류: {str(e)}"}), 500
 
 # --- LYS ADMIN ROUTES START ---
-@app.route('/lys/admin/seminars', methods=['GET', 'POST'])
+@app.route('/lys/admin/seminars')
 def lys_admin_seminars():
     """세미나 관리 페이지"""
     if not session.get('lys_admin_auth'):
@@ -6697,41 +6816,52 @@ def lys_admin_seminars():
         
     conn = get_db_connection()
     try:
-        if request.method == 'POST':
-            # 세미나 추가
-            title = request.form['title']
-            date = request.form['date']
-            time = request.form['time']
-            location = request.form['location']
-            max_attendees = request.form.get('max_attendees', 0)
-            description = request.form.get('description', '')
-            
-            cursor = conn.execute('''
-                INSERT INTO Seminars (title, date, time, location, description, max_attendees)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (title, date, time, location, description, max_attendees))
-            seminar_id = cursor.lastrowid
-            
-            # 세션 추가
-            sessions = request.form.getlist('session_title[]')
-            session_times = request.form.getlist('session_time[]')
-            instructors = request.form.getlist('session_instructor[]')
-            
-            for i in range(len(sessions)):
-                if sessions[i]:
-                    conn.execute('''
-                        INSERT INTO SeminarSessions (seminar_id, session_time, title, instructor)
-                        VALUES (?, ?, ?, ?)
-                    ''', (seminar_id, session_times[i], sessions[i], instructors[i]))
-            
-            conn.commit()
-            return redirect('/lys/admin/seminars')
-            
-        seminars = conn.execute('SELECT * FROM Seminars ORDER BY date DESC').fetchall()
+        seminars = conn.execute('SELECT * FROM ys_seminars ORDER BY date DESC').fetchall()
         return render_template('lys_admin_seminars.html', seminars=[dict(row) for row in seminars])
     except Exception as e:
         print(f"세미나 관리 오류: {e}")
         return str(e), 500
+    finally:
+        conn.close()
+
+@app.route('/lys/admin/seminars/add', methods=['POST'])
+def lys_admin_add_seminar():
+    """세미나 추가"""
+    if not session.get('lys_admin_auth'):
+        return redirect('/lys/admin')
+
+    try:
+        title = request.form.get('title')
+        date = request.form.get('date')
+        time = request.form.get('time')
+        location = request.form.get('location')
+        description = request.form.get('description')
+        
+        conn = get_db_connection()
+        conn.execute('''
+            INSERT INTO ys_seminars (title, date, time, location, description)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (title, date, time, location, description))
+        conn.commit()
+        conn.close()
+        return redirect('/lys/admin/seminars')
+    except Exception as e:
+        return f"Error: {e}"
+
+@app.route('/api/lys/seminar-registration/<int:id>/delete', methods=['POST'])
+def api_lys_delete_registration(id):
+    """세미나 신청 내역 삭제"""
+    if not session.get('lys_admin_auth'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+        
+    conn = get_db_connection()
+    try:
+        conn.execute('DELETE FROM SeminarRegistrations WHERE id = ?', (id,))
+        conn.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"세미나 신청 삭제 오류: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
     finally:
         conn.close()
 
@@ -6740,8 +6870,7 @@ def lys_admin_delete_seminar(id):
     if not session.get('lys_admin_auth'): return redirect('/lys/admin')
     conn = get_db_connection()
     try:
-        conn.execute('DELETE FROM Seminars WHERE id = ?', (id,))
-        conn.execute('DELETE FROM SeminarSessions WHERE seminar_id = ?', (id,)) # CASCADE simulation if needed
+        conn.execute('DELETE FROM ys_seminars WHERE id = ?', (id,))
         conn.commit()
     finally:
         conn.close()
@@ -6869,11 +6998,28 @@ def lys_admin():
             SELECT * FROM ys_news ORDER BY display_order, id
         ''').fetchall()
         
+        # 세미나 정보 조회 (세션 포함)
+        seminars_rows = conn.execute('''
+            SELECT * FROM ys_seminars ORDER BY date DESC
+        ''').fetchall()
+        
+        seminars = []
+        for row in seminars_rows:
+            s_dict = dict(row)
+            sessions = conn.execute('SELECT * FROM ys_seminar_sessions WHERE seminar_id = ? ORDER BY display_order', (s_dict['id'],)).fetchall()
+            s_dict['sessions'] = [dict(sess) for sess in sessions]
+            seminars.append(s_dict)
+        
         # 상담 문의 조회
         inquiries_raw = conn.execute('''
             SELECT * FROM ys_inquiries ORDER BY created_at DESC
         ''').fetchall()
         
+        # 세미나 신청자 조회 (새로 추가)
+        registrations = conn.execute('''
+            SELECT * FROM SeminarRegistrations ORDER BY created_at DESC
+        ''').fetchall()
+
         # 질문 목록 조회
         quiz_questions = conn.execute('''
             SELECT * FROM ys_questions ORDER BY display_order
@@ -6902,7 +7048,9 @@ def lys_admin():
         return render_template('lys_admin.html',
                                team_members=[dict(row) for row in team_members],
                                news_items=[dict(row) for row in news_items],
+                               seminars=[dict(row) for row in seminars], 
                                inquiries=inquiries,
+                               registrations=[dict(row) for row in registrations],
                                quiz_questions=[dict(row) for row in quiz_questions])
     except Exception as e:
         print(f"LYS 관리자 페이지 오류: {e}")
@@ -7034,6 +7182,22 @@ def api_lys_news_delete(news_id):
     finally:
         conn.close()
 
+@app.route('/api/lys/seminar/<int:seminar_id>', methods=['DELETE'])
+def api_lys_seminar_delete(seminar_id):
+    """세미나 삭제 API"""
+    if not session.get('lys_admin_auth'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        
+    conn = get_db_connection()
+    try:
+        conn.execute('DELETE FROM ys_seminars WHERE id = ?', (seminar_id,))
+        conn.commit()
+        return jsonify({'success': True, 'message': '세미나가 삭제되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/api/lys/inquiry', methods=['GET', 'POST'])
 def api_lys_inquiry():
     """상담 문의 API"""
@@ -7106,6 +7270,60 @@ def uploaded_file(filename):
     from flask import send_from_directory
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+# Helper: Fetch OG Image
+def _fetch_og_image(url):
+    """URL에서 OG:Image 메타 태그를 추출합니다 (네이버 블로그 지원)."""
+    if not url: return None
+    if not url.startswith('http'): return None
+    
+    try:
+        # User-Agent 설정 (봇 차단 방지)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=5)
+        response.raise_for_status()
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        # 네이버 블로그 Iframe 처리
+        if "blog.naver.com" in url:
+            iframe = soup.find('iframe', id='mainFrame')
+            if iframe:
+                iframe_src = iframe.get('src')
+                if iframe_src:
+                    if iframe_src.startswith("/"):
+                        iframe_src = "https://blog.naver.com" + iframe_src
+                    # 내부 프레임 내용 재요청
+                    response = requests.get(iframe_src, headers=headers, timeout=5)
+                    response.raise_for_status()
+                    soup = BeautifulSoup(response.text, 'html.parser')
+
+        # 1. Body Image Priority (postfiles.pstatic.net) -> More reliable than blogthumb
+        try:
+            body_imgs = soup.find_all('img')
+            for img in body_imgs:
+                src = img.get('src')
+                if src and 'postfiles.pstatic.net' in src and 'type=w' in src:
+                    return src
+        except:
+            pass
+
+        og_image = soup.find('meta', property='og:image')
+        
+        if og_image and og_image.get('content'):
+            return og_image['content']
+            
+        # Twitter card fallback
+        twitter_image = soup.find('meta', name='twitter:image')
+        if twitter_image and twitter_image.get('content'):
+            return twitter_image['content']
+            
+        return None
+    except Exception as e:
+        print(f"Error fetching OG image from {url}: {e}")
+        return None
+
 @app.route('/api/lys/save-all', methods=['POST'])
 def api_lys_save_all():
     """전체 데이터 저장 API (팀원+뉴스)"""
@@ -7127,19 +7345,99 @@ def api_lys_save_all():
         # 뉴스 정보 업데이트
         if 'news' in data:
             for news in data['news']:
+                # 링크 URL 변경 시 또는 썸네일이 없을 때 이미지 자동 추출
+                new_thumbnail_url = news.get('thumbnail_url')
+                link_url = news.get('link_url')
+                
+                # 기존 데이터 조회 (URL 변경 확인용) - 최적화: ID가 있을 때만
+                current_thumbnail = None
+                current_link = None
+                
+                if news.get('id'):
+                    row = conn.execute('SELECT link_url, thumbnail_url FROM ys_news WHERE id = ?', (news.get('id'),)).fetchone()
+                    if row:
+                        current_link = row[0]
+                        current_thumbnail = row[1]
+                
+                # 썸네일 자동 업데이트 조건:
+                # 1. 링크가 새로 입력되었거나 변경되었을 때
+                # 2. 썸네일이 비어있고 링크가 있을 때
+                should_fetch = False
+                if link_url and (link_url != current_link):
+                    should_fetch = True
+                elif link_url and not current_thumbnail and not new_thumbnail_url:
+                    should_fetch = True
+                
+                fetched_thumbnail = None
+                if should_fetch:
+                    print(f"Fetching OG image for: {link_url}")
+                    fetched_thumbnail = _fetch_og_image(link_url)
+                
+                # 최종 저장할 썸네일 결정 (새로 가져온 것 > 입력된 것 > 기존 것)
+                final_thumbnail = fetched_thumbnail or new_thumbnail_url or current_thumbnail
+                
                 if news.get('id'):
                     conn.execute('''
                         UPDATE ys_news 
-                        SET title=?, category=?, summary=?, link_url=?, publish_date=?, updated_at=CURRENT_TIMESTAMP
+                        SET title=?, category=?, summary=?, link_url=?, thumbnail_url=?, publish_date=?, updated_at=CURRENT_TIMESTAMP
                         WHERE id=?
                     ''', (news.get('title'), news.get('category'), news.get('summary'),
-                          news.get('link_url'), news.get('publish_date'), news.get('id')))
+                          news.get('link_url'), final_thumbnail, news.get('publish_date'), news.get('id')))
                 else:
+                    # 신규 생성 시에도 썸네일 페치
+                    if not final_thumbnail and link_url:
+                        final_thumbnail = _fetch_og_image(link_url)
+                        
                     conn.execute('''
-                        INSERT INTO ys_news (title, category, summary, link_url, publish_date)
-                        VALUES (?, ?, ?, ?, ?)
+                        INSERT INTO ys_news (title, category, summary, link_url, thumbnail_url, publish_date)
+                        VALUES (?, ?, ?, ?, ?, ?)
                     ''', (news.get('title'), news.get('category'), news.get('summary'),
-                          news.get('link_url'), news.get('publish_date')))
+                          news.get('link_url'), final_thumbnail, news.get('publish_date')))
+        
+        # 세미나 정보 업데이트
+        if 'seminars' in data:
+            for seminar in data['seminars']:
+                seminar_id = seminar.get('id')
+                
+                # 1. 세미나 기본 정보 저장/수정
+                if seminar_id:
+                    conn.execute('''
+                        UPDATE ys_seminars 
+                        SET title=?, date=?, time=?, location=?, description=?, max_attendees=?
+                        WHERE id=?
+                    ''', (seminar.get('title'), seminar.get('date'), seminar.get('time'),
+                          seminar.get('location'), seminar.get('description'), 
+                          seminar.get('max_attendees', 0), seminar_id))
+                else:
+                    cursor = conn.execute('''
+                        INSERT INTO ys_seminars (title, date, time, location, description, max_attendees)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ''', (seminar.get('title'), seminar.get('date'), seminar.get('time'),
+                          seminar.get('location'), seminar.get('description'),
+                          seminar.get('max_attendees', 0)))
+                    seminar_id = cursor.lastrowid
+
+                # 2. 세션 정보 저장 (전체 삭제 후 재등록 전략 - 간단한 구현)
+                # 주의: 기존 세션 ID를 유지해야 한다면 로직이 복잡해짐. 여기서는 단순화를 위해 삭제 후 재삽입
+                # 하지만, 세션 ID가 다른데 참조되지 않는다면 삭제 후 재삽입이 깔끔함.
+                conn.execute('DELETE FROM ys_seminar_sessions WHERE seminar_id = ?', (seminar_id,))
+                
+                if 'sessions' in seminar and seminar['sessions']:
+                    for session_item in seminar['sessions']:
+                        conn.execute('''
+                            INSERT INTO ys_seminar_sessions 
+                            (seminar_id, time_range, title, speaker, description, location_note, display_order)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ''', (
+                            seminar_id,
+                            session_item.get('time_range', ''),
+                            session_item.get('title', ''),
+                            session_item.get('speaker', ''),
+                            session_item.get('description', ''),
+                            session_item.get('location_note', ''),
+                            session_item.get('display_order', 1)
+                        ))
+
         
         conn.commit()
         return jsonify({'success': True, 'message': '변경사항이 저장되었습니다.'})
@@ -7802,6 +8100,8 @@ def add_individual_business_history(id):
         print(f"히스토리 추가 오류: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
+
+
 if __name__ == '__main__':
 
 
@@ -7872,139 +8172,41 @@ def init_lys_tables():
     finally:
         conn.close()
 
-@app.route('/lys')
-def lys_page_v2():
-    conn = get_db_connection()
-    seminars = []
-    blog_posts = []
-    counts = {
-        "inquiry": 15,
-        "seminar": 11
-    }
-    try:
-        # 세미나 목록
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Seminars ORDER BY date ASC LIMIT 3")
-        for row in cursor.fetchall():
-            seminars.append({
-                "id": row[0], "title": row[1], "description": row[2],
-                "date": row[3], "time": row[4], "location": row[5],
-                "image_url": row[6], "link_url": row[7]
-            })
 
-        # 블로그 목록
-        cursor.execute("SELECT * FROM BlogPosts ORDER BY publish_date DESC LIMIT 4")
-        for row in cursor.fetchall():
-            blog_posts.append({
-                "id": row[0], "title": row[1], "category": row[2],
-                "summary": row[3], 
-                "thumbnail_url": row[4],
-                "link_url": row[5], "publish_date": row[6]
-            })
-            
-        # 카운트 계산
-        # 상담 신청 건수: 15 + DB count(Inquiries or Contact_History)
-        # Assuming Contact_History is general inquiry? Or do we have an Inquiries table?
-        # lys_admin.html used 'inquiries' variable. Previous code didn't show Inquiry table name clearly but referenced 'inquiries'.
-        # I'll check `Contact_History` or create `Inquiries` if needed.
-        # Step 204 showed `Contact_History`. Let's assume that's it or just use a placeholder + SeminarRegistrations count.
-        # Actually, let's just count `SeminarRegistrations` for seminars.
-        
-        cursor.execute("SELECT COUNT(*) FROM SeminarRegistrations")
-        sem_count_db = cursor.fetchone()[0]
-        counts["seminar"] += sem_count_db
-
-        # For General Inquiries, let's count Contact_History for now or 0 if table not used yet
-        try:
-            cursor.execute("SELECT COUNT(*) FROM Contact_History")
-            inq_count_db = cursor.fetchone()[0]
-            counts["inquiry"] += inq_count_db
-        except:
-            pass
-
-    except Exception as e:
-        print(f"Error loading LYS data: {e}")
-    finally:
-        conn.close()
-
-    return render_template('lys_main.html', news_items=blog_posts, seminars=seminars, counts=counts)
-
-@app.route('/lys/register_seminar', methods=['POST'])
-def register_seminar():
-    data = request.json
-    conn = get_db_connection()
-    try:
-        conn.execute('''
-            INSERT INTO SeminarRegistrations (seminar_title, name, phone, company_name, position, biz_no)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (data.get('seminar_title'), data.get('name'), data.get('phone'), 
-              data.get('company_name'), data.get('position'), data.get('biz_no')))
-        conn.commit()
-        return jsonify({"success": True, "message": "신청이 완료되었습니다."})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
-    finally:
-        conn.close()
-
-@app.route('/lys/admin/seminars', methods=['GET', 'POST', 'DELETE'])
-def manage_seminars():
-    if not session.get('logged_in'):
-        return jsonify({"success": False, "message": "Unauthorized"}), 401
-    conn = get_db_connection()
-    try:
-        if request.method == 'POST':
-            data = request.json
-            conn.execute('INSERT INTO Seminars (title, description, date, time, location, link_url) VALUES (?,?,?,?,?,?)',
-                         (data.get('title'), data.get('description'), data.get('date'), data.get('time'), data.get('location'), data.get('link_url')))
-            conn.commit()
-            return jsonify({"success": True})
-        elif request.method == 'DELETE':
-            conn.execute('DELETE FROM Seminars WHERE id = ?', (request.args.get('id'),))
-            conn.commit()
-            return jsonify({"success": True})
-        else:
-            cursor = conn.cursor()
-            cursor.execute('SELECT * FROM Seminars ORDER BY date DESC')
-            rows = cursor.fetchall()
-            seminars = []
-            for row in rows:
-                seminars.append({"id": row[0], "title": row[1], "description": row[2], "date": row[3], "time": row[4], "location": row[5], "link_url": row[7]})
-            return jsonify({"success": True, "data": seminars})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
-    finally:
-        conn.close()
-
-@app.route('/lys/admin/blog', methods=['GET', 'POST', 'DELETE'])
-def manage_blog():
-    if not session.get('logged_in'):
-        return jsonify({"success": False, "message": "Unauthorized"}), 401
-    conn = get_db_connection()
-    try:
-        if request.method == 'POST':
-            data = request.json
-            conn.execute('INSERT INTO BlogPosts (title, category, summary, thumbnail_url, link_url, publish_date) VALUES (?,?,?,?,?,?)',
-                         (data.get('title'), data.get('category'), data.get('summary'), data.get('thumbnail_url'), data.get('link_url'), data.get('publish_date')))
-            conn.commit()
-            return jsonify({"success": True})
-        elif request.method == 'DELETE':
-            conn.execute('DELETE FROM BlogPosts WHERE id = ?', (request.args.get('id'),))
-            conn.commit()
-            return jsonify({"success": True})
-        else:
-            cursor = conn.cursor()
-            cursor.execute('SELECT * FROM BlogPosts ORDER BY publish_date DESC')
-            rows = cursor.fetchall()
-            posts = []
-            for row in rows:
-                posts.append({"id": row[0], "title": row[1], "category": row[2], "summary": row[3], "thumbnail_url": row[4], "link_url": row[5], "publish_date": row[6]})
-            return jsonify({"success": True, "data": posts})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
-    finally:
-        conn.close()
 
 # 아티팩트 이미지 서빙 (중요)
+from urllib.parse import unquote
+
+@app.route('/api/proxy/image')
+def proxy_image():
+    """Proxy for fetching images to bypass hotlink protection (e.g. Naver Blog)"""
+    url = request.args.get('url')
+    if not url:
+        return "URL required", 400
+    
+    # URL Decoding (Frontend sends encoded URL)
+    url = unquote(url)
+
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': '' 
+        }
+        if 'naver.com' in url or 'pstatic.net' in url:
+            headers['Referer'] = 'https://blog.naver.com/'
+
+        # Stream=True for efficiency
+        resp = requests.get(url, headers=headers, stream=True, timeout=10)
+        resp.raise_for_status()
+        
+        excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+        headers = [(name, value) for (name, value) in resp.raw.headers.items()
+                   if name.lower() not in excluded_headers]
+                   
+        return Response(resp.content, resp.status_code, headers)
+    except Exception as e:
+        print(f"Proxy error for {url}: {e}")
+        return "Error fetching image", 500
 if __name__ == '__main__':
     # 앱 시작 시 테이블 초기화
     print("\n=== 데이터베이스 테이블 초기화 ===")

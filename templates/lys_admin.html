@@ -596,6 +596,8 @@
         <div class="tabs">
             <div class="tab active" data-tab="team">팀원 관리</div>
             <div class="tab" data-tab="news">뉴스/블로그 관리</div>
+            <div class="tab" data-tab="seminars">세미나 관리</div>
+            <div class="tab" data-tab="registrations">세미나 신청자</div>
             <div class="tab" data-tab="inquiry">상담 문의</div>
             <div class="tab" data-tab="questions">진단 질문 관리</div>
         </div>
@@ -638,6 +640,96 @@
             {% endfor %}
         </div>
 
+        <!-- 세미나 관리 -->
+        <div id="seminars" class="tab-content">
+            <button class="add-btn" onclick="addSeminar()">+ 세미나 추가</button>
+
+            <div id="seminar-list">
+                {% for seminar in seminars %}
+                <div class="news-item seminar-item" data-seminar-id="{{ seminar.id }}">
+                    <div class="news-item-header">
+                        <h4>세미나 #{{ loop.index }}</h4>
+                        <button class="delete-btn" onclick="deleteSeminar({{ seminar.id }})">🗑</button>
+                    </div>
+                    <div class="form-group">
+                        <label>제목 (Title)</label>
+                        <input type="text" name="title" value="{{ seminar.title }}">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>날짜 (Date)</label>
+                            <input type="text" name="date" value="{{ seminar.date }}" placeholder="예: 2026-01-27">
+                        </div>
+                        <div class="form-group">
+                            <label>시간 (Time)</label>
+                            <input type="text" name="time" value="{{ seminar.time }}" placeholder="예: 10:30 ~ 12:30">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>장소 (Location)</label>
+                            <input type="text" name="location" value="{{ seminar.location }}"
+                                placeholder="예: 롯데호텔월드 3층 에메랄드홀 3층">
+                        </div>
+                        <div class="form-group">
+                            <label>초대 인원 (Max Attendees)</label>
+                            <input type="number" name="max_attendees" value="{{ seminar.max_attendees }}"
+                                placeholder="예: 20">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>설명/부제 (Description)</label>
+                        <textarea name="description"
+                            placeholder="설명이나 부제를 입력하세요">{{ seminar.description or '' }}</textarea>
+                    </div>
+
+                    <!-- 상세 스케줄 (Sessions) -->
+                    <div class="form-group"
+                        style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 20px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <label style="margin-bottom: 0;">상세 스케줄 (Sessions)</label>
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="addSession(this)"
+                                style="padding: 4px 8px; font-size: 12px;">+ 스케줄 추가</button>
+                        </div>
+                        <div class="session-list">
+                            {% if seminar.sessions %}
+                            {% for session in seminar.sessions %}
+                            <div class="session-item"
+                                style="background: white; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-size: 12px; font-weight: bold; color: #64748b;">Session {{
+                                        loop.index }}</span>
+                                    <button type="button" class="delete-btn" style="font-size: 14px;"
+                                        onclick="this.closest('.session-item').remove()">✕</button>
+                                </div>
+                                <div class="form-row" style="margin-bottom: 8px;">
+                                    <input type="text" name="session_time" value="{{ session.time_range }}"
+                                        placeholder="시간 (10:30 ~ 11:30)" style="font-size: 13px;">
+                                    <input type="text" name="session_title" value="{{ session.title }}"
+                                        placeholder="세션 제목" style="font-size: 13px;">
+                                </div>
+                                <div class="form-row" style="margin-bottom: 8px;">
+                                    <input type="text" name="session_speaker" value="{{ session.speaker or '' }}"
+                                        placeholder="발표자 (홍길동 전문가)" style="font-size: 13px;">
+                                    <input type="text" name="session_location_note"
+                                        value="{{ session.location_note or '' }}" placeholder="장소 (비워두면 메인 장소와 동일)"
+                                        style="font-size: 13px;">
+                                </div>
+                                <textarea name="session_desc" rows="2" placeholder="세션 설명 (선택사항)"
+                                    style="font-size: 13px;">{{ session.description or '' }}</textarea>
+                            </div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p style="color: #64748b;">등록된 세미나가 없습니다. "세미나 추가" 버튼을 클릭하여 추가하세요.</p>
+                {% endfor %}
+            </div>
+        </div>
+
         <!-- 뉴스/블로그 관리 -->
         <div id="news" class="tab-content">
             <button class="add-btn" onclick="addNews()">+ 뉴스 추가</button>
@@ -678,6 +770,31 @@
                 <p style="color: #64748b;">등록된 뉴스가 없습니다. "뉴스 추가" 버튼을 클릭하여 추가하세요.</p>
                 {% endfor %}
             </div>
+        </div>
+
+        <!-- 세미나 신청자 관리 -->
+        <div id="registrations" class="tab-content">
+            {% for reg in registrations %}
+            <div class="inquiry-list-item" data-registration-id="{{ reg.id }}">
+                <div class="inquiry-list-header">
+                    <div class="inquiry-list-info"
+                        style="gap: 12px; display: grid; grid-template-columns: 100px 120px 1fr 1fr; align-items: center;">
+                        <span class="inquiry-list-name">{{ reg.name }}</span>
+                        <span class="inquiry-list-phone">{{ reg.phone }}</span>
+                        <span style="font-size: 13px; color: #475569;">{{ reg.company_name }} ({{ reg.position
+                            }})</span>
+                        <span style="font-size: 13px; color: #2563eb; font-weight: 500;">{{ reg.seminar_title }}</span>
+                    </div>
+                    <div class="inquiry-list-actions">
+                        <span style="font-size: 12px; color: #94a3b8; margin-right: 8px;">{{ reg.created_at[:10]
+                            }}</span>
+                        <button class="btn btn-xs btn-danger" onclick="deleteRegistration({{ reg.id }})">🗑 삭제</button>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p style="color: #64748b;">등록된 세미나 신청 내역이 없습니다.</p>
+            {% endfor %}
         </div>
 
         <!-- 상담 문의 -->
@@ -798,7 +915,7 @@
             });
 
             const newsData = [];
-            document.querySelectorAll('.news-item').forEach(item => {
+            document.querySelectorAll('.news-item:not(.seminar-item)').forEach(item => {
                 newsData.push({
                     id: item.dataset.newsId || null,
                     title: item.querySelector('[name="title"]').value,
@@ -809,11 +926,37 @@
                 });
             });
 
+            const seminarData = [];
+            document.querySelectorAll('.seminar-item').forEach(item => {
+                const sessions = [];
+                item.querySelectorAll('.session-item').forEach((sessionItem, index) => {
+                    sessions.push({
+                        time_range: sessionItem.querySelector('[name="session_time"]').value,
+                        title: sessionItem.querySelector('[name="session_title"]').value,
+                        speaker: sessionItem.querySelector('[name="session_speaker"]').value,
+                        location_note: sessionItem.querySelector('[name="session_location_note"]').value,
+                        description: sessionItem.querySelector('[name="session_desc"]').value,
+                        display_order: index + 1
+                    });
+                });
+
+                seminarData.push({
+                    id: item.dataset.seminarId || null,
+                    title: item.querySelector('[name="title"]').value,
+                    date: item.querySelector('[name="date"]').value,
+                    time: item.querySelector('[name="time"]').value,
+                    location: item.querySelector('[name="location"]').value,
+                    max_attendees: item.querySelector('[name="max_attendees"]').value,
+                    description: item.querySelector('[name="description"]').value,
+                    sessions: sessions
+                });
+            });
+
             try {
                 const response = await fetch('/api/lys/save-all', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ team: teamData, news: newsData })
+                    body: JSON.stringify({ team: teamData, news: newsData, seminars: seminarData })
                 });
                 const result = await response.json();
 
@@ -866,6 +1009,85 @@
             newsList.insertAdjacentHTML('afterbegin', newsHtml);
         }
 
+        // Add Seminar
+        let seminarCounter = {{ seminars| length }} + 1;
+        function addSeminar() {
+            const seminarList = document.getElementById('seminar-list');
+            const html = `
+                <div class="news-item seminar-item" data-seminar-id="">
+                    <div class="news-item-header">
+                        <h4>세미나 (신규)</h4>
+                        <button class="delete-btn" onclick="this.parentElement.parentElement.remove()">🗑</button>
+                    </div>
+                    <div class="form-group">
+                        <label>제목 (Title)</label>
+                        <input type="text" name="title" value="">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>날짜 (Date)</label>
+                            <input type="text" name="date" value="" placeholder="예: 2026-01-27">
+                        </div>
+                        <div class="form-group">
+                            <label>시간 (Time)</label>
+                            <input type="text" name="time" value="" placeholder="예: 10:30 ~ 12:30">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>장소 (Location)</label>
+                            <input type="text" name="location" value="" placeholder="예: 롯데호텔월드 3층 에메랄드홀 3층">
+                        </div>
+                        <div class="form-group">
+                            <label>초대 인원 (Max Attendees)</label>
+                            <input type="number" name="max_attendees" value="20" placeholder="예: 20">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>설명/부제 (Description)</label>
+                        <textarea name="description" placeholder="설명이나 부제를 입력하세요"></textarea>
+                    </div>
+
+                    <!-- 상세 스케줄 (Sessions) -->
+                    <div class="form-group" style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <label style="margin-bottom: 0;">상세 스케줄 (Sessions)</label>
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="addSession(this)" style="padding: 4px 8px; font-size: 12px;">+ 스케줄 추가</button>
+                        </div>
+                        <div class="session-list">
+                            <!-- Empty initially -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            seminarList.insertAdjacentHTML('afterbegin', html);
+        }
+
+        // Add Session Row
+        function addSession(btn) {
+            const sessionList = btn.closest('.form-group').querySelector('.session-list');
+            const count = sessionList.querySelectorAll('.session-item').length + 1;
+            const html = `
+                <div class="session-item" style="background: white; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 12px; font-weight: bold; color: #64748b;">Session (New)</span>
+                        <button type="button" class="delete-btn" style="font-size: 14px;" onclick="this.closest('.session-item').remove()">✕</button>
+                    </div>
+                    <div class="form-row" style="margin-bottom: 8px;">
+                        <input type="text" name="session_time" value="" placeholder="시간 (10:30 ~ 11:30)" style="font-size: 13px;">
+                        <input type="text" name="session_title" value="" placeholder="세션 제목" style="font-size: 13px;">
+                    </div>
+                    <div class="form-row" style="margin-bottom: 8px;">
+                        <input type="text" name="session_speaker" value="" placeholder="발표자 (홍길동 전문가)" style="font-size: 13px;">
+                        <input type="text" name="session_location_note" value="" placeholder="장소 (비워두면 메인 장소와 동일)" style="font-size: 13px;">
+                    </div>
+                    <textarea name="session_desc" rows="2" placeholder="세션 설명 (선택사항)" style="font-size: 13px;"></textarea>
+                </div>
+            `;
+            sessionList.insertAdjacentHTML('beforeend', html);
+        }
+
+
         // Delete news
         async function deleteNews(id) {
             if (!confirm('이 뉴스를 삭제하시겠습니까?')) return;
@@ -883,6 +1105,25 @@
                 alert('오류가 발생했습니다: ' + error.message);
             }
         }
+
+        // Delete Seminar
+        async function deleteSeminar(id) {
+            if (!confirm('이 세미나를 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await fetch(`/api/lys/seminar/${id}`, { method: 'DELETE' });
+                const result = await response.json();
+
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('삭제 실패: ' + result.message);
+                }
+            } catch (error) {
+                alert('오류가 발생했습니다: ' + error.message);
+            }
+        }
+
 
         // Upload image
         async function uploadImage(input, memberId) {
@@ -1000,6 +1241,29 @@
                 }
             } catch (error) {
                 alert('오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // Delete Registration
+        async function deleteRegistration(id) {
+            if (!confirm('정말 이 신청 내역을 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await fetch(`/api/lys/seminar-registration/${id}/delete`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    const item = document.querySelector(`.inquiry-list-item[data-registration-id="${id}"]`);
+                    if (item) item.remove();
+                    alert('삭제되었습니다.');
+                } else {
+                    alert('오류가 발생했습니다: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('삭제 중 오류가 발생했습니다.');
             }
         }
 

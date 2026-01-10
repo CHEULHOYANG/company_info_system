@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
@@ -7,6 +8,7 @@
     <title>YS Honors - Corporate Consulting</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -148,9 +150,26 @@
 
             100% {
                 background-size: 110% auto;
-                background-position: center center;
+                background-position: center bottom;
             }
         }
+
+        #hero-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            z-index: 2;
+            position: relative;
+        }
+
+
 
         /* Fallback for bg anim if cover ratio varies */
         @media (max-width: 1200px) {
@@ -579,6 +598,7 @@
             <nav class="nav">
                 <a href="/lys">홈</a>
                 <a href="/lys/team">전문가 소개</a>
+                <a href="#seminars">세미나 신청</a>
                 <a href="#services">컨설팅 분야</a>
                 <a href="#news">경영 뉴스</a>
             </nav>
@@ -591,6 +611,7 @@
     </header>
 
     <section class="hero">
+        <canvas id="hero-particles"></canvas>
         <div class="hero-content">
             <div class="hero-badge">Premium Corporate Consulting</div>
             <h1>신뢰의 연결고리<strong>YS Honors</strong></h1>
@@ -603,7 +624,7 @@
     </section>
 
     <!-- EXCLUSIVE SEMINARS SECTION -->
-    <section class="section" style="padding: 80px 20px; background: #fdfbf7;">
+    <section class="section" id="seminars" style="padding: 80px 20px; background: #fdfbf7;">
         <div class="section-header">
             <h2 style="font-family: 'Playfair Display', serif; font-size: 36px; color: #1e3a5f;">Exclusive Seminars</h2>
             <p>세무, 자산관리, 기업 경영 전략에 대한 전문가들의 심도 있는 세미나에 초대합니다.</p>
@@ -628,17 +649,46 @@
                 <!-- Title -->
                 <h3 style="font-size: 20px; font-weight: 700; color: #1f2937; margin-bottom: 12px; min-height: 56px;">{{
                     seminar.title }}</h3>
-                <p style="font-size: 14px; color: #6b7280; line-height: 1.6; margin-bottom: 40px; min-height: 44px;">{{
+                <p style="font-size: 14px; color: #6b7280; line-height: 1.6; margin-bottom: 24px; min-height: 44px;">{{
                     seminar.description }}</p>
+
+                <!-- Detailed Sessions -->
+                {% if seminar.sessions %}
+                <div class="seminar-sessions"
+                    style="margin-bottom: 24px; padding-top: 16px; border-top: 1px solid #f3f4f6;">
+                    {% for session in seminar.sessions %}
+                    <div class="session-item" style="margin-bottom: 12px;">
+                        <div style="font-size: 14px; font-weight: 700; color: #1f2937; margin-bottom: 2px;">
+                            <span style="color: #2563eb; margin-right: 6px;">{{ session.time_range }}</span>
+                            {{ session.title }}
+                        </div>
+                        {% if session.speaker %}
+                        <div style="font-size: 13px; color: #4b5563; margin-left: 2px;">{{ session.speaker }}</div>
+                        {% endif %}
+                        {% if session.description %}
+                        <div style="font-size: 13px; color: #9ca3af; margin-top: 2px; line-height: 1.4;">{{
+                            session.description }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
                 <!-- Gold Number -->
                 <div
-                    style="position: absolute; right: 24px; top: 80px; font-family: 'Playfair Display', serif; font-size: 64px; font-weight: 700; color: #f3e8c9; opacity: 1; font-style: italic;">
+                    style="position: absolute; right: 24px; top: 80px; font-family: 'Playfair Display', serif; font-size: 64px; font-weight: 700; color: #f3e8c9; opacity: 0.5; font-style: italic;">
                     0{{ loop.index }}</div>
 
                 <!-- Location & Button -->
                 <div style="margin-top: auto;">
-                    <div style="font-size: 13px; color: #9ca3af; margin-bottom: 16px;">📍 {{ seminar.location }}</div>
+                    <div style="font-size: 13px; color: #9ca3af; margin-bottom: 16px;">
+                        📍 {{ seminar.location }}
+                        {% if seminar.max_attendees and seminar.max_attendees > 0 %}
+                        <span style="margin-left: 8px; padding-left: 8px; border-left: 1px solid #e5e7eb;">
+                            정원 {{ seminar.max_attendees }}명
+                        </span>
+                        {% endif %}
+                    </div>
                     <button
                         onclick="openSeminarModal('{{ seminar.title }}', '{{ seminar.date }}', '{{ seminar.time }}')"
                         style="display: block; width: 100%; border: 1px solid #1f2937; background: transparent; text-align: center; padding: 12px; border-radius: 8px; cursor: pointer; color: #1f2937; font-weight: 600; transition: all 0.2s;">참가
@@ -937,7 +987,7 @@
                 <div class="aesthetic-card scroll-reveal">
                     <!-- Use dynamic thumbnail_url, strictly default if missing -->
                     <div class="card-image"
-                        style="background-image: url('{{ news.thumbnail_url or url_for('get_artifact_image', filename='korean_knot_bg.png') }}');">
+                        style="background-image: url('{% if news.thumbnail_url %}/api/proxy/image?url={{ news.thumbnail_url|urlencode }}{% else %}{{ url_for('get_artifact_image', filename='korean_knot_bg.png') }}{% endif %}');">
                     </div>
                     <div class="card-content">
                         <span class="card-tag">{{ news.category or '경영/세미나' }}</span>
@@ -1175,6 +1225,106 @@
             }
         }
     </script>
+    <!-- Scroll Buttons -->
+    <div
+        style="position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 1000;">
+        <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+            style="width: 40px; height: 40px; border-radius: 50%; background: #3b82f6; color: white; border: none; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+            class="scroll-btn">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <button onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})"
+            style="width: 40px; height: 40px; border-radius: 50%; background: #3b82f6; color: white; border: none; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+            class="scroll-btn">
+            <i class="fas fa-arrow-down"></i>
+        </button>
+    </div>
+
+    <script>
+        // Add hover effect to scroll buttons
+        document.querySelectorAll('.scroll-btn').forEach(btn => {
+            btn.addEventListener('mouseover', () => {
+                btn.style.transform = 'translateY(-2px)';
+                btn.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
+            });
+            btn.addEventListener('mouseout', () => {
+                btn.style.transform = 'translateY(0)';
+                btn.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+            });
+        });
+    </script>
 </body>
+
+<script>
+    // Particle Effect
+    (function () {
+        const canvas = document.getElementById('hero-particles');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let width, height, particles;
+
+        function resize() {
+            width = canvas.width = canvas.offsetWidth;
+            height = canvas.height = canvas.offsetHeight;
+            initParticles();
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = Math.min(Math.floor(width * height / 15000), 100); // Limit count for performance
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    size: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 0.5;
+
+            for (let i = 0; i < particles.length; i++) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x < 0) p.x = width;
+                if (p.x > width) p.x = 0;
+                if (p.y < 0) p.y = height;
+                if (p.y > height) p.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw lines
+                for (let j = i + 1; j < particles.length; j++) {
+                    let p2 = particles[j];
+                    let dx = p.x - p2.x;
+                    let dy = p.y - p2.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        animate();
+    })();
+</script>
 
 </html>

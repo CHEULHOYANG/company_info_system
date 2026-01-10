@@ -75,6 +75,7 @@
             border: 1px solid #d1d5db;
             border-radius: 6px;
             box-sizing: border-box;
+            font-family: inherit;
         }
 
         .grid-2 {
@@ -91,23 +92,11 @@
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
+            width: 100%;
         }
 
-        .session-item {
-            background: #f9fafb;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #e5e7eb;
-            position: relative;
-        }
-
-        .session-remove {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-            color: #9ca3af;
+        .btn-primary:hover {
+            background: #1d4ed8;
         }
 
         h2 {
@@ -116,6 +105,7 @@
             margin-bottom: 20px;
             border-bottom: 1px solid #e5e7eb;
             padding-bottom: 10px;
+            color: #111827;
         }
 
         .seminar-list-item {
@@ -131,128 +121,109 @@
         }
 
         .action-btn {
-            color: #6b7280;
+            color: #ef4444;
             margin-left: 10px;
             cursor: pointer;
+            transition: color 0.2s;
         }
 
         .action-btn:hover {
-            color: #ef4444;
+            color: #dc2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 0;
+            font-size: 14px;
         }
     </style>
 </head>
 
 <body>
     <div class="admin-header">
-        <h1 style="font-size: 24px; margin: 0;">관리자 페이지</h1>
+        <h1 style="font-size: 24px; margin: 0; color: #111827;">YS Honors Admin</h1>
         <div class="admin-nav">
             <a href="/lys/admin/seminars" class="active">세미나 관리</a>
-            <a href="/lys/admin/registrations">세미나 신청자 관리</a>
-            <a href="/lys/admin/questions">진단 항목 관리</a>
-            <a href="/lys">사이트 관리</a>
+            <a href="/lys/admin/registrations">신청자 관리</a>
+            <!-- <a href="/lys/admin/questions">진단 항목</a> -->
+            <a href="/lys" target="_blank"><i class="fas fa-external-link-alt"></i> 사이트 바로가기</a>
         </div>
     </div>
 
     <div class="container">
+        <!-- 세미나 등록 폼 -->
         <div class="card">
-            <h2>세미나 등록</h2>
-            <form method="POST">
+            <h2><i class="fas fa-plus-circle" style="color: #2563eb; margin-right: 8px;"></i>세미나 등록</h2>
+            <form action="/lys/admin/seminars/add" method="POST">
+                <div class="form-group">
+                    <label class="form-label">세미나 제목</label>
+                    <input type="text" name="title" class="form-control" placeholder="예: 세법개정 리뷰 및 결산 후 법인 필수 점검 사항"
+                        required>
+                </div>
+
                 <div class="grid-2">
                     <div class="form-group">
                         <label class="form-label">날짜 (Date)</label>
-                        <input type="date" name="date" class="form-control" required>
+                        <input type="text" name="date" class="form-control" placeholder="예: 1월 29일 (목)" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">시간 (Time)</label>
-                        <input type="text" name="time" class="form-control" placeholder="예: 14:00 - 17:00" required>
+                        <input type="text" name="time" class="form-control" placeholder="예: 14:00 - 16:00" required>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">세미나 제목 (Title)</label>
-                    <input type="text" name="title" class="form-control" placeholder="세미나의 메인 타이틀을 입력하세요" required>
-                </div>
-
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label class="form-label">장소 (Location)</label>
-                        <input type="text" name="location" class="form-control" placeholder="예: 삼성패밀리오피스 (서초)" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">초대 인원 (Max Attendees)</label>
-                        <input type="text" name="max_attendees" class="form-control" placeholder="예: 20명 (최대 30명)">
-                    </div>
+                    <label class="form-label">장소 (Location)</label>
+                    <input type="text" name="location" class="form-control" placeholder="예: 강남 FP 센터 (삼성생명 서초사옥 35층)"
+                        required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">상세 설명</label>
-                    <textarea name="description" class="form-control" rows="3"></textarea>
+                    <label class="form-label">설명/부제 (Description)</label>
+                    <input type="text" name="description" class="form-control"
+                        placeholder="예: 미국 시민권자 소득세신고 및 해외 금융 계좌 보고">
                 </div>
 
-                <div style="background: #fdfbf7; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <label class="form-label" style="margin: 0;">상세 스케줄 (Sessions)</label>
-                        <button type="button" onclick="addSession()"
-                            style="background: none; border: none; color: #2563eb; font-weight: 600; cursor: pointer;">+
-                            스케줄 추가</button>
-                    </div>
-                    <div id="session-container">
-                        <!-- Sessions will be added here -->
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-primary" style="width: 100%;">세미나 등록하기</button>
+                <button type="submit" class="btn-primary">세미나 등록하기</button>
             </form>
         </div>
 
+        <!-- 등록된 세미나 목록 -->
         <div class="card">
-            <h2>등록된 세미나 목록</h2>
+            <h2><i class="fas fa-list" style="color: #2563eb; margin-right: 8px;"></i>등록된 세미나 목록</h2>
+            {% if seminars %}
             {% for seminar in seminars %}
             <div class="seminar-list-item">
                 <div>
-                    <div style="font-weight: 700; font-size: 16px;">{{ seminar.title }}</div>
-                    <div style="color: #6b7280; font-size: 14px; margin-top: 4px;">{{ seminar.date }} | {{ seminar.time
-                        }} | {{ seminar.location }}</div>
+                    <div style="font-weight: 700; font-size: 16px; color: #1f2937;">{{ seminar.title }}</div>
+                    <div style="color: #6b7280; font-size: 13px; margin-top: 6px;">
+                        <span
+                            style="background: #eff6ff; color: #2563eb; padding: 2px 6px; border-radius: 4px; margin-right: 6px;">{{
+                            seminar.date }}</span>
+                        <span>{{ seminar.time }}</span>
+                        <span style="margin: 0 6px;">|</span>
+                        <span>{{ seminar.location }}</span>
+                    </div>
                 </div>
                 <div>
-                    <!-- <i class="fas fa-edit action-btn"></i> -->
                     <form action="/lys/admin/seminars/{{ seminar.id }}/delete" method="POST" style="display:inline;"
                         onsubmit="return confirm('정말 삭제하시겠습니까?');">
-                        <button type="submit" style="background:none; border:none; padding:0;"><i
-                                class="fas fa-trash-alt action-btn"></i></button>
+                        <button type="submit" style="background:none; border:none; padding:0; cursor: pointer;">
+                            <i class="fas fa-trash-alt action-btn" title="삭제"></i>
+                        </button>
                     </form>
                 </div>
             </div>
-            {% else %}
-            <p style="text-align: center; color: #9ca3af; padding: 20px;">등록된 세미나가 없습니다.</p>
             {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <i class="far fa-folder-open" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
+                <p>등록된 세미나가 없습니다.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
-
-    <script>
-        function addSession() {
-            const container = document.getElementById('session-container');
-            const count = container.children.length + 1;
-            const html = `
-                <div class="session-item">
-                    <div class="session-remove" onclick="this.parentElement.remove()">&times;</div>
-                    <div style="font-size: 12px; color: #9ca3af; margin-bottom: 8px;">Session ${count}</div>
-                    <div class="grid-2" style="margin-bottom: 10px;">
-                        <input type="text" name="session_time[]" class="form-control" placeholder="시간/소요시간" style="font-size: 13px;">
-                        <input type="text" name="session_title[]" class="form-control" placeholder="강의 주제 (Title)" style="font-size: 13px;">
-                    </div>
-                    <div class="grid-2">
-                        <input type="text" name="session_instructor[]" class="form-control" placeholder="강사명" style="font-size: 13px;">
-                        <input type="text" class="form-control" placeholder="장소 (비워두면 메인 장소와 동일)" style="font-size: 13px;" disabled>
-                    </div>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', html);
-        }
-        // Add one session field by default
-        addSession();
-    </script>
 </body>
 
 </html>
