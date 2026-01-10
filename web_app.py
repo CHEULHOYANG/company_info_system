@@ -7064,6 +7064,77 @@ def lys_admin_logout():
     session.pop('lys_admin_auth', None)
     return redirect('/lys')
 
+@app.route('/api/lys/questions/export')
+def api_lys_export_questions():
+    """질문 데이터 내보내기 (JSON)"""
+    if not session.get('lys_admin_auth'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    conn = get_db_connection()
+    try:
+        import json
+        questions = conn.execute('SELECT * FROM ys_questions ORDER BY display_order').fetchall()
+        data = [dict(row) for row in questions]
+        
+        # JSON 파일로 반환
+        json_str = json.dumps(data, ensure_ascii=False, indent=2)
+        return Response(
+            json_str,
+            mimetype='application/json',
+            headers={'Content-Disposition': 'attachment;filename=questions_backup.json'}
+        )
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/lys/questions/import', methods=['POST'])
+def api_lys_import_questions():
+    """질문 데이터 가져오기 (JSON)"""
+    if not session.get('lys_admin_auth'):
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+        
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': 'No file part'}), 400
+        
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No selected file'}), 400
+        
+    try:
+        import json
+        data = json.load(file)
+        
+        if not isinstance(data, list):
+             return jsonify({'success': False, 'message': 'Invalid format: Expected a list of questions'}), 400
+             
+        conn = get_db_connection()
+        # 트랜잭션 시작 (기존 데이터 삭제 후 삽입)
+        try:
+            conn.execute('BEGIN TRANSACTION')
+            conn.execute('DELETE FROM ys_questions')
+            
+            for q in data:
+                # 필수 필드 확인
+                if 'question_text' not in q:
+                    continue
+                
+                conn.execute('''
+                    INSERT INTO ys_questions (question_text, display_order, is_active)
+                    VALUES (?, ?, ?)
+                ''', (q.get('question_text'), q.get('display_order', 0), q.get('is_active', 1)))
+                
+            conn.commit()
+            return jsonify({'success': True, 'message': f'Successfully imported {len(data)} questions.'})
+        except Exception as e:
+            conn.rollback()
+            raise e
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/lys/team')
 def lys_team():
     """YS Honers 전문가 소개 페이지"""

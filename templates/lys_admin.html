@@ -861,7 +861,17 @@
 
         <!-- 진단 질문 관리 -->
         <div id="questions" class="tab-content">
-            <button class="add-btn" onclick="addQuestion()">+ 질문 추가</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+                <button class="add-btn" style="margin-bottom: 0;" onclick="addQuestion()">+ 질문 추가</button>
+                <button class="add-btn" style="margin-bottom: 0; border-color: #10b981; color: #10b981;"
+                    onclick="exportQuestions()">↓ 질문 내보내기</button>
+                <label class="add-btn"
+                    style="margin-bottom: 0; border-color: #f59e0b; color: #f59e0b; cursor: pointer;">
+                    ↑ 질문 가져오기
+                    <input type="file" id="import-file" style="display: none;" accept=".json"
+                        onchange="importQuestions(this)">
+                </label>
+            </div>
 
             <div id="questions-list">
                 {% for q in quiz_questions %}
@@ -1323,6 +1333,44 @@
                 }
             } catch (error) {
                 alert('오류가 발생했습니다: ' + error.message);
+            }
+        }
+
+        // Export Questions
+        function exportQuestions() {
+            location.href = '/api/lys/questions/export';
+        }
+
+        // Import Questions
+        async function importQuestions(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            if (!confirm('경고: 질문을 가져오면 기존 질문이 모두 삭제되고 덮어씌워집니다. 계속하시겠습니까?')) {
+                input.value = ''; // Reset input
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/lys/questions/import', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('성공적으로 가져왔습니다: ' + result.message);
+                    location.reload();
+                } else {
+                    alert('가져오기 실패: ' + result.message);
+                }
+            } catch (error) {
+                alert('오류가 발생했습니다: ' + error.message);
+            } finally {
+                input.value = ''; // Reset input
             }
         }
     </script>
