@@ -8245,6 +8245,33 @@ def init_lys_tables():
 
 
 
+
+@app.route('/admin/run_migration_sql')
+def run_migration_sql():
+    """ys_migration.sql 파일을 읽어서 실행합니다."""
+    # 보안상 간단한 체크 (실제 운영환경에서는 더 강력한 보안 필요)
+    # 여기서는 파일이 존재하는지로 체크
+    
+    migration_file = os.path.join(app_dir, 'ys_migration.sql')
+    if not os.path.exists(migration_file):
+        return jsonify({'success': False, 'message': 'Migration file not found'})
+        
+    conn = get_db_connection()
+    try:
+        with open(migration_file, 'r', encoding='utf-8') as f:
+            sql_script = f.read()
+            
+        cursor = conn.cursor()
+        cursor.executescript(sql_script)
+        conn.commit()
+        
+        return jsonify({'success': True, 'message': 'Migration executed successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        conn.close()
+
+
 # 아티팩트 이미지 서빙 (중요)
 from urllib.parse import unquote
 
