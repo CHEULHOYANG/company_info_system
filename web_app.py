@@ -7303,6 +7303,7 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # Helper: Fetch OG Image
+# Helper: Fetch OG Image
 def _fetch_og_image(url):
     """URL에서 OG:Image 메타 태그를 추출합니다 (네이버 블로그 지원)."""
     if not url: return None
@@ -7329,6 +7330,152 @@ def _fetch_og_image(url):
                     # 내부 프레임 내용 재요청
                     response = requests.get(iframe_src, headers=headers, timeout=5)
                     response.raise_for_status()
+                    soup = BeautifulSoup(response.text, 'html.parser')
+
+        # 1. Body Image Priority (postfiles.pstatic.net) -> More reliable than blogthumb
+        try:
+            body_imgs = soup.find_all('img')
+            for img in body_imgs:
+                src = img.get('src')
+                if src and 'postfiles.pstatic.net' in src and 'type=w' in src:
+                    return src
+        except:
+            pass
+
+        og_image = soup.find('meta', property='og:image')
+        
+        if og_image and og_image.get('content'):
+            return og_image['content']
+            
+        # Twitter card fallback
+        twitter_image = soup.find('meta', name='twitter:image')
+        if twitter_image and twitter_image.get('content'):
+            return twitter_image['content']
+            
+        return None
+    except Exception as e:
+        print(f"Error fetching OG image from {url}: {e}")
+        return None
+
+@app.route('/api/lys/save-all', methods=['POST'])
+def api_lys_save_all():
+    """전체 데이터 저장 API (팀원+뉴스)"""
+    conn = get_db_connection()
+    try:
+        # === Auto-Migration & Schema Initialization ===
+        # Ensure all tables exist (Idempotent)
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS ys_team_members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                position TEXT NOT NULL,
+                phone TEXT,
+                bio TEXT,
+                photo_url TEXT,
+                display_order INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS ys_news (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                category TEXT,
+                summary TEXT,
+                link_url TEXT,
+                thumbnail_url TEXT,
+                publish_date DATE,
+                display_order INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS ys_seminars (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                date TEXT NOT NULL,
+                time TEXT NOT NULL,
+                location TEXT NOT NULL,
+                description TEXT,
+                max_attendees INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS ys_seminar_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seminar_id INTEGER NOT NULL,
+                time_range TEXT NOT NULL,
+                title TEXT NOT NULL,
+                speaker TEXT,
+                description TEXT,
+                location_note TEXT,
+                display_order INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        # Check and add thumbnail_url to ys_news if missing
+        try:
+            conn.execute("SELECT thumbnail_url FROM ys_news LIMIT 1")
+        except:
+            print("Auto-migrating: Adding thumbnail_url to ys_news")
+            conn.execute("ALTER TABLE ys_news ADD COLUMN thumbnail_url TEXT")
+            
+        # Check and add max_attendees to ys_seminars if missing
+        try:
+            conn.execute("SELECT max_attendees FROM ys_seminars LIMIT 1")
+        except:
+            print("Auto-migrating: Adding max_attendees to ys_seminars")
+            conn.execute("ALTER TABLE ys_seminars ADD COLUMN max_attendees INTEGER DEFAULT 0")
+        
+        conn.commit()
+        # ==========================================
+
+        data = request.get_json()
+        
+        # 팀원 정보 업데이트
+        if 'team' in data:
+            for member in data['team']:
+                if member.get('id'):
+                    conn.execute('''
+                        UPDATE ys_team_members 
+                        SET name=?, position=?, phone=?, bio=?, photo_url=?, updated_at=CURRENT_TIMESTAMP
+                        WHERE id=?
+                    ''', (member.get('name'), member.get('position'), member.get('phone'),
+                          member.get('bio'), member.get('photo_url'), member.get('id')))
+        
+        # 뉴스 정보 업데이트
+        if 'news' in data:
+            for news in data['news']:
+                # 링크 URL 변경 시 또는 썸네일이 없을 때 이미지 자동 추출
+                new_thumbnail_url = news.get('thumbnail_url')
+                link_url = news.get('link_url')
+                
+                # 기존 데이터 조회 (URL 변경 확인용) - 최적화: ID가 있을 때만
+                current_thumbnail = None
+                current_link = None
+                
+                if news.get('id'):
+                    row = conn.execute('SELECT link_url, thumbnail_url FROM ys_news WHERE id = ?', (news.get('id'),)).fetchone()
+                    if row:
+                        current_link = row[0]
+                        current_thumbnail = row[1]
+                
+                # 썸네일 자동 업데이트 조건:
+                # 1. 링크가 새로 입력되었거나 변경되었을 때
+                # 2. 썸네일이 비어있고 링크가 있을 때
+                should_fetch = False
+                if link_url and (link_url != current_link):
+                    should_fetch = True
+                elif link_url and not current_thumbnail and not new_thumbnail_url:
+                    should_fetch = True
+                
                 fetched_thumbnail = None
                 if should_fetch:
                     print(f"Fetching OG image for: {link_url}")
@@ -7354,7 +7501,7 @@ def _fetch_og_image(url):
                         VALUES (?, ?, ?, ?, ?, ?)
                     ''', (news.get('title'), news.get('category'), news.get('summary'),
                           news.get('link_url'), final_thumbnail, news.get('publish_date')))
-        
+
         # 세미나 정보 업데이트
         if 'seminars' in data:
             for seminar in data['seminars']:
