@@ -747,11 +747,33 @@ def init_ys_honers_tables():
             print("Adding position column to SeminarRegistrations")
             cursor.execute("ALTER TABLE SeminarRegistrations ADD COLUMN position TEXT")
             
-        try:
-            cursor.execute("SELECT biz_no FROM SeminarRegistrations LIMIT 1")
-        except:
             print("Adding biz_no column to SeminarRegistrations")
             cursor.execute("ALTER TABLE SeminarRegistrations ADD COLUMN biz_no TEXT")
+            
+        conn.commit()
+
+        # [NEW] 데이터 마이그레이션 (ys_migration.sql 실행)
+        # 로컬에서 생성된 데이터(블로그 글, 세미나 등)를 서버에 동기화하기 위함
+        migration_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ys_migration.sql')
+        if os.path.exists(migration_file_path):
+            try:
+                print(f"Executing migration script: {migration_file_path}")
+                with open(migration_file_path, 'r', encoding='utf-8') as f:
+                    migration_sql = f.read()
+                    
+                cursor.executescript(migration_sql)
+                conn.commit()
+                print("Migration executed successfully.")
+                
+            except Exception as e:
+                print(f"Migration failed: {e}")
+                import traceback
+                traceback.print_exc()
+                # 마이그레이션 실패해도 계속 진행 (기본 데이터라도 넣기 위해 rollback)
+                conn.rollback()
+        else:
+            print("No migration script found (ys_migration.sql)")
+
     
     # 초기 팀원 데이터 삽입 (없는 경우)
         cursor.execute("SELECT COUNT(*) FROM ys_team_members")
