@@ -7386,17 +7386,6 @@ def _fetch_og_image(url):
             return og_image['content']
             
         # Twitter card fallback
-        twitter_image = soup.find('meta', name='twitter:image')
-        if twitter_image and twitter_image.get('content'):
-            return twitter_image['content']
-            
-        return None
-    except Exception as e:
-                if member.get('id'):
-                    conn.execute('''
-                        UPDATE ys_team_members 
-                        SET name=?, position=?, phone=?, bio=?, photo_url=?, updated_at=CURRENT_TIMESTAMP
-                        WHERE id=?
                     ''', (member.get('name'), member.get('position'), member.get('phone'),
                           member.get('bio'), member.get('photo_url'), member.get('id')))
         
