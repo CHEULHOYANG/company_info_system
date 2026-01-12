@@ -7124,7 +7124,9 @@ def lys_admin():
                                quiz_questions=[dict(row) for row in quiz_questions])
     except Exception as e:
         print(f"LYS 관리자 페이지 오류: {e}")
-        return render_template('lys_admin.html', team_members=[], news_items=[], inquiries=[], quiz_questions=[])
+        import traceback
+        traceback.print_exc()
+        return f"관리자 페이지 오류 발생: {str(e)}<br><pre>{traceback.format_exc()}</pre>", 500
     finally:
         conn.close()
 
