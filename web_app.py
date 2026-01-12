@@ -8333,6 +8333,21 @@ def init_lys_tables():
             )
         ''')
 
+        conn.commit()
+    except Exception as e:
+        print(f"Error initializing LYS tables: {e}")
+    finally:
+        conn.close()
+
+# Proxy Image API (Restored)
+@app.route('/api/proxy/image')
+def proxy_image():
+    url = request.args.get('url')
+    if not url:
+        return "No URL provided", 400
+    
+    try:
+        resp = requests.get(url, stream=True)
         resp.raise_for_status()
         
         excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
@@ -8343,6 +8358,254 @@ def init_lys_tables():
     except Exception as e:
         print(f"Proxy error for {url}: {e}")
         return "Error fetching image", 500
+
+# ==========================================
+# LYS Management APIs
+# ==========================================
+
+@app.route('/api/lys/save-all', methods=['POST'])
+def lys_save_all():
+    try:
+        data = request.get_json()
+        team_data = data.get('team', [])
+        news_data = data.get('news', [])
+        seminar_data = data.get('seminars', [])
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 1. Update Team Members
+        for member in team_data:
+            if member.get('id'):
+                cursor.execute('''
+                    UPDATE ys_team_members 
+                    SET name=?, position=?, phone=?, bio=?, photo_url=?
+                    WHERE id=?
+                ''', (member['name'], member['position'], member['phone'], member['bio'], member['photo_url'], member['id']))
+            else:
+                # New member logic if needed, though frontend seems to only edit existing ones in the snippet
+                pass
+
+        # 2. Update News
+        for news in news_data:
+            if news.get('id'):
+                cursor.execute('''
+                    UPDATE ys_news 
+                    SET title=?, category=?, summary=?, link_url=?, publish_date=?, thumbnail_url=?
+                    WHERE id=?
+                ''', (news['title'], news['category'], news['summary'], news['link_url'], news['publish_date'], news.get('thumbnail_url'), news['id']))
+            else:
+                cursor.execute('''
+                    INSERT INTO ys_news (title, category, summary, link_url, publish_date, thumbnail_url)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (news['title'], news['category'], news['summary'], news['link_url'], news['publish_date'], news.get('thumbnail_url')))
+
+        # 3. Update Seminars
+        for seminar in seminar_data:
+            # Main Seminar Data
+            if seminar.get('id'):
+                cursor.execute('''
+                    UPDATE ys_seminars 
+                    SET title=?, date=?, time=?, location=?, max_attendees=?, description=?
+                    WHERE id=?
+                ''', (seminar['title'], seminar['date'], seminar['time'], seminar['location'], seminar['max_attendees'], seminar['description'], seminar['id']))
+                seminar_id = seminar['id']
+            else:
+                cursor.execute('''
+                    INSERT INTO ys_seminars (title, date, time, location, max_attendees, description)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (seminar['title'], seminar['date'], seminar['time'], seminar['location'], seminar['max_attendees'], seminar['description']))
+                seminar_id = cursor.lastrowid
+
+            # Sessions Logic: Delete existing and re-insert (easiest for sync)
+            cursor.execute("DELETE FROM ys_seminar_sessions WHERE seminar_id = ?", (seminar_id,))
+            
+            for session_item in seminar.get('sessions', []):
+                cursor.execute('''
+                    INSERT INTO ys_seminar_sessions (seminar_id, time_range, title, speaker, location_note, description, display_order)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (seminar_id, session_item['time_range'], session_item['title'], session_item['speaker'], session_item['location_note'], session_item['description'], session_item['display_order']))
+
+        conn.commit()
+        return jsonify({'success': True, 'message': 'All changes saved successfully'})
+            
+    except Exception as e:
+        print(f"Error saving all: {e}")
+        if 'conn' in locals():
+            conn.rollback()
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/lys/upload', methods=['POST'])
+def lys_upload_image():
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': 'No file part'})
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No selected file'})
+        
+    if file:
+        filename = secure_filename(file.filename)
+        # Unique filename to prevent overwrite
+        import uuid
+        ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+        new_filename = f"{uuid.uuid4()}.{ext}"
+        
+        save_path = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+        file.save(save_path)
+        
+        return jsonify({'success': True, 'url': f'/uploads/{new_filename}'})
+
+@app.route('/api/lys/news/<int:id>', methods=['DELETE'])
+def lys_delete_news(id):
+    try:
+        conn = get_db_connection()
+        conn.execute("DELETE FROM ys_news WHERE id = ?", (id,))
+        conn.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        if 'conn' in locals(): conn.close()
+        
+@app.route('/api/lys/seminar/<int:id>', methods=['DELETE'])
+def lys_delete_seminar(id):
+    try:
+        conn = get_db_connection()
+        conn.execute("DELETE FROM ys_seminars WHERE id = ?", (id,))
+        conn.execute("DELETE FROM ys_seminar_sessions WHERE seminar_id = ?", (id,))
+        conn.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        if 'conn' in locals(): conn.close()
+
+@app.route('/api/lys/inquiry/<int:id>', methods=['DELETE'])
+def lys_delete_inquiry(id):
+    try:
+        conn = get_db_connection()
+        conn.execute("DELETE FROM ys_inquiries WHERE id = ?", (id,))
+        conn.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        if 'conn' in locals(): conn.close()
+        
+@app.route('/api/lys/seminar-registration/<int:id>/delete', methods=['POST'])
+def lys_delete_registration(id):
+    try:
+        conn = get_db_connection()
+        conn.execute("DELETE FROM SeminarRegistrations WHERE id = ?", (id,))
+        conn.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        if 'conn' in locals(): conn.close()
+
+@app.route('/api/lys/question/<int:id>', methods=['DELETE'])
+def lys_delete_question(id):
+    try:
+        conn = get_db_connection()
+        conn.execute("DELETE FROM ys_questions WHERE id = ?", (id,))
+        conn.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        if 'conn' in locals(): conn.close()
+
+@app.route('/api/lys/question/<int:id>/move', methods=['POST'])
+def lys_move_question(id):
+    try:
+        data = request.get_json()
+        direction = data.get('direction')
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get current question
+        cursor.execute("SELECT id, display_order FROM ys_questions WHERE id = ?", (id,))
+        current = cursor.fetchone()
+        if not current:
+            return jsonify({'success': False, 'message': 'Question not found'})
+            
+        current_order = current['display_order']
+        
+        if direction == 'up':
+            # Find previous question
+            cursor.execute("SELECT id, display_order FROM ys_questions WHERE display_order < ? ORDER BY display_order DESC LIMIT 1", (current_order,))
+            target = cursor.fetchone()
+        else: # down
+            cursor.execute("SELECT id, display_order FROM ys_questions WHERE display_order > ? ORDER BY display_order ASC LIMIT 1", (current_order,))
+            target = cursor.fetchone()
+            
+        if target:
+            # Swap orders
+            target_id = target['id']
+            target_order = target['display_order']
+            
+            cursor.execute("UPDATE ys_questions SET display_order = ? WHERE id = ?", (target_order, id))
+            cursor.execute("UPDATE ys_questions SET display_order = ? WHERE id = ?", (current_order, target_id))
+            conn.commit()
+            
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        if 'conn' in locals(): conn.close()
+
+@app.route('/api/lys/questions/export', methods=['GET'])
+def lys_export_questions():
+    try:
+        conn = get_db_connection()
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("SELECT * FROM ys_questions ORDER BY display_order").fetchall()
+        questions = [dict(row) for row in rows]
+        
+        return jsonify(questions) # Just return JSON, browser will handle download/display or we can force download
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        if 'conn' in locals(): conn.close()
+
+@app.route('/api/lys/questions/import', methods=['POST'])
+def lys_import_questions():
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': 'No file part'})
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No selected file'})
+        
+    try:
+        import json
+        questions = json.load(file)
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Replace all questions or append? User warning said "overwrite existing questions"
+        cursor.execute("DELETE FROM ys_questions")
+        
+        for q in questions:
+            cursor.execute('''
+                INSERT INTO ys_questions (question_text, display_order, is_active)
+                VALUES (?, ?, ?)
+            ''', (q.get('question_text'), q.get('display_order', 1), q.get('is_active', 1)))
+            
+        conn.commit()
+        return jsonify({'success': True, 'message': f'{len(questions)} questions imported'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        if 'conn' in locals(): conn.close()
+
 # 초기화 함수 정의
 def initialize_db():
     print("\n=== 데이터베이스 테이블 초기화 (Production/Development) ===")
