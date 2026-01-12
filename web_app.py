@@ -6807,6 +6807,45 @@ def register_seminar_api():
     except Exception as e:
         return jsonify({"success": False, "message": f"서버 오류: {str(e)}"}), 500
 
+@app.route('/api/proxy/image')
+def proxy_image():
+    """외부 이미지 프록시 (Naver Blog 등 엑스박스 방지)"""
+    url = request.args.get('url')
+    if not url:
+        return "No URL provided", 400
+
+    try:
+        # 네이버 블로그 등 일부 사이트는 Referer 체크를 함
+        headers = {
+            "User-Agent": "Mozilla/5.0",
+            "Referer": "https://blog.naver.com/" 
+        }
+        
+        # 1. URL 디코딩이 필요한지 체크 (이미 되어있을 수 있음)
+        # requests.get은 기본적으로 인코딩 처리를 함.
+        
+        resp = requests.get(url, headers=headers, stream=True, timeout=5)
+        
+        # 2. 상태 코드 체크
+        if resp.status_code != 200:
+            return f"Error fetching image: {resp.status_code}", 502
+            
+        # 3. Content-Type 전달
+        content_type = resp.headers.get('Content-Type', 'image/jpeg')
+        
+        # 4. 스트리밍 응답 반환
+        excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+        headers = [(name, value) for (name, value) in resp.raw.headers.items()
+                   if name.lower() not in excluded_headers]
+
+        return Response(resp.iter_content(chunk_size=1024), 
+                        status=resp.status_code, 
+                        content_type=content_type)
+        
+    except Exception as e:
+        print(f"Proxy Error: {e}")
+        return f"Proxy failed: {str(e)}", 500
+
 # --- LYS ADMIN ROUTES START ---
 @app.route('/lys/admin/seminars')
 def lys_admin_seminars():
