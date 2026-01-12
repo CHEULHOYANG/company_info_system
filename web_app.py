@@ -7150,45 +7150,6 @@ def lys_team():
         return render_template('lys_team.html', team_members=[])
     finally:
         conn.close()
-
-# ============================================
-# YS Honers API 엔드포인트
-# ============================================
-
-@app.route('/api/lys/team', methods=['GET', 'POST', 'PUT'])
-def api_lys_team():
-    """팀원 정보 API"""
-    conn = get_db_connection()
-    try:
-        if request.method == 'GET':
-            team_members = conn.execute('''
-                SELECT * FROM ys_team_members ORDER BY display_order
-            ''').fetchall()
-            return jsonify({'success': True, 'data': [dict(row) for row in team_members]})
-        
-        elif request.method == 'POST':
-            data = request.get_json()
-            conn.execute('''
-                INSERT INTO ys_team_members (name, position, phone, bio, photo_url, display_order)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (data.get('name'), data.get('position'), data.get('phone'),
-                  data.get('bio'), data.get('photo_url'), data.get('display_order', 1)))
-            conn.commit()
-            return jsonify({'success': True, 'message': '팀원이 추가되었습니다.'})
-        
-        elif request.method == 'PUT':
-            data = request.get_json()
-            conn.execute('''
-                UPDATE ys_team_members 
-                SET name=?, position=?, phone=?, bio=?, photo_url=?, updated_at=CURRENT_TIMESTAMP
-                WHERE id=?
-            ''', (data.get('name'), data.get('position'), data.get('phone'),
-                  data.get('bio'), data.get('photo_url'), data.get('id')))
-            conn.commit()
-            return jsonify({'success': True, 'message': '팀원 정보가 업데이트되었습니다.'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-    finally:
         conn.close()
 
 @app.route('/api/lys/team/<int:team_id>', methods=['DELETE'])
