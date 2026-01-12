@@ -7392,19 +7392,6 @@ def _fetch_og_image(url):
             
         return None
     except Exception as e:
-        print(f"Error fetching OG image from {url}: {e}")
-        return None
-
-@app.route('/api/lys/save-all', methods=['POST'])
-def api_lys_save_all():
-    """전체 데이터 저장 API (팀원+뉴스)"""
-    conn = get_db_connection()
-    try:
-        data = request.get_json()
-        
-        # 팀원 정보 업데이트
-        if 'team' in data:
-            for member in data['team']:
                 if member.get('id'):
                     conn.execute('''
                         UPDATE ys_team_members 
