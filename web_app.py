@@ -7329,29 +7329,6 @@ def _fetch_og_image(url):
                     # 내부 프레임 내용 재요청
                     response = requests.get(iframe_src, headers=headers, timeout=5)
                     response.raise_for_status()
-                    soup = BeautifulSoup(response.text, 'html.parser')
-
-        # 1. Body Image Priority (postfiles.pstatic.net) -> More reliable than blogthumb
-        try:
-            body_imgs = soup.find_all('img')
-                current_thumbnail = None
-                current_link = None
-                
-                if news.get('id'):
-                    row = conn.execute('SELECT link_url, thumbnail_url FROM ys_news WHERE id = ?', (news.get('id'),)).fetchone()
-                    if row:
-                        current_link = row[0]
-                        current_thumbnail = row[1]
-                
-                # 썸네일 자동 업데이트 조건:
-                # 1. 링크가 새로 입력되었거나 변경되었을 때
-                # 2. 썸네일이 비어있고 링크가 있을 때
-                should_fetch = False
-                if link_url and (link_url != current_link):
-                    should_fetch = True
-                elif link_url and not current_thumbnail and not new_thumbnail_url:
-                    should_fetch = True
-                
                 fetched_thumbnail = None
                 if should_fetch:
                     print(f"Fetching OG image for: {link_url}")
