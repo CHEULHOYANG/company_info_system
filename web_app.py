@@ -8224,18 +8224,6 @@ def init_lys_tables():
             )
         ''')
 
-        # 세미나 신청자 테이블 (별도 관리)
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS SeminarRegistrations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                seminar_title TEXT NOT NULL,
-                name TEXT NOT NULL,
-        }
-        if 'naver.com' in url or 'pstatic.net' in url:
-            headers['Referer'] = 'https://blog.naver.com/'
-
-        # Stream=True for efficiency
-        resp = requests.get(url, headers=headers, stream=True, timeout=10)
         resp.raise_for_status()
         
         excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
