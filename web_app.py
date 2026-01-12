@@ -8235,18 +8235,6 @@ def init_lys_tables():
                 position TEXT,
                 biz_no TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        conn.commit()
-    except Exception as e:
-        print(f"Error initializing LYS tables: {e}")
-    finally:
-def proxy_image():
-    """Proxy for fetching images to bypass hotlink protection (e.g. Naver Blog)"""
-    url = request.args.get('url')
-    if not url:
-        return "URL required", 400
-    
     # URL Decoding (Frontend sends encoded URL)
     url = unquote(url)
 
