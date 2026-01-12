@@ -8230,18 +8230,6 @@ def init_lys_tables():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 seminar_title TEXT NOT NULL,
                 name TEXT NOT NULL,
-                phone TEXT NOT NULL,
-                company_name TEXT,
-                position TEXT,
-                biz_no TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    # URL Decoding (Frontend sends encoded URL)
-    url = unquote(url)
-
-    try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Referer': '' 
         }
         if 'naver.com' in url or 'pstatic.net' in url:
             headers['Referer'] = 'https://blog.naver.com/'
