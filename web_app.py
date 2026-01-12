@@ -7373,18 +7373,6 @@ def _fetch_og_image(url):
         # 1. Body Image Priority (postfiles.pstatic.net) -> More reliable than blogthumb
         try:
             body_imgs = soup.find_all('img')
-            for img in body_imgs:
-                src = img.get('src')
-                if src and 'postfiles.pstatic.net' in src and 'type=w' in src:
-                    return src
-        except:
-            pass
-
-                # 링크 URL 변경 시 또는 썸네일이 없을 때 이미지 자동 추출
-                new_thumbnail_url = news.get('thumbnail_url')
-                link_url = news.get('link_url')
-                
-                # 기존 데이터 조회 (URL 변경 확인용) - 최적화: ID가 있을 때만
                 current_thumbnail = None
                 current_link = None
                 
