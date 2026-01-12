@@ -8343,9 +8343,9 @@ def init_lys_tables():
     except Exception as e:
         print(f"Proxy error for {url}: {e}")
         return "Error fetching image", 500
-if __name__ == '__main__':
-    # 앱 시작 시 테이블 초기화
-    print("\n=== 데이터베이스 테이블 초기화 ===")
+# 초기화 함수 정의
+def initialize_db():
+    print("\n=== 데이터베이스 테이블 초기화 (Production/Development) ===")
     try:
         init_user_tables()
         print("? 사용자 테이블 초기화 완료")
@@ -8381,7 +8381,11 @@ if __name__ == '__main__':
         print("? LYS 테이블 초기화 완료")
     except Exception as e:
         print(f"? LYS 테이블 초기화 실패: {e}")
-    
+
+# Run initialization on module load (for Gunicorn/Render)
+initialize_db()
+
+if __name__ == '__main__':
     # 서버 시작
     port = int(os.environ.get('PORT', 5000))
     print(f"\n=== Flask 서버 시작 ===")
