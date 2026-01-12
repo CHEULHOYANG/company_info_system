@@ -665,9 +665,17 @@ def init_ys_honers_tables():
                 display_order INTEGER DEFAULT 1,
                 is_active INTEGER DEFAULT 1,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                type TEXT DEFAULT '네/아니오'
             )
         ''')
+
+        # Check if type column exists in ys_questions
+        try:
+            cursor.execute("SELECT type FROM ys_questions LIMIT 1")
+        except:
+            print("Adding type column to ys_questions")
+            cursor.execute("ALTER TABLE ys_questions ADD COLUMN type TEXT DEFAULT '네/아니오'")
 
         # 세미나 관리 테이블 (수정: max_attendees 추가)
         cursor.execute('''
@@ -8340,24 +8348,7 @@ def init_lys_tables():
         conn.close()
 
 # Proxy Image API (Restored)
-@app.route('/api/proxy/image')
-def proxy_image():
-    url = request.args.get('url')
-    if not url:
-        return "No URL provided", 400
-    
-    try:
-        resp = requests.get(url, stream=True)
-        resp.raise_for_status()
-        
-        excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
-        headers = [(name, value) for (name, value) in resp.raw.headers.items()
-                   if name.lower() not in excluded_headers]
-                   
-        return Response(resp.content, resp.status_code, headers)
-    except Exception as e:
-        print(f"Proxy error for {url}: {e}")
-        return "Error fetching image", 500
+
 
 # ==========================================
 # LYS Management APIs
