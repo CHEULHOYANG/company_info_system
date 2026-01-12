@@ -7380,18 +7380,6 @@ def _fetch_og_image(url):
         except:
             pass
 
-        og_image = soup.find('meta', property='og:image')
-        
-        if og_image and og_image.get('content'):
-            return og_image['content']
-            
-        # Twitter card fallback
-                    ''', (member.get('name'), member.get('position'), member.get('phone'),
-                          member.get('bio'), member.get('photo_url'), member.get('id')))
-        
-        # 뉴스 정보 업데이트
-        if 'news' in data:
-            for news in data['news']:
                 # 링크 URL 변경 시 또는 썸네일이 없을 때 이미지 자동 추출
                 new_thumbnail_url = news.get('thumbnail_url')
                 link_url = news.get('link_url')
