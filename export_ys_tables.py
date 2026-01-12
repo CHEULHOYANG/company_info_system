@@ -11,6 +11,9 @@ def export_ys_tables():
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'ys_%'")
     tables = [row[0] for row in cursor.fetchall()]
     
+    # Add SeminarRegistrations explicitly
+    tables.append('SeminarRegistrations')
+    
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write("BEGIN TRANSACTION;\n\n")
         

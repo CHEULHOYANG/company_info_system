@@ -117,4 +117,16 @@ CREATE TABLE IF NOT EXISTS ys_seminar_sessions (
 INSERT OR REPLACE INTO ys_seminar_sessions (id, seminar_id, time_range, title, speaker, description, location_note, display_order, created_at) VALUES (43, 4, '10:30~11:30', '법인세 소득공제 구간', '이세동 FO 세무전문가', '법인 2억미만 구간의 세율인상 에 따른 절세전략', '', 1, '2026-01-10 11:19:22');
 INSERT OR REPLACE INTO ys_seminar_sessions (id, seminar_id, time_range, title, speaker, description, location_note, display_order, created_at) VALUES (44, 4, '11:30 ~ 12:30', '법인세 는 환원의 의미', '김미성 FI', '자기 주장과 Fo 세무 법률대리인의 첨예한 대립', '', 2, '2026-01-10 11:19:22');
 
+-- Schema for SeminarRegistrations
+CREATE TABLE IF NOT EXISTS SeminarRegistrations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seminar_title TEXT NOT NULL,
+                name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                company_name TEXT,
+                position TEXT,
+                biz_no TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
 COMMIT;
