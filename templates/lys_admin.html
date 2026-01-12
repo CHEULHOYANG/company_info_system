@@ -755,145 +755,144 @@
                         <label>요약</label>
                         <textarea name="summary">{{ news.summary or '' }}</textarea>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>링크 URL</label>
-                            <input type="text" name="link_url" value="{{ news.link_url or '' }}">
-                        </div>
-                        <div class="form-group">
-                            <label>날짜</label>
-                            <input type="date" name="publish_date" value="{{ news.publish_date or '' }}">
-                        </div>
-                    </div>
-                </div>
-                {% else %}
-                <p style="color: #64748b;">등록된 뉴스가 없습니다. "뉴스 추가" 버튼을 클릭하여 추가하세요.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- 세미나 신청자 관리 -->
-        <div id="registrations" class="tab-content">
-            {% for reg in registrations %}
-            <div class="inquiry-list-item" data-registration-id="{{ reg.id }}">
-                <div class="inquiry-list-header">
-                    <div class="inquiry-list-info"
-                        style="gap: 12px; display: grid; grid-template-columns: 100px 120px 1fr 1fr; align-items: center;">
-                        <span class="inquiry-list-name">{{ reg.name }}</span>
-                        <span class="inquiry-list-phone">{{ reg.phone }}</span>
-                        <span style="font-size: 13px; color: #475569;">{{ reg.company_name }} ({{ reg.position
-                            }})</span>
-                        <span style="font-size: 13px; color: #2563eb; font-weight: 500;">{{ reg.seminar_title }}</span>
-                    </div>
-                    <div class="inquiry-list-actions">
-                        <span style="font-size: 12px; color: #94a3b8; margin-right: 8px;">{{ reg.created_at[:10]
-                            }}</span>
-                        <button class="btn btn-xs btn-danger" onclick="deleteRegistration({{ reg.id }})">🗑 삭제</button>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <p style="color: #64748b;">등록된 세미나 신청 내역이 없습니다.</p>
-            {% endfor %}
-        </div>
-
-        <!-- 상담 문의 -->
-        <div id="inquiry" class="tab-content">
-            {% for inq in inquiries %}
-            <div class="inquiry-list-item" data-inquiry-id="{{ inq.id }}">
-                <div class="inquiry-list-header" onclick="toggleInquiryDetail({{ inq.id }})">
-                    <div class="inquiry-list-info">
-                        <span class="inquiry-list-name">{{ inq.name }}</span>
-                        <span class="inquiry-list-company">{{ inq.company or '회사 미입력' }}</span>
-                        <span class="inquiry-list-phone">{{ inq.phone }}</span>
-                        <span class="inquiry-list-date">{{ inq.created_at }}</span>
-                    </div>
-                    <div class="inquiry-list-actions">
-                        <button class="btn btn-xs btn-primary"
-                            onclick="event.stopPropagation(); exportChecklistPDF({{ inq.id }})">📄 PDF</button>
-                        <button class="btn btn-xs btn-danger"
-                            onclick="event.stopPropagation(); deleteInquiry({{ inq.id }})">🗑 삭제</button>
-                        <span class="toggle-icon">▼</span>
-                    </div>
-                </div>
-                <div class="inquiry-detail" id="inquiry-detail-{{ inq.id }}" style="display:none;">
-                    {% if quiz_questions %}
-                    <div class="inquiry-checklist-grid">
-                        <h5 style="margin-bottom:12px;">진단 체크리스트</h5>
-                        <table class="checklist-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 60px">번호</th>
-                                    <th>질문</th>
-                                    <th style="width: 80px">답변</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for question in quiz_questions %}
-                                <tr>
-                                    <td>{{ loop.index }}</td>
-                                    <td>{{ question.question_text }}</td>
-                                    <td class="answer-cell">
-                                        {% if question.question_text in inq.checklist_parsed %}
-                                        <span class="answer-yes">○</span>
-                                        {% else %}
-                                        <span class="answer-no">✕</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% endif %}
-                    {% if inq.content %}
-                    <div class="inquiry-content" style="margin-top:16px;">
-                        <h5>기타 문의사항:</h5>
-                        <p>{{ inq.content }}</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% else %}
-            <p style="color: #64748b;">등록된 상담 문의가 없습니다.</p>
-            {% endfor %}
-        </div>
-
-        <!-- 진단 질문 관리 -->
-        <div id="questions" class="tab-content">
-            <div style="display: flex; gap: 10px; margin-bottom: 24px;">
-                <button class="add-btn" style="margin-bottom: 0;" onclick="addQuestion()">+ 질문 추가</button>
-                <button class="add-btn" style="margin-bottom: 0; border-color: #10b981; color: #10b981;"
-                    onclick="exportQuestions()">↓ 질문 내보내기</button>
-                <label class="add-btn"
-                    style="margin-bottom: 0; border-color: #f59e0b; color: #f59e0b; cursor: pointer;">
-                    ↑ 질문 가져오기
-                    <input type="file" id="import-file" style="display: none;" accept=".json"
-                        onchange="importQuestions(this)">
-                </label>
-            </div>
-
-            <div id="questions-list">
-                {% for q in quiz_questions %}
-                <div class="question-item" data-question-id="{{ q.id }}">
-                    <div class="question-header">
-                        <span class="question-number">{{ loop.index }}</span>
-                        <div class="question-actions">
-                            <button class="btn-icon" onclick="moveQuestion({{ q.id }}, 'up')" title="위로">↑</button>
-                            <button class="btn-icon" onclick="moveQuestion({{ q.id }}, 'down')" title="아래로">↓</button>
-                            <button class="btn-icon" onclick="deleteQuestion({{ q.id }})">🗑</button>
-                        </div>
-                    </div>
                     <div class="form-group">
-                        <label>질문 내용</label>
-                        <textarea name="question_text" rows="2">{{ q.question_text }}</textarea>
+                        <label>날짜</label>
+                        <input type="date" name="publish_date" value="{{ news.publish_date or '' }}">
                     </div>
                 </div>
-                {% else %}
-                <p style="color: #64748b;">등록된 질문이 없습니다. "질문 추가" 버튼을 클릭하여 추가하세요.</p>
-                {% endfor %}
+                <div class="form-group">
+                    <label>썸네일 URL (Thumbnail)</label>
+                    <input type="text" name="thumbnail_url" value="{{ news.thumbnail_url or '' }}"
+                        placeholder="https://...">
+                </div>
+            </div>
+            {% else %}
+            <p style="color: #64748b;">등록된 뉴스가 없습니다. "뉴스 추가" 버튼을 클릭하여 추가하세요.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 세미나 신청자 관리 -->
+    <div id="registrations" class="tab-content">
+        {% for reg in registrations %}
+        <div class="inquiry-list-item" data-registration-id="{{ reg.id }}">
+            <div class="inquiry-list-header">
+                <div class="inquiry-list-info"
+                    style="gap: 12px; display: grid; grid-template-columns: 100px 120px 1fr 1fr; align-items: center;">
+                    <span class="inquiry-list-name">{{ reg.name }}</span>
+                    <span class="inquiry-list-phone">{{ reg.phone }}</span>
+                    <span style="font-size: 13px; color: #475569;">{{ reg.company_name }} ({{ reg.position
+                        }})</span>
+                    <span style="font-size: 13px; color: #2563eb; font-weight: 500;">{{ reg.seminar_title }}</span>
+                </div>
+                <div class="inquiry-list-actions">
+                    <span style="font-size: 12px; color: #94a3b8; margin-right: 8px;">{{ reg.created_at[:10]
+                        }}</span>
+                    <button class="btn btn-xs btn-danger" onclick="deleteRegistration({{ reg.id }})">🗑 삭제</button>
+                </div>
             </div>
         </div>
+        {% else %}
+        <p style="color: #64748b;">등록된 세미나 신청 내역이 없습니다.</p>
+        {% endfor %}
+    </div>
+
+    <!-- 상담 문의 -->
+    <div id="inquiry" class="tab-content">
+        {% for inq in inquiries %}
+        <div class="inquiry-list-item" data-inquiry-id="{{ inq.id }}">
+            <div class="inquiry-list-header" onclick="toggleInquiryDetail({{ inq.id }})">
+                <div class="inquiry-list-info">
+                    <span class="inquiry-list-name">{{ inq.name }}</span>
+                    <span class="inquiry-list-company">{{ inq.company or '회사 미입력' }}</span>
+                    <span class="inquiry-list-phone">{{ inq.phone }}</span>
+                    <span class="inquiry-list-date">{{ inq.created_at }}</span>
+                </div>
+                <div class="inquiry-list-actions">
+                    <button class="btn btn-xs btn-primary"
+                        onclick="event.stopPropagation(); exportChecklistPDF({{ inq.id }})">📄 PDF</button>
+                    <button class="btn btn-xs btn-danger"
+                        onclick="event.stopPropagation(); deleteInquiry({{ inq.id }})">🗑 삭제</button>
+                    <span class="toggle-icon">▼</span>
+                </div>
+            </div>
+            <div class="inquiry-detail" id="inquiry-detail-{{ inq.id }}" style="display:none;">
+                {% if quiz_questions %}
+                <div class="inquiry-checklist-grid">
+                    <h5 style="margin-bottom:12px;">진단 체크리스트</h5>
+                    <table class="checklist-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px">번호</th>
+                                <th>질문</th>
+                                <th style="width: 80px">답변</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for question in quiz_questions %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ question.question_text }}</td>
+                                <td class="answer-cell">
+                                    {% if question.question_text in inq.checklist_parsed %}
+                                    <span class="answer-yes">○</span>
+                                    {% else %}
+                                    <span class="answer-no">✕</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+                {% if inq.content %}
+                <div class="inquiry-content" style="margin-top:16px;">
+                    <h5>기타 문의사항:</h5>
+                    <p>{{ inq.content }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <p style="color: #64748b;">등록된 상담 문의가 없습니다.</p>
+        {% endfor %}
+    </div>
+
+    <!-- 진단 질문 관리 -->
+    <div id="questions" class="tab-content">
+        <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+            <button class="add-btn" style="margin-bottom: 0;" onclick="addQuestion()">+ 질문 추가</button>
+            <button class="add-btn" style="margin-bottom: 0; border-color: #10b981; color: #10b981;"
+                onclick="exportQuestions()">↓ 질문 내보내기</button>
+            <label class="add-btn" style="margin-bottom: 0; border-color: #f59e0b; color: #f59e0b; cursor: pointer;">
+                ↑ 질문 가져오기
+                <input type="file" id="import-file" style="display: none;" accept=".json"
+                    onchange="importQuestions(this)">
+            </label>
+        </div>
+
+        <div id="questions-list">
+            {% for q in quiz_questions %}
+            <div class="question-item" data-question-id="{{ q.id }}">
+                <div class="question-header">
+                    <span class="question-number">{{ loop.index }}</span>
+                    <div class="question-actions">
+                        <button class="btn-icon" onclick="moveQuestion({{ q.id }}, 'up')" title="위로">↑</button>
+                        <button class="btn-icon" onclick="moveQuestion({{ q.id }}, 'down')" title="아래로">↓</button>
+                        <button class="btn-icon" onclick="deleteQuestion({{ q.id }})">🗑</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>질문 내용</label>
+                    <textarea name="question_text" rows="2">{{ q.question_text }}</textarea>
+                </div>
+            </div>
+            {% else %}
+            <p style="color: #64748b;">등록된 질문이 없습니다. "질문 추가" 버튼을 클릭하여 추가하세요.</p>
+            {% endfor %}
+        </div>
+    </div>
     </div>
 
     <a href="/lys" class="back-link">🏢 YS Honors 메인으로</a>
@@ -1013,6 +1012,10 @@
                             <label>날짜</label>
                             <input type="date" name="publish_date" value="">
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label>썸네일 URL (Thumbnail)</label>
+                        <input type="text" name="thumbnail_url" value="" placeholder="https://...">
                     </div>
                 </div>
             `;
