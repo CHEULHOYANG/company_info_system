@@ -617,7 +617,7 @@
         <canvas id="hero-particles"></canvas>
         <div class="hero-content">
             <div class="hero-badge">Premium Corporate Consulting</div>
-            <h1>신뢰의 연결고리<strong>YS Honors</strong></h1>
+            <h1>신뢰의 연결고리<br><strong>YS Honors</strong></h1>
             <p>양철호 & 서은정 두 전문가의 완벽한 협업으로<br>고객사와의 끊어지지 않는 신뢰 관계를 약속합니다.</p>
             <div class="hero-buttons">
                 <a href="/lys/inquiry" class="btn-primary">무료 CEO 자가진단 →</a>
@@ -685,11 +685,11 @@
                 <!-- Location & Button -->
                 <div style="margin-top: auto;">
                     <div style="font-size: 13px; color: #9ca3af; margin-bottom: 16px;">
-                        📍 {{ seminar.location }}
+                        <div style="margin-bottom: 4px; line-height: 1.4;">📍 {{ seminar.location }}</div>
                         {% if seminar.max_attendees and seminar.max_attendees > 0 %}
-                        <span style="margin-left: 8px; padding-left: 8px; border-left: 1px solid #e5e7eb;">
+                        <div>
                             정원 {{ seminar.max_attendees }}명
-                        </span>
+                        </div>
                         {% endif %}
                     </div>
                     <button
@@ -1279,8 +1279,8 @@
                 particles.push({
                     x: Math.random() * width,
                     y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 1.2,
-                    vy: (Math.random() - 0.5) * 1.2,
+                    vx: (Math.random() - 0.5) * 0.84,
+                    vy: (Math.random() - 0.5) * 0.84,
                     size: Math.random() * 3 + 2
                 });
             }

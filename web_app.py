@@ -6767,6 +6767,17 @@ def lys_main():
         seminars = []
         for row in seminars_rows:
             seminar = dict(row)
+            
+            # Date Formatting for Display (YYYY-MM-DD -> M월 D일 (요일))
+            if seminar.get('date'):
+                try:
+                    dt = datetime.strptime(seminar['date'], '%Y-%m-%d')
+                    korean_days = ['월', '화', '수', '목', '금', '토', '일']
+                    day_str = korean_days[dt.weekday()]
+                    seminar['date'] = f"{dt.month}월 {dt.day}일 ({day_str})"
+                except:
+                    pass # Keep original if parse fails
+            
             # 해당 세미나의 세션 조회
             sessions = conn.execute('''
                 SELECT * FROM ys_seminar_sessions 
@@ -7030,7 +7041,7 @@ def lys_admin_delete_question(id):
     finally:
         conn.close()
     return redirect('/lys/admin/questions')
-# --- LYS ADMIN ROUTES END ---
+
 
 @app.route('/lys/inquiry')
 def lys_inquiry():

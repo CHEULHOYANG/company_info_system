@@ -658,11 +658,16 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>날짜 (Date)</label>
-                            <input type="text" name="date" value="{{ seminar.date }}" placeholder="예: 2026-01-27">
+                            <input type="date" name="date" value="{{ seminar.date }}">
                         </div>
                         <div class="form-group">
                             <label>시간 (Time)</label>
-                            <input type="text" name="time" value="{{ seminar.time }}" placeholder="예: 10:30 ~ 12:30">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="time" name="start_time" class="time-picker" style="width: 130px;">
+                                <span>~</span>
+                                <input type="time" name="end_time" class="time-picker" style="width: 130px;">
+                                <input type="hidden" name="original_time" value="{{ seminar.time }}">
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
@@ -704,10 +709,17 @@
                                         onclick="this.closest('.session-item').remove()">✕</button>
                                 </div>
                                 <div class="form-row" style="margin-bottom: 8px;">
-                                    <input type="text" name="session_time" value="{{ session.time_range }}"
-                                        placeholder="시간 (10:30 ~ 11:30)" style="font-size: 13px;">
+                                    <div style="display: flex; gap: 4px; align-items: center; flex: 1;">
+                                        <input type="time" name="session_start_time" class="time-picker"
+                                            style="width: 140px; font-size: 13px;">
+                                        <span>~</span>
+                                        <input type="time" name="session_end_time" class="time-picker"
+                                            style="width: 140px; font-size: 13px;">
+                                        <input type="hidden" name="session_original_time"
+                                            value="{{ session.time_range }}">
+                                    </div>
                                     <input type="text" name="session_title" value="{{ session.title }}"
-                                        placeholder="세션 제목" style="font-size: 13px;">
+                                        placeholder="세션 제목" style="font-size: 13px; flex: 1;">
                                 </div>
                                 <div class="form-row" style="margin-bottom: 8px;">
                                     <input type="text" name="session_speaker" value="{{ session.speaker or '' }}"
@@ -754,6 +766,10 @@
                     <div class="form-group">
                         <label>요약</label>
                         <textarea name="summary">{{ news.summary or '' }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>링크 URL</label>
+                        <input type="text" name="link_url" value="{{ news.link_url or '' }}">
                     </div>
                     <div class="form-group">
                         <label>날짜</label>
@@ -939,8 +955,20 @@
             document.querySelectorAll('.seminar-item').forEach(item => {
                 const sessions = [];
                 item.querySelectorAll('.session-item').forEach((sessionItem, index) => {
+                    // Calculate session time range
+                    const sStart = sessionItem.querySelector('[name="session_start_time"]').value;
+                    const sEnd = sessionItem.querySelector('[name="session_end_time"]').value;
+                    let sTimeStr = "";
+
+                    if (sStart && sEnd) {
+                        sTimeStr = `${sStart} ~ ${sEnd}`;
+                    } else if (sessionItem.querySelector('[name="session_original_time"]')) {
+                        // Fallback
+                        if (!sStart && !sEnd) sTimeStr = sessionItem.querySelector('[name="session_original_time"]').value;
+                    }
+
                     sessions.push({
-                        time_range: sessionItem.querySelector('[name="session_time"]').value,
+                        time_range: sTimeStr,
                         title: sessionItem.querySelector('[name="session_title"]').value,
                         speaker: sessionItem.querySelector('[name="session_speaker"]').value,
                         location_note: sessionItem.querySelector('[name="session_location_note"]').value,
@@ -949,11 +977,23 @@
                     });
                 });
 
+                // Combine start and end time
+                const startTime = item.querySelector('[name="start_time"]').value;
+                const endTime = item.querySelector('[name="end_time"]').value;
+                let timeStr = "";
+                if (startTime && endTime) {
+                    timeStr = `${startTime} ~ ${endTime}`;
+                } else if (item.querySelector('[name="original_time"]')) {
+                    // Fallback to original if not touched and input is empty (though init script should handle this)
+                    // But better to rely on what's in the inputs.
+                    if (!startTime && !endTime) timeStr = item.querySelector('[name="original_time"]').value;
+                }
+
                 seminarData.push({
                     id: item.dataset.seminarId || null,
                     title: item.querySelector('[name="title"]').value,
                     date: item.querySelector('[name="date"]').value,
-                    time: item.querySelector('[name="time"]').value,
+                    time: timeStr,
                     location: item.querySelector('[name="location"]').value,
                     max_attendees: item.querySelector('[name="max_attendees"]').value,
                     description: item.querySelector('[name="description"]').value,
@@ -1039,11 +1079,15 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>날짜 (Date)</label>
-                            <input type="text" name="date" value="" placeholder="예: 2026-01-27">
+                            <input type="date" name="date" value="">
                         </div>
                         <div class="form-group">
                             <label>시간 (Time)</label>
-                            <input type="text" name="time" value="" placeholder="예: 10:30 ~ 12:30">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="time" name="start_time" class="time-picker" style="width: 130px;">
+                                <span>~</span>
+                                <input type="time" name="end_time" class="time-picker" style="width: 130px;">
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
@@ -1087,8 +1131,12 @@
                         <button type="button" class="delete-btn" style="font-size: 14px;" onclick="this.closest('.session-item').remove()">✕</button>
                     </div>
                     <div class="form-row" style="margin-bottom: 8px;">
-                        <input type="text" name="session_time" value="" placeholder="시간 (10:30 ~ 11:30)" style="font-size: 13px;">
-                        <input type="text" name="session_title" value="" placeholder="세션 제목" style="font-size: 13px;">
+                        <div style="display: flex; gap: 4px; align-items: center; flex: 1;">
+                            <input type="time" name="session_start_time" class="time-picker" style="width: 140px; font-size: 13px;">
+                            <span>~</span>
+                            <input type="time" name="session_end_time" class="time-picker" style="width: 140px; font-size: 13px;">
+                        </div>
+                        <input type="text" name="session_title" value="" placeholder="세션 제목" style="font-size: 13px; flex: 1;">
                     </div>
                     <div class="form-row" style="margin-bottom: 8px;">
                         <input type="text" name="session_speaker" value="" placeholder="발표자 (홍길동 전문가)" style="font-size: 13px;">
@@ -1376,6 +1424,38 @@
                 input.value = ''; // Reset input
             }
         }
+
+        // Initialize Time Pickers from string
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.seminar-item').forEach(item => {
+                const originalTimeInput = item.querySelector('[name="original_time"]');
+                if (originalTimeInput) {
+                    const originalTime = originalTimeInput.value;
+                    if (originalTime && originalTime.includes('~')) {
+                        const parts = originalTime.split('~').map(s => s.trim());
+                        if (parts.length === 2) {
+                            item.querySelector('[name="start_time"]').value = parts[0];
+                            item.querySelector('[name="end_time"]').value = parts[1];
+                        }
+                    }
+                }
+
+                // Initialize Session Times
+                item.querySelectorAll('.session-item').forEach(sessionItem => {
+                    const sessionOriginalTimeInput = sessionItem.querySelector('[name="session_original_time"]');
+                    if (sessionOriginalTimeInput) {
+                        const sOriginalTime = sessionOriginalTimeInput.value;
+                        if (sOriginalTime && sOriginalTime.includes('~')) {
+                            const sParts = sOriginalTime.split('~').map(s => s.trim());
+                            if (sParts.length === 2) {
+                                sessionItem.querySelector('[name="session_start_time"]').value = sParts[0];
+                                sessionItem.querySelector('[name="session_end_time"]').value = sParts[1];
+                            }
+                        }
+                    }
+                });
+            });
+        });
     </script>
 </body>
 
