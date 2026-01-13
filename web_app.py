@@ -7375,7 +7375,8 @@ def api_lys_upload():
         
         # 파일 저장
         import uuid
-        filename = f"{int(time.time() * 1000)}-{file.filename}"
+        ext = os.path.splitext(file.filename)[1]
+        filename = f"{int(time.time() * 1000)}-{uuid.uuid4()}{ext}"
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
