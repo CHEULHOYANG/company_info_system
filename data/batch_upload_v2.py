@@ -477,7 +477,7 @@ def process_company_shareholder(conn, df, execute=False):
              try: csv_stock = int(float(str(row['total_shares_owned']).replace(',', '')))
              except: csv_stock = 0
         
-        if not.csv_name:
+        if not csv_name:
             count_error += 1
             if count_error == 1: json_result("LastError", f"[Company_Shareholder] Name missing. Row: {row.to_dict()}")
             continue
