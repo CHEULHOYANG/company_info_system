@@ -1,0 +1,47 @@
+=== Lines with deleteRepresentative ===
+Line 266: <button onclick="deleteRepresentative('{{ company.basic.biz_no }}', '{{ rep.name }}', {{ loop.index }})" class="delete-b
+Line 1565: async function deleteRepresentative(bizNo, repName, rowIndex) {
+
+=== Lines with deleteShareholder ===
+Line 319: <button onclick="deleteShareholder('{{ company.basic.biz_no }}', '{{ holder.shareholder_name }}', {{ loop.index }})" cla
+Line 1591: async function deleteShareholder(bizNo, shareholderName, rowIndex) {
+
+=== Lines with 삭제 button ===
+Line 266: <button onclick="deleteRepresentative('{{ company.basic.biz_no }}', '{{ rep.name }}', {{ loop.index }})" class="delete-btn-small">삭제</button>
+Line 319: <button onclick="deleteShareholder('{{ company.basic.biz_no }}', '{{ holder.shareholder_name }}', {{ loop.index }})" class="delete-btn-small">삭제</butt
+Line 455: <button type="button" class="btn-danger" onclick="deleteContactHistory()">삭제</button>
+Line 1099: <button class="action-btn delete-btn" onclick="deleteContactHistory(${history.history_id})">삭제</button>
+
+=== Context around line 491 (representative table) ===
+Line 489:     }
+Line 490:     .edit-name-btn:hover { background: #e0a800; }
+Line 491:     .save-name-btn:hover { background: #218838; }
+Line 492:     .cancel-name-btn:hover { background: #545b62; }
+Line 493:     
+Line 494:     /* 삭제 버튼 스타일 (소형) */
+Line 495:     .delete-btn-small {
+Line 496:         padding: 3px 8px;
+Line 497:         border: none;
+Line 498:         border-radius: 4px;
+Line 499:         background: #dc3545;
+Line 500:         color: white;
+Line 501:         cursor: pointer;
+Line 502:         font-size: 11px;
+Line 503:     }
+Line 504:     .delete-btn-small:hover {
+Line 505:         background: #c82333;
+Line 506:     }
+Line 507:     
+Line 508:     /* 접촉이력 관리 스타일 */
+Line 509:     .contact-history-container {
+Line 510:         padding: 20px;
+Line 511:         max-width: 1200px;
+Line 512:         margin: 0 auto;
+Line 513:     }
+Line 514: 
+Line 515:     .contact-form-section {
+Line 516:         background: white;
+Line 517:         border-radius: 10px;
+Line 518:         padding: 25px;
+Line 519:         margin-bottom: 30px;
+Line 520:         box-shadow: 0 2px 10px rgba(0,0,0,0.1);

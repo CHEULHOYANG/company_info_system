@@ -1,15 +1,20 @@
 ﻿# -*- coding: utf-8 -*-
 # Company Management System
 import os
+import sys
+import subprocess
 import sqlite3
 import io
 import time
+import json
+import uuid
 from flask import Flask, jsonify, render_template, request, session, redirect, url_for, Response, send_file, send_from_directory
 from datetime import datetime
 import pytz
 import pandas as pd
 import math
 import csv
+import shutil
 from werkzeug.utils import secure_filename
 from jinja2 import FileSystemLoader, TemplateNotFound
 import requests
@@ -3352,7 +3357,8 @@ def company_detail(biz_no):
     financial_query = """
     SELECT fiscal_year, sales_revenue, operating_income, net_income, total_assets, total_equity, retained_earnings, corporate_tax, 
            undistributed_retained_earnings, advances_paid, advances_received, shares_issued_count, total_liabilities,
-           IFNULL(capital_stock_value, 0) as capital_stock_value
+           IFNULL(capital_stock_value, 0) as capital_stock_value,
+           IFNULL(earned_reserve, 0) as earned_reserve
     FROM Company_Financial WHERE biz_no = ? ORDER BY fiscal_year DESC LIMIT 3
     """
     financial_info = conn.execute(financial_query, (biz_no,)).fetchall()
@@ -3389,12 +3395,23 @@ def company_detail(biz_no):
 
     additional_info = dict(additional_info_row) if additional_info_row else {}
     if additional_info:
-        today_str = get_kst_now().strftime('%Y-%m-%d')
-        if additional_info.get('is_innobiz') == '1' and additional_info.get('innobiz_expiry_date') and additional_info['innobiz_expiry_date'] < today_str:
+        today_str = get_kst_now().strftime('%Y%m%d')
+        
+        def check_expired(expiry_val, current_date):
+            if not expiry_val:
+                return False
+            # 문자열 변환 및 구분자 제거 (YYYYMMDD 형식으로 통일)
+            d_str = str(expiry_val).replace('-', '').replace('.', '').replace('/', '').strip()
+            # 8자리 숫자만 비교 (그 외 형식은 비교 스킵 또는 False 처리)
+            if len(d_str) >= 8:
+                return d_str[:8] < current_date
+            return False
+
+        if additional_info.get('is_innobiz') == '1' and check_expired(additional_info.get('innobiz_expiry_date'), today_str):
             additional_info['is_innobiz'] = '0'
-        if additional_info.get('is_mainbiz') == '1' and additional_info.get('mainbiz_expiry_date') and additional_info['mainbiz_expiry_date'] < today_str:
+        if additional_info.get('is_mainbiz') == '1' and check_expired(additional_info.get('mainbiz_expiry_date'), today_str):
             additional_info['is_mainbiz'] = '0'
-        if additional_info.get('is_venture') == '1' and additional_info.get('venture_expiry_date') and additional_info['venture_expiry_date'] < today_str:
+        if additional_info.get('is_venture') == '1' and check_expired(additional_info.get('venture_expiry_date'), today_str):
             additional_info['is_venture'] = '0'
 
     financial_data_for_calc = [dict(row) for row in financial_info] if financial_info else []
@@ -6739,6 +6756,95 @@ def update_share_count():
         return jsonify({'success': False, 'message': f'업데이트 중 오류가 발생했습니다: {str(e)}'}), 500
 
 
+# 대표자 정보 수정 API (대표자명, 생년월일)
+@app.route('/api/update_representative_info', methods=['POST'])
+def update_representative_info():
+    """대표자 정보 (이름, 생년월일) 수정 API"""
+    try:
+        data = request.get_json()
+        biz_no = data.get('biz_no')
+        old_name = data.get('old_name')
+        new_name = data.get('new_name')
+        birth_date = data.get('birth_date')
+        
+        if not biz_no or not old_name:
+            return jsonify({'success': False, 'message': '필수 파라미터가 누락되었습니다.'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Company_Representative 테이블에서 대표자 정보 업데이트
+        cursor.execute('''
+            UPDATE Company_Representative
+            SET name = ?, birth_date = ?
+            WHERE biz_no = ? AND name = ?
+        ''', (new_name, birth_date, biz_no, old_name))
+        
+        # Company_Basic 테이블의 representative_name도 업데이트 (첫 번째 대표자인 경우)
+        if new_name and new_name != old_name:
+            cursor.execute('''
+                UPDATE Company_Basic
+                SET representative_name = ?
+                WHERE biz_no = ? AND representative_name = ?
+            ''', (new_name, biz_no, old_name))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': '대표자 정보가 수정되었습니다.'})
+    
+    except Exception as e:
+        print(f"대표자 정보 업데이트 오류: {e}")
+        return jsonify({'success': False, 'message': f'업데이트 중 오류가 발생했습니다: {str(e)}'}), 500
+
+
+# 주주 정보 수정 API (주주명, 주식수)
+@app.route('/api/update_shareholder_info', methods=['POST'])
+def update_shareholder_info():
+    """주주 정보 (이름, 주식수) 수정 API"""
+    try:
+        data = request.get_json()
+        biz_no = data.get('biz_no')
+        old_name = data.get('old_name')
+        new_name = data.get('new_name')
+        stock_quantity = data.get('stock_quantity')
+        
+        if not biz_no or not old_name:
+            return jsonify({'success': False, 'message': '필수 파라미터가 누락되었습니다.'}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Company_Shareholder 테이블에서 주주 정보 업데이트
+        # stock_quantity가 있는 경우 total_shares_owned 컬럼 업데이트
+        if stock_quantity is not None:
+            try:
+                stock_qty_value = float(str(stock_quantity).replace(',', ''))
+            except ValueError:
+                stock_qty_value = 0
+            
+            cursor.execute('''
+                UPDATE Company_Shareholder
+                SET shareholder_name = ?, total_shares_owned = ?
+                WHERE biz_no = ? AND shareholder_name = ?
+            ''', (new_name, stock_qty_value, biz_no, old_name))
+        else:
+            cursor.execute('''
+                UPDATE Company_Shareholder
+                SET shareholder_name = ?
+                WHERE biz_no = ? AND shareholder_name = ?
+            ''', (new_name, biz_no, old_name))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': '주주 정보가 수정되었습니다.'})
+    
+    except Exception as e:
+        print(f"주주 정보 업데이트 오류: {e}")
+        return jsonify({'success': False, 'message': f'업데이트 중 오류가 발생했습니다: {str(e)}'}), 500
+
+
 # ============================================
 # YS Honers 페이지 라우트
 # ============================================
@@ -8650,6 +8756,441 @@ def initialize_db():
 
 # Run initialization on module load (for Gunicorn/Render)
 initialize_db()
+
+# --- 데이터 일괄 업로드 API ---
+# --- 데이터 일괄 업로드 API ---
+@app.route('/api/upload_excel', methods=['POST'])
+def upload_excel_and_process():
+    """엑셀 파일을 업로드하고 배치 처리 스크립트를 실행합니다 (Streaming Response)."""
+    # 권한 확인 (관리자만 가능)
+    if 'user_id' not in session or not check_permission(session.get('user_level', 'N'), 'S'):
+         return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
+        
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': '선택된 파일이 없습니다.'}), 400
+        
+    if file and file.filename.endswith('.xlsx'):
+        try:
+            # 1. 파일 저장
+            target_dir = r"G:\DATA\20251102"
+            target_filename = "251102_insert.xlsx"
+            target_path = os.path.join(target_dir, target_filename)
+            
+            # 백업
+            if os.path.exists(target_path):
+                backup_path = target_path + ".bak"
+                try:
+                    import shutil
+                    shutil.copy2(target_path, backup_path)
+                except Exception as e:
+                    print(f"Backup failed: {e}")
+
+            file.save(target_path)
+            
+            # 2. 배치 스크립트 실행 (Streaming)
+            script_path = os.path.join(target_dir, "batch_upload_v2.py")
+            
+            def generate():
+                # Windows 환경 인코딩 문제 해결
+                env = os.environ.copy()
+                env["PYTHONIOENCODING"] = "utf-8"
+                
+                process = subprocess.Popen(
+                    [sys.executable, script_path],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT, # Redirect stderr to stdout
+                    cwd=target_dir,
+                    env=env
+                )
+                
+                # Read stdout line by line
+                for line in iter(process.stdout.readline, b''):
+                    decoded_line = line.decode('utf-8', errors='replace')
+                    yield decoded_line
+                
+                process.wait()
+                if process.returncode != 0:
+                    yield f"\n[ERROR] Process exited with code {process.returncode}"
+            
+            return Response(generate(), mimetype='text/plain')
+                
+        except Exception as e:
+            return jsonify({'success': False, 'message': f'Server Error: {str(e)}'}), 500
+    else:
+        return jsonify({'success': False, 'message': '엑셀 파일(.xlsx)만 허용됩니다.'}), 400
+
+
+# --- 개인사업자 엑셀 업로드 관련 기능 ---
+
+@app.route('/individual_businesses/template')
+def download_individual_business_template():
+    """개인사업자 일괄 등록용 엑셀 템플릿 다운로드"""
+    # 템플릿 헤더 정의
+    headers = [
+        '기업명', '대표자명', '사업자번호', '업종', '주소', '연락처', 
+        '출생년도', '설립년도', '재무년도', '매출액(억)', '당기순이익(억)', 
+        '총자산(억)', '자본총계(억)', '직원수', '가족주주여부(Y/N)', '타인주주여부(Y/N)'
+    ]
+    
+    # 빈 데이터프레임 생성
+    df = pd.DataFrame(columns=headers)
+    
+    # 예시 데이터 추가 (선택사항, 사용 가이드)
+    example_row = {
+        '기업명': '예시기업', '대표자명': '홍길동', '사업자번호': '123-45-67890', 
+        '업종': '소프트웨어 자문 및 개발', '주소': '서울시 강남구 테헤란로 123', '연락처': '02-1234-5678',
+        '출생년도': '1980', '설립년도': '2020', '재무년도': '2023', 
+        '매출액(억)': '10.5', '당기순이익(억)': '1.2', 
+        '총자산(억)': '50.0', '자본총계(억)': '30.0', '직원수': '10', 
+        '가족주주여부(Y/N)': 'N', '타인주주여부(Y/N)': 'Y'
+    }
+    df = pd.concat([df, pd.DataFrame([example_row])], ignore_index=True)
+
+    # 메모리에 엑셀 파일 생성
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='업로드양식')
+        
+        # 열 너비 조정 (가독성 위해)
+        worksheet = writer.sheets['업로드양식']
+        for idx, col in enumerate(df.columns):
+            worksheet.column_dimensions[chr(65 + idx)].width = 15
+
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='개인사업자_등록_양식.xlsx'
+    )
+
+@app.route('/individual_businesses/validate_upload', methods=['POST'])
+def validate_individual_business_upload():
+    """업로드된 엑셀 파일을 검증하고 임시 저장"""
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': '파일이 없습니다.'})
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': '선택된 파일이 없습니다.'})
+
+    try:
+        # 파일 확장자 확인
+        if not (file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
+             return jsonify({'success': False, 'message': '엑셀 파일(.xlsx, .xls)만 지원합니다.'})
+
+        # 임시 폴더 확보
+        temp_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'temp_uploads')
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # 파일명 난수화하여 임시 저장
+        file_token = str(uuid.uuid4())
+        ext = os.path.splitext(file.filename)[1]
+        temp_filename = f"{file_token}{ext}"
+        temp_path = os.path.join(temp_dir, temp_filename)
+        file.save(temp_path)
+
+        # 데이터 파싱
+        df = pd.read_excel(temp_path)
+        
+        # 유효성 검사 요약
+        total_rows = len(df)
+        preview_data = []
+        
+        # 필수 컬럼 확인 (헤더 매핑)
+        # 템플릿 헤더와 실제 데이터 매핑 로직 필요
+        # 여기서는 간단히 상위 5개 데이터만 미리보기로 반환
+        
+        # 데이터프레임의 NaN을 빈 문자열로 변환 (JSON 직렬화 위해)
+        df_preview = df.head(5).fillna('')
+        
+        for _, row in df_preview.iterrows():
+            preview_data.append(row.to_dict())
+
+        return jsonify({
+            'success': True,
+            'total_count': total_rows,
+            'file_token': temp_filename,
+            'preview': preview_data,
+            'message': f'총 {total_rows}건의 데이터가 확인되었습니다.'
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'파일 처리 중 오류 발생: {str(e)}'})
+
+@app.route('/individual_businesses/execute_upload', methods=['POST'])
+def execute_individual_business_upload():
+    """검증된 엑셀 파일을 실제 DB에 반영"""
+    data = request.json
+    file_token = data.get('file_token')
+    password = data.get('password')
+    
+    # 1. 패스워드 검증
+    if password != 'yang1123':
+        return jsonify({'success': False, 'message': '비밀번호가 올바르지 않습니다.'})
+
+    if not file_token:
+        return jsonify({'success': False, 'message': '파일 토큰이 유효하지 않습니다.'})
+
+    # 2. 임시 파일 로드
+    temp_path = os.path.join(app.config['UPLOAD_FOLDER'], 'temp_uploads', file_token)
+    if not os.path.exists(temp_path):
+        return jsonify({'success': False, 'message': '업로드 세션이 만료되었습니다. 다시 시도해주세요.'})
+
+    conn = get_db_connection()
+    try:
+        df = pd.read_excel(temp_path)
+        
+        # 컬럼 매핑 (한글 헤더 -> DB 컬럼명)
+        column_map = {
+            '기업명': 'company_name',
+            '대표자명': 'representative_name',
+            '사업자번호': 'business_number',
+            '업종': 'industry_type',
+            '주소': 'address',
+            '연락처': 'phone_number',
+            '출생년도': 'birth_year',
+            '설립년도': 'establishment_year',
+            '재무년도': 'financial_year',
+            '매출액(억)': 'revenue',
+            '당기순이익(억)': 'net_income',
+            '총자산(억)': 'total_assets',
+            '자본총계(억)': 'total_capital',
+            '직원수': 'employee_count',
+            '가족주주여부': 'is_family_shareholder',
+            '가족주주여부(Y/N)': 'is_family_shareholder',
+            '타인주주여부': 'is_other_shareholder',
+            '타인주주여부(Y/N)': 'is_other_shareholder'
+        }
+        
+        success_count = 0
+        error_count = 0
+        
+        for _, row in df.iterrows():
+            try:
+                # 엑셀 데이터 추출 및 변환
+                data = {}
+                for kor, eng in column_map.items():
+                    if kor in df.columns:
+                        val = row[kor]
+                        if pd.isna(val) or val == '':
+                            data[eng] = None
+                        else:
+                            data[eng] = val
+                
+                # DB Insert or Update (사업자번호 기준)
+                
+                if not data.get('company_name'):
+                     continue # 기업명 없으면 스킵
+
+                # 기존 데이터 확인 (사업자번호가 있으면)
+                existing = None
+                if data.get('business_number'):
+                    existing = conn.execute('SELECT id FROM IndividualBusinesses WHERE business_number = ?', (data['business_number'],)).fetchone()
+                
+                # 쿼리 구성
+                columns = [k for k in data.keys() if data[k] is not None]
+                if not columns:
+                    continue
+
+                if existing:
+                    # Update
+                    set_clause = ', '.join([f"{col} = ?" for col in columns])
+                    values = [data[col] for col in columns]
+                    values.append(existing['id'])
+                    conn.execute(f"UPDATE IndividualBusinesses SET {set_clause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?", values)
+                else:
+                    # Insert
+                    # 필수값 체크 또는 기본값 설정이 필요할 수 있음
+                    placeholders = ', '.join(['?'] * len(columns))
+                    col_names = ', '.join(columns)
+                    values = [data[col] for col in columns]
+                    conn.execute(f"INSERT INTO IndividualBusinesses ({col_names}) VALUES ({placeholders})", values)
+                
+                success_count += 1
+                
+            except Exception as row_error:
+                print(f"Row processing error: {row_error}")
+                error_count += 1
+        
+        conn.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'성공적으로 처리되었습니다. (성공: {success_count}건, 실패/스킵: {error_count}건)'
+        })
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': f'데이터 처리 중 오류 발생: {str(e)}'})
+    finally:
+        conn.close()
+        # 임시 파일 삭제
+        try:
+            os.remove(temp_path)
+        except:
+            pass
+
+# --- Corporate Batch Upload Routes (Enhanced) ---
+
+CORPORATE_DATA_DIR = r"G:\DATA\20251102"
+CORPORATE_SCRIPT_PATH = os.path.join(CORPORATE_DATA_DIR, "batch_upload_v2.py")
+
+@app.route('/api/corporate/template')
+def download_corporate_template():
+    """법인 일괄 업로드 템플릿 제공"""
+    target_path = os.path.join(CORPORATE_DATA_DIR, "251102_insert.xlsx")
+    if os.path.exists(target_path):
+        return send_file(target_path, as_attachment=True, download_name="corporate_upload_template.xlsx")
+    else:
+        return jsonify({'success': False, 'message': 'Template file not found on server.'}), 404
+
+@app.route('/api/corporate/validate_upload', methods=['POST'])
+def validate_corporate_upload():
+    """법인 일괄 업로드 검증 (1단계: 파일 저장 및 생성 스크립트 실행)"""
+    if 'company_file' not in request.files:
+        return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
+        
+    file = request.files['company_file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': '선택된 파일이 없습니다.'}), 400
+        
+    if not (file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
+        return jsonify({'success': False, 'message': '엑셀(.xlsx) 파일만 업로드 가능합니다.'}), 400
+
+    try:
+        # 1. Save File to Fixed Location (Overwriting existing)
+        if not os.path.exists(CORPORATE_DATA_DIR):
+            os.makedirs(CORPORATE_DATA_DIR)
+            
+        target_path = os.path.join(CORPORATE_DATA_DIR, "251102_insert.xlsx")
+        
+        # Backup existing
+        if os.path.exists(target_path):
+            try:
+                shutil.copy2(target_path, target_path + ".bak")
+            except: pass
+            
+        file.save(target_path)
+        
+        # 2. Run Script in Validate Mode
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        
+        cmd = [sys.executable, CORPORATE_SCRIPT_PATH, "--mode", "validate"]
+        
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            cwd=CORPORATE_DATA_DIR,
+            env=env,
+            text=True,
+            encoding='utf-8'
+        )
+        
+        stdout, _ = process.communicate()
+        
+        # Parse JSON results from stdout
+        stats = {}
+        logs = []
+        for line in stdout.splitlines():
+            clean_line = line.strip()
+            if not clean_line: continue
+            try:
+                if clean_line.startswith('{'):
+                    data = json.loads(clean_line)
+                    if data.get('type') == 'result':
+                        stats[data['key']] = data['value']
+            except:
+                pass
+            logs.append(clean_line)
+            
+        if process.returncode != 0:
+            # Send last few logs as message
+            err_msg = '\n'.join(logs[-5:])
+            return jsonify({'success': False, 'message': f'Script execution failed:\n{err_msg}'}), 500
+            
+        return jsonify({
+            'success': True, 
+            'stats': stats,
+            'message': '파일 검증 및 데이터 생성이 완료되었습니다.'
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/corporate/execute_upload', methods=['POST'])
+def execute_corporate_upload():
+    """법인 일괄 업로드 실행 (2단계: DB 반영) - SSE 스트리밍"""
+    # 1. 권한 체크 (세션)
+    if 'user_id' not in session:
+         return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+         
+    if session['user_id'] not in ['ct0001', 'ct0002']:
+        return jsonify({'success': False, 'message': '관리자만 실행할 수 있습니다.'}), 403
+
+    data = request.get_json()
+    password = data.get('password')
+    
+    # 2. 비밀번호 검증 (로그인 비밀번호와 일치하는지)
+    user = authenticate_user(session['user_id'], password)
+    if not user:
+        return jsonify({'success': False, 'message': '비밀번호가 올바르지 않습니다.'}), 403
+
+    def generate():
+        try:
+            # Run Script in Execute Mode (Skip Gen)
+            env = os.environ.copy()
+            env["PYTHONIOENCODING"] = "utf-8"
+            
+            cmd = [sys.executable, CORPORATE_SCRIPT_PATH, "--mode", "execute", "--skip-gen"]
+            
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                cwd=CORPORATE_DATA_DIR,
+                env=env,
+                text=True,
+                encoding='utf-8'
+            )
+            
+            stats = {}
+            
+            # Stream output line by line
+            for line in iter(process.stdout.readline, ''):
+                clean = line.strip()
+                if not clean:
+                    continue
+                    
+                try:
+                    if clean.startswith('{'):
+                        evt = json.loads(clean)
+                        # Forward progress events
+                        if evt.get('type') in ['table_start', 'progress', 'table_done']:
+                            yield f"data: {json.dumps(evt)}\n\n"
+                        elif evt.get('type') == 'result':
+                            stats[evt['key']] = evt['value']
+                except:
+                    pass
+            
+            process.wait()
+            
+            if process.returncode != 0:
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Script failed'})}\n\n"
+            else:
+                yield f"data: {json.dumps({'type': 'complete', 'stats': stats})}\n\n"
+                
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+    
+    return Response(generate(), mimetype='text/event-stream')
 
 if __name__ == '__main__':
     # 서버 시작

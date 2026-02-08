@@ -517,6 +517,103 @@
         .clickable-row:hover {
             filter: brightness(0.95);
         }
+
+        /* Search Section Styles */
+        .search-section {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            z-index: 99;
+        }
+
+        .search-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .search-section .form-group {
+            margin: 0;
+        }
+
+        .search-section label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #596275;
+        }
+
+        .search-section input,
+        .search-section select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .search-range-group {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .search-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px;
+            }
+
+            .header {
+                padding: 0.8rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.2rem;
+            }
+
+            .search-section {
+                position: static;
+                margin-top: 0;
+                padding: 1rem;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .main-container {
+                padding: 1rem;
+            }
+
+            /* Stack form elements on mobile */
+            .search-section form>div {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 10px !important;
+            }
+
+            /* Make full width for ranges */
+            .search-section .form-group {
+                min-width: 100%;
+            }
+
+            /* Adjust table for mobile */
+            th,
+            td {
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
+
+            .btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 
@@ -531,32 +628,26 @@
 
     <div class="main-container">
         <!-- 검색 폼 (고정) -->
-        <div class="search-section"
-            style="background: white; padding: 1rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: fixed; top: 60px; left: 0; right: 0; z-index: 99;">
+        <div class="search-section">
             <form method="GET" action="/individual_businesses" id="searchForm">
-                <div
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
-                    <div class="form-group" style="margin: 0;">
-                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">기업명</label>
+                <div class="search-form-grid">
+                    <div class="form-group">
+                        <label>기업명</label>
                         <input type="text" name="company_name" value="{{ search.company_name or '' }}"
-                            placeholder="기업명 검색"
-                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            placeholder="기업명 검색">
                     </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">사업자번호</label>
+                    <div class="form-group">
+                        <label>사업자번호</label>
                         <input type="text" name="business_number" value="{{ search.business_number or '' }}"
-                            placeholder="사업자번호 검색"
-                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            placeholder="사업자번호 검색">
                     </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">주소</label>
-                        <input type="text" name="address" value="{{ search.address or '' }}" placeholder="주소 검색"
-                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    <div class="form-group">
+                        <label>주소</label>
+                        <input type="text" name="address" value="{{ search.address or '' }}" placeholder="주소 검색">
                     </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">진행상태</label>
-                        <select name="status"
-                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                    <div class="form-group">
+                        <label>진행상태</label>
+                        <select name="status">
                             <option value="전체" {% if search.status=='전체' %}selected{% endif %}>전체</option>
                             <option value="접촉대기" {% if search.status=='접촉대기' %}selected{% endif %}>접촉대기</option>
                             <option value="접촉중" {% if search.status=='접촉중' %}selected{% endif %}>접촉중</option>
@@ -565,43 +656,37 @@
                             <option value="실패" {% if search.status=='실패' %}selected{% endif %}>실패</option>
                         </select>
                     </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">매출액(억) 범위</label>
-                        <div style="display: flex; gap: 5px; align-items: center;">
+                    <div class="form-group">
+                        <label>매출액(억) 범위</label>
+                        <div class="search-range-group">
                             <input type="number" name="revenue_min" value="{{ search.revenue_min or '' }}"
-                                placeholder="최소" step="0.1"
-                                style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                                placeholder="최소" step="0.1">
                             <span>~</span>
                             <input type="number" name="revenue_max" value="{{ search.revenue_max or '' }}"
-                                placeholder="최대" step="0.1"
-                                style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                                placeholder="최대" step="0.1">
                         </div>
                     </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">당기순이익(억) 범위</label>
-                        <div style="display: flex; gap: 5px; align-items: center;">
+                    <div class="form-group">
+                        <label>당기순이익(억) 범위</label>
+                        <div class="search-range-group">
                             <input type="number" name="net_income_min" value="{{ search.net_income_min or '' }}"
-                                placeholder="최소" step="0.1"
-                                style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                                placeholder="최소" step="0.1">
                             <span>~</span>
                             <input type="number" name="net_income_max" value="{{ search.net_income_max or '' }}"
-                                placeholder="최대" step="0.1"
-                                style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                                placeholder="최대" step="0.1">
                         </div>
                     </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">업종</label>
+                    <div class="form-group">
+                        <label>업종</label>
                         <input type="text" name="industry_type" value="{{ search.industry_type or '' }}"
-                            placeholder="업종 검색"
-                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            placeholder="업종 검색">
                     </div>
-                    <div class="form-group" style="margin: 0;">
-                        <label style="font-size: 0.85rem; font-weight: 500; color: #596275;">재무년도</label>
+                    <div class="form-group">
+                        <label>재무년도</label>
                         <input type="number" name="financial_year" value="{{ search.financial_year or '' }}"
-                            placeholder="YYYY"
-                            style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            placeholder="YYYY">
                     </div>
-                    <div style="display: flex; gap: 10px;">
+                    <div class="search-actions">
                         <button type="submit" class="btn btn-primary">검색</button>
                         <button type="button" class="btn btn-secondary" onclick="resetSearch()">초기화</button>
                     </div>
@@ -785,22 +870,59 @@
 
     <!-- Upload Modal -->
     <div id="uploadModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
                 <h2>엑셀 일괄 등록</h2>
                 <button class="close-btn" onclick="closeModal('uploadModal')">&times;</button>
             </div>
+
+            <div style="padding: 0 1rem 1rem 1rem; text-align: right;">
+                <a href="/individual_businesses/template" class="btn btn-secondary"
+                    style="font-size: 0.9rem; text-decoration: none;">
+                    <i class="fas fa-download"></i> 등록 양식 다운로드
+                </a>
+            </div>
+
             <form id="uploadForm" onsubmit="submitUpload(event)">
-                <div class="file-upload-area">
-                    <input type="file" name="file" accept=".xlsx, .xls" required>
-                    <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
-                        .xlsx 또는 .xls 파일을 선택해주세요.<br>
-                        (기업명, 대표자명, 사업자번호 등)
-                    </p>
+                <!-- Step 1: File Selection -->
+                <div id="uploadStep1">
+                    <div class="file-upload-area">
+                        <input type="file" id="excelFile" name="file" accept=".xlsx, .xls" required>
+                        <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
+                            .xlsx 또는 .xls 파일을 선택해주세요.<br>
+                            (상단 양식 다운로드 버튼을 눌러 형식을 확인하세요)
+                        </p>
+                    </div>
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('uploadModal')">취소</button>
+                        <button type="button" class="btn btn-primary" onclick="validateUpload()">검토
+                            (Validation)</button>
+                    </div>
                 </div>
-                <div style="text-align: right;">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('uploadModal')">취소</button>
-                    <button type="submit" class="btn btn-success">업로드 및 처리</button>
+
+                <!-- Step 2: Confirmation & Password -->
+                <div id="uploadStep2" style="display: none;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <h4><i class="fas fa-check-circle" style="color: green;"></i> 데이터 확인 완료</h4>
+                        <p id="validationMessage" style="margin: 10px 0; font-weight: 500;"></p>
+                        <div id="previewTable"
+                            style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; margin-top: 10px; border: 1px solid #eee;">
+                            <!-- Preview data will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>관리자 비밀번호 확인</label>
+                        <input type="password" id="uploadPassword" placeholder="비밀번호를 입력하세요 (yang1123)"
+                            class="form-control" style="width: 100%; padding: 10px; box-sizing: border-box;">
+                    </div>
+
+                    <input type="hidden" id="uploadFileToken">
+
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="resetUploadStep()">이전</button>
+                        <button type="submit" class="btn btn-success">실행 (Data Upload)</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -992,29 +1114,104 @@
             }
         }
 
-        async function submitUpload(event) {
-            event.preventDefault();
-            const formData = new FormData(event.target);
+        async function validateUpload() {
+            const fileInput = document.getElementById('excelFile');
+            if (fileInput.files.length === 0) {
+                alert('파일을 선택해주세요.');
+                return;
+            }
 
-            // Show loading state
-            const btn = event.target.querySelector('button[type="submit"]');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            // Show loading
+            const btn = document.querySelector('#uploadStep1 .btn-primary');
             const originalText = btn.innerText;
-            btn.innerText = '처리 중...';
+            btn.innerText = '검토 중...';
             btn.disabled = true;
 
             try {
-                const response = await fetch('/individual_businesses/upload', {
+                const response = await fetch('/individual_businesses/validate_upload', {
                     method: 'POST',
                     body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update Step 2 UI
+                    document.getElementById('validationMessage').innerText = result.message;
+                    document.getElementById('uploadFileToken').value = result.file_token;
+
+                    // Render Preview (Optional: Show first few rows)
+                    let previewHtml = '<table style="width:100%; border-collapse: collapse;"><thead><tr style="background:#eee;">';
+                    if (result.preview.length > 0) {
+                        const headers = Object.keys(result.preview[0]);
+                        headers.forEach(h => previewHtml += `<th style="padding:5px; border:1px solid #ddd;">${h}</th>`);
+                        previewHtml += '</tr></thead><tbody>';
+                        result.preview.forEach(row => {
+                            previewHtml += '<tr>';
+                            headers.forEach(h => previewHtml += `<td style="padding:5px; border:1px solid #ddd;">${row[h]}</td>`);
+                            previewHtml += '</tr>';
+                        });
+                        previewHtml += '</tbody></table>';
+                        document.getElementById('previewTable').innerHTML = previewHtml;
+                    } else {
+                        document.getElementById('previewTable').innerHTML = '<p style="padding:10px;">데이터가 없습니다.</p>';
+                    }
+
+                    // Switch to Step 2
+                    document.getElementById('uploadStep1').style.display = 'none';
+                    document.getElementById('uploadStep2').style.display = 'block';
+                } else {
+                    alert('검토 실패: ' + result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('서버 오류가 발생했습니다.');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function resetUploadStep() {
+            document.getElementById('uploadStep1').style.display = 'block';
+            document.getElementById('uploadStep2').style.display = 'none';
+            document.getElementById('uploadPassword').value = '';
+        }
+
+        async function submitUpload(event) {
+            event.preventDefault();
+
+            const fileToken = document.getElementById('uploadFileToken').value;
+            const password = document.getElementById('uploadPassword').value;
+
+            if (!password) {
+                alert('비밀번호를 입력해주세요.');
+                return;
+            }
+
+            // Show loading
+            const btn = event.target.querySelector('#uploadStep2 button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = '실행 중...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/individual_businesses/execute_upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ file_token: fileToken, password: password })
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
                     alert(result.message);
+                    closeModal('uploadModal');
                     reloadWithCurrentParams();
                 } else {
-                    alert('오류: ' + result.message);
+                    alert('업로드 실패: ' + result.message);
                 }
             } catch (error) {
                 alert('서버 오류가 발생했습니다.');

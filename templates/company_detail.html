@@ -1079,8 +1079,14 @@
                             <span class="info-value">{{ company.company_size if company else '중기업' }}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">상장등급</span>
-                            <span class="info-value">{{ company.listing_status if company else 'BB' }}</span>
+                            <span class="info-label">신용등급</span>
+                            <span class="info-value">{{ company.listing_status if company else 'a' }} (Tel: {{
+                                company.phone_number if company and company.phone_number else '-' }})</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">직원수</span>
+                            <span class="info-value">{{ company.employee_count if company and company.employee_count
+                                else '-' }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">업종</span>
@@ -1092,8 +1098,10 @@
                                 }}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">신용등급명</span>
-                            <span class="info-value">BB</span>
+                            <span class="info-label">단체계약여부</span>
+                            <span class="info-value"
+                                style="{% if company.is_group_contract == '1' %}color: #28a745; font-weight: bold;{% else %}color: #dc3545; font-weight: bold;{% endif %}">{{
+                                'Y' if company.is_group_contract == '1' else 'N' }}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">GFC거래여부</span>
@@ -1172,10 +1180,16 @@
                                     <td>{{ "{:,}".format(financial_data[2].advances_paid or 0) }}</td>
                                 </tr>
                                 <tr>
-                                    <td class="item-name">가수금</td>
-                                    <td>{{ "{:,}".format(financial_data[0].advances_received or 0) }}</td>
-                                    <td>{{ "{:,}".format(financial_data[1].advances_received or 0) }}</td>
-                                    <td>{{ "{:,}".format(financial_data[2].advances_received or 0) }}</td>
+                                    <td class="item-name">이익준비금</td>
+                                    <td>{{ "{:,}".format(financial_data[0].earned_reserve or 0) }}</td>
+                                    <td>{{ "{:,}".format(financial_data[1].earned_reserve or 0) }}</td>
+                                    <td>{{ "{:,}".format(financial_data[2].earned_reserve or 0) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="item-name">자본준비금</td>
+                                    <td>{{ "{:,}".format(financial_data[0].capital_reserve or 0) }}</td>
+                                    <td>{{ "{:,}".format(financial_data[1].capital_reserve or 0) }}</td>
+                                    <td>{{ "{:,}".format(financial_data[2].capital_reserve or 0) }}</td>
                                 </tr>
                                 {% else %}
                                 <tr>
@@ -1214,7 +1228,7 @@
                                 <td>이노비즈</td>
                                 <td><span
                                         class="status-{{ 'yes' if additional and additional.is_innobiz == '1' else 'no' }}">{{
-                                        '인증' if additional and additional.is_innobiz == '1' else '미인증' }}</span></td>
+                                        '보유' if additional and additional.is_innobiz == '1' else '미보유' }}</span></td>
                                 <td>{{ additional.innobiz_cert_date if additional and additional.innobiz_cert_date else
                                     '-' }}</td>
                                 <td>{{ additional.innobiz_expiry_date if additional and additional.innobiz_expiry_date
@@ -1224,7 +1238,7 @@
                                 <td>메인비즈</td>
                                 <td><span
                                         class="status-{{ 'yes' if additional and additional.is_mainbiz == '1' else 'no' }}">{{
-                                        '인증' if additional and additional.is_mainbiz == '1' else '미인증' }}</span></td>
+                                        '보유' if additional and additional.is_mainbiz == '1' else '미보유' }}</span></td>
                                 <td>{{ additional.mainbiz_cert_date if additional and additional.mainbiz_cert_date else
                                     '-' }}</td>
                                 <td>{{ additional.mainbiz_expiry_date if additional and additional.mainbiz_expiry_date
@@ -2212,7 +2226,7 @@ Task: [${currentCompanyName}] 기업에 대한 종합 경영 진단 보고서 �
         </div>
     </div>
 
-{% endif %}
+    {% endif %}
 </body>
 
 </html>

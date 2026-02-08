@@ -1,0 +1,60 @@
+=== Representative section (Lines 255-275) ===
+Line 255:                             <h4>대표자</h4>
+Line 256:                             {% if company.representatives %}
+Line 257:                             <table class="results-table">
+Line 258:                                 <thead><tr><th>성명</th><th>생년월일</th><th>성별</th><th>GFC여부</th><th>관리</th></tr></thead>
+Line 259:                                 <tbody>
+Line 260:                                 {% for rep in company.representatives %}
+Line 261:                                 <tr id="rep-row-{{ loop.index }}">
+Line 262:                                     <td>{{ rep.name }}</td><td>{{ rep.birth_date }}</td><td>{{ rep.gender }}</td>
+Line 263:                                     <td><span class="status-{{ 'yes' if rep.is_gfc == 'Y' else 'no' }}">{{ 'Y' if rep.is_gfc == 'Y' else 'N' }}</span></td>
+Line 264:                                     <td>
+Line 265:                                         {% if '*' in (rep.name or '') %}
+Line 266:                                         <button onclick="deleteRepresentative('{{ company.basic.biz_no }}', '{{ rep.name }}', {{ loop.index }})" class="delete-btn-small">삭제</button>
+Line 267:                                         {% else %}
+Line 268:                                         -
+Line 269:                                         {% endif %}
+Line 270:                                     </td>
+Line 271:                                 </tr>
+Line 272:                                 {% endfor %}
+Line 273:                                 </tbody>
+Line 274:                             </table>
+Line 275:                             {% else %}<p>대표자 정보가 없습니다.</p>{% endif %}
+Line 276:                             {% set has_predicted = company.shareholders | selectattr("is_predicted", "equalto", true) | list | length > 0 %}
+Line 277:                             {% set has_actual = company.shareholders | selectattr("is_predicted", "equalto", false) | list | length > 0 %}
+Line 278:                             <h4>주주 구성 
+Line 279:                                 {% if has_predicted and not has_actual %}
+Line 280:                                     <span style="font-weight: bold; color: #e74c3c; font-size: 14px;">(예측 주식수)</span>
+
+=== Shareholder section (Lines 305-330) ===
+Line 305:                                         {{ "{:,.0f}".format(holder.stock_quantity|default(0)) }}주{% if holder.is_predicted %} *{% endif %}
+Line 306:                                     </td>
+Line 307:                                     <td>
+Line 308:                                         <div class="progress-container-improved">
+Line 309:                                             <div class="progress-bar-improved" style="width: {{ holder.ownership_percent|default(0) }}%;"></div>
+Line 310:                                             <div class="progress-text-improved progress-text-{% if (holder.ownership_percent|default(0)) < 15 %}dark{% else %}light{% endif %}">
+Line 311:                                                 {{ "{:.2f}".format(holder.ownership_percent|default(0)) }}%
+Line 312:                                             </div>
+Line 313:                                         </div>
+Line 314:                                     </td>
+Line 315:                                     <td style="text-align: right;">{{ "{:,.0f}".format(holder.stock_value_amount|default(0)) }}원</td>
+Line 316:                                     <td>{{ holder.relationship or '' }}</td>
+Line 317:                                     <td>
+Line 318:                                         {% if '*' in (holder.shareholder_name or '') %}
+Line 319:                                         <button onclick="deleteShareholder('{{ company.basic.biz_no }}', '{{ holder.shareholder_name }}', {{ loop.index }})" class="delete-btn-small">삭제</button>
+Line 320:                                         {% else %}
+Line 321:                                         -
+Line 322:                                         {% endif %}
+Line 323:                                     </td>
+Line 324:                                 </tr>
+Line 325:                                 {% endfor %}
+Line 326:                                 </tbody>
+Line 327:                             </table>
+Line 328:                             {% if has_predicted %}
+Line 329:                                 <p style="font-size: 12px; color: #666; margin-top: 10px; font-style: italic;">
+Line 330:                                     * 별표(*)가 표시된 주식수는 발행주식수와 지분율을 기준으로 계산된 예측값입니다.
+Line 331:                                 </p>
+Line 332:                             {% endif %}
+Line 333:                             {% else %}<p>주주 정보가 없습니다.</p>{% endif %}
+Line 334:                         </div>
+Line 335:                     </div>

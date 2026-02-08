@@ -1,0 +1,415 @@
+CREATE TABLE Company_Basic (
+            biz_no VARCHAR(12) PRIMARY KEY,
+            company_name VARCHAR(255),
+            company_size VARCHAR(50),
+            company_type VARCHAR(50),
+            industry_code VARCHAR(10),
+            industry_name VARCHAR(255),
+            zip_code VARCHAR(10),
+            address VARCHAR(500),
+            region VARCHAR(50),
+            city_district VARCHAR(50),
+            phone_number VARCHAR(20),
+            email VARCHAR(255),
+            fax_number VARCHAR(20),
+            gfc_transaction_yn CHAR(1),
+            group_transaction_yn CHAR(1),
+            ked_transaction_yn CHAR(1),
+            patent_transaction_yn CHAR(1),
+            establish_date DATE,
+            corporate_reg_no VARCHAR(20),
+            representative_name VARCHAR(100),
+            national_pension INTEGER,
+            pension_count INTEGER,
+            pension_date DATE
+        )
+CREATE TABLE Company_Financial (
+            biz_no VARCHAR(12),
+            fiscal_year INTEGER,
+            rating1 VARCHAR(20),
+            rating2 VARCHAR(20),
+            rating3 VARCHAR(20),
+            sales_revenue BIGINT,
+            operating_income BIGINT,
+            net_income BIGINT,
+            total_assets BIGINT,
+            total_liabilities BIGINT,
+            total_equity BIGINT,
+            retained_earnings BIGINT,
+            capital_surplus BIGINT,
+            earned_reserve BIGINT,
+            additional_paid_in_capital BIGINT,
+            corporate_tax BIGINT,
+            land_asset BIGINT,
+            building_asset BIGINT,
+            investment_real_ground BIGINT,
+            investment_real_building BIGINT,
+            rental_income BIGINT,
+            rent_amt BIGINT,
+            advances_paid BIGINT,
+            advances_received BIGINT,
+            capital_stock_value BIGINT,
+            undistributed_retained_earnings BIGINT,
+            current_assets BIGINT,
+            cash_equivalents BIGINT,
+            short_term_loan BIGINT,
+            short_term_deposit BIGINT,
+            principal_short_long_term_bonds BIGINT,
+            interest_income BIGINT,
+            capital_reserve BIGINT,
+            shares_issued_count INTEGER,
+            PRIMARY KEY (biz_no, fiscal_year),
+            FOREIGN KEY (biz_no) REFERENCES Company_Basic (biz_no)
+        )
+CREATE TABLE Company_Shareholder (
+            company_shareholder_id INTEGER PRIMARY KEY,
+            biz_no VARCHAR(12),
+            shareholder_name VARCHAR(100),
+            ownership_percent NUMERIC,
+            relationship VARCHAR(100),
+            shareholder_type VARCHAR(50),
+            management_type VARCHAR(50),
+            silent_partner_relationship VARCHAR(100),
+            total_shares_owned BIGINT,
+            FOREIGN KEY (biz_no) REFERENCES Company_Basic (biz_no)
+        )
+CREATE TABLE Company_Representative (
+            company_representative_id INTEGER PRIMARY KEY,
+            biz_no VARCHAR(12),
+            name VARCHAR(100),
+            gender CHAR(1),
+            age INTEGER,
+            birth_date DATE,
+            is_gfc CHAR(1),
+            FOREIGN KEY (biz_no) REFERENCES Company_Basic (biz_no)
+        )
+CREATE TABLE Company_Additional (
+            company_additional_id INTEGER PRIMARY KEY,
+            biz_no VARCHAR(12),
+            patent_applications_count INTEGER,
+            registered_patents_count INTEGER,
+            has_research_institute CHAR(1),
+            research_institute_date DATE,
+            is_innobiz CHAR(1),
+            innobiz_cert_date DATE,
+            innobiz_expiry_date DATE,
+            is_mainbiz CHAR(1),
+            mainbiz_cert_date DATE,
+            mainbiz_expiry_date DATE,
+            is_venture CHAR(1),
+            venture_cert_date DATE,
+            venture_expiry_date DATE,
+            FOREIGN KEY (biz_no) REFERENCES Company_Basic (biz_no)
+        )
+CREATE TABLE sqlite_sequence(name,seq)
+CREATE TABLE "Contact_History" (
+    "history_id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "biz_no" TEXT,
+    "contact_datetime" TEXT,
+    "contact_type" TEXT,
+    "contact_person" TEXT,
+    "memo" TEXT,
+    "registered_by" TEXT
+)
+CREATE TABLE history (
+            history_id INTEGER PRIMARY KEY,
+            contact_datetime TEXT,
+            biz_no TEXT,
+            contact_type TEXT,
+            contact_person TEXT,
+            memo TEXT,
+            registered_by TEXT
+        )
+CREATE TABLE Users (
+    user_id TEXT PRIMARY KEY,           -- 사용자 ID (예: ct0001, dt0003)
+    password TEXT NOT NULL,             -- 비밀번호 (해시화)
+    name TEXT NOT NULL,                 -- 이름
+    user_level TEXT NOT NULL CHECK (user_level IN ('V', 'S', 'M', 'N')), -- 권한등급
+    user_level_name TEXT NOT NULL,      -- 권한등급명 (메인관리자, 서브관리자, 매니저, 일반담당자)
+    branch_code TEXT NOT NULL,          -- 지점코드 (EA3000, EA3100, EA3200)
+    branch_name TEXT NOT NULL,          -- 지점명 (중앙지점, 선진지점, 명중지점)
+    phone TEXT NOT NULL,                -- 연락처 (010-4444-2445)
+    gender TEXT CHECK (gender IN ('M', 'F')), -- 성별 (M: 남성, F: 여성)
+    birth_date TEXT,                    -- 생년월일 (YYYY-MM-DD)
+    email TEXT,                         -- 이메일
+    position TEXT,                      -- 직급/직책
+    hire_date TEXT DEFAULT (date('now')), -- 입사일
+    status TEXT DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'INACTIVE', 'SUSPENDED')), -- 상태
+    last_login DATETIME,                -- 마지막 로그인
+    password_changed_date TEXT DEFAULT (date('now')), -- 비밀번호 변경일
+    created_date DATETIME DEFAULT CURRENT_TIMESTAMP, -- 생성일
+    updated_date DATETIME DEFAULT CURRENT_TIMESTAMP  -- 수정일
+)
+CREATE TABLE Branches (
+    branch_code TEXT PRIMARY KEY,
+    branch_name TEXT NOT NULL,
+    address TEXT,
+    phone TEXT,
+    manager_id TEXT,
+    created_date DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+CREATE TABLE Signup_Requests (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id TEXT NOT NULL UNIQUE,
+                        name TEXT NOT NULL,
+                        phone TEXT NOT NULL,
+                        email TEXT NOT NULL,
+                        branch_code TEXT NOT NULL,
+                        branch_name TEXT NOT NULL,
+                        birth_date TEXT,
+                        gender TEXT CHECK (gender IN ('M', 'F')),
+                        position TEXT DEFAULT '팀장',
+                        purpose TEXT,
+                        status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+                        requested_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        processed_date DATETIME,
+                        processed_by TEXT,
+                        admin_notes TEXT
+                    )
+CREATE TABLE Password_History (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id TEXT NOT NULL,
+                        password TEXT NOT NULL,
+                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES Users(user_id)
+                    )
+CREATE TABLE Payment_History (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id TEXT NOT NULL,
+                        payment_date DATE NOT NULL,
+                        amount INTEGER NOT NULL,
+                        payment_type TEXT NOT NULL CHECK (payment_type IN ('MONTHLY', 'YEARLY', 'SIGNUP')),
+                        payment_method TEXT,
+                        notes TEXT,
+                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES Users(user_id)
+                    )
+CREATE TABLE User_Subscriptions (
+            subscription_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            subscription_start_date DATE,
+            subscription_end_date DATE,
+            subscription_type TEXT DEFAULT 'MONTHLY' CHECK (subscription_type IN ('MONTHLY', 'YEARLY', 'FREE')),
+            total_paid_amount INTEGER DEFAULT 0,
+            is_first_month_free BOOLEAN DEFAULT 1,
+            created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES Users(user_id)
+        )
+CREATE TABLE Pioneering_Targets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                biz_no TEXT NOT NULL,
+                visit_date DATE NOT NULL,
+                visitor_id TEXT NOT NULL,
+                is_visited BOOLEAN DEFAULT 0,
+                visited_date DATETIME,
+                notes TEXT,
+                registered_by TEXT NOT NULL,
+                created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (visitor_id) REFERENCES Users(user_id),
+                FOREIGN KEY (registered_by) REFERENCES Users(user_id)
+            )
+CREATE TABLE Sales_Expenses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                expense_date DATE NOT NULL,
+                category TEXT NOT NULL,
+                amount INTEGER NOT NULL,
+                description TEXT,
+                receipt_image TEXT,
+                status TEXT DEFAULT 'PENDING',
+                registered_by TEXT NOT NULL,
+                approved_by TEXT,
+                approved_date DATETIME,
+                created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_date DATETIME DEFAULT CURRENT_TIMESTAMP, expense_type TEXT, payment_method TEXT, receipt_filename TEXT,
+                FOREIGN KEY (registered_by) REFERENCES Users(user_id),
+                FOREIGN KEY (approved_by) REFERENCES Users(user_id)
+            )
+CREATE TABLE managed_companies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    biz_reg_no TEXT NOT NULL,
+    manager_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT prospect,
+    keyman_name TEXT NOT NULL,
+    keyman_phone TEXT,
+    keyman_position TEXT,
+    keyman_email TEXT,
+    registration_reason TEXT,
+    next_contact_date DATE,
+    last_contact_date DATE,
+    notes TEXT,
+    expected_amount INTEGER DEFAULT 0,
+    priority_level INTEGER DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+, company_name TEXT, representative TEXT)
+CREATE TABLE pipeline_contact_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    managed_company_id INTEGER NOT NULL,
+    contact_date DATE NOT NULL,
+    contact_type TEXT NOT NULL,
+    content TEXT NOT NULL,
+    cost INTEGER DEFAULT 0,
+    attachment TEXT,
+    follow_up_required BOOLEAN DEFAULT 0,
+    follow_up_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+CREATE TABLE ys_team_members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                position TEXT NOT NULL,
+                phone TEXT,
+                bio TEXT,
+                photo_url TEXT,
+                display_order INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+CREATE TABLE ys_news (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                category TEXT,
+                summary TEXT,
+                link_url TEXT,
+                publish_date DATE,
+                display_order INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            , thumbnail_url TEXT)
+CREATE TABLE ys_inquiries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                company TEXT,
+                phone TEXT NOT NULL,
+                checklist TEXT,
+                content TEXT,
+                status TEXT DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+CREATE TABLE ys_questions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                question_text TEXT NOT NULL,
+                display_order INTEGER DEFAULT 1,
+                is_active INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            , type TEXT DEFAULT '네/아니오')
+CREATE TABLE individual_business_owners (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    company_name TEXT,
+                    representative_name TEXT,
+                    birth_year TEXT,
+                    establishment_year TEXT,
+                    is_family_shareholder TEXT,
+                    is_other_shareholder TEXT,
+                    industry_type TEXT,
+                    financial_year TEXT,
+                    employee_count TEXT,
+                    total_assets TEXT,
+                    total_capital TEXT,
+                    revenue TEXT,
+                    net_income TEXT,
+                    address TEXT,
+                    business_number TEXT,
+                    phone_number TEXT,
+                    fax_number TEXT,
+                    memo TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                , assigned_user_id TEXT, status TEXT DEFAULT '접촉대기')
+CREATE TABLE individual_business_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                business_id INTEGER NOT NULL,
+                type TEXT,
+                content TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, created_by TEXT,
+                FOREIGN KEY (business_id) REFERENCES individual_business_owners(id)
+            )
+CREATE TABLE Seminars (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                description TEXT,
+                date TEXT,
+                time TEXT,
+                location TEXT,
+                image_url TEXT,
+                link_url TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            , max_attendees TEXT, instructor TEXT)
+CREATE TABLE BlogPosts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                category TEXT,
+                summary TEXT,
+                thumbnail_url TEXT,
+                link_url TEXT,
+                publish_date TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+CREATE TABLE SeminarRegistrations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seminar_title TEXT NOT NULL,
+                name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                company_name TEXT,
+                position TEXT,
+                biz_no TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+CREATE TABLE SeminarSessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seminar_id INTEGER,
+                session_time TEXT,
+                title TEXT,
+                instructor TEXT,
+                location TEXT,
+                description TEXT,
+                FOREIGN KEY (seminar_id) REFERENCES Seminars (id) ON DELETE CASCADE
+            )
+CREATE TABLE TeamMembers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        position TEXT,
+        phone TEXT,
+        bio TEXT,
+        photo_url TEXT,
+        display_order INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+CREATE TABLE QuizQuestions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        question_text TEXT NOT NULL,
+        display_order INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+CREATE TABLE Inquiries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        company TEXT,
+        content TEXT,
+        checklist TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+CREATE TABLE ys_seminars (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                date TEXT NOT NULL,
+                time TEXT NOT NULL,
+                location TEXT NOT NULL,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            , max_attendees INTEGER DEFAULT 0)
+CREATE TABLE ys_seminar_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seminar_id INTEGER NOT NULL,
+                time_range TEXT NOT NULL,
+                title TEXT NOT NULL,
+                speaker TEXT,
+                description TEXT,
+                location_note TEXT,
+                display_order INTEGER DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (seminar_id) REFERENCES ys_seminars (id) ON DELETE CASCADE
+            )

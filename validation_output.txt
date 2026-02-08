@@ -1,0 +1,19 @@
+[09:02:10] === Batch Upload V2 Started (Mode: validate) ===
+[09:02:10] Source File: 251102_insert.xlsx (0.29 MB)
+[09:02:10] === Step 2: Processing Data (Mode: validate) ===
+[09:02:10] Processing Company_Basic...
+[09:02:10]   Found 312 rows
+{"type": "result", "key": "Company_Basic_Found", "value": 312}
+[09:02:10] Processing Company_Representative...
+[09:02:10]   Found 352 rows
+{"type": "result", "key": "Company_Representative_Found", "value": 352}
+[09:02:10] Processing Company_Shareholder...
+[09:02:10]   Found 948 rows
+{"type": "result", "key": "Company_Shareholder_Found", "value": 948}
+[09:02:10] Processing Company_Financial...
+[09:02:10]   Found 936 rows
+{"type": "result", "key": "Company_Financial_Found", "value": 936}
+[09:02:10] Processing Company_Additional...
+[09:02:10]   Found 312 rows
+{"type": "result", "key": "Company_Additional_Found", "value": 312}
+[09:02:10] === Batch Upload Complete ===

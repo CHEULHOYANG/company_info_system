@@ -554,6 +554,10 @@
             background: #e2e8f0;
         }
     </style>
+
+    <script>
+
+    </script>
 </head>
 
 <body>
@@ -595,10 +599,13 @@
         {% if can_manage_users %}
         <div class="db-management-section">
             <button onclick="openDbManagementPopup()" class="db-management-btn">DB 관리</button>
+
         </div>
         {% endif %}
         <div><a href="{{ url_for('logout') }}" class="logout-btn">로그아웃</a></div>
     </div>
+
+
 
     <!-- 메인 버튼 그리드 -->
     <div class="main-buttons">
