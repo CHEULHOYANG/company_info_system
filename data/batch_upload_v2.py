@@ -133,10 +133,139 @@ def load_data_frame(table_name):
                 log(f"Error reading {f}: {e}")
     return None
 
+def ensure_base_tables(conn):
+    """Create necessary tables if they don't exist"""
+    cursor = conn.cursor()
+    
+    # Company_Basic
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS Company_Basic (
+            biz_no VARCHAR(12) PRIMARY KEY,
+            company_name VARCHAR(255),
+            company_size VARCHAR(50),
+            company_type VARCHAR(50),
+            industry_code VARCHAR(10),
+            industry_name VARCHAR(255),
+            zip_code VARCHAR(10),
+            address VARCHAR(500),
+            region VARCHAR(50),
+            city_district VARCHAR(50),
+            phone_number VARCHAR(20),
+            email VARCHAR(255),
+            fax_number VARCHAR(20),
+            gfc_transaction_yn CHAR(1),
+            group_transaction_yn CHAR(1),
+            ked_transaction_yn CHAR(1),
+            patent_transaction_yn CHAR(1),
+            establish_date DATE,
+            corporate_reg_no VARCHAR(20),
+            representative_name VARCHAR(100),
+            national_pension INTEGER,
+            pension_count INTEGER,
+            pension_date DATE
+        )
+    ''')
+
+    # Company_Financial
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS Company_Financial (
+            biz_no VARCHAR(12),
+            fiscal_year INTEGER,
+            rating1 VARCHAR(20),
+            rating2 VARCHAR(20),
+            rating3 VARCHAR(20),
+            sales_revenue BIGINT,
+            operating_income BIGINT,
+            net_income BIGINT,
+            total_assets BIGINT,
+            total_liabilities BIGINT,
+            total_equity BIGINT,
+            retained_earnings BIGINT,
+            capital_surplus BIGINT,
+            earned_reserve BIGINT,
+            additional_paid_in_capital BIGINT,
+            corporate_tax BIGINT,
+            land_asset BIGINT,
+            building_asset BIGINT,
+            investment_real_ground BIGINT,
+            investment_real_building BIGINT,
+            rental_income BIGINT,
+            rent_amt BIGINT,
+            advances_paid BIGINT,
+            advances_received BIGINT,
+            capital_stock_value BIGINT,
+            undistributed_retained_earnings BIGINT,
+            current_assets BIGINT,
+            cash_equivalents BIGINT,
+            short_term_loan BIGINT,
+            short_term_deposit BIGINT,
+            principal_short_long_term_bonds BIGINT,
+            interest_income BIGINT,
+            capital_reserve BIGINT,
+            shares_issued_count INTEGER,
+            PRIMARY KEY (biz_no, fiscal_year),
+            FOREIGN KEY (biz_no) REFERENCES Company_Basic (biz_no)
+        )
+    ''')
+
+    # Company_Shareholder
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS Company_Shareholder (
+            company_shareholder_id INTEGER PRIMARY KEY,
+            biz_no VARCHAR(12),
+            shareholder_name VARCHAR(100),
+            ownership_percent NUMERIC,
+            relationship VARCHAR(100),
+            shareholder_type VARCHAR(50),
+            management_type VARCHAR(50),
+            silent_partner_relationship VARCHAR(100),
+            total_shares_owned BIGINT,
+            FOREIGN KEY (biz_no) REFERENCES Company_Basic (biz_no)
+        )
+    ''')
+
+    # Company_Representative
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS Company_Representative (
+            company_representative_id INTEGER PRIMARY KEY,
+            biz_no VARCHAR(12),
+            name VARCHAR(100),
+            gender CHAR(1),
+            age INTEGER,
+            birth_date DATE,
+            is_gfc CHAR(1),
+            FOREIGN KEY (biz_no) REFERENCES Company_Basic (biz_no)
+        )
+    ''')
+
+    # Company_Additional
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS Company_Additional (
+            company_additional_id INTEGER PRIMARY KEY,
+            biz_no VARCHAR(12),
+            patent_applications_count INTEGER,
+            registered_patents_count INTEGER,
+            has_research_institute CHAR(1),
+            research_institute_date DATE,
+            is_innobiz CHAR(1),
+            innobiz_cert_date DATE,
+            innobiz_expiry_date DATE,
+            is_mainbiz CHAR(1),
+            mainbiz_cert_date DATE,
+            mainbiz_expiry_date DATE,
+            is_venture CHAR(1),
+            venture_cert_date DATE,
+            venture_expiry_date DATE,
+            FOREIGN KEY (biz_no) REFERENCES Company_Basic (biz_no)
+        )
+    ''')
+    conn.commit()
+
 def connect_db():
     try:
         conn = sqlite3.connect(DB_PATH, timeout=60)
         conn.execute("PRAGMA journal_mode=WAL")
+        ensure_base_tables(conn)
         return conn
     except Exception as e:
         log(f"Database connection failed: {e}")
