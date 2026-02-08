@@ -31,7 +31,7 @@ def get_kst_now():
     """한국 시간 현재 시각을 반환합니다."""
     return datetime.now(KST)
 import pytz
-from datetime import timezone, timedelta
+from datetime import datetime, timedelta, date
 
 # --- 커스텀 템플릿 로더 (UTF-8 우선, CP949 폴백) ---
 class UTF8FileSystemLoader(FileSystemLoader):
@@ -3482,10 +3482,35 @@ def company_detail(biz_no):
                 # 오류가 발생한 주주는 건너뛰고 계속 진행
                 continue
 
+    today = date.today()
+    processed_representatives = []
+    for rep in representatives:
+        rep_dict = dict(rep)
+        birth_date = rep_dict.get('birth_date')
+        age = None
+        if birth_date and '*' not in str(birth_date):
+            try:
+                # Try parsing formats: YYYYMMDD, YYYY-MM-DD
+                dt = None
+                for fmt in ['%Y%m%d', '%Y-%m-%d']:
+                    try:
+                        dt = datetime.strptime(str(birth_date).strip(), fmt).date()
+                        break
+                    except ValueError:
+                        continue
+                
+                if dt:
+                    age = today.year - dt.year - ((today.month, today.day) < (dt.month, dt.day))
+            except Exception as e:
+                print(f"Age calculation error: {e}")
+        
+        rep_dict['age'] = age
+        processed_representatives.append(rep_dict)
+
     company_data = {
         'basic': dict(basic_info) if basic_info else {},
         'financials': [dict(row) for row in financial_info],
-        'representatives': [dict(row) for row in representatives],
+        'representatives': processed_representatives,
         'shareholders': processed_shareholders,
         'history': [dict(row) for row in contact_history],
         'patents': [dict(row) for row in patents],
