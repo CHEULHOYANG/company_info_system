@@ -8776,7 +8776,8 @@ def upload_excel_and_process():
     if file and file.filename.endswith('.xlsx'):
         try:
             # 1. 파일 저장
-            target_dir = r"G:\DATA\20251102"
+            # Use relative path for server compatibility
+            target_dir = os.path.join(os.path.dirname(__file__), "data")
             target_filename = "251102_insert.xlsx"
             target_path = os.path.join(target_dir, target_filename)
             
@@ -9038,7 +9039,8 @@ def execute_individual_business_upload():
 
 # --- Corporate Batch Upload Routes (Enhanced) ---
 
-CORPORATE_DATA_DIR = r"G:\DATA\20251102"
+# Use relative path for server compatibility (Linux/Windows)
+CORPORATE_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 CORPORATE_SCRIPT_PATH = os.path.join(CORPORATE_DATA_DIR, "batch_upload_v2.py")
 
 @app.route('/api/corporate/template')
