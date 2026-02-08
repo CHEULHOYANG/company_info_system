@@ -9093,7 +9093,7 @@ def validate_corporate_upload():
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            cwd=target_dir
+            cwd=CORPORATE_DATA_DIR
         )
         
         stdout, _ = process.communicate()
