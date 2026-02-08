@@ -9096,6 +9096,10 @@ def validate_corporate_upload():
         )
         
         stdout, _ = process.communicate()
+        try:
+            stdout = stdout.decode('utf-8')
+        except:
+            stdout = stdout.decode('cp949', errors='ignore')
         
         # LOGGING FOR DEBUG
         print(f"[DEBUG_BATCH] RAW OUTPUT START\n{stdout}\n[DEBUG_BATCH] RAW OUTPUT END", flush=True)
