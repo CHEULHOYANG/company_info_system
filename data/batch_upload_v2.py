@@ -220,6 +220,7 @@ def process_company_basic(conn, df, execute=False):
                 count_inserted += 1
         except Exception as e:
             count_error += 1
+            if count_error == 1: json_result("LastError", f"[Company_Basic] {str(e)}")
             log(f"  [Error] Basic biz_no={biz_no}: {e}")
             
     conn.commit()
@@ -294,6 +295,7 @@ def process_company_representative(conn, df, execute=False):
                 count_inserted += 1
         except Exception as e:
             count_error += 1
+            if count_error == 1: json_result("LastError", f"[Company_Representative] {str(e)}")
             log(f"  [Error] Rep biz_no={biz_no}: {e}")
         
     conn.commit()
@@ -383,6 +385,7 @@ def process_company_shareholder(conn, df, execute=False):
                 count_inserted += 1
         except Exception as e:
             count_error += 1
+            if count_error == 1: json_result("LastError", f"[Company_Shareholder] {str(e)}")
             log(f"  [Error] Shareholder biz_no={biz_no}: {e}")
             
     conn.commit()
@@ -464,6 +467,7 @@ def process_company_financial(conn, df, execute=False):
                 
         except Exception as e:
             count_error += 1
+            if count_error == 1: json_result("LastError", f"[Company_Financial] {str(e)}")
             log(f"  [Error] Financial {biz_no}/{fiscal_year}: {e}")
             
     conn.commit()
@@ -529,6 +533,7 @@ def process_generic_table(conn, df, table_name, pk_cols, execute=False):
                 count_inserted += 1
         except Exception as e:
             count_error += 1
+            if count_error == 1: json_result("LastError", f"[{table_name}] {str(e)}")
             log(f"  [Error] {table_name} row {i}: {e}")
         
     conn.commit()
