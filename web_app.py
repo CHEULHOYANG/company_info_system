@@ -9093,28 +9093,30 @@ def validate_corporate_upload():
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            cwd=CORPORATE_DATA_DIR,
-            env=env,
-            text=True,
-            encoding='utf-8'
         )
         
         stdout, _ = process.communicate()
         
+        # LOGGING FOR DEBUG
+        print(f"[DEBUG_BATCH] RAW OUTPUT START\n{stdout}\n[DEBUG_BATCH] RAW OUTPUT END", flush=True)
+
         # Parse JSON results from stdout
         stats = {}
-        logs = []
+        logs = [] # Keep logs for error message
         for line in stdout.splitlines():
             clean_line = line.strip()
             if not clean_line: continue
-            try:
-                if clean_line.startswith('{'):
+            logs.append(clean_line) # Append to logs before parsing
+            
+            if clean_line.startswith('{'):
+                try:
                     data = json.loads(clean_line)
                     if data.get('type') == 'result':
                         stats[data['key']] = data['value']
-            except:
-                pass
-            logs.append(clean_line)
+                except Exception as e:
+                    print(f"[DEBUG_BATCH] JSON PARSE ERROR: {str(e)} in line: {clean_line}", flush=True)
+        
+        print(f"[DEBUG_BATCH] FINAL STATS: {stats}", flush=True)
             
         if process.returncode != 0:
             # Send last few logs as message
@@ -9178,6 +9180,7 @@ def execute_corporate_upload():
                     
                 try:
                     if clean.startswith('{'):
+                        print(f"[DEBUG_EXEC] STREAM LINE: {clean}", flush=True)
                         evt = json.loads(clean)
                         # Forward progress events
                         if evt.get('type') in ['table_start', 'progress', 'table_done']:

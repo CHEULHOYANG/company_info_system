@@ -192,6 +192,7 @@ def process_company_basic(conn, df, execute=False):
         biz_no = row.get('biz_no')
         if not biz_no:
             count_error += 1
+            if count_error == 1: json_result("LastError", f"[Company_Basic] BizNo missing. Row: {row.to_dict()}")
             continue
         
         try:
@@ -261,6 +262,7 @@ def process_company_representative(conn, df, execute=False):
         new_name = str(row.get('name', '')).strip()
         if not new_name:
             count_error += 1
+            if count_error == 1: json_result("LastError", f"[Company_Representative] Name missing. Row: {row.to_dict()}")
             continue
             
         try:
@@ -340,6 +342,7 @@ def process_company_shareholder(conn, df, execute=False):
         
         if not csv_name:
             count_error += 1
+            if count_error == 1: json_result("LastError", f"[Company_Shareholder] Name missing. Row: {row.to_dict()}")
             continue
             
         try:
@@ -431,6 +434,7 @@ def process_company_financial(conn, df, execute=False):
         
         if not biz_no or not fiscal_year:
             count_error += 1
+            if count_error == 1: json_result("LastError", f"[Company_Financial] BizNo/Year missing. Row: {row.to_dict()}")
             continue
             
         try:
