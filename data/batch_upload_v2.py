@@ -543,11 +543,26 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=['validate', 'execute'], default='validate', help="Operation mode")
     parser.add_argument("--skip-gen", action="store_true", help="Skip generation step")
+    parser.add_argument("--db-path", type=str, help="Absolute path to the SQLite database")
     args = parser.parse_args()
 
     mode = args.mode
-    log(f"=== Batch Upload V2 Started (Mode: {mode}) ===")
     
+    # Update DB_PATH if provided
+    global DB_PATH
+    if args.db_path:
+        DB_PATH = args.db_path
+        
+    log(f"=== Batch Upload V2 Started (Mode: {mode}) ===")
+    log(f"Database Path: {DB_PATH}")
+    
+    # Verify DB exists
+    if mode == 'execute':
+        if os.path.exists(DB_PATH):
+            log(f"DB File exists: {os.path.getsize(DB_PATH)} bytes")
+        else:
+            log(f"WARNING: DB File NOT found at {DB_PATH}. It will be created on connect, but tables might be missing.")
+
     # 1. Validation Phase (Generation)
     if not check_source_file():
         return
@@ -567,6 +582,7 @@ def main():
     if mode == 'execute':
         conn = connect_db()
         if not conn:
+            log("CRITICAL: Could not connect to database.")
             return
 
     # 1. Basic

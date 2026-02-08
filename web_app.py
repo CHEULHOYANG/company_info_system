@@ -8800,8 +8800,11 @@ def upload_excel_and_process():
                 env = os.environ.copy()
                 env["PYTHONIOENCODING"] = "utf-8"
                 
+                # DB 경로 전달 (서버 배포 시 경로 문제 해결)
+                db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'company_database.db')
+                
                 process = subprocess.Popen(
-                    [sys.executable, script_path],
+                    [sys.executable, script_path, "--db-path", db_path],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT, # Redirect stderr to stdout
                     cwd=target_dir,
@@ -9151,7 +9154,9 @@ def execute_corporate_upload():
             env = os.environ.copy()
             env["PYTHONIOENCODING"] = "utf-8"
             
-            cmd = [sys.executable, CORPORATE_SCRIPT_PATH, "--mode", "execute", "--skip-gen"]
+            # DB 경로 전달
+            db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'company_database.db')
+            cmd = [sys.executable, CORPORATE_SCRIPT_PATH, "--mode", "execute", "--skip-gen", "--db-path", db_path]
             
             process = subprocess.Popen(
                 cmd,
