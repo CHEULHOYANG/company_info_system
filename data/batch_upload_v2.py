@@ -457,16 +457,29 @@ def process_company_shareholder(conn, df, execute=False):
     # Emit table start event
     progress_event("table_start", "Company_Shareholder", total=total_rows)
     
-    # Chunk size for intermediate commits and bulk inserts
-    # Chunk size
+    # Strategy: Delete & Re-insert for involved companies
+    # 1. Identify companies in this batch
+    unique_biz_nos = df['biz_no'].unique().tolist()
+    if not unique_biz_nos:
+        return
+        
+    log(f"  Deleting existing shareholders for {len(unique_biz_nos)} companies...")
+    
+    # Chunk the delete to avoid "too many SQL variables"
+    DELETE_CHUNK = 500
+    for i in range(0, len(unique_biz_nos), DELETE_CHUNK):
+        chunk = unique_biz_nos[i:i + DELETE_CHUNK]
+        placeholders = ','.join(['?'] * len(chunk))
+        cursor.execute(f"DELETE FROM Company_Shareholder WHERE biz_no IN ({placeholders})", chunk)
+    
+    # 2. Bulk Insert New Data
+    log("  Inserting new shareholder data...")
+    
     CHUNK_SIZE = 100
-    
-    # Lists for bulk operations
     insert_data_list = []
-    insert_cols = []
-    update_data_list = []
-    update_sql = None
-    
+    insert_cols = ['biz_no', 'shareholder_name', 'ownership_percent', 'relationship', 
+                   'shareholder_type', 'management_type', 'silent_partner_relationship', 'total_shares_owned']
+                   
     for i, (_, row) in enumerate(df.iterrows()):
         if (i + 1) % 50 == 0: print(".", end="", flush=True)
         if (i + 1) % 10 == 0 or i == 0:
@@ -475,109 +488,54 @@ def process_company_shareholder(conn, df, execute=False):
         biz_no = row.get('biz_no')
         csv_name = str(row.get('shareholder_name', '')).strip()
         
+        # Skip invalid rows
+        if not csv_name:
+            count_error += 1
+            continue
+
         csv_stock = 0
         if 'total_shares_owned' in row:
              try: csv_stock = int(float(str(row['total_shares_owned']).replace(',', '')))
              except: csv_stock = 0
+
+        # Prepare Data
+        vals = [
+            biz_no,
+            csv_name,
+            row.get('ownership_percent', 0),
+            row.get('relationship', ''),
+            row.get('shareholder_type', ''),
+            row.get('management_type', ''),
+            row.get('silent_partner_relationship', ''),
+            csv_stock
+        ]
         
-        if not csv_name:
-            count_error += 1
-            if count_error == 1: json_result("LastError", f"[Company_Shareholder] Name missing. Row: {row.to_dict()}")
-            continue
-            
-        try:
-            cursor.execute("SELECT company_shareholder_id, shareholder_name, total_shares_owned FROM Company_Shareholder WHERE biz_no = ?", (biz_no,))
-            existing = cursor.fetchall()
-            
-            match_found = False
-            target_id = None
-            
-            # 1. Exact Name
-            for sid, sname, sstock in existing:
-                if sname == csv_name:
-                    match_found = True; target_id = sid; break
-            
-            # 2. Masked + Stock Match
-            if not match_found and is_masked(csv_name):
-                for sid, sname, sstock in existing:
-                    db_stock = sstock if sstock else 0
-                    if fuzzy_name_match(csv_name, sname) and (csv_stock == db_stock) and (csv_stock > 0):
-                        match_found = True; target_id = sid
-                        row['shareholder_name'] = sname
-                        break
-            
-            cols_map = {
-                'shareholder_name': row.get('shareholder_name'),
-                'ownership_percent': row.get('ownership_percent', 0),
-                'relationship': row.get('relationship', ''),
-                'shareholder_type': row.get('shareholder_type', ''),
-                'management_type': row.get('management_type', ''),
-                'silent_partner_relationship': row.get('silent_partner_relationship', ''),
-                'total_shares_owned': csv_stock
-            }
-            
-            if target_id:
-                # Prepare Bulk Update
-                # Only if columns are consistent. Here they are fixed keys in cols_map.
-                if update_sql is None:
-                    set_clauses = [f"{k} = ?" for k in cols_map.keys()]
-                    update_sql = f"UPDATE Company_Shareholder SET {', '.join(set_clauses)} WHERE company_shareholder_id = ?"
-                
-                vals = list(cols_map.values()) + [target_id]
-                update_data_list.append(vals)
-                count_updated += 1
-            else:
-                # Prepare Bulk Insert
-                cols_map['biz_no'] = biz_no
-                if not insert_cols:
-                    insert_cols = list(cols_map.keys())
-                
-                insert_data_list.append([cols_map.get(col) for col in insert_cols])
-                count_inserted += 1
+        insert_data_list.append(vals)
+        count_inserted += 1 # We treat all as inserted now
 
-            # Execute Chunk - Insert
-            if len(insert_data_list) >= CHUNK_SIZE:
-                 placeholders = ", ".join(["?" for _ in insert_cols])
-                 cursor.executemany(f"INSERT INTO Company_Shareholder ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
-                 insert_data_list = []
-                 
-            # Execute Chunk - Update
-            if len(update_data_list) >= CHUNK_SIZE:
-                if update_sql:
-                    cursor.executemany(update_sql, update_data_list)
-                update_data_list = []
+        # Execute Chunk
+        if len(insert_data_list) >= CHUNK_SIZE:
+             placeholders = ", ".join(["?" for _ in insert_cols])
+             cursor.executemany(f"INSERT INTO Company_Shareholder ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
+             insert_data_list = []
+             conn.commit() # Intermediate Save
 
-            # Intermediate Commit
-            if (i + 1) % CHUNK_SIZE == 0:
-                 conn.commit()
-                 
-        except Exception as e:
-            count_error += 1
-            if count_error == 1: json_result("LastError", f"[Company_Shareholder] {str(e)}")
-            log(f"  [Error] Shareholder biz_no={biz_no}: {e}")
-            
-    # Final Flush - Insert
+    # Final Flush
     if insert_data_list:
         try:
             placeholders = ", ".join(["?" for _ in insert_cols])
             cursor.executemany(f"INSERT INTO Company_Shareholder ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
         except Exception as e:
             log(f"  [Error] Final Bulk Insert failed: {e}")
-
-    # Final Flush - Update
-    if update_data_list and update_sql:
-        try:
-            cursor.executemany(update_sql, update_data_list)
-        except Exception as e:
-            log(f"  [Error] Final Bulk Update failed: {e}")
+            count_error += len(insert_data_list) # Rough estimate
 
     conn.commit()
     print("")
-    log(f"  Inserted: {count_inserted}, Updated: {count_updated}, Errors: {count_error}")
+    log(f"  Inserted: {count_inserted}, Updated: 0 (Replaced), Errors: {count_error}")
     json_result("Company_Shareholder_Inserted", count_inserted)
-    json_result("Company_Shareholder_Updated", count_updated)
+    json_result("Company_Shareholder_Updated", 0)
     json_result("Company_Shareholder_Error", count_error)
-    progress_event("table_done", "Company_Shareholder", inserted=count_inserted, updated=count_updated, error=count_error)
+    progress_event("table_done", "Company_Shareholder", inserted=count_inserted, updated=0, error=count_error)
 
 def process_company_financial(conn, df, execute=False):
     log("Processing Company_Financial...")
@@ -604,11 +562,32 @@ def process_company_financial(conn, df, execute=False):
     # Emit table start event
     progress_event("table_start", "Company_Financial", total=total_rows)
     
+    # Strategy: Delete & Re-insert for involved (biz_no, fiscal_year)
+    # 1. Identify unique keys in this batch
+    keys_to_delete = df[['biz_no', 'fiscal_year']].drop_duplicates().values.tolist()
+    if not keys_to_delete:
+        return
+
+    log(f"  Deleting existing financials for {len(keys_to_delete)} records...")
+    
+    # Chunk the delete
+    DELETE_CHUNK = 500
+    for i in range(0, len(keys_to_delete), DELETE_CHUNK):
+        chunk = keys_to_delete[i:i + DELETE_CHUNK]
+        # For composite key delete, it's tricker in SQLite without tuple syntax validation
+        # simpler to loop or use reduced logic? 
+        # Actually standard SQL: DELETE FROM table WHERE (col1, col2) IN ((val1, val2), ...) is supported in newer SQLite
+        # But safest is: DELETE FROM table WHERE biz_no = ? AND fiscal_year = ?
+        cursor.executemany("DELETE FROM Company_Financial WHERE biz_no = ? AND fiscal_year = ?", chunk)
+        
+    # 2. Bulk Insert New Data
+    log("  Inserting new financial data...")
+    
     CHUNK_SIZE = 100
     insert_data_list = []
-    insert_cols = []
-    update_data_list = []
-    update_sql = None
+    # Dynamic columns based on DB schema + trusting DF columns match DB cols roughly
+    # We should stick to DB cols order
+    insert_cols = [col for col in db_cols if col != 'company_financial_id'] # ID is auto-inc
     
     for i, (_, row) in enumerate(df.iterrows()):
         if (i + 1) % 50 == 0: print(".", end="", flush=True)
@@ -620,94 +599,41 @@ def process_company_financial(conn, df, execute=False):
         
         if not biz_no or not fiscal_year:
             count_error += 1
-            if count_error == 1: json_result("LastError", f"[Company_Financial] BizNo/Year missing. Row: {row.to_dict()}")
             continue
-            
-        try:
-            # Check existence by (biz_no, fiscal_year) - composite key
-            cursor.execute("SELECT COUNT(*) FROM Company_Financial WHERE biz_no = ? AND fiscal_year = ?", (biz_no, fiscal_year))
-            exists = cursor.fetchone()[0] > 0
-            
-            data_to_save = {}
-            for col in db_cols:
-                if col in row:
-                    val = row[col]
-                    # Handle NaN values
-                    if pd.isna(val):
-                        val = None
-                    elif hasattr(val, 'item'):
-                        val = val.item()  # Convert numpy types to Python types
-                    data_to_save[col] = val
-            
-            if exists:
-                # Prepare Bulk Update
-                # Only if columns are consistent. For Financials they usually are (all columns)
-                # But to be safe, we should only do bulk update if we are updating ALL columns or consistent set.
-                # In this script, we iterate db_cols so keys should be consistent if row has them.
-                # However, if input excel has different columns per row (unlikely), it breaks.
-                # Assuming consistent input columns.
-                
-                # Exclude biz_no/fiscal_year from Update SET
-                update_keys = [k for k in data_to_save.keys() if k not in ('biz_no', 'fiscal_year')]
-                
-                if update_sql is None and update_keys:
-                    set_clause = ", ".join([f"{k} = ?" for k in update_keys])
-                    update_sql = f"UPDATE Company_Financial SET {set_clause} WHERE biz_no = ? AND fiscal_year = ?"
-                    
-                if update_keys:
-                    vals = [data_to_save[k] for k in update_keys] + [biz_no, fiscal_year]
-                    update_data_list.append(vals)
-                count_updated += 1
-            else:
-                # Prepare Bulk Insert
-                if not insert_cols:
-                    insert_cols = list(data_to_save.keys())
-                
-                insert_data_list.append([data_to_save.get(col) for col in insert_cols])
-                count_inserted += 1
-                
-            # Process Bulk Insert and Commit if chunk size reached
-            if len(insert_data_list) >= CHUNK_SIZE:
-                 placeholders = ", ".join(["?" for _ in insert_cols])
-                 cursor.executemany(f"INSERT INTO Company_Financial ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
-                 insert_data_list = []
 
-            # Process Bulk Update
-            if len(update_data_list) >= CHUNK_SIZE:
-                if update_sql:
-                    cursor.executemany(update_sql, update_data_list)
-                update_data_list = []
-
-            if (i + 1) % CHUNK_SIZE == 0:
-                 conn.commit() # Intermediate Save
-                
-        except Exception as e:
-            count_error += 1
-            if count_error == 1: json_result("LastError", f"[Company_Financial] {str(e)}")
-            log(f"  [Error] Financial {biz_no}/{fiscal_year}: {e}")
+        data_list = []
+        for col in insert_cols:
+            val = row.get(col)
+            if pd.isna(val): val = None
+            elif hasattr(val, 'item'): val = val.item()
+            data_list.append(val)
             
-    # Final Flush - Insert
+        insert_data_list.append(data_list)
+        count_inserted += 1
+
+        # Execute Chunk
+        if len(insert_data_list) >= CHUNK_SIZE:
+             placeholders = ", ".join(["?" for _ in insert_cols])
+             cursor.executemany(f"INSERT INTO Company_Financial ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
+             insert_data_list = []
+             conn.commit()
+
+    # Final Flush
     if insert_data_list:
         try:
             placeholders = ", ".join(["?" for _ in insert_cols])
             cursor.executemany(f"INSERT INTO Company_Financial ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
         except Exception as e:
             log(f"  [Error] Final Bulk Insert failed: {e}")
+            count_error += len(insert_data_list)
 
-    # Final Flush - Update
-    if update_data_list and update_sql:
-        try:
-            cursor.executemany(update_sql, update_data_list)
-        except Exception as e:
-            log(f"  [Error] Final Bulk Update failed: {e}")
-            
     conn.commit()
     print("")
-    log(f"  Inserted: {count_inserted}, Updated: {count_updated}, Errors: {count_error}")
+    log(f"  Inserted: {count_inserted}, Updated: 0 (Replaced), Errors: {count_error}")
     json_result("Company_Financial_Inserted", count_inserted)
-    json_result("Company_Financial_Updated", count_updated)
+    json_result("Company_Financial_Updated", 0)
     json_result("Company_Financial_Error", count_error)
-    progress_event("table_done", "Company_Financial", inserted=count_inserted, updated=count_updated, error=count_error)
+    progress_event("table_done", "Company_Financial", inserted=count_inserted, updated=0, error=count_error)
 
 def process_generic_table(conn, df, table_name, pk_cols, execute=False):
     log(f"Processing {table_name}...")
