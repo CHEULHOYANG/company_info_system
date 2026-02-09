@@ -632,23 +632,23 @@
             <form method="GET" action="/individual_businesses" id="searchForm">
                 <div class="search-form-grid">
                     <div class="form-group">
-                        <label>기업명</label>
+                        <!-- <label>기업명</label> -->
                         <input type="text" name="company_name" value="{{ search.company_name or '' }}"
-                            placeholder="기업명 검색">
+                            placeholder="기업명">
                     </div>
                     <div class="form-group">
-                        <label>사업자번호</label>
+                        <!-- <label>사업자번호</label> -->
                         <input type="text" name="business_number" value="{{ search.business_number or '' }}"
-                            placeholder="사업자번호 검색">
+                            placeholder="사업자번호">
                     </div>
                     <div class="form-group">
-                        <label>주소</label>
-                        <input type="text" name="address" value="{{ search.address or '' }}" placeholder="주소 검색">
+                        <!-- <label>주소</label> -->
+                        <input type="text" name="address" value="{{ search.address or '' }}" placeholder="주소">
                     </div>
                     <div class="form-group">
-                        <label>진행상태</label>
+                        <!-- Label removed -->
                         <select name="status">
-                            <option value="전체" {% if search.status=='전체' %}selected{% endif %}>전체</option>
+                            <option value="전체" {% if search.status=='전체' %}selected{% endif %}>진행상태 (전체)</option>
                             <option value="접촉대기" {% if search.status=='접촉대기' %}selected{% endif %}>접촉대기</option>
                             <option value="접촉중" {% if search.status=='접촉중' %}selected{% endif %}>접촉중</option>
                             <option value="접촉해제" {% if search.status=='접촉해제' %}selected{% endif %}>접촉해제</option>
@@ -657,34 +657,29 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>매출액(억) 범위</label>
+                        <!-- <label>매출액(억) 범위</label> -->
                         <div class="search-range-group">
                             <input type="number" name="revenue_min" value="{{ search.revenue_min or '' }}"
-                                placeholder="최소" step="0.1">
-                            <span>~</span>
-                            <input type="number" name="revenue_max" value="{{ search.revenue_max or '' }}"
-                                placeholder="최대" step="0.1">
+                                placeholder="매출액(억) 최소" step="0.1">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>당기순이익(억) 범위</label>
+                        <!-- <label>당기순이익(억) 범위</label> -->
                         <div class="search-range-group">
                             <input type="number" name="net_income_min" value="{{ search.net_income_min or '' }}"
-                                placeholder="최소" step="0.1">
-                            <span>~</span>
-                            <input type="number" name="net_income_max" value="{{ search.net_income_max or '' }}"
-                                placeholder="최대" step="0.1">
+                                placeholder="당기순이익(억) 최소" step="0.1">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>업종</label>
+                        <!-- <label>업종</label> -->
                         <input type="text" name="industry_type" value="{{ search.industry_type or '' }}"
-                            placeholder="업종 검색">
+                            placeholder="업종">
                     </div>
-                    <div class="form-group">
-                        <label>재무년도</label>
+                    <div class="form-group" style="display: flex; gap: 5px;">
                         <input type="number" name="financial_year" value="{{ search.financial_year or '' }}"
-                            placeholder="YYYY">
+                            placeholder="재무년도(이후)">
+                        <input type="number" name="employee_count" value="{{ search.employee_count or '' }}"
+                            placeholder="종업원수(이상)">
                     </div>
                     <div class="search-actions">
                         <button type="submit" class="btn btn-primary">검색</button>
@@ -714,6 +709,7 @@
                     <th>재무년도</th>
                     <th>매출액(억)</th>
                     <th>당기순이익(억)</th>
+                    <th>종업원수</th>
                     <th style="width: 90px; white-space: nowrap;">등록일</th>
                 </tr>
             </thead>
@@ -739,6 +735,7 @@
                     data-establishment="{{ item.establishment_year or '' }}"
                     data-financial-year="{{ item.financial_year or '' }}" data-revenue="{{ item.revenue or '' }}"
                     data-net-income="{{ item.net_income or '' }}" data-phone="{{ item.phone_number or '' }}"
+                    data-employee-count="{{ item.employee_count or '' }}"
                     data-created="{{ item.created_at[:10] if item.created_at else '' }}"
                     data-status="{{ item.status or '' }}">
                     <td style="text-align: center;">{{ loop.index }}</td>
@@ -765,11 +762,12 @@
                     <td>{{ item.financial_year or '' }}</td>
                     <td>{{ item.revenue or '' }}</td>
                     <td>{{ item.net_income or '' }}</td>
+                    <td>{{ item.employee_count or '' }}</td>
                     <td style="white-space: nowrap;">{{ item.created_at[:10] if item.created_at else '' }}</td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="12" style="text-align: center; padding: 2rem;">등록된 데이터가 없습니다.</td>
+                    <td colspan="13" style="text-align: center; padding: 2rem;">등록된 데이터가 없습니다.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -1544,6 +1542,7 @@
                         tr.dataset.revenue = item.revenue || '';
                         tr.dataset.netIncome = item.net_income || '';
                         tr.dataset.phone = item.phone_number || '';
+                        tr.dataset.employeeCount = item.employee_count || '';
                         tr.dataset.created = item.created_at || '';
                         tr.dataset.status = item.status || '';
 
@@ -1571,6 +1570,7 @@
                             <td>${item.financial_year || ''}</td>
                             <td>${item.revenue || ''}</td>
                             <td>${item.net_income || ''}</td>
+                            <td>${item.employee_count || ''}</td>
                             <td style="white-space: nowrap;">${item.created_at || ''}</td>
                         `;
                         tbody.appendChild(tr);

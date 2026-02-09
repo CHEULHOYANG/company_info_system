@@ -4567,7 +4567,7 @@ def process_signup_request(request_id):
         
         if action == 'approve':
             # 사용자 계정 생성
-            default_password = 'Welcome123!'
+            default_password = 'password1!'
             conn.execute('''
                 INSERT INTO Users 
                 (user_id, password, name, user_level, user_level_name, branch_code, branch_name, 
@@ -4603,6 +4603,44 @@ def process_signup_request(request_id):
         
         conn.commit()
         return jsonify({"success": True, "message": message})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        conn.close()
+
+# --- 신청 내역 삭제 API ---
+@app.route('/api/signup-requests/<int:request_id>', methods=['DELETE'])
+def delete_signup_request(request_id):
+    if 'user_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user_level = session.get('user_level', 'N')
+    if not check_permission(user_level, 'S'):
+        return jsonify({"error": "Permission denied"}), 403
+    
+    conn = get_db_connection()
+    try:
+        # 신청 정보 조회
+        signup_request = conn.execute(
+            "SELECT status FROM Signup_Requests WHERE id = ?", 
+            (request_id,)
+        ).fetchone()
+        
+        if not signup_request:
+            return jsonify({"success": False, "message": "해당 신청 정보를 찾을 수 없습니다."}), 404
+        
+        # 승인된 신청은 삭제 불가 (이미 사용자가 생성됨)
+        # 필요한 경우 사용자 삭제 API를 이용해야 함
+        if signup_request['status'] == 'APPROVED':
+            return jsonify({"success": False, "message": "승인된 신청 내역은 삭제할 수 없습니다."}), 400
+        
+        # 신청 내역 삭제
+        conn.execute("DELETE FROM Signup_Requests WHERE id = ?", (request_id,))
+        conn.commit()
+        
+        return jsonify({"success": True, "message": "신청 내역이 삭제되었습니다."})
         
     except Exception as e:
         conn.rollback()
@@ -7827,6 +7865,7 @@ def individual_business_list():
     net_income_max = request.args.get('net_income_max', '').strip()
     start_date = request.args.get('start_date', '').strip()
     end_date = request.args.get('end_date', '').strip()
+    employee_count = request.args.get('employee_count', '').strip() # Added employee_count
     status_filter = request.args.get('status', '전체').strip() # 접촉대기, 접촉중, 접촉해제, 완료  등
     
     # 페이징 파라미터
@@ -7898,24 +7937,24 @@ def individual_business_list():
             params.append(f'%{industry_type}%')
             
         if financial_year:
-            query += " AND CAST(financial_year AS INTEGER) = ?"
+            query += " AND CAST(financial_year AS INTEGER) >= ?"
             params.append(int(financial_year))
         
         if revenue_min:
             query += " AND CAST(revenue AS REAL) >= ?"
             params.append(float(revenue_min))
-        
-        if revenue_max:
-            query += " AND CAST(revenue AS REAL) <= ?"
-            params.append(float(revenue_max))
+            
+        # revenue_max removed as per request
         
         if net_income_min:
             query += " AND CAST(net_income AS REAL) >= ?"
             params.append(float(net_income_min))
-        
-        if net_income_max:
-            query += " AND CAST(net_income AS REAL) <= ?"
-            params.append(float(net_income_max))
+            
+        # net_income_max removed as per request
+            
+        if employee_count:
+            query += " AND CAST(employee_count AS INTEGER) >= ?"
+            params.append(int(employee_count))
             
         if start_date:
             query += " AND date(created_at) >= date(?)"
@@ -7971,6 +8010,9 @@ def individual_business_list():
             'net_income_max': net_income_max,
             'start_date': start_date,
             'end_date': end_date,
+            'start_date': start_date,
+            'end_date': end_date,
+            'employee_count': employee_count,
             'status': status_filter
         }
         
