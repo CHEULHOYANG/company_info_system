@@ -1077,13 +1077,20 @@
 
         function resetSearch() {
             // 모든 검색 입력 필드 초기화
-            document.querySelector('input[name="company_name"]').value = '';
-            document.querySelector('input[name="business_number"]').value = '';
-            document.querySelector('input[name="address"]').value = '';
-            document.querySelector('input[name="revenue_min"]').value = '';
-            document.querySelector('input[name="revenue_max"]').value = '';
-            document.querySelector('input[name="net_income_min"]').value = '';
-            document.querySelector('input[name="net_income_max"]').value = '';
+            const fields = [
+                'company_name', 'business_number', 'address',
+                'revenue_min', 'net_income_min',
+                'financial_year', 'employee_count', 'industry_type'
+            ];
+
+            fields.forEach(name => {
+                const el = document.querySelector(`input[name="${name}"]`);
+                if (el) el.value = '';
+            });
+
+            const statusSelect = document.querySelector('select[name="status"]');
+            if (statusSelect) statusSelect.value = '전체';
+
             // 필터 없이 페이지 리로드
             window.location.href = '/individual_businesses';
         }
