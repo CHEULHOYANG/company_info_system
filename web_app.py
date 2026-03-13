@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # Company Management System
 import os
 import sys
@@ -1029,7 +1029,11 @@ def init_individual_business_tables():
                 business_number TEXT UNIQUE,        -- 사업자번호
                 phone_number TEXT,                  -- 전화번호
                 fax_number TEXT,                    -- fax번호
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                memo TEXT,                          -- 메모
+                status TEXT DEFAULT 'prospect',     -- 상태
+                assigned_user_id TEXT,             -- 배정 담당자
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         
@@ -6358,11 +6362,11 @@ def perform_ai_analysis(company_basic, financials, contact_history=None, shareho
 당신은 기업 경영 컨설턴트이자 재무 분석 전문가입니다. 다음 기업에 대해 **경영 개선 및 성장 전략 중심**의 실질적인 컨설팅 보고서를 작성해주세요.
 
 == 기업 기본 정보 ==
-• 기업명: {company_name}
-• 대표자: {representative}
-• 업종: {industry}
-• 본사: {address}
-• 직원수: {employee_count}명 (국민연금 가입자)
+? 기업명: {company_name}
+? 대표자: {representative}
+? 업종: {industry}
+? 본사: {address}
+? 직원수: {employee_count}명 (국민연금 가입자)
 
 == 재무 정보 (최근 3개년) ==
 {financial_details}
@@ -7858,7 +7862,7 @@ def individual_business_list():
     business_number = request.args.get('business_number', '').strip()
     address = request.args.get('address', '').strip()
     industry_type = request.args.get('industry_type', '').strip()
-    financial_year = request.args.get('financial_year', '2024').strip() # 기본값 2024
+    financial_year = request.args.get('financial_year', '').strip() # 기본값 없음
     revenue_min = request.args.get('revenue_min', '').strip()
     revenue_max = request.args.get('revenue_max', '').strip()
     net_income_min = request.args.get('net_income_min', '').strip()
@@ -7992,6 +7996,7 @@ def individual_business_list():
                     'financial_year': item['financial_year'],
                     'revenue': item['revenue'],
                     'net_income': item['net_income'],
+                    'employee_count': item['employee_count'],
                     'created_at': item['created_at'][:10] if item['created_at'] else '',
                     'phone_number': item['phone_number']
                 })
@@ -8999,11 +9004,6 @@ def execute_individual_business_upload():
     """검증된 엑셀 파일을 실제 DB에 반영"""
     data = request.json
     file_token = data.get('file_token')
-    password = data.get('password')
-    
-    # 1. 패스워드 검증
-    if password != 'yang1123':
-        return jsonify({'success': False, 'message': '비밀번호가 올바르지 않습니다.'})
 
     if not file_token:
         return jsonify({'success': False, 'message': '파일 토큰이 유효하지 않습니다.'})
@@ -9017,83 +9017,104 @@ def execute_individual_business_upload():
     try:
         df = pd.read_excel(temp_path)
         
-        # 컬럼 매핑 (한글 헤더 -> DB 컬럼명)
+        # 1. 컬럼 매핑 (모든 공백 제거하여 비교)
+        import re
         column_map = {
             '기업명': 'company_name',
-            '대표자명': 'representative_name',
+            '대표자명': 'representative_name', 
             '사업자번호': 'business_number',
             '업종': 'industry_type',
             '주소': 'address',
+            '사업장주소': 'address',
             '연락처': 'phone_number',
+            '전화번호': 'phone_number',
             '출생년도': 'birth_year',
+            '나이': 'birth_year',
             '설립년도': 'establishment_year',
             '재무년도': 'financial_year',
+            '재무제표연도': 'financial_year',
+            '매출액': 'revenue',
             '매출액(억)': 'revenue',
+            '매출액(백만)': 'revenue',
+            '당기순이익': 'net_income',
             '당기순이익(억)': 'net_income',
+            '당기순이익(백만)': 'net_income',
+            '총자산': 'total_assets',
             '총자산(억)': 'total_assets',
+            '자본총계': 'total_capital',
             '자본총계(억)': 'total_capital',
             '직원수': 'employee_count',
+            '종업원수': 'employee_count',
+            '종업원수(명)': 'employee_count',
             '가족주주여부': 'is_family_shareholder',
             '가족주주여부(Y/N)': 'is_family_shareholder',
             '타인주주여부': 'is_other_shareholder',
             '타인주주여부(Y/N)': 'is_other_shareholder'
         }
-        
-        success_count = 0
+
+        # 엑셀 헤더 정규화 (모든 공백, 줄바꿈 등 제거)
+        df.columns = [re.sub(r'\s+', '', str(col)) for col in df.columns]
+        # normalized_column_map도 공백 제거
+        normalized_column_map = {re.sub(r'\s+', '', k): v for k, v in column_map.items()}
+
+        update_count = 0
+        insert_count = 0
         error_count = 0
-        
+
         for _, row in df.iterrows():
             try:
-                # 엑셀 데이터 추출 및 변환
-                data = {}
-                for kor, eng in column_map.items():
+                extracted_data = {}
+                for kor, eng in normalized_column_map.items():
                     if kor in df.columns:
                         val = row[kor]
-                        if pd.isna(val) or val == '':
-                            data[eng] = None
+                        if pd.isna(val) or str(val).strip() == '':
+                            extracted_data[eng] = None
                         else:
-                            data[eng] = val
-                
-                # DB Insert or Update (사업자번호 기준)
-                
-                if not data.get('company_name'):
-                     continue # 기업명 없으면 스킵
+                            # 문자열로 변환하여 저장
+                            extracted_data[eng] = str(val).strip()
 
-                # 기존 데이터 확인 (사업자번호가 있으면)
+                if not extracted_data.get('company_name'):
+                     continue 
+
+                # 사업자번호 정규화
+                bz_num = extracted_data.get('business_number')
+                if bz_num:
+                    bz_num = re.sub(r'[^0-9]', '', str(bz_num).replace('.0', ''))
+                    extracted_data['business_number'] = bz_num
+
+                # 기존 데이터 확인 (정규화된 사업자번호 기준)
                 existing = None
-                if data.get('business_number'):
-                    existing = conn.execute('SELECT id FROM IndividualBusinesses WHERE business_number = ?', (data['business_number'],)).fetchone()
-                
-                # 쿼리 구성
-                columns = [k for k in data.keys() if data[k] is not None]
-                if not columns:
+                if bz_num:
+                    existing = conn.execute('SELECT id FROM individual_business_owners WHERE REPLACE(REPLACE(business_number, "-", ""), " ", "") = ?', (bz_num,)).fetchone()
+
+                # None이 아닌 컬럼만 처리
+                columns_to_handle = [k for k in extracted_data.keys() if extracted_data[k] is not None]
+                if not columns_to_handle:
                     continue
 
                 if existing:
                     # Update
-                    set_clause = ', '.join([f"{col} = ?" for col in columns])
-                    values = [data[col] for col in columns]
+                    set_clause = ', '.join([f"{col} = ?" for col in columns_to_handle])
+                    values = [extracted_data[col] for col in columns_to_handle]
                     values.append(existing['id'])
-                    conn.execute(f"UPDATE IndividualBusinesses SET {set_clause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?", values)
+                    conn.execute(f"UPDATE individual_business_owners SET {set_clause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?", values)
+                    update_count += 1
                 else:
                     # Insert
-                    # 필수값 체크 또는 기본값 설정이 필요할 수 있음
-                    placeholders = ', '.join(['?'] * len(columns))
-                    col_names = ', '.join(columns)
-                    values = [data[col] for col in columns]
-                    conn.execute(f"INSERT INTO IndividualBusinesses ({col_names}) VALUES ({placeholders})", values)
-                
-                success_count += 1
-                
-            except Exception as row_error:
-                print(f"Row processing error: {row_error}")
+                    placeholders = ', '.join(['?'] * len(columns_to_handle))
+                    col_names = ', '.join(columns_to_handle)
+                    values = [extracted_data[col] for col in columns_to_handle]
+                    conn.execute(f"INSERT INTO individual_business_owners ({col_names}) VALUES ({placeholders})", values)
+                    insert_count += 1
+
+            except Exception as e:
+                print(f"Row error: {e}")
                 error_count += 1
-        
         conn.commit()
         
         return jsonify({
             'success': True, 
-            'message': f'성공적으로 처리되었습니다. (성공: {success_count}건, 실패/스킵: {error_count}건)'
+            'message': f'성공적으로 처리되었습니다. (업데이트: {update_count}건, 신규: {insert_count}건, 실패: {error_count}건)'
         })
 
     except Exception as e:
@@ -9215,13 +9236,7 @@ def execute_corporate_upload():
         return jsonify({'success': False, 'message': '관리자만 실행할 수 있습니다.'}), 403
 
     data = request.get_json()
-    password = data.get('password')
     
-    # 2. 비밀번호 검증 (로그인 비밀번호와 일치하는지)
-    user = authenticate_user(session['user_id'], password)
-    if not user:
-        return jsonify({'success': False, 'message': '비밀번호가 올바르지 않습니다.'}), 403
-
     def generate():
         try:
             # Run Script in Execute Mode (Skip Gen)

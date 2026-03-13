@@ -677,7 +677,7 @@
                     </div>
                     <div class="form-group" style="display: flex; gap: 5px;">
                         <input type="number" name="financial_year" value="{{ search.financial_year or '' }}"
-                            placeholder="재무년도(이후)">
+                            placeholder="재무년도">
                         <input type="number" name="employee_count" value="{{ search.employee_count or '' }}"
                             placeholder="종업원수(이상)">
                     </div>
@@ -909,12 +909,6 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>관리자 비밀번호 확인</label>
-                        <input type="password" id="uploadPassword" placeholder="비밀번호를 입력하세요 (yang1123)"
-                            class="form-control" style="width: 100%; padding: 10px; box-sizing: border-box;">
-                    </div>
-
                     <input type="hidden" id="uploadFileToken">
 
                     <div style="text-align: right; margin-top: 20px;">
@@ -945,6 +939,7 @@
                     <div><strong>업종</strong><br><span id="detail_industry">-</span></div>
                     <div><strong>설립년도</strong><br><span id="detail_establishment">-</span></div>
                     <div><strong>전화번호</strong><br><span id="detail_phone">-</span></div>
+                    <div><strong>종업원수</strong><br><span id="detail_employee_count">-</span></div>
                 </div>
                 <div style="margin-top: 15px;">
                     <strong>주소</strong><br><span id="detail_address">-</span>
@@ -1182,19 +1177,12 @@
         function resetUploadStep() {
             document.getElementById('uploadStep1').style.display = 'block';
             document.getElementById('uploadStep2').style.display = 'none';
-            document.getElementById('uploadPassword').value = '';
         }
 
         async function submitUpload(event) {
             event.preventDefault();
 
             const fileToken = document.getElementById('uploadFileToken').value;
-            const password = document.getElementById('uploadPassword').value;
-
-            if (!password) {
-                alert('비밀번호를 입력해주세요.');
-                return;
-            }
 
             // Show loading
             const btn = event.target.querySelector('#uploadStep2 button[type="submit"]');
@@ -1206,7 +1194,7 @@
                 const response = await fetch('/individual_businesses/execute_upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ file_token: fileToken, password: password })
+                    body: JSON.stringify({ file_token: fileToken })
                 });
 
                 const result = await response.json();
@@ -1273,6 +1261,7 @@
             document.getElementById('detail_financial_year').textContent = row.dataset.financialYear || '-';
             document.getElementById('detail_revenue').textContent = row.dataset.revenue || '-';
             document.getElementById('detail_net_income').textContent = row.dataset.netIncome || '-';
+            document.getElementById('detail_employee_count').textContent = row.dataset.employeeCount || '-';
 
             document.getElementById('detailModalTitle').textContent = row.dataset.companyName || '기업 상세 정보';
 
