@@ -1476,21 +1476,81 @@
                     '기타': '#95a5a6'
                 }[item.type] || '#95a5a6';
 
+                // We need to safely escape line breaks and quotes
+                const escapedContent = (item.content || '').replace(/\\n/g, '<br>').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
                 html += `
-                    <div style="padding: 10px 15px; border-bottom: 1px solid #eee; display: flex; align-items: flex-start; gap: 10px;">
-                        <span style="background: ${typeColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; white-space: nowrap;">${item.type}</span>
-                        <div style="flex: 1;">
-                            <div style="font-size: 0.9rem;">${item.content}</div>
+                    <div style="padding: 10px 15px; border-bottom: 1px solid #eee; display: flex; align-items: flex-start; gap: 10px;" id="history_item_${item.id}">
+                        <span style="background: ${typeColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; white-space: nowrap; margin-top: 2px;">${item.type}</span>
+                        <div style="flex: 1;" id="history_content_display_${item.id}">
+                            <div style="font-size: 0.9rem; line-height: 1.4;">${item.content.replace(/\\n/g, '<br>')}</div>
                             <div style="font-size: 0.75rem; color: #999; margin-top: 5px;">
                                 ${item.created_at} 
                                 ${item.created_by ? ` | ${item.created_by}` : ''}
                             </div>
+                        </div>
+                        <div id="history_edit_form_${item.id}" style="display: none; flex: 1; flex-direction: column; gap: 8px;">
+                            <textarea id="history_edit_text_${item.id}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-size: 0.9rem; min-height: 60px;">${item.content}</textarea>
+                            <div style="text-align: right; display: flex; gap: 5px; justify-content: flex-end;">
+                                <button onclick="saveEditHistory(${item.id})" style="background: #28a745; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">저장</button>
+                                <button onclick="cancelEditHistory(${item.id})" style="background: #6c757d; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">취소</button>
+                            </div>
+                        </div>
+                        <div>
+                            <button onclick="enableEditHistory(${item.id})" style="background: none; border: none; cursor: pointer; color: #6c757d; font-size: 0.85rem; padding: 4px;" title="수정" onmouseover="this.style.color='#007bff'" onmouseout="this.style.color='#6c757d'">
+                                <i class="fas fa-edit"></i> 수정
+                            </button>
                         </div>
                     </div>
                 `;
             });
 
             container.innerHTML = html;
+        }
+
+        function enableEditHistory(id) {
+            document.getElementById('history_content_display_' + id).style.display = 'none';
+            document.getElementById('history_edit_form_' + id).style.display = 'flex';
+        }
+
+        function cancelEditHistory(id) {
+            document.getElementById('history_content_display_' + id).style.display = 'block';
+            document.getElementById('history_edit_form_' + id).style.display = 'none';
+            // reset textarea
+            const originalDiv = document.querySelector('#history_content_display_' + id + ' > div:first-child');
+            if (originalDiv) {
+                // replacing <br> back to newline 
+                const originalText = originalDiv.innerHTML.replace(/<br\\s*[\/]?>/gi, '\\n').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                document.getElementById('history_edit_text_' + id).value = originalText;
+            }
+        }
+
+        async function saveEditHistory(id) {
+            const content = document.getElementById('history_edit_text_' + id).value.trim();
+            if (!content) {
+                alert("내용을 입력해주세요.");
+                return;
+            }
+            try {
+                const response = await fetch(`/individual_businesses/history/${id}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    // Update UI safely
+                    const escapedContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\\n/g, '<br>');
+                    document.querySelector('#history_content_display_' + id + ' > div:first-child').innerHTML = escapedContent;
+                    cancelEditHistory(id);
+                } else {
+                    alert('수정 실패: ' + result.message);
+                }
+            } catch(error) {
+                console.error('히스토리 수정 오류:', error);
+                alert('서버 오류가 발생했습니다.');
+            }
         }
     </script>
 

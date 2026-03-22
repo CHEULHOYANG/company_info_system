@@ -8441,10 +8441,10 @@ def get_individual_business_detail(id):
         
         # 히스토리 조회
         cursor.execute('''
-            SELECT type, content, created_at, created_by FROM individual_business_history
+            SELECT id, type, content, created_at, created_by FROM individual_business_history
             WHERE business_id = ? ORDER BY created_at DESC
         ''', (id,))
-        history = [{'type': h['type'], 'content': h['content'], 'created_at': h['created_at'], 'created_by': h['created_by']} for h in cursor.fetchall()]
+        history = [{'id': h['id'], 'type': h['type'], 'content': h['content'], 'created_at': h['created_at'], 'created_by': h['created_by']} for h in cursor.fetchall()]
         
         return jsonify({
             'success': True,
@@ -8598,24 +8598,47 @@ def add_individual_business_history(id):
                                 # 이미 다른 담당자가 있는데 접촉중으로 바꾼다면? -> 강제 탈취 (마지막 접촉자 기준)
                                 updates.append("assigned_user_id = ?")
                                 params.append(current_user_id)
-                    
-                    # 상태 변경 시 등록일(최근활동일) 갱신
-                    updates.append("created_at = CURRENT_TIMESTAMP")
         
         if contact_date:
             updates.append("contact_date = ?")
             params.append(contact_date)
             
         if updates:
+            updates.append("created_at = CURRENT_TIMESTAMP")
             params.append(id)
             cursor.execute(f"UPDATE individual_business_owners SET {', '.join(updates)} WHERE id = ?", params)
-        
+            
         conn.commit()
         conn.close()
         
         return jsonify({'success': True, 'message': '히스토리가 추가되었습니다.'})
     except Exception as e:
         print(f"히스토리 추가 오류: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/individual_businesses/history/<int:history_id>/update', methods=['POST'])
+def update_individual_business_history(history_id):
+    """개인사업자 접촉 히스토리 수정"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'})
+    
+    try:
+        data = request.get_json()
+        content = data.get('content', '')
+        
+        if not content:
+            return jsonify({'success': False, 'message': '내용을 입력해주세요.'})
+            
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("UPDATE individual_business_history SET content = ? WHERE id = ?", (content, history_id))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': '수정되었습니다.'})
+    except Exception as e:
+        print(f"히스토리 수정 오류: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
 
