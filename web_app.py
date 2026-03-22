@@ -7894,6 +7894,10 @@ def individual_business_list():
             cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN assigned_user_id TEXT")
         if 'status' not in columns:
             cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN status TEXT DEFAULT '접촉대기'")
+        if 'contact_date' not in columns:
+            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN contact_date TEXT")
+        if 'is_released' not in columns:
+            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN is_released TEXT DEFAULT 'N'")
         conn.commit()
         
         # 동적 SQL 쿼리 구성
@@ -8025,6 +8029,107 @@ def individual_business_list():
     except Exception as e:
         print(f"Error fetching individual businesses: {e}")
         return render_template('individual_list.html', businesses=[], error=str(e), search={})
+    finally:
+        conn.close()
+
+@app.route('/individual_businesses/visits')
+def visit_management_list():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+        
+    start_date = request.args.get('start_date', '').strip()
+    end_date = request.args.get('end_date', '').strip()
+    status_filter = request.args.get('status', '').strip()
+    is_clear = request.args.get('clear', 'false').lower() == 'true'
+    
+    # 기본 접촉일자 설정: 명시적 초기화(?clear=true)가 아니며 검색 파라미터가 아예 없는 최초 접근 시에만 오늘로 설정.
+    if not is_clear and 'start_date' not in request.args and 'end_date' not in request.args:
+        today_str = get_kst_now().strftime('%Y-%m-%d')
+        start_date = today_str
+        end_date = today_str
+        
+    user_id = session.get('user_id')
+    
+    # 페이징 파라미터
+    try:
+        limit = int(request.args.get('limit', 50))
+        offset = int(request.args.get('offset', 0))
+    except ValueError:
+        limit = 50
+        offset = 0
+        
+    is_ajax = request.args.get('ajax', 'false').lower() == 'true'
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 동적 SQL 쿼리 구성
+        query = "SELECT * FROM individual_business_owners WHERE 1=1"
+        params = []
+        
+        # === 프라이버시 및 상태 필터링 로직 ===
+        if user_id in ['ct0001', 'ct0002']:
+             pass # 제한 없음
+        else:
+             query += " AND (assigned_user_id IS NULL OR assigned_user_id = ? OR is_released = 'Y')"
+             params.append(user_id)
+             
+        # 방문 관리 대상 상태 ('접촉중', '완료', '실패' 만 포함, 접촉대기 제외)
+        if status_filter in ['접촉중', '완료', '실패']:
+            query += " AND status = ?"
+            params.append(status_filter)
+        else:
+            query += " AND status IN ('접촉중', '완료', '실패')"
+        
+        if start_date:
+            query += " AND date(contact_date) >= date(?)"
+            params.append(start_date)
+            
+        if end_date:
+            query += " AND date(contact_date) <= date(?)"
+            params.append(end_date)
+            
+        # 최신 접촉일 순 정렬
+        query += " ORDER BY contact_date DESC LIMIT ? OFFSET ?"
+        params.append(limit)
+        params.append(offset)
+        
+        cursor.execute(query, params)
+        businesses = cursor.fetchall()
+        
+        # AJAX 요청이면 JSON 반환
+        if is_ajax:
+            business_list = []
+            for item in businesses:
+                business_list.append({
+                    'id': item['id'],
+                    'business_number': item['business_number'],
+                    'company_name': item['company_name'],
+                    'status': item['status'],
+                    'representative_name': item['representative_name'],
+                    'birth_year': item['birth_year'],
+                    'address': item['address'],
+                    'industry_type': item['industry_type'],
+                    'establishment_year': item['establishment_year'],
+                    'financial_year': item['financial_year'],
+                    'revenue': item['revenue'],
+                    'net_income': item['net_income'],
+                    'employee_count': item['employee_count'],
+                    'contact_date': item['contact_date'] if item['contact_date'] else '-'
+                })
+            return jsonify({'success': True, 'data': business_list})
+            
+        search_params = {
+            'start_date': start_date,
+            'end_date': end_date,
+            'status': status_filter
+        }
+        
+        return render_template('visit_list.html', businesses=businesses, search=search_params)
+    except Exception as e:
+        print(f"Error fetching visit list: {e}")
+        return render_template('visit_list.html', businesses=[], error=str(e), search={})
     finally:
         conn.close()
 
@@ -8295,6 +8400,10 @@ def get_individual_business_detail(id):
             cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN status TEXT DEFAULT '접촉대기'")
         if 'memo' not in columns:
             cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN memo TEXT")
+        if 'contact_date' not in columns:
+            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN contact_date TEXT")
+        if 'is_released' not in columns:
+            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN is_released TEXT DEFAULT 'N'")
         
         # 히스토리 테이블 생성
         cursor.execute('''
@@ -8327,6 +8436,8 @@ def get_individual_business_detail(id):
         memo = row['memo'] if row else ''
         status = row['status'] if 'status' in row.keys() and row['status'] else None
         assigned_user_id = row['assigned_user_id'] if 'assigned_user_id' in row.keys() else None
+        contact_date = row['contact_date'] if 'contact_date' in row.keys() else ''
+        is_released = row['is_released'] if 'is_released' in row.keys() else 'N'
         
         # 히스토리 조회
         cursor.execute('''
@@ -8341,6 +8452,8 @@ def get_individual_business_detail(id):
                 'memo': memo,
                 'status': status,
                 'assigned_user_id': assigned_user_id,
+                'contact_date': contact_date,
+                'is_released': is_released,
                 'history': history
             }
         })
@@ -8362,6 +8475,7 @@ def save_individual_business_memo(id):
         data = request.get_json()
         memo = data.get('memo', '')
         new_status = data.get('status') # 상태 변경 요청이 있을 경우
+        contact_date = data.get('contact_date') # 접촉일
         
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -8382,22 +8496,30 @@ def save_individual_business_memo(id):
         
         # 상태 업데이트 로직
         if new_status and new_status != current_status:
-            updates.append("status = ?")
-            params.append(new_status)
+            if new_status == '접촉해제':
+                updates.append("status = ?")
+                params.append('접촉대기')
+                updates.append("is_released = ?")
+                params.append('Y')
+                updates.append("assigned_user_id = NULL")
+            else:
+                updates.append("status = ?")
+                params.append(new_status)
+                updates.append("is_released = ?")
+                params.append('N')
+                
+                # 접촉중으로 변경 시, 담당자가 없으면 현재 사용자로 지정
+                if new_status == '접촉중':
+                    if not assigned_user_id:
+                        updates.append("assigned_user_id = ?")
+                        params.append(current_user_id)
             
             # 상태 변경 시 등록일(최근활동일) 갱신
             updates.append("created_at = CURRENT_TIMESTAMP")
-            
-            # 접촉중으로 변경 시, 담당자가 없으면 현재 사용자로 지정
-            if new_status == '접촉중':
-                if not assigned_user_id:
-                    updates.append("assigned_user_id = ?")
-                    params.append(current_user_id)
-            
-            # 접촉해제로 변경 시, 담당자를 유지할지 해제할지? 
-            # -> 보통 해제하면 다른 사람이 가져갈 수 있어야 하므로 assigned_user_id를 NULL로 하거나, 
-            #    그냥 '접촉해제' 상태로 두면 리스트 필터링에서 보이게 되므로(status='접촉해제') OK.
-            #    여기서는 담당자 정보는 이력상 남겨두고 상태만 변경함. (다른 사람이 '접촉중'으로 변경 시 덮어써짐)
+        
+        if contact_date:
+            updates.append("contact_date = ?")
+            params.append(contact_date)
             
         params.append(id)
         
@@ -8424,6 +8546,7 @@ def add_individual_business_history(id):
         history_type = data.get('type', '기타')
         content = data.get('content', '')
         new_status = data.get('status')
+        contact_date = data.get('contact_date')
         
         if not content:
             return jsonify({'success': False, 'message': '내용을 입력해주세요.'})
@@ -8443,7 +8566,10 @@ def add_individual_business_history(id):
             VALUES (?, ?, ?, ?)
         ''', (id, history_type, content, current_user_name))
         
-        # 상태 업데이트 로직
+        # 상태 및 접촉일 업데이트 로직
+        updates = []
+        params = []
+        
         if new_status:
             cursor.execute("SELECT status, assigned_user_id FROM individual_business_owners WHERE id = ?", (id,))
             row = cursor.fetchone()
@@ -8452,23 +8578,37 @@ def add_individual_business_history(id):
                 assigned_user_id = row['assigned_user_id']
                 
                 if new_status != current_status:
-                    updates = ["status = ?"]
-                    params = [new_status]
+                    if new_status == '접촉해제':
+                        updates.append("status = ?")
+                        params.append('접촉대기')
+                        updates.append("is_released = ?")
+                        params.append('Y')
+                        updates.append("assigned_user_id = NULL")
+                    else:
+                        updates.append("status = ?")
+                        params.append(new_status)
+                        updates.append("is_released = ?")
+                        params.append('N')
+                        
+                        if new_status == '접촉중':
+                            if not assigned_user_id:
+                                 updates.append("assigned_user_id = ?")
+                                 params.append(current_user_id)
+                            elif assigned_user_id != current_user_id:
+                                # 이미 다른 담당자가 있는데 접촉중으로 바꾼다면? -> 강제 탈취 (마지막 접촉자 기준)
+                                updates.append("assigned_user_id = ?")
+                                params.append(current_user_id)
                     
                     # 상태 변경 시 등록일(최근활동일) 갱신
                     updates.append("created_at = CURRENT_TIMESTAMP")
-                    
-                    if new_status == '접촉중':
-                        if not assigned_user_id:
-                             updates.append("assigned_user_id = ?")
-                             params.append(current_user_id)
-                    elif new_status == '접촉중' and assigned_user_id and assigned_user_id != current_user_id:
-                        # 이미 다른 담당자가 있는데 접촉중으로 바꾼다면? -> 강제 탈취 (마지막 접촉자 기준)
-                        updates.append("assigned_user_id = ?")
-                        params.append(current_user_id)
-                        
-                    params.append(id)
-                    cursor.execute(f"UPDATE individual_business_owners SET {', '.join(updates)} WHERE id = ?", params)
+        
+        if contact_date:
+            updates.append("contact_date = ?")
+            params.append(contact_date)
+            
+        if updates:
+            params.append(id)
+            cursor.execute(f"UPDATE individual_business_owners SET {', '.join(updates)} WHERE id = ?", params)
         
         conn.commit()
         conn.close()
