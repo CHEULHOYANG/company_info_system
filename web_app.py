@@ -772,20 +772,17 @@ def init_ys_honers_tables():
             try:
                 print(f"Executing migration script: {migration_file_path}")
                 
-                # [FIX] 중복 방지를 위해 기존 데이터 삭제 (Full Sync)
-                tables_to_clear = ['ys_team_members', 'ys_news', 'ys_inquiries', 'ys_questions', 'ys_seminars', 'ys_seminar_sessions', 'SeminarRegistrations']
-                for table in tables_to_clear:
-                    try:
-                        cursor.execute(f"DELETE FROM {table}")
-                    except Exception as delete_error:
-                        print(f"Error clearing table {table}: {delete_error}")
-                
-                with open(migration_file_path, 'r', encoding='utf-8') as f:
-                    migration_sql = f.read()
-                    
-                cursor.executescript(migration_sql)
-                conn.commit()
-                print("Migration executed successfully (Tables cleared & re-imported).")
+                # [FIX] 등록된 기존 정보를 보존하기 위해 데이터가 없을 때만 마이그레이션 실행
+                cursor.execute("SELECT COUNT(*) FROM ys_team_members")
+                if cursor.fetchone()[0] == 0:
+                    with open(migration_file_path, 'r', encoding='utf-8') as f:
+                        migration_sql = f.read()
+                        
+                    cursor.executescript(migration_sql)
+                    conn.commit()
+                    print("Initial migration executed successfully.")
+                else:
+                    print("Data already exists. Skipping migration script to preserve user changes.")
                 
             except Exception as e:
                 print(f"Migration failed: {e}")

@@ -92,12 +92,9 @@ CREATE TABLE IF NOT EXISTS ys_seminars (
             , max_attendees INTEGER DEFAULT 0);
 
 -- Data for ys_seminars
-INSERT OR REPLACE INTO ys_seminars (id, title, date, time, location, description, created_at, max_attendees) VALUES (2, '법인 결산 후 필수점검 세미나', '1월 27일 (화)', '10:00 - 11:50', '삼성생명 서초사옥 35층', '법인 결산 후 필수점검 세미나<br>법인 결산 후 필수점검 세미나2', '2026-01-10 08:21:52', 0);
-INSERT OR REPLACE INTO ys_seminars (id, title, date, time, location, description, created_at, max_attendees) VALUES (3, '세법개정 리뷰 및 결산 후 법인 필수 점검 사항', '1월 29일 (목)', '14:00 - 16:00', '강남 FP 센터', '미 국 세 법 의 이 해 와 활 용<br>미국 시민권자 소득세신고 및 해외 금융 계좌 보고', '2026-01-10 08:21:52', 0);
-INSERT OR REPLACE INTO ys_seminars (id, title, date, time, location, description, created_at, max_attendees) VALUES (4, '2026년 세법개정안 ', '1월30일', '10:30 ~ 12: 30', '거시기 거기 어디야', '잉어
-자갈치
-놀래미
-망고보드', '2026-01-10 08:28:22', 0);
+INSERT OR REPLACE INTO ys_seminars (id, title, date, time, location, description, created_at, max_attendees) VALUES (1, '법인 결산 후 필수 체크 포인트', '25.3.17(화)', '10:30~13:30', '롯데호텔월드 3층 에메랄드홀', '서울 송파구 올림픽로 240<br>12:30~13:30 오찬<br>강사: 임종욱 세무전문가 / 장현오 FO', '2026-03-30 20:36:38', 80);
+INSERT OR REPLACE INTO ys_seminars (id, title, date, time, location, description, created_at, max_attendees) VALUES (2, '26년 핵심 절세 전략 [구조변화를 통한 자산 승계]', '25.4.22(수)', '10:30~13:30', '서울 신라호텔 영빈관 토파즈홀', '서울 중구 동호로 249<br>12:30~13:30 오찬<br>강사: 이상선 박사<br>* 법인 순자산 50억 이상 or 순이익 3억 이상 오너 일가限 참석 가능 (사업자등록번호 제출 必)', '2026-03-30 20:36:38', 70);
+INSERT OR REPLACE INTO ys_seminars (id, title, date, time, location, description, created_at, max_attendees) VALUES (3, '26년 부동산 전망과 핵심 절세 전략', '25.5.12(화)', '10:30~13:30', '안다즈호텔 서울강남 B2 비욘드 더 글라스', '서울 강남구 논현로 854<br>12:30~13:30 오찬<br>강사: 고종완 대표 / 이상선 박사', '2026-03-30 20:36:38', 80);
 
 -- Schema for ys_seminar_sessions
 CREATE TABLE IF NOT EXISTS ys_seminar_sessions (
@@ -114,8 +111,14 @@ CREATE TABLE IF NOT EXISTS ys_seminar_sessions (
             );
 
 -- Data for ys_seminar_sessions
-INSERT OR REPLACE INTO ys_seminar_sessions (id, seminar_id, time_range, title, speaker, description, location_note, display_order, created_at) VALUES (43, 4, '10:30~11:30', '법인세 소득공제 구간', '이세동 FO 세무전문가', '법인 2억미만 구간의 세율인상 에 따른 절세전략', '', 1, '2026-01-10 11:19:22');
-INSERT OR REPLACE INTO ys_seminar_sessions (id, seminar_id, time_range, title, speaker, description, location_note, display_order, created_at) VALUES (44, 4, '11:30 ~ 12:30', '법인세 는 환원의 의미', '김미성 FI', '자기 주장과 Fo 세무 법률대리인의 첨예한 대립', '', 2, '2026-01-10 11:19:22');
+INSERT OR REPLACE INTO ys_seminar_sessions (id, seminar_id, time_range, title, speaker, description, location_note, display_order, created_at) VALUES (1, 1, '10:30~12:30', '법인 결산 후 필수 체크 포인트', '임종욱 세무전문가 / 장현오 FO', '', '롯데호텔월드 3층 에메랄드홀 (서울 송파구 올림픽로 240)', 1, '2026-03-30 20:36:38');
+INSERT OR REPLACE INTO ys_seminar_sessions (id, seminar_id, time_range, title, speaker, description, location_note, display_order, created_at) VALUES (2, 1, '12:30~13:30', '오찬', '', '오찬 제공', '', 2, '2026-03-30 20:36:38');
+
+INSERT OR REPLACE INTO ys_seminar_sessions (id, seminar_id, time_range, title, speaker, description, location_note, display_order, created_at) VALUES (3, 2, '10:30~12:30', '26년 핵심 절세 전략 [구조변화를 통한 자산 승계]', '이상선 박사', '법인 순자산 50억 이상 or 순이익 3억 이상 오너 일가限 참석 가능 (사업자등록번호 제출 必)', '서울 신라호텔 영빈관 토파즈홀 (서울 중구 동호로 249)', 1, '2026-03-30 20:36:38');
+INSERT OR REPLACE INTO ys_seminar_sessions (id, seminar_id, time_range, title, speaker, description, location_note, display_order, created_at) VALUES (4, 2, '12:30~13:30', '오찬', '', '오찬 제공', '', 2, '2026-03-30 20:36:38');
+
+INSERT OR REPLACE INTO ys_seminar_sessions (id, seminar_id, time_range, title, speaker, description, location_note, display_order, created_at) VALUES (5, 3, '10:30~12:30', '26년 부동산 전망과 핵심 절세 전략', '고종완 대표 / 이상선 박사', '', '안다즈호텔 서울강남 B2 비욘드 더 글라스 (서울 강남구 논현로 854)', 1, '2026-03-30 20:36:38');
+INSERT OR REPLACE INTO ys_seminar_sessions (id, seminar_id, time_range, title, speaker, description, location_note, display_order, created_at) VALUES (6, 3, '12:30~13:30', '오찬', '', '오찬 제공', '', 2, '2026-03-30 20:36:38');
 
 -- Schema for SeminarRegistrations
 CREATE TABLE IF NOT EXISTS SeminarRegistrations (
