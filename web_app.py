@@ -1205,31 +1205,56 @@ def check_permission(user_level, required_level):
 
 def fix_db_schema():
     """데이터베이스 스키마를 최신 상태로 유지 (컬럼 자동 추가 및 테이블 초기화)"""
-    print("--- Fixing DB Schema ---")
+    print("--- [SCHEMA FIX] Starting DB Schema maintenance ---")
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # 1. Company_Basic 테이블 컬럼 확인 및 추가
-        cursor.execute("PRAGMA table_info(Company_Basic)")
-        cols = [row['name'] for row in cursor.fetchall()]
+        # 1. Company_Basic 테이블 존재 여부 확인
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Company_Basic'")
+        has_main_table = cursor.fetchone()
         
-        if 'email_usable' not in cols:
-            print("Adding column email_usable to Company_Basic")
-            cursor.execute("ALTER TABLE Company_Basic ADD COLUMN email_usable INTEGER DEFAULT 1")
+        if has_main_table:
+            print("[SCHEMA FIX] Company_Basic table detected. Checking columns...")
+            cursor.execute("PRAGMA table_info(Company_Basic)")
+            cols = [row['name'] for row in cursor.fetchall()]
             
-        if 'last_send_at' not in cols:
-            print("Adding column last_send_at to Company_Basic")
-            cursor.execute("ALTER TABLE Company_Basic ADD COLUMN last_send_at TEXT")
+            # 컬럼 추가 (각각 별도 try-except로 안전하게 처리)
+            column_tasks = [
+                ('email_usable', "ALTER TABLE Company_Basic ADD COLUMN email_usable INTEGER DEFAULT 1"),
+                ('last_send_at', "ALTER TABLE Company_Basic ADD COLUMN last_send_at TEXT"),
+                ('last_send_status', "ALTER TABLE Company_Basic ADD COLUMN last_send_status TEXT"),
+                ('email_fix_status', "ALTER TABLE Company_Basic ADD COLUMN email_fix_status INTEGER DEFAULT 0")
+            ]
             
-        if 'last_send_status' not in cols:
-            print("Adding column last_send_status to Company_Basic")
-            cursor.execute("ALTER TABLE Company_Basic ADD COLUMN last_send_status TEXT")
+            for col_name, sql in column_tasks:
+                if col_name not in cols:
+                    try:
+                        print(f"[SCHEMA FIX] Adding column {col_name} to Company_Basic")
+                        cursor.execute(sql)
+                    except Exception as col_err:
+                        print(f"[SCHEMA FIX] Error adding {col_name}: {col_err}")
+        else:
+            print("[SCHEMA FIX] Company_Basic table not found yet. Skipping column upgrades.")
 
-        if 'email_fix_status' not in cols:
-            print("Adding column email_fix_status to Company_Basic")
-            cursor.execute("ALTER TABLE Company_Basic ADD COLUMN email_fix_status INTEGER DEFAULT 0")
+        # 2. 이메일 관리용 추가 테이블 생성 (독립적 수행)
+        print("[SCHEMA FIX] Initializing email management tables...")
+        
+        # SMTP 릴레이 설정 테이블
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS smtp_configs (
+                config_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
+                config_name TEXT NOT NULL,
+                smtp_server TEXT NOT NULL,
+                smtp_port INTEGER NOT NULL,
+                sender_email TEXT NOT NULL,
+                sender_password TEXT NOT NULL,
+                imap_server TEXT,
+                imap_port INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
 
-        # 2. 이메일 관리용 추가 테이블 생성
         # 이메일 그룹 테이블
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS email_groups (
@@ -1287,26 +1312,12 @@ def fix_db_schema():
             )
         ''')
 
-        # SMTP 릴레이 설정 테이블 (추가 누락분)
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS smtp_configs (
-                config_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id TEXT,
-                config_name TEXT NOT NULL,
-                smtp_server TEXT NOT NULL,
-                smtp_port INTEGER NOT NULL,
-                sender_email TEXT NOT NULL,
-                sender_password TEXT NOT NULL,
-                imap_server TEXT,
-                imap_port INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-
         conn.commit()
-        print("Schema fix and table initialization complete.")
+        print("[SCHEMA FIX] Schema maintenance COMPLETED successfully.")
     except Exception as e:
-        print(f"Error fixing DB schema: {e}")
+        print(f"[SCHEMA FIX] FATAL ERROR during schema fix: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         conn.close()
 
