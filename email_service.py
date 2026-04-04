@@ -23,7 +23,33 @@ def get_kst_now():
     return datetime.now(KST)
 
 
-DB_PATH = 'g:/company_project_system/company_database.db'
+import os
+app_dir = os.path.dirname(os.path.abspath(__file__))
+
+# 데이터베이스 경로 설정: Render 서버 환경과 로컬 환경 동시 대응
+if os.environ.get('RENDER'):
+    # Render.com 서버 환경 - Persistent Disk 우선 확인
+    possible_paths = [
+        '/var/data',
+        '/opt/render/project/data',
+        os.path.join(app_dir, 'data'),
+        app_dir
+    ]
+    DB_PATH = None
+    for path in possible_paths:
+        candidate_db = os.path.join(path, 'company_database.db')
+        if os.path.exists(candidate_db):
+            DB_PATH = candidate_db
+            break
+    
+    # 만약 기존 파일을 못 찾았다면 기본 저장소 경로 설정
+    if not DB_PATH:
+        DB_PATH = '/var/data/company_database.db'
+else:
+    # 로컬 개발 환경 (윈도우/맥/리눅스 공통)
+    DB_PATH = os.path.join(app_dir, 'company_database.db')
+
+print(f"[EmailService] Using Database at: {DB_PATH}")
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
