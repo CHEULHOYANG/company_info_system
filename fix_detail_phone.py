@@ -1,5 +1,5 @@
 # Swap 가지급금 and 이익준비금 - make 가지급금 row show earned_reserve and 이익준비금 row show advances_paid
-content = open('g:/company_project_system/templates/detail.html', encoding='cp949').read()
+content = open('g:/company_project_system/templates/detail.html', encoding='utf-8').read()
 
 # Current state:
 # - 가지급금 row uses advances_paid (shows 96,290)
@@ -22,7 +22,7 @@ content = content.replace('<td>이익준비금</td>', '<td>가지급금</td>')
 content = content.replace('<td>__TEMP_LABEL__</td>', '<td>이익준비금</td>')
 
 # Save the file
-with open('g:/company_project_system/templates/detail.html', 'w', encoding='cp949') as f:
+with open('g:/company_project_system/templates/detail.html', 'w', encoding='utf-8') as f:
     f.write(content)
 
 print("SUCCESS: Swapped 가지급금 and 이익준비금 labels")

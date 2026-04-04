@@ -1,5 +1,5 @@
 # Add CSS style for edit-btn-small and JavaScript functions
-content = open('g:/company_project_system/templates/detail.html', encoding='cp949').read()
+content = open('g:/company_project_system/templates/detail.html', encoding='utf-8').read()
 
 # 1. Add CSS for .edit-btn-small after .delete-btn-small
 css_to_find = '''    .delete-btn-small:hover {
@@ -105,7 +105,7 @@ if js_to_find in content:
 else:
     print("ERROR: Could not find JavaScript pattern")
 
-with open('g:/company_project_system/templates/detail.html', 'w', encoding='cp949') as f:
+with open('g:/company_project_system/templates/detail.html', 'w', encoding='utf-8') as f:
     f.write(content)
 
 print("File saved with CSS and JavaScript")

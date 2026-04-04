@@ -3,659 +3,401 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>메인 대시보드</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS - Premium Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --neon-blue: #00d4ff;
+            --neon-purple: #7b2fff;
+            --neon-cyan: #00ffcc;
+            --deep-bg: #020617;
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
-            background-color: #000;
-        }
-
-        .bg-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: url('{{ url_for("static", filename="images/maserati_silver.jpg") }}') no-repeat center center;
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-color: var(--deep-bg);
+            background-image: url('/static/images/space_bg.png');
             background-size: cover;
-            /* 초기 상태: 약간 확대되어 있음 */
-            transform: scale(1.2);
-            /* 애니메이션: 3초간 부릉부릉 떨리다가 -> 1초간 뒤로 줌아웃(멀어지는 효과) */
-            animation: vroomAndGo 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-        }
-
-        @keyframes vroomAndGo {
-            0% {
-                transform: scale(1.2) translate(1px, 1px);
-            }
-
-            10% {
-                transform: scale(1.2) translate(-1px, -2px);
-            }
-
-            20% {
-                transform: scale(1.2) translate(-3px, 0px);
-            }
-
-            30% {
-                transform: scale(1.2) translate(3px, 2px);
-            }
-
-            40% {
-                transform: scale(1.2) translate(1px, -1px);
-            }
-
-            50% {
-                transform: scale(1.2) translate(-1px, 2px);
-            }
-
-            60% {
-                transform: scale(1.2) translate(-3px, 1px);
-            }
-
-            70% {
-                transform: scale(1.2) translate(3px, 1px);
-            }
-
-            80% {
-                transform: scale(1.2) translate(-1px, -1px);
-            }
-
-            /* 80%까지는 떨림 (부릉부릉) */
-
-            /* 80% ~ 100%: 멀어짐 (줌아웃) */
-            100% {
-                transform: scale(1.0) translate(0, 0);
-            }
-        }
-
-        .full-screen-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            /* 배경을 투명하게 하여 뒤의 자동차가 보이도록 함 */
-            background: linear-gradient(135deg, rgba(10, 31, 59, 0.85) 0%, rgba(74, 159, 217, 0.75) 100%);
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
         }
 
-        .header-image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 20vh;
-            background: url('{{ url_for("static", filename="bizness.png") }}') center/cover no-repeat;
-            z-index: 1;
-            border-radius: 0 0 30px 30px;
-            overflow: hidden;
+        /* Particles & Dynamic Layer */
+        #particle-canvas {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background: radial-gradient(circle at center, transparent 0%, rgba(2, 6, 23, 0.4) 100%);
         }
 
-        .header-image::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(10, 31, 59, 0.6), rgba(74, 159, 217, 0.4));
-            border-radius: 0 0 30px 30px;
+        .shooting-star-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none; overflow: hidden;
         }
 
-        .header-content {
-            position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 3;
-            text-align: center;
-            color: white;
+
+        header {
+            height: 65px; display: flex; align-items: center; justify-content: flex-end;
+            padding: 0 40px; background: rgba(2, 6, 23, 0.45); backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px); border-bottom: 1px solid var(--card-border);
+            z-index: 100; position: sticky; top: 0;
         }
 
-        .main-title {
-            font-size: 4em;
-            font-weight: 300;
-            margin: 0 0 10px 0;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-            letter-spacing: 4px;
+        .user-panel {
+            display: flex; align-items: center; gap: 20px;
         }
 
-        .subtitle {
-            font-size: 1.2em;
-            margin: 0;
-            opacity: 0.9;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-            letter-spacing: 1px;
+        .user-info-inline {
+            display: flex; align-items: center; gap: 15px;
+            background: rgba(255, 255, 255, 0.05); padding: 8px 22px;
+            border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.1); font-size: 13px;
         }
 
-        .main-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            width: 750px;
-            margin: 40px 0;
-            z-index: 3;
-            position: relative;
+        .btn-top {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--card-border);
+            padding: 8px 18px; border-radius: 50px; color: #fff; font-size: 11px;
+            font-weight: 700; text-decoration: none; font-family: 'Orbitron', 'Noto Sans KR', sans-serif;
+            letter-spacing: 1px; transition: 0.3s; white-space: nowrap;
+        }
+        .btn-top:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); transform: translateY(-2px); }
+
+        .dashboard-container {
+            max-width: 1400px; margin: 0 auto; width: 100%; padding: 40px; flex: 1; z-index: 50; position: relative;
         }
 
-        .main-btn {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 30px 20px;
-            color: white;
+        .hero-section { text-align: center; margin-bottom: 40px; }
+        .hero-title {
+            font-family: 'Noto Sans KR', sans-serif; font-size: 58px; font-weight: 900; letter-spacing: 0px;
+            background: linear-gradient(180deg, #fff, var(--neon-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px; filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.5));
+        }
+
+        .hero-status {
+            font-family: 'Noto Sans KR', sans-serif; font-size: 10px; letter-spacing: 2px;
+            color: var(--neon-cyan); display: flex; align-items: center; justify-content: center; gap: 12px;
+        }
+
+        .pulse-dot {
+            width: 7px; height: 7px; background: var(--neon-cyan); border-radius: 50%;
+            box-shadow: 0 0 15px var(--neon-cyan); animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(2.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        .modules-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(235px, 1fr)); gap: 24px;
+        }
+
+        .module-card {
+            background: rgba(2, 6, 23, 0.6); border: 1px solid var(--card-border);
+            border-radius: 22px; padding: 21px; display: flex; flex-direction: column;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+            position: relative; overflow: hidden; text-decoration: none; color: white;
+            min-height: 190px; box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+
+        .module-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: rgba(2, 6, 23, 0.8); border-color: var(--neon-blue);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 212, 255, 0.25);
+        }
+
+        .card-tag {
+            font-family: 'Noto Sans KR', sans-serif; font-size: 13px; letter-spacing: 0px;
+            color: var(--neon-cyan); border: 1px solid var(--neon-cyan);
+            padding: 5px 14px; border-radius: 50px; display: inline-block; margin-bottom: 20px; font-weight: 700;
+        }
+
+        .card-title { font-size: 26px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.6px; }
+        .card-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 25px; font-weight: 300; }
+
+        .card-tools {
+            margin-top: auto; border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 20px; display: flex; flex-wrap: wrap; gap: 10px;
+        }
+
+        .tool-link {
+            font-size: 11px; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 8px;
+            padding: 6.5px 13px; border-radius: 12px; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06); transition: 0.3s;
+        }
+        .tool-link:hover {
+            background: var(--neon-blue); color: #000; font-weight: 700;
+            box-shadow: 0 0 12px var(--neon-blue); transform: translateY(-3px);
+        }
+
+        footer {
+            padding: 60px 40px; text-align: center; font-family: 'Orbitron', sans-serif; font-size: 11px;
+            color: var(--text-secondary); letter-spacing: 3px; display: flex; align-items: center; justify-content: center; gap: 15px;
+        }
+
+        .admin-gear {
+            color: var(--text-secondary); font-size: 16px; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
-            text-align: center;
-            transition: all 0.3s ease;
-            min-height: 120px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        }
+        .admin-gear:hover {
+            color: var(--neon-cyan); transform: rotate(180deg); filter: drop-shadow(0 0 8px var(--neon-cyan));
         }
 
-        .main-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        /* Earth Rotation */
+        .earth-container {
+            position: fixed; 
+            bottom: -150px; 
+            right: -150px; 
+            width: 450px; 
+            height: 450px;
+            pointer-events: none; 
+            z-index: -10; 
+            opacity: 0.35; 
+            filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.15));
+            animation: rotateEarth 280s linear infinite;
+        }
+        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .earth-img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* Responsive Fixes */
+        @media screen and (max-width: 768px) {
+            header { padding: 0 15px; height: auto; min-height: 60px; justify-content: center; overflow: hidden; }
+            .user-panel { gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap; padding: 10px 0; }
+            .user-info-inline { padding: 6px 14px; gap: 8px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+            .btn-top { padding: 6px 12px; font-size: 10px; flex-shrink: 0; }
+            .hero-title { font-size: 38px; letter-spacing: 8px; }
+            .hero-status { font-size: 8px; letter-spacing: 1px; flex-wrap: wrap; }
+            .modules-grid { grid-template-columns: 1fr; padding: 0 10px; }
+            .dashboard-container { padding: 20px 15px; }
         }
 
-        /* 각 버튼별 차별화된 색상 */
-        .main-btn:nth-child(1) {
-            background: rgba(70, 130, 180, 0.15);
-            /* 스틸 블루 - DB */
-        }
-
-        .main-btn:nth-child(1):hover {
-            background: rgba(70, 130, 180, 0.25);
-        }
-
-        .main-btn:nth-child(2) {
-            background: rgba(60, 179, 113, 0.15);
-            /* 미디엄 씨 그린 - HISTORY */
-        }
-
-        .main-btn:nth-child(2):hover {
-            background: rgba(60, 179, 113, 0.25);
-        }
-
-        .main-btn:nth-child(3) {
-            background: rgba(255, 140, 0, 0.15);
-            /* 다크 오렌지 - SALES */
-        }
-
-        .main-btn:nth-child(3):hover {
-            background: rgba(255, 140, 0, 0.25);
-        }
-
-        .manager-btn {
-            background: rgba(220, 20, 60, 0.15) !important;
-            /* 크림슨 - MANAGER */
-        }
-
-        .manager-btn:hover {
-            background: rgba(220, 20, 60, 0.25) !important;
-        }
-
-        .main-btn-title {
-            font-size: 1.4em;
-            font-weight: 600;
-            margin-bottom: 8px;
-            letter-spacing: 2px;
-        }
-
-        .main-btn-korean {
-            font-size: 1.1em;
-            margin-bottom: 5px;
-            opacity: 0.9;
-        }
-
-        .main-btn-subtitle {
-            font-size: 0.85em;
-            opacity: 0.7;
-            line-height: 1.2;
-        }
-
-        .tax-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            width: 600px;
-            z-index: 3;
-            position: relative;
-            border-top: 2px solid rgba(255, 255, 255, 0.3);
-            padding-top: 25px;
-            margin-top: 30px;
-        }
-
-        .tax-title {
-            grid-column: 1 / -1;
-            text-align: center;
-            color: white;
-            font-size: 1.2em;
-            font-weight: 500;
-            margin-bottom: 10px;
-            opacity: 0.9;
-        }
-
-        .tax-btn {
-            background: rgba(255, 255, 255, 0.18);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 10px;
-            padding: 15px 10px;
-            color: white;
-            text-decoration: none;
-            text-align: center;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .tax-btn:hover {
-            background: rgba(255, 255, 255, 0.28);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
-        }
-
-        .login-info {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            padding: 15px 20px;
-            color: white;
-            z-index: 4;
-            text-align: center;
-            min-width: 220px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .user-name {
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: white;
-        }
-
-        .user-level {
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: #4a9fd9;
-            font-weight: 500;
-        }
-
-        .subscription-info {
-            background: #28a745;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: 500;
-            display: inline-block;
-            margin-bottom: 8px;
-        }
-
-        .subscription-info.expired {
-            background: #dc3545;
-        }
-
-        .subscription-info.warning {
-            background: #ffc107;
-            color: #000;
-        }
-
-        .db-management-section {
-            margin: 8px 0;
-        }
-
-        .db-management-btn {
-            background: rgba(138, 43, 226, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            /* 캐시 무효화 v2 */
-        }
-
-        .db-management-btn:hover {
-            background: rgba(148, 0, 211, 0.9);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
-        }
-
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        @media (max-width: 768px) {
-            .main-title {
-                font-size: 3em;
-                letter-spacing: 2px;
-            }
-
-            .subtitle {
-                font-size: 1em;
-                letter-spacing: 0.5px;
-            }
-
-            .login-info {
-                top: 10px;
-                right: 10px;
-                padding: 10px 15px;
-                min-width: 160px;
-            }
-
-            .user-name {
-                font-size: 14px;
-            }
-
-            .main-buttons {
-                grid-template-columns: 1fr;
-                width: 90vw;
-                max-width: 400px;
-                gap: 15px;
-            }
-
-            .tax-buttons {
-                grid-template-columns: repeat(2, 1fr);
-                width: 90vw;
-                max-width: 400px;
-                gap: 10px;
-                margin-top: 25px;
-                padding-top: 20px;
-            }
-
-            .header-content {
-                top: 30px;
-            }
-
-            .header-image {
-                height: 15vh;
-            }
+        @media screen and (max-width: 480px) {
+            .user-info-inline span:nth-child(2),
+            .user-info-inline span:nth-child(3) { display: none; } /* Hide auth level on very small screens to save space */
+            .user-info-inline { border-radius: 12px; padding: 6px 10px; }
         }
     </style>
-    <script src="{{ url_for('static', filename='js/auto-logout.js') }}"></script>
-    <script>
-        function openDbManagementPopup() {
-            // 팝업창으로 DB 관리 화면 열기
-            const popup = window.open(
-                '{{ url_for("db_management_popup") }}',
-                'dbManagementPopup',
-                'width=800,height=600,scrollbars=yes,resizable=yes,centerscreen=yes'
-            );
-
-            if (popup) {
-                popup.focus();
-            } else {
-                alert('팝업 차단기가 활성화되어 있습니다. 팝업을 허용해주세요.');
-            }
-        }
-
-        // YS Honers 상담 문의 알림 (ct0001, ct0002용)
-        document.addEventListener('DOMContentLoaded', async function () {
-            const userId = '{{ user_id }}';
-            if (userId === 'ct0001' || userId === 'ct0002') {
-                try {
-                    const response = await fetch('/api/lys/inquiry/unread-count');
-                    const data = await response.json();
-                    if (data.success && data.count > 0) {
-                        showYsHonersNotification(data.count);
-                    }
-                } catch (error) {
-                    console.error('YS Honers 알림 확인 실패:', error);
-                }
-            }
-        });
-
-        function showYsHonersNotification(count) {
-            const overlay = document.createElement('div');
-            overlay.id = 'ys-notification-overlay';
-            overlay.innerHTML = `
-                <div class="ys-notification-popup">
-                    <div class="ys-notification-icon">🔔</div>
-                    <h3>YS Honers 상담 문의 알림</h3>
-                    <p>새로운 상담 문의가 <strong>${count}건</strong> 있습니다.</p>
-                    <div class="ys-notification-buttons">
-                        <button onclick="goToYsAdmin()">관리자 페이지로 이동</button>
-                        <button onclick="closeYsNotification()" class="secondary">나중에 확인</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-        }
-
-        function goToYsAdmin() {
-            window.location.href = '/lys/admin';
-        }
-
-        function closeYsNotification() {
-            const overlay = document.getElementById('ys-notification-overlay');
-            if (overlay) overlay.remove();
-        }
-    </script>
-    <style>
-        #ys-notification-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        .ys-notification-popup {
-            background: white;
-            border-radius: 16px;
-            padding: 32px 40px;
-            text-align: center;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .ys-notification-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-
-        .ys-notification-popup h3 {
-            color: #1e3a5f;
-            font-size: 20px;
-            margin-bottom: 12px;
-        }
-
-        .ys-notification-popup p {
-            color: #64748b;
-            margin-bottom: 24px;
-        }
-
-        .ys-notification-popup strong {
-            color: #3b82f6;
-        }
-
-        .ys-notification-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .ys-notification-buttons button {
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-        }
-
-        .ys-notification-buttons button:first-child {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .ys-notification-buttons button:first-child:hover {
-            background: #2563eb;
-        }
-
-        .ys-notification-buttons button.secondary {
-            background: #f1f5f9;
-            color: #64748b;
-        }
-
-        .ys-notification-buttons button.secondary:hover {
-            background: #e2e8f0;
-        }
-    </style>
-
-    <script>
-
-    </script>
 </head>
 
 <body>
-    <div class="bg-animation"></div>
-    <div class="full-screen-container">
-        <!-- 상단 이미지 영역 -->
-        <div class="header-image"></div>
-
-        <!-- 헤더 콘텐츠 -->
-        <div class="header-content">
-            <div class="main-title">CMS</div>
-            <div class="subtitle">기업 관리 시스템</div>
-        </div>
-
-        <!-- 사용자 정보 -->
-        <div class="login-info">
-            <div class="user-name">{{ user_name }}님</div>
-            <div class="user-level">{{ user_level_name }}</div>
-            {% if subscription_info %}
-            {% if subscription_info.days_remaining > 0 %}
-            {% if subscription_info.days_remaining <= 7 %} <div class="subscription-info warning">
-                {{ subscription_info.days_remaining }}일 남음
-        </div>
-        {% else %}
-        <div class="subscription-info">
-            {{ subscription_info.days_remaining }}일 남음
-        </div>
-        {% endif %}
-        {% else %}
-        <div class="subscription-info expired">
-            구독 만료
-        </div>
-        {% endif %}
-        {% else %}
-        <div class="subscription-info">
-            무료 체험
-        </div>
-        {% endif %}
-        {% if can_manage_users %}
-        <div class="db-management-section">
-            <button onclick="openDbManagementPopup()" class="db-management-btn">DB 관리</button>
-
-        </div>
-        {% endif %}
-        <div><a href="{{ url_for('logout') }}" class="logout-btn">로그아웃</a></div>
+    <canvas id="particle-canvas"></canvas>
+    <div class="shooting-star-container" id="shooting-stars"></div>
+    <div class="earth-container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Earth_Blender_render_4_transparent_background.png/1024px-Earth_Blender_render_4_transparent_background.png" class="earth-img" alt="Earth Rotation Element">
     </div>
 
+    <header>
+        <div class="user-panel">
+            <a href="/email_management" class="btn-top">이메일 관리</a>
+            <div class="user-info-inline">
+                <span style="font-weight: 700; color: #fff;">{{ user_name or '관리자' }}님</span>
+                <span style="height: 12px; width: 1px; background: rgba(255,255,255,0.2);"></span>
+                <span style="font-size: 11px; color: var(--neon-cyan); font-family: 'Noto Sans KR', sans-serif; letter-spacing: 0px;">{{ user_level_name }} AUTH</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn-top" style="background: rgba(255, 60, 60, 0.1); border-color: rgba(255,60,60,0.3); color: #ff6b6b;">로그아웃</a>
+        </div>
+    </header>
 
+    <div class="dashboard-container">
+        <div class="hero-section">
+            <h1 class="hero-title">CMS</h1>
+            <div class="hero-status">
+                <div class="pulse-dot"></div>
+                시스템 상태: 활성화 // 암호화 노드 // 실시간 우주 관제망 가동
+            </div>
+        </div>
 
-    <!-- 메인 버튼 그리드 -->
-    <div class="main-buttons">
-        <a href="/" class="main-btn">
-            <div class="main-btn-title">DB</div>
-            <div class="main-btn-korean">기업정보 조회</div>
-            <div class="main-btn-subtitle">기업 데이터베이스 검색</div>
-        </a>
-        <a href="/history" class="main-btn">
-            <div class="main-btn-title">HISTORY</div>
-            <div class="main-btn-korean">접촉이력조회</div>
-            <div class="main-btn-subtitle">접촉 이력 검색</div>
-        </a>
-        <a href="/pipeline" class="main-btn">
-            <div class="main-btn-title">PIPELINE</div>
-            <div class="main-btn-korean">영업 파이프라인</div>
-            <div class="main-btn-subtitle">관심 기업 관리</div>
-        </a>
-        <a href="/sales_management" class="main-btn">
-            <div class="main-btn-title">SALES</div>
-            <div class="main-btn-korean">영업관리</div>
-            <div class="main-btn-subtitle">개척 등록 및 비용</div>
-        </a>
-        <a href="/individual_businesses" class="main-btn" style="background: rgba(138, 43, 226, 0.15);">
-            <div class="main-btn-title">BIZ TRANS</div>
-            <div class="main-btn-korean">개인사업자<br>법인전환 관리</div>
-            <div class="main-btn-subtitle">1월~3월 대상</div>
-        </a>
-        {% if can_manage_users %}
-        <a href="/user_management" class="main-btn manager-btn">
-            <div class="main-btn-title">관리자</div>
-            <div class="main-btn-korean">사용자 관리</div>
-            <div class="main-btn-subtitle">사용자 및 구독 관리</div>
-        </a>
-        {% endif %}
+        <div class="modules-grid">
+            <div class="module-card db-card">
+                <div class="card-tag">데이터베이스</div>
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <div class="card-title">기업정보 조회</div>
+                    <div class="card-desc">방대한 기업 데이터베이스에서 최적의 타겟을 검색하고 정밀 분석합니다.</div>
+                </a>
+                <div class="card-tools">
+                    <a href="/inheritance_tax" class="tool-link">상속세</a>
+                    <a href="/gift_tax" class="tool-link">증여세</a>
+                </div>
+            </div>
+
+            <div class="module-card history-card">
+                <div class="card-tag">접촉이력</div>
+                <a href="/history" style="text-decoration: none; color: inherit;">
+                    <div class="card-title">접촉이력 관리</div>
+                    <div class="card-desc">영업 활동 로그 및 모니터링을 통해 효율적인 고객 관리를 체계화합니다.</div>
+                </a>
+                <div class="card-tools">
+                    <a href="/transfer_tax" class="tool-link">양도세</a>
+                    <a href="/lys" class="tool-link" style="color: #fff; background: rgba(0,212,255,0.1)">YS-HONERS</a>
+                </div>
+            </div>
+
+            <div class="module-card pipeline-card">
+                <div class="card-tag">파이프라인</div>
+                <a href="/pipeline" style="text-decoration: none; color: inherit;">
+                    <div class="card-title">영업 파이프라인</div>
+                    <div class="card-desc">잠재 고객의 상태를 시각화하여 영업 성과를 예측하고 최적화합니다.</div>
+                </a>
+                <div class="card-tools">
+                    <a href="/acquisition_tax" class="tool-link">취득세</a>
+                </div>
+            </div>
+
+            <div class="module-card sales-card">
+                <div class="card-tag">영업관리</div>
+                <a href="/sales_management" style="text-decoration: none; color: inherit;">
+                    <div class="card-title">영업관리 / 비용</div>
+                    <div class="card-desc">비용 분석 및 자원 배분을 지원하는 재무 의사결정 도구를 제공합니다.</div>
+                </a>
+                <div class="card-tools">
+                    <a href="/social_ins_tax" class="tool-link"><i class="fas fa-shield-heart"></i>4대보험</a>
+                    <a href="/industrial_accident" class="tool-link"><i class="fas fa-user-shield"></i>산재보상</a>
+                </div>
+            </div>
+
+            <div class="module-card biz-card">
+                <div class="card-tag">법인전환</div>
+                <a href="/individual_businesses" style="text-decoration: none; color: inherit;">
+                    <div class="card-title">법인전환 관리</div>
+                    <div class="card-desc">개인사업자 법인전환을 위한 전략적 접근</div>
+                </a>
+                <div class="card-tools">
+                    <a href="/income_tax" class="tool-link"><i class="fas fa-wallet"></i>소득세</a>
+                    <a href="/retirement_pay" class="tool-link"><i class="fas fa-piggy-bank"></i>퇴직금</a>
+                </div>
+            </div>
+
+        </div>
     </div>
 
-    <!-- 세금 계산기 버튼들 -->
-    <div class="tax-buttons">
-        <div class="tax-title">세금 계산기</div>
-        <a href="/inheritance_tax" class="tax-btn">상속세</a>
-        <a href="/gift_tax" class="tax-btn">증여세</a>
-        <a href="/transfer_tax" class="tax-btn">양도세</a>
-        <a href="/income_tax" class="tax-btn">종합소득세</a>
-        <a href="/social_ins_tax" class="tax-btn">4대보험</a>
-        <a href="/acquisition_tax" class="tax-btn">취득세</a>
-        <a href="/retirement_pay" class="tax-btn">퇴직금</a>
-        <a href="/industrial_accident" class="tax-btn">산재보상</a>
-    </div>
-    </div>
+    <footer>
+        CMS // YS-HONERS DEEP SPACE CONTROL // REV 
+        <a href="/user_management" class="admin-gear" title="System Settings">
+            
+        </a>
+    </footer>
+
+    <script>
+
+        (function() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let w, h, particles = [];
+
+            function init() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+                particles = [];
+                for(let i=0; i<150; i++) particles.push(new Particle('star'));
+                for(let i=0; i<30; i++) particles.push(new Particle('asteroid'));
+            }
+
+            class Particle {
+                constructor(type, x, y, r, sx, sy) {
+                    this.type = type;
+                    if(x) { // Explosion Fragment
+                        this.x = x; this.y = y; this.r = r;
+                        this.speedX = sx; this.speedY = sy;
+                    } else { this.reset(); }
+                }
+                reset() {
+                    this.x = Math.random() * w; this.y = Math.random() * h;
+                    this.r = this.type === 'star' ? Math.random() * 1.5 + 0.5 : Math.random() * 5 + 1.5;
+                    // Asteroids move mostly right (consistent positive speedX)
+                    this.speedX = this.type === 'star' ? (Math.random() - 0.5) * 0.12 : (Math.random() * 0.5 + 0.4);
+                    this.speedY = this.type === 'star' ? Math.random() * 0.2 + 0.1 : (Math.random() * 0.4 - 0.2);
+                    this.opacity = Math.random() * 0.7 + 0.2;
+                    this.color = this.type === 'star' ? '#ffffff' : '#64748b';
+                    this.rotation = Math.random() * Math.PI * 2;
+                    this.rotationSpeed = (Math.random() - 0.5) * 0.05;
+                    this.pulse = Math.random() * Math.PI;
+                    this.pulseSpeed = Math.random() * 0.05 + 0.02;
+                    this.life = this.type === 'fragment' ? 100 : 1;
+                }
+                update() {
+                    this.x += this.speedX; this.y -= this.speedY;
+                    this.rotation += this.rotationSpeed; this.pulse += this.pulseSpeed;
+                    if(this.type === 'fragment') { this.life -= 2; this.opacity -= 0.02; }
+                    else {
+                        if (this.y < -20) this.y = h + 20; if (this.x > w + 20) this.x = -20;
+                        if (this.x < -20) this.x = w + 20; if (this.y > h + 20) this.y = -20;
+                    }
+                }
+                draw() {
+                    if(this.opacity <= 0) return;
+                    ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rotation);
+                    ctx.beginPath();
+                    if(this.type === 'asteroid') {
+                        ctx.moveTo(0, -this.r); ctx.lineTo(this.r, -this.r*0.3); ctx.lineTo(this.r*0.6, this.r*0.8); ctx.lineTo(-this.r*0.5, this.r); ctx.lineTo(-this.r, 0);
+                    } else if(this.type === 'fragment') {
+                        ctx.arc(0, 0, this.r, 0, Math.PI * 2);
+                    } else { ctx.arc(0, 0, this.r, 0, Math.PI * 2); }
+                    ctx.fillStyle = this.color; ctx.globalAlpha = this.opacity; ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            function checkCollisions() {
+                for (let i = 0; i < particles.length; i++) {
+                    if (particles[i].type !== 'asteroid') continue;
+                    for (let j = i + 1; j < particles.length; j++) {
+                        if (particles[j].type !== 'asteroid') continue;
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < (particles[i].r + particles[j].r)) {
+                            createExplosion(particles[i].x, particles[i].y);
+                            particles[i].reset(); particles[j].reset();
+                        }
+                    }
+                }
+            }
+
+            function createExplosion(x, y) {
+                for(let i=0; i<8; i++) {
+                    const sx = (Math.random() - 0.5) * 6;
+                    const sy = (Math.random() - 0.5) * 6;
+                    particles.push(new Particle('fragment', x, y, Math.random()*2, sx, sy));
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, w, h);
+                checkCollisions();
+                particles = particles.filter(p => (p.type !== 'fragment' || p.life > 0));
+                particles.forEach(p => { p.update(); p.draw(); });
+                requestAnimationFrame(animate);
+            }
+
+            window.addEventListener('resize', init);
+            init(); animate();
+
+            function createShootingStar() {
+                const container = document.getElementById('shooting-stars');
+                if(!container) return;
+                const star = document.createElement('div');
+                star.style.position = 'absolute'; star.style.width = '2px'; star.style.height = '2px';
+                star.style.background = '#fff'; star.style.boxShadow = '0 0 12px #fff'; star.style.borderRadius = '50%';
+                const startX = Math.random() * window.innerWidth;
+                const startY = Math.random() * window.innerHeight * 0.6;
+                const duration = Math.random() * 800 + 700;
+                star.style.left = startX + 'px'; star.style.top = startY + 'px'; star.style.opacity = '1';
+                star.style.transition = `all ${duration}ms cubic-bezier(0.1, 0.1, 0.1, 1)`;
+                container.appendChild(star);
+                setTimeout(() => { star.style.left = (startX + 600) + 'px'; star.style.top = (startY + 600) + 'px'; star.style.opacity = '0'; star.style.width = '120px'; star.style.transform = 'rotate(-45deg)'; }, 20);
+                setTimeout(() => { if(container.contains(star)) container.removeChild(star); }, duration + 100);
+            }
+            setInterval(() => { if(Math.random() > 0.5) createShootingStar(); }, 3000);
+        })();
+    </script>
 </body>
-
-</html>/* Cache refresh */
+</html>

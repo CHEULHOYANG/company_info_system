@@ -1,4 +1,4 @@
-﻿import openpyxl
+import openpyxl
 from openpyxl.utils import get_column_letter
 import os
 import sys
@@ -16,17 +16,16 @@ DATA_START_ROW = 3
 COL_BIZ_NO = 24  # X열
 
 # 대표자 정보 컬럼
-COL_REP1_NAME = 43  # AU -> AT (43)
-COL_REP2_NAME = 51  # BC -> BB (51)
-COL_REP3_NAME = 59  # BK -> BJ (59)
+COL_REP1_NAME = 44
+COL_REP2_NAME = 52
+COL_REP3_NAME = 60
 
 # 주주 정보 시작 컬럼 (각 주주별로 7개 컬럼씩)
-# 주주1: 64~70, 주주2: 71~77, 주주3: 78~84, 주주4: 85~91, 주주5: 92~98
-COL_SH1_START = 64  # 주주1 시작 컬럼 (이전 65)
-COL_SH2_START = 71  # 주주2 시작 컬럼 (이전 72)
-COL_SH3_START = 78  # 주주3 시작 컬럼 (이전 79)
-COL_SH4_START = 85  # 주주4 시작 컬럼 (이전 86)
-COL_SH5_START = 92  # 주주5 시작 컬럼 (이전 93)
+COL_SH1_START = 65
+COL_SH2_START = 72
+COL_SH3_START = 79
+COL_SH4_START = 86
+COL_SH5_START = 93
 
 # 각 주주 정보 내 컬럼 오프셋
 # 주주정보_주주X_이름, 회사와의관계, 실권자와의관계, 소유주식합계, 보통주식수, 우선주식수, 지분율

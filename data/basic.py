@@ -1,4 +1,4 @@
-﻿import openpyxl
+import openpyxl
 from openpyxl.utils import get_column_letter
 import os
 import sys
@@ -61,6 +61,9 @@ def process_basic_data():
         if "pension_count" not in existing_headers:
              print("Mapping 'pension_count' manually...")
              mapping_values.append(["pension_count", 20]) # 20 is dummy here
+        if "jibun_address" not in existing_headers:
+             print("Mapping 'jibun_address' manually...")
+             mapping_values.append(["jibun_address", 34])
         
         # 4. 출력 시트 헤더 작성
         header = [row[0] for row in mapping_values]
@@ -100,20 +103,22 @@ def process_basic_data():
                          source_col_num = 32  # AF열
                     elif target_col_name == "zip_code":
                          source_col_num = 33  # AG열
+                    elif target_col_name == "jibun_address":
+                         source_col_num = 34  # AH열 (New)
                     elif target_col_name == "address":
-                         source_col_num = 34  # AH열
+                         source_col_num = 35  # AI열 (Shifted from AH)
                     elif target_col_name == "region":
-                         source_col_num = 35  # AI열
+                         source_col_num = 36  # AJ열 (Shifted from AI)
                     elif target_col_name == "city_district":
-                         source_col_num = 36  # AJ열
+                         source_col_num = 37  # AK열 (Shifted from AJ)
                     elif target_col_name == "phone_number":
-                         source_col_num = 37  # AK열
+                         source_col_num = 38  # AL열 (Shifted from AK)
                     elif target_col_name == "email":
-                         source_col_num = 38  # AL열
+                         source_col_num = 39  # AM열 (Shifted from AL)
                     elif target_col_name == "fax_number":
-                         source_col_num = 39  # AM열
+                         source_col_num = 40  # AN열 (Shifted from AM)
                     elif target_col_name == "representative_name":
-                         source_col_num = 43  # AQ열
+                         source_col_num = 44  # AR열 (Shifted from AQ)
                     elif target_col_name == "national_pension":
                          source_col_num = 20  # T열
                     elif target_col_name == "pension_count" or target_col_name == "employee_count":
@@ -121,13 +126,13 @@ def process_basic_data():
                     elif target_col_name == "pension_date":
                          source_col_num = 23  # W열
                     elif target_col_name == "ked_transaction_yn":
-                         source_col_num = 160  # 벤처인증 거래 유무
+                         source_col_num = 161  # 벤처인증 거래 유무 (Shifted from 160)
                     elif target_col_name == "patent_transaction_yn":
-                         source_col_num = 163  # 특허 거래 유무
+                         source_col_num = 164  # 특허 거래 유무 (Shifted from 163)
                     elif target_col_name == "group_transaction_yn":
-                         source_col_num = 166  # 단체 거래 유무
+                         source_col_num = 167  # 단체 거래 유무 (Shifted from 166)
                     elif target_col_name == "gfc_transaction_yn":
-                         source_col_num = 167  # GFC 거래 유무
+                         source_col_num = 168  # GFC 거래 유무 (Shifted from 167)
                     else:
                         try:
                             # 매핑 파일의 컬럼 번호가 숫자인지 확인

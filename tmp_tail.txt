@@ -1,0 +1,194 @@
+
+# --- Email Management System Routes ---
+
+@app.route('/email_management')
+def email_management():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('email_management.html', user_name=session.get('name', '사용자'))
+
+@app.route('/api/email/init', methods=['POST'])
+def api_email_init():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    try:
+        import subprocess
+        import sys
+        subprocess.run([sys.executable, 'g:/company_project_system/setup_email_system_db.py'], check=True)
+        return jsonify({'success': True, 'message': '이메일 시스템 테이블이 성공적으로 준비되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'초기화 실패: {str(e)}'})
+
+@app.route('/api/email/companies')
+def api_email_companies():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM Company_Basic WHERE email IS NOT NULL AND email != "" LIMIT 100')
+    companies = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return jsonify({'success': True, 'companies': companies})
+
+@app.route('/api/smtp-configs', methods=['GET', 'POST'])
+def api_smtp_configs():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    user_id = session['user_id']
+    
+    if request.method == 'GET':
+        cursor.execute('SELECT * FROM smtp_configs WHERE user_id = ?', (user_id,))
+        configs = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return jsonify({'success': True, 'configs': configs})
+    
+    else: # POST
+        data = request.json
+        config_id = data.get('config_id')
+        
+        if config_id:
+            cursor.execute('''
+                UPDATE smtp_configs 
+                SET config_name = ?, smtp_server = ?, smtp_port = ?, sender_email = ?, sender_password = ?
+                WHERE config_id = ? AND user_id = ?
+            ''', (data['config_name'], data['smtp_server'], data['smtp_port'], data['sender_email'], data['sender_password'], config_id, user_id))
+            message = 'SMTP 설정이 수정되었습니다.'
+        else:
+            cursor.execute('''
+                INSERT INTO smtp_configs (user_id, config_name, smtp_server, smtp_port, sender_email, sender_password)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (user_id, data['config_name'], data['smtp_server'], data['smtp_port'], data['sender_email'], data['sender_password']))
+            message = 'SMTP 설정이 저장되었습니다.'
+            
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': message})
+
+@app.route('/api/email/regional-groups')
+def api_regional_groups():
+    region = request.args.get('region')
+    if not region:
+        return jsonify({'success': False, 'message': '지역을 선택해주세요.'}), 400
+    
+    import math
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) FROM Company_Basic WHERE region LIKE ? AND email IS NOT NULL AND email != ""', (f'{region}%',))
+    total_count = cursor.fetchone()[0]
+    conn.close()
+    
+    batch_size = 100
+    num_batches = math.ceil(total_count / batch_size)
+    groups = []
+    for i in range(num_batches):
+        groups.append({
+            'id': i + 1,
+            'start': i * batch_size + 1,
+            'end': min((i + 1) * batch_size, total_count)
+        })
+        
+    return jsonify({'success': True, 'total_count': total_count, 'groups': groups})
+
+@app.route('/api/email/targets')
+def api_email_targets():
+    region = request.args.get('region')
+    offset = int(request.args.get('offset', 0))
+    limit = int(request.args.get('limit', 100))
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT cb.*, 
+               (SELECT MAX(sent_at) FROM email_send_log WHERE biz_no = cb.biz_no) as last_sent_at
+        FROM Company_Basic cb 
+        WHERE region LIKE ? AND email IS NOT NULL AND email != ""
+        LIMIT ? OFFSET ?
+    ''', (f'{region}%', limit, offset))
+    targets = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return jsonify({'success': True, 'targets': targets})
+
+@app.route('/api/email/batch-send', methods=['POST'])
+def api_email_batch_send_new():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+        
+    data = request.json
+    biz_nos = data.get('biz_nos', [])
+    subject = data.get('subject', '')
+    body = data.get('body', '')
+    smtp_config_id = data.get('smtp_config_id')
+    group_name = data.get('group_name')
+    user_id = session['user_id']
+    
+    if not biz_nos:
+        return jsonify({'success': False, 'message': '발송할 기업을 선택해주세요'}), 400
+        
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT * FROM smtp_configs WHERE config_id = ? AND user_id = ?', (smtp_config_id, user_id))
+    config = cursor.fetchone()
+    if not config:
+        conn.close()
+        return jsonify({'success': False, 'message': 'SMTP 설정을 찾을 수 없습니다.'}), 404
+        
+    # Get company details for personalization
+    placeholders = ','.join(['?'] * len(biz_nos))
+    cursor.execute(f'SELECT biz_no, company_name, representative_name, email, phone_number, phone_number as phone, address FROM Company_Basic WHERE biz_no IN ({placeholders})', biz_nos)
+    companies = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    from email_service import EmailSender
+    sender = EmailSender(
+        smtp_server=config['smtp_server'],
+        smtp_port=config['smtp_port'],
+        sender_email=config['sender_email'],
+        sender_password=config['sender_password']
+    )
+    
+    # Run in background
+    result = sender.send_batch_emails(user_id, companies, subject, body, smtp_config_id=smtp_config_id, group_name=group_name)
+    return jsonify({'success': True, 'message': '발송이 시작되었습니다.', 'batch_id': result['batch_id']})
+
+@app.route('/api/email/batch-status/<batch_id>')
+def api_batch_status_alias(batch_id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM send_batches WHERE batch_id = ?', (batch_id,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if row:
+        return jsonify({'success': True, 'batch': dict(row)})
+    return jsonify({'success': False, 'message': '배치를 찾을 수 없습니다.'}), 404
+
+@app.route('/api/email/batches')
+def api_email_batches():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    from email_service import get_all_batches
+    batches = get_all_batches(session['user_id'])
+    return jsonify({'success': True, 'batches': batches})
+
+@app.route('/api/email/batch-details/<batch_id>')
+def api_email_batch_details(batch_id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    from email_service import get_email_history
+    history = get_email_history(batch_id)
+    return jsonify({'success': True, 'details': history})
+
+if __name__ == '__main__':
+    initialize_db()
+    app.run(host='0.0.0.0', port=5000, debug=True)

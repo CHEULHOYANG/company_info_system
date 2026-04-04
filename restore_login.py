@@ -1,0 +1,446 @@
+# -*- coding: utf-8 -*-
+"""login.html을 UTF-8 한글 지원으로 복원하는 스크립트"""
+import os
+
+login_html = '''<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>CMS - Company Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a1f3b 0%, #1a3a6b 50%, #0d2d5e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-title {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: white;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: 4px;
+        }
+
+        .login-subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+        }
+
+        .error-message {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.4);
+            color: #ff6b6b;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .form-group input:focus {
+            border-color: rgba(74, 159, 217, 0.6);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(74, 159, 217, 0.2);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4a9fd9, #2563eb);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+
+        .signup-section {
+            margin-top: 30px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 25px;
+        }
+
+        .signup-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 8px;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .signup-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .pricing-info {
+            margin-top: 25px;
+            text-align: center;
+            padding: 15px;
+            background: rgba(74, 159, 217, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(74, 159, 217, 0.2);
+        }
+
+        .pricing-highlight {
+            color: #4a9fd9;
+            font-weight: 600;
+            font-size: 15px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .pricing-info div {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #0a1f3b, #1a3a6b);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 500px;
+            margin: 30px auto;
+            color: white;
+            position: relative;
+        }
+
+        .modal-content h2 {
+            color: white;
+            margin-bottom: 25px;
+            font-size: 22px;
+            letter-spacing: 1px;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1;
+        }
+
+        .close:hover { color: white; }
+
+        .ys-honers-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .ys-honers-link:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            color: white;
+        }
+
+        .ys-honers-link::before {
+            content: '🏢 ';
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <h1 class="login-title">CMS</h1>
+        <p class="login-subtitle">기업 관리 시스템</p>
+
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="user_id">사용자 ID</label>
+                <input type="text" id="user_id" name="user_id" placeholder="사용자 ID를 입력하세요" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+                <div style="margin-top: 5px; font-size: 12px; color: rgba(255, 255, 255, 0.7);">
+                    초기패스워드: password1!
+                </div>
+            </div>
+
+            <button type="submit" class="login-button">로그인</button>
+        </form>
+
+        <div class="signup-section">
+            <p style="color: rgba(255, 255, 255, 0.8); margin-bottom: 10px;">계정이 없으신가요?</p>
+            <button type="button" class="signup-button" onclick="openSignupModal()">회원가입 신청</button>
+            <button type="button" class="signup-button" onclick="openResultModal()"
+                style="margin-top: 10px; background: rgba(255, 193, 7, 0.2); border-color: rgba(255, 193, 7, 0.4); color: #ffc107;">신청 결과 조회</button>
+        </div>
+
+        <div class="pricing-info">
+            <span class="pricing-highlight">첫달 무료 이용!</span>
+            <div>월 이용료: 3,000원 | 년 이용료: 30,000원</div>
+        </div>
+    </div>
+
+    <!-- 회원가입 모달 -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSignupModal()">&times;</span>
+            <h2>회원가입 신청</h2>
+            <form id="signupForm">
+                <div class="form-group">
+                    <label>희망 사용자 ID</label>
+                    <input type="text" name="user_id" required style="background: rgba(255,255,255,0.1); color: white;">
+                </div>
+                <div class="form-group">
+                    <label>이름</label>
+                    <input type="text" name="name" required style="background: rgba(255,255,255,0.1); color: white;">
+                </div>
+                <div class="form-group">
+                    <label>연락처</label>
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <input type="text" id="signup_phone1" name="phone1" value="010" maxlength="3"
+                            style="width: 70px; text-align: center; background: rgba(255,255,255,0.1); color: white;" required>
+                        <span style="color: white;">-</span>
+                        <input type="text" id="signup_phone2" name="phone2" maxlength="4"
+                            style="width: 80px; text-align: center; background: rgba(255,255,255,0.1); color: white;" placeholder="0000" required>
+                        <span style="color: white;">-</span>
+                        <input type="text" id="signup_phone3" name="phone3" maxlength="4"
+                            style="width: 80px; text-align: center; background: rgba(255,255,255,0.1); color: white;" placeholder="0000" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" name="email" required style="background: rgba(255,255,255,0.1); color: white;" placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label>소속 지점</label>
+                    <select name="branch" style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;" onchange="toggleBranchOther(this)">
+                        <option value="중앙">중앙</option>
+                        <option value="명중">명중</option>
+                        <option value="명동">명동</option>
+                        <option value="충무로">충무로</option>
+                        <option value="선진">선진</option>
+                        <option value="광화문">광화문</option>
+                        <option value="시청">시청</option>
+                        <option value="기타">기타 (직접입력)</option>
+                    </select>
+                    <input type="text" id="signup_branch_other" name="branch_other" placeholder="지점명을 입력하세요"
+                        style="margin-top: 10px; display: none; background: rgba(255,255,255,0.1); color: white;">
+                </div>
+                <div class="form-group">
+                    <label>이용목적</label>
+                    <textarea name="purpose" rows="3"
+                        style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; resize: vertical;"
+                        placeholder="시스템 이용 목적을 간단히 설명해주세요"></textarea>
+                </div>
+                <button type="submit" class="login-button">신청하기</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 신청 결과 조회 모달 -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeResultModal()">&times;</span>
+            <h2>신청 결과 조회</h2>
+            <form id="resultForm">
+                <div class="form-group">
+                    <label>신청한 사용자 ID</label>
+                    <input type="text" name="user_id" required style="background: rgba(255,255,255,0.1); color: white;">
+                </div>
+                <div class="form-group">
+                    <label>이름</label>
+                    <input type="text" name="name" required style="background: rgba(255,255,255,0.1); color: white;">
+                </div>
+                <button type="submit" class="login-button">조회하기</button>
+            </form>
+            <div id="resultDisplay" style="display: none; margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <script>
+        function openSignupModal() { document.getElementById('signupModal').style.display = 'block'; }
+        function closeSignupModal() { document.getElementById('signupModal').style.display = 'none'; }
+        function openResultModal() { document.getElementById('resultModal').style.display = 'block'; }
+        function closeResultModal() { document.getElementById('resultModal').style.display = 'none'; }
+
+        function toggleBranchOther(sel) {
+            var other = document.getElementById('signup_branch_other');
+            if (sel.value === '기타') {
+                other.style.display = 'block';
+                other.required = true;
+            } else {
+                other.style.display = 'none';
+                other.required = false;
+            }
+        }
+
+        var p1 = document.getElementById('signup_phone1');
+        var p2 = document.getElementById('signup_phone2');
+        var p3 = document.getElementById('signup_phone3');
+        if (p1) {
+            p1.addEventListener('input', function() { if (this.value.length === 3) p2.focus(); });
+            p2.addEventListener('input', function() { if (this.value.length === 4) p3.focus(); });
+        }
+
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var fd = new FormData(this);
+            var data = {};
+            fd.forEach(function(v, k) { data[k] = v; });
+            data.phone = (data.phone1 || '010') + '-' + (data.phone2 || '') + '-' + (data.phone3 || '');
+            data.branch_name = data.branch === '기타' ? data.branch_other : data.branch;
+            data.branch_code = data.branch_name;
+            fetch('/api/signup-request', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            }).then(r => r.json()).then(result => {
+                if (result.success) {
+                    alert('회원가입 신청이 완료되었습니다. 관리자 승인 후 이용 가능합니다.');
+                    closeSignupModal();
+                } else { alert('오류: ' + result.message); }
+            }).catch(() => alert('신청 처리 중 오류가 발생했습니다.'));
+        });
+
+        document.getElementById('resultForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var fd = new FormData(this);
+            fetch('/api/check-signup-status', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user_id: fd.get('user_id'), name: fd.get('name')})
+            }).then(r => r.json()).then(result => {
+                var d = document.getElementById('resultDisplay');
+                if (result.success) {
+                    var req = result.data;
+                    var sm = {PENDING: '심사중', APPROVED: '승인됨', REJECTED: '거절됨'};
+                    var cm = {PENDING: '#ffc107', APPROVED: '#28a745', REJECTED: '#dc3545'};
+                    d.innerHTML = '<div style="padding:15px;background:rgba(255,255,255,0.1);border-radius:10px;">' +
+                        '<h3 style="color:' + cm[req.status] + ';margin-bottom:10px;">신청 상태: ' + sm[req.status] + '</h3>' +
+                        '<p>ID: ' + req.user_id + '</p><p>이름: ' + req.name + '</p>' +
+                        (req.status === 'APPROVED' ? '<p style="color:#28a745;margin-top:10px;">임시 비밀번호: password1!</p>' : '') +
+                        '</div>';
+                    d.style.display = 'block';
+                } else {
+                    d.innerHTML = '<p style="color:#dc3545;">' + result.message + '</p>';
+                    d.style.display = 'block';
+                }
+            }).catch(() => alert('조회 중 오류가 발생했습니다.'));
+        });
+
+        window.onclick = function(event) {
+            if (event.target === document.getElementById('signupModal')) closeSignupModal();
+            if (event.target === document.getElementById('resultModal')) closeResultModal();
+        }
+    </script>
+
+    <!-- YS Honers 링크 -->
+    <a href="/lys" class="ys-honers-link">YS Honers</a>
+
+</body>
+
+</html>
+'''
+
+output_path = r"g:\company_project_system\templates\login.html"
+with open(output_path, "w", encoding="utf-8") as f:
+    f.write(login_html)
+
+print(f"완료: login.html UTF-8로 저장됨 ({os.path.getsize(output_path)} bytes)")

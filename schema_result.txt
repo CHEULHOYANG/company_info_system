@@ -1,0 +1,63 @@
+=== email_send_log 현재 컬럼 ===
+Traceback (most recent call last):
+  [0] id (INTEGER)
+  [1] biz_no (TEXT)
+  [2] email (TEXT)
+  [3] group_name (TEXT)
+  [4] subject (TEXT)
+  [5] status (TEXT)
+  [6] error_msg (TEXT)
+  [7] sent_at (DATETIME)
+  [8] batch_id (TEXT)
+
+>>> batch_id 컬럼 이미 존재
+
+=== send_batches 현재 컬럼 ===
+  [0] batch_id (TEXT)
+  [1] user_id (TEXT)
+  [2] smtp_config_id (INTEGER)
+  [3] subject (TEXT)
+  [4] body (TEXT)
+  [5] total_count (INTEGER)
+  [6] sent_count (INTEGER)
+  [7] success_count (INTEGER)
+  [8] fail_count (INTEGER)
+  [9] sent_at (DATETIME)
+  [10] completed_at (DATETIME)
+  [11] group_id (INTEGER)
+  [12] group_name (TEXT)
+  [13] status (TEXT)
+  [14] last_error (TEXT)
+  [15] created_at (DATETIME)
+
+=== 최종 email_send_log 컬럼 ===
+  [0] id (INTEGER)
+  [1] biz_no (TEXT)
+  [2] email (TEXT)
+  [3] group_name (TEXT)
+  [4] subject (TEXT)
+  [5] status (TEXT)
+  [6] error_msg (TEXT)
+  [7] sent_at (DATETIME)
+  [8] batch_id (TEXT)
+
+=== 최종 send_batches 컬럼 ===
+  [0] batch_id (TEXT)
+  File "G:\company_project_system\fix_email_schema.py", line 72, in <module>
+    print("\n\u2705 스키마 마이그레이션 완료!")
+UnicodeEncodeError: 'cp949' codec can't encode character '\u2705' in position 2: illegal multibyte sequence
+  [1] user_id (TEXT)
+  [2] smtp_config_id (INTEGER)
+  [3] subject (TEXT)
+  [4] body (TEXT)
+  [5] total_count (INTEGER)
+  [6] sent_count (INTEGER)
+  [7] success_count (INTEGER)
+  [8] fail_count (INTEGER)
+  [9] sent_at (DATETIME)
+  [10] completed_at (DATETIME)
+  [11] group_id (INTEGER)
+  [12] group_name (TEXT)
+  [13] status (TEXT)
+  [14] last_error (TEXT)
+  [15] created_at (DATETIME)

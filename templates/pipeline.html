@@ -1,1295 +1,2596 @@
 <!DOCTYPE html>
+
 <html lang="ko">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>¿µ¾÷ ÆÄÀÌÇÁ¶óÀÎ °ü¸®</title>
+
+    <title>ì˜ì—… íŒŒì´í”„ë¼ì¸ ê´€ë¦¬</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
     <style>
+
         [x-cloak] { display: none !important; }
+
         .status-badge {
+
             @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+
         }
+
         .priority-indicator {
+
             width: 8px;
+
             height: 8px;
+
             border-radius: 50%;
+
             display: inline-block;
+
             margin-right: 8px;
+
         }
+
         .priority-1 { background-color: #10b981; }
+
         .priority-2 { background-color: #3b82f6; }
+
         .priority-3 { background-color: #f59e0b; }
+
         .priority-4 { background-color: #ef4444; }
+
         .priority-5 { background-color: #dc2626; }
+
     </style>
+
 </head>
+
 <body class="bg-gray-50" x-data="pipelineApp()">
-    <!-- Çì´õ -->
+
+    <!-- í—¤ë” -->
+
     <div class="bg-white shadow-sm border-b">
+
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
             <div class="flex justify-between items-center h-16">
+
                 <div class="flex items-center">
+
                     <h1 class="text-xl font-semibold text-gray-900">
+
                         <i class="fas fa-chart-line mr-2 text-blue-600"></i>
-                        ¿µ¾÷ ÆÄÀÌÇÁ¶óÀÎ °ü¸®
+
+                        ì˜ì—… íŒŒì´í”„ë¼ì¸ ê´€ë¦¬
+
                     </h1>
+
                 </div>
+
                 <div class="flex items-center space-x-4">
+
                     <button @click="showHelpModal = true" 
+
                             class="text-gray-500 hover:text-blue-600 transition-colors"
-                            title="»ç¿ë ¾È³»">
+
+                            title="ì‚¬ìš© ì•ˆë‚´">
+
                         <i class="fas fa-question-circle text-xl"></i>
+
                     </button>
+
                     <button @click="showAddCompanyModal = true" 
+
                             class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-plus mr-2"></i>±â¾÷ µî·Ï
+
+                        <i class="fas fa-plus mr-2"></i>ê¸°ì—… ë“±ë¡
+
                     </button>
+
                     <a href="/main" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-home mr-1"></i>¸ŞÀÎÀ¸·Î
+
+                        <i class="fas fa-home mr-1"></i>ë©”ì¸ìœ¼ë¡œ
+
                     </a>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
+
+
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Section A: ¾Ë¸² ´ë½Ãº¸µå -->
+
+        <!-- Section A: ì•Œë¦¼ ëŒ€ì‹œë³´ë“œ -->
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <!-- ¿À´Ã ¿¬¶ôÇÒ ±â¾÷ -->
+
+            <!-- ì˜¤ëŠ˜ ì—°ë½í•  ê¸°ì—… -->
+
             <div class="bg-white rounded-lg shadow p-6 cursor-pointer transition-all hover:shadow-lg hover:scale-105"
+
                  :class="{'ring-2 ring-blue-500': dashboardFilter === 'today'}"
+
                  @click="filterByDashboard('today')">
+
                 <div class="flex items-center">
+
                     <div class="flex-shrink-0">
+
                         <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+
                             <i class="fas fa-phone text-white text-sm"></i>
+
                         </div>
+
                     </div>
+
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">¿À´Ã ¿¬¶ôÇÒ ±â¾÷</p>
+
+                        <p class="text-sm font-medium text-gray-600">ì˜¤ëŠ˜ ì—°ë½í•  ê¸°ì—…</p>
+
                         <p class="text-2xl font-semibold text-blue-600" x-text="todayContacts.length"></p>
+
                     </div>
+
                 </div>
+
                 <div class="mt-4" x-show="todayContacts.length > 0">
+
                     <template x-for="company in todayContacts.slice(0, 3)">
+
                         <div class="text-sm text-gray-600 truncate" x-text="company.company_name"></div>
+
                     </template>
+
                     <div x-show="todayContacts.length > 3" class="text-xs text-blue-600">
-                        ¿Ü <span x-text="todayContacts.length - 3"></span>°³ ±â¾÷
+
+                        ì™¸ <span x-text="todayContacts.length - 3"></span>ê°œ ê¸°ì—…
+
                     </div>
+
                 </div>
+
             </div>
 
-            <!-- °ü¸® ¼ÒÈ¦ ±â¾÷ -->
+
+
+            <!-- ê´€ë¦¬ ì†Œí™€ ê¸°ì—… -->
+
             <div class="bg-white rounded-lg shadow p-6 cursor-pointer transition-all hover:shadow-lg hover:scale-105"
+
                  :class="{'ring-2 ring-red-500': dashboardFilter === 'urgent'}"
+
                  @click="filterByDashboard('urgent')">
+
                 <div class="flex items-center">
+
                     <div class="flex-shrink-0">
+
                         <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+
                             <i class="fas fa-exclamation-triangle text-white text-sm"></i>
+
                         </div>
+
                     </div>
+
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">°ü¸® ¼ÒÈ¦ °æ°í</p>
+
+                        <p class="text-sm font-medium text-gray-600">ê´€ë¦¬ ì†Œí™€ ê²½ê³ </p>
+
                         <p class="text-2xl font-semibold text-red-600" x-text="urgentCompanies.length"></p>
+
                     </div>
+
                 </div>
+
                 <div class="mt-4" x-show="urgentCompanies.length > 0">
+
                     <template x-for="company in urgentCompanies.slice(0, 3)">
+
                         <div class="text-sm text-gray-600 truncate" x-text="company.company_name"></div>
+
                     </template>
+
                 </div>
+
             </div>
 
-            <!-- ÀüÃ¼ °ü¸® ±â¾÷ -->
+
+
+            <!-- ì „ì²´ ê´€ë¦¬ ê¸°ì—… -->
+
             <div class="bg-white rounded-lg shadow p-6 cursor-pointer transition-all hover:shadow-lg hover:scale-105"
+
                  :class="{'ring-2 ring-green-500': dashboardFilter === 'all'}"
+
                  @click="filterByDashboard('all')">
+
                 <div class="flex items-center">
+
                     <div class="flex-shrink-0">
+
                         <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+
                             <i class="fas fa-building text-white text-sm"></i>
+
                         </div>
+
                     </div>
+
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">ÀüÃ¼ °ü¸® ±â¾÷</p>
+
+                        <p class="text-sm font-medium text-gray-600">ì „ì²´ ê´€ë¦¬ ê¸°ì—…</p>
+
                         <p class="text-2xl font-semibold text-green-600" x-text="allCompanies.length"></p>
+
                     </div>
+
                 </div>
+
             </div>
 
-            <!-- ¿¹»ó ¸ÅÃâ -->
+
+
+            <!-- ì˜ˆìƒ ë§¤ì¶œ -->
+
             <div class="bg-white rounded-lg shadow p-6">
+
                 <div class="flex items-center">
+
                     <div class="flex-shrink-0">
+
                         <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+
                             <i class="fas fa-won-sign text-white text-sm"></i>
+
                         </div>
+
                     </div>
+
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">¿¹»ó ¸ÅÃâ</p>
+
+                        <p class="text-sm font-medium text-gray-600">ì˜ˆìƒ ë§¤ì¶œ</p>
+
                         <p class="text-lg font-semibold text-yellow-600" x-text="formatMoney(totalExpectedAmount)"></p>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
 
-        <!-- Section B: °ü¸® ±â¾÷ ¸®½ºÆ® -->
+
+
+        <!-- Section B: ê´€ë¦¬ ê¸°ì—… ë¦¬ìŠ¤íŠ¸ -->
+
         <div class="bg-white rounded-lg shadow">
+
             <div class="px-6 py-4 border-b border-gray-200">
+
                 <div class="flex flex-col space-y-3">
+
                     <div class="flex justify-between items-center">
-                        <h2 class="text-lg font-medium text-gray-900">°ü¸® ±â¾÷ ÇöÈ²</h2>
+
+                        <h2 class="text-lg font-medium text-gray-900">ê´€ë¦¬ ê¸°ì—… í˜„í™©</h2>
+
                         <span class="text-sm text-gray-500">
-                            ÃÑ <span class="font-bold text-blue-600" x-text="filteredCompanies.length"></span>°³ ±â¾÷
+
+                            ì´ <span class="font-bold text-blue-600" x-text="filteredCompanies.length"></span>ê°œ ê¸°ì—…
+
                         </span>
+
                     </div>
+
                     
-                    <!-- »óÅÂ ÇÊÅÍ ¹öÆ° ±×·ì -->
+
+                    <!-- ìƒíƒœ í•„í„° ë²„íŠ¼ ê·¸ë£¹ -->
+
                     <div class="flex flex-wrap gap-2">
+
                         <button @click="statusFilter = ''; filterCompanies()"
+
                                 class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+
                                 :class="statusFilter === '' && !dashboardFilter ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'">
-                            ÀüÃ¼ <span class="ml-1 text-xs" x-text="'(' + allCompanies.length + ')'"></span>
+
+                            ì „ì²´ <span class="ml-1 text-xs" x-text="'(' + allCompanies.length + ')'"></span>
+
                         </button>
+
                         <button @click="statusFilter = 'prospect'; filterCompanies()"
+
                                 class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+
                                 :class="statusFilter === 'prospect' ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'">
-                            ÀáÀç°í°´
+
+                            ì ì¬ê³ ê°
+
                         </button>
+
                         <button @click="statusFilter = 'contacted'; filterCompanies()"
+
                                 class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+
                                 :class="statusFilter === 'contacted' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'">
-                            Á¢ÃËÁß
+
+                            ì ‘ì´‰ì¤‘
+
                         </button>
+
                         <button @click="statusFilter = 'proposal'; filterCompanies()"
+
                                 class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+
                                 :class="statusFilter === 'proposal' ? 'bg-yellow-500 text-white' : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'">
-                            Á¦¾È´Ü°è
+
+                            ì œì•ˆë‹¨ê³„
+
                         </button>
+
                         <button @click="statusFilter = 'negotiation'; filterCompanies()"
+
                                 class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+
                                 :class="statusFilter === 'negotiation' ? 'bg-purple-600 text-white' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'">
-                            Çù»óÁß
+
+                            í˜‘ìƒì¤‘
+
                         </button>
+
                         <button @click="statusFilter = 'contract'; filterCompanies()"
+
                                 class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+
                                 :class="statusFilter === 'contract' ? 'bg-green-600 text-white' : 'bg-green-50 text-green-700 hover:bg-green-100'">
-                            °è¾à¿Ï·á
+
+                            ê³„ì•½ì™„ë£Œ
+
                         </button>
+
                         <button @click="statusFilter = 'hold'; filterCompanies()"
+
                                 class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
+
                                 :class="statusFilter === 'hold' ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 hover:bg-red-100'">
-                            º¸·ù
+
+                            ë³´ë¥˜
+
                         </button>
+
                         
-                        <!-- ´ë½Ãº¸µå ÇÊÅÍ Ç¥½Ã (È°¼ºÈ­µÈ °æ¿ì) -->
+
+                        <!-- ëŒ€ì‹œë³´ë“œ í•„í„° í‘œì‹œ (í™œì„±í™”ëœ ê²½ìš°) -->
+
                         <template x-if="dashboardFilter">
+
                             <span class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-orange-100 text-orange-800">
+
                                 <i class="fas fa-filter mr-2"></i>
-                                <span x-text="dashboardFilter === 'today' ? '¿À´Ã ¿¬¶ôÇÒ ±â¾÷' : dashboardFilter === 'urgent' ? '°ü¸® ¼ÒÈ¦ ±â¾÷' : 'ÀüÃ¼ ±â¾÷'"></span>
+
+                                <span x-text="dashboardFilter === 'today' ? 'ì˜¤ëŠ˜ ì—°ë½í•  ê¸°ì—…' : dashboardFilter === 'urgent' ? 'ê´€ë¦¬ ì†Œí™€ ê¸°ì—…' : 'ì „ì²´ ê¸°ì—…'"></span>
+
                                 <button @click="dashboardFilter = ''; filterCompanies()" class="ml-2 hover:text-orange-600">
+
                                     <i class="fas fa-times"></i>
+
                                 </button>
+
                             </span>
+
                         </template>
+
                     </div>
+
                 </div>
+
             </div>
 
-            <!-- Å×ÀÌºí -->
+
+
+            <!-- í…Œì´ë¸” -->
+
             <div class="overflow-x-auto">
+
                 <table class="min-w-full divide-y divide-gray-200">
+
                     <thead class="bg-gray-50">
+
                         <tr>
+
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                »óÅÂ
+
+                                ìƒíƒœ
+
                             </th>
+
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                ±â¾÷¸í
+
+                                ê¸°ì—…ëª…
+
                             </th>
+
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Å°¸Ç Á¤º¸
+
+                                í‚¤ë§¨ ì •ë³´
+
                             </th>
+
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                ¸¶Áö¸· Á¢ÃË
+
+                                ë§ˆì§€ë§‰ ì ‘ì´‰
+
                             </th>
+
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                ´ÙÀ½ ¾à¼Ó
+
+                                ë‹¤ìŒ ì•½ì†
+
                             </th>
+
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                ¿¹»ó±İ¾×
+
+                                ì˜ˆìƒê¸ˆì•¡
+
                             </th>
+
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                °ü¸®
+
+                                ê´€ë¦¬
+
                             </th>
+
                         </tr>
+
                     </thead>
+
                     <tbody class="bg-white divide-y divide-gray-200">
+
                         <template x-for="company in filteredCompanies" :key="company.id">
+
                             <tr class="hover:bg-gray-50" :class="{'bg-red-50': isUrgent(company)}">
+
                                 <td class="px-6 py-4 whitespace-nowrap">
+
                                     <div class="flex items-center">
+
                                         <div :class="'priority-' + company.priority_level" class="priority-indicator"></div>
+
                                         <span class="status-badge" :class="getStatusBadgeClass(company.status)" 
+
                                               x-text="getStatusText(company.status)"></span>
+
                                     </div>
+
                                 </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap">
+
                                     <div class="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600 hover:underline" 
+
                                          @click="openCompanyDetail(company)" x-text="company.company_name"></div>
+
                                     <div class="text-sm text-gray-500" x-text="company.representative_name"></div>
+
                                 </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap">
+
                                     <div class="text-sm text-gray-900" x-text="company.keyman_name"></div>
+
                                     <div class="text-sm text-gray-500" x-text="company.keyman_position"></div>
+
                                     <div class="text-sm text-blue-600" x-text="company.keyman_phone"></div>
+
                                 </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+
                                     <span x-text="formatDate(company.last_contact_date)"></span>
+
                                     <div x-show="isUrgent(company)" class="text-xs text-red-600 font-medium">
-                                        °ü¸® ¼ÒÈ¦!
+
+                                        ê´€ë¦¬ ì†Œí™€!
+
                                     </div>
+
                                 </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+
                                     <span x-text="formatDate(company.next_contact_date)"></span>
+
                                     <div class="text-xs" :class="getDdayClass(company.next_contact_date)" 
+
                                          x-text="calculateDday(company.next_contact_date)"></div>
+
                                 </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+
                                     <span x-text="formatMoney(company.expected_amount)"></span>
+
                                 </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+
                                     <div class="flex justify-end space-x-2">
+
                                         <button @click="showContactHistory(company)" 
+
                                                 class="text-blue-600 hover:text-blue-900">
+
                                             <i class="fas fa-history"></i>
+
                                         </button>
+
                                         <button @click="addContactRecord(company)" 
+
                                                 class="text-green-600 hover:text-green-900">
+
                                             <i class="fas fa-plus-circle"></i>
+
                                         </button>
+
                                         <button @click="editCompany(company)" 
+
                                                 class="text-gray-600 hover:text-gray-900">
+
                                             <i class="fas fa-edit"></i>
+
                                         </button>
+
                                         <button @click="deleteCompany(company)" 
+
                                                 class="text-red-600 hover:text-red-900"
-                                                title="»èÁ¦">
+
+                                                title="ì‚­ì œ">
+
                                             <i class="fas fa-trash"></i>
+
                                         </button>
+
                                     </div>
+
                                 </td>
+
                             </tr>
+
                         </template>
+
                     </tbody>
+
                 </table>
+
             </div>
+
         </div>
+
     </div>
 
-    <!-- ±â¾÷ »ó¼¼Á¶È¸ ÆË¾÷ (iframe) -->
+
+
+    <!-- ê¸°ì—… ìƒì„¸ì¡°íšŒ íŒì—… (iframe) -->
+
     <div x-show="showDetailModal" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+
         <div class="relative top-5 mx-auto border w-11/12 lg:w-4/5 xl:w-3/4 shadow-2xl rounded-lg bg-white" style="height: 90vh;">
+
             <div class="flex justify-between items-center px-4 py-3 bg-gray-100 rounded-t-lg border-b">
+
                 <h3 class="text-lg font-semibold text-gray-800">
-                    <i class="fas fa-building text-blue-600 mr-2"></i>±â¾÷ »ó¼¼ Á¤º¸
+
+                    <i class="fas fa-building text-blue-600 mr-2"></i>ê¸°ì—… ìƒì„¸ ì •ë³´
+
                 </h3>
+
                 <button @click="closeDetailModal()" 
+
                         class="text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-full p-2 transition-colors">
+
                     <i class="fas fa-times text-xl"></i>
+
                 </button>
+
             </div>
+
             <iframe :src="showDetailModal ? '/company/' + detailBizNo + '?source=history_popup' : ''" 
+
                     class="w-full rounded-b-lg" 
+
                     style="height: calc(90vh - 52px);"
+
                     frameborder="0">
+
             </iframe>
+
         </div>
+
     </div>
 
-    <!-- »ç¿ë ¾È³» ¸ğ´Ş -->
+
+
+    <!-- ì‚¬ìš© ì•ˆë‚´ ëª¨ë‹¬ -->
+
     <div x-show="showHelpModal" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+
         <div class="relative top-10 mx-auto p-6 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto">
+
             <div class="flex justify-between items-center mb-4 border-b pb-3">
+
                 <h3 class="text-xl font-bold text-gray-900">
-                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>¿µ¾÷ ÆÄÀÌÇÁ¶óÀÎ »ç¿ë ¾È³»
+
+                    <i class="fas fa-info-circle text-blue-600 mr-2"></i>ì˜ì—… íŒŒì´í”„ë¼ì¸ ì‚¬ìš© ì•ˆë‚´
+
                 </h3>
+
                 <button @click="showHelpModal = false" class="text-gray-400 hover:text-gray-600">
+
                     <i class="fas fa-times text-xl"></i>
+
                 </button>
+
             </div>
+
             
-            <!-- »óÅÂº° ¼³¸í -->
+
+            <!-- ìƒíƒœë³„ ì„¤ëª… -->
+
             <div class="mb-6">
+
                 <h4 class="font-bold text-lg text-gray-800 mb-3 flex items-center">
-                    <i class="fas fa-tags text-blue-500 mr-2"></i>±â¾÷ »óÅÂ ´Ü°èº° ¼³¸í
+
+                    <i class="fas fa-tags text-blue-500 mr-2"></i>ê¸°ì—… ìƒíƒœ ë‹¨ê³„ë³„ ì„¤ëª…
+
                 </h4>
+
                 <div class="bg-gray-50 rounded-lg p-4">
+
                     <table class="w-full text-sm">
+
                         <thead>
+
                             <tr class="border-b">
-                                <th class="text-left py-2 px-3 w-28">»óÅÂ</th>
-                                <th class="text-left py-2 px-3">¼³¸í</th>
-                                <th class="text-center py-2 px-3 w-24">°ü¸®ÁÖ±â</th>
-                                <th class="text-left py-2 px-3">±ÇÀå È°µ¿</th>
+
+                                <th class="text-left py-2 px-3 w-28">ìƒíƒœ</th>
+
+                                <th class="text-left py-2 px-3">ì„¤ëª…</th>
+
+                                <th class="text-center py-2 px-3 w-24">ê´€ë¦¬ì£¼ê¸°</th>
+
+                                <th class="text-left py-2 px-3">ê¶Œì¥ í™œë™</th>
+
                             </tr>
+
                         </thead>
+
                         <tbody>
+
                             <tr class="border-b hover:bg-white">
-                                <td class="py-3 px-3"><span class="status-badge bg-gray-100 text-gray-800">ÀáÀç°í°´</span></td>
-                                <td class="py-3 px-3">°¡´É¼ºÀÌ º¸¿©¼­ µî·ÏÇÑ ±â¾÷<br><span class="text-gray-500 text-xs">¾ÆÁ÷ º»°İÀûÀÎ ¿µ¾÷ È°µ¿ Àü</span></td>
-                                <td class="py-3 px-3 text-center font-bold text-blue-600">14ÀÏ</td>
-                                <td class="py-3 px-3 text-xs text-gray-600">Ã¹ ¿¬¶ô ½Ãµµ, ´ÏÁî ÆÄ¾Ç, °ü°è Çü¼º</td>
+
+                                <td class="py-3 px-3"><span class="status-badge bg-gray-100 text-gray-800">ì ì¬ê³ ê°</span></td>
+
+                                <td class="py-3 px-3">ê°€ëŠ¥ì„±ì´ ë³´ì—¬ì„œ ë“±ë¡í•œ ê¸°ì—…<br><span class="text-gray-500 text-xs">ì•„ì§ ë³¸ê²©ì ì¸ ì˜ì—… í™œë™ ì „</span></td>
+
+                                <td class="py-3 px-3 text-center font-bold text-blue-600">14ì¼</td>
+
+                                <td class="py-3 px-3 text-xs text-gray-600">ì²« ì—°ë½ ì‹œë„, ë‹ˆì¦ˆ íŒŒì•…, ê´€ê³„ í˜•ì„±</td>
+
                             </tr>
+
                             <tr class="border-b hover:bg-white">
-                                <td class="py-3 px-3"><span class="status-badge bg-blue-100 text-blue-800">Á¢ÃËÁß</span></td>
-                                <td class="py-3 px-3">¿¬¶ôÀÌ ÁøÇà ÁßÀÎ ±â¾÷<br><span class="text-gray-500 text-xs">°ü½ÉÀ» º¸ÀÌ¸ç ´ëÈ­°¡ ¿À°¡´Â »óÅÂ</span></td>
-                                <td class="py-3 px-3 text-center font-bold text-blue-600">7ÀÏ</td>
-                                <td class="py-3 px-3 text-xs text-gray-600">Áö¼ÓÀû ¿¬¶ô, ¹ÌÆÃ Á¦¾È, Á¤º¸ ¼öÁı</td>
+
+                                <td class="py-3 px-3"><span class="status-badge bg-blue-100 text-blue-800">ì ‘ì´‰ì¤‘</span></td>
+
+                                <td class="py-3 px-3">ì—°ë½ì´ ì§„í–‰ ì¤‘ì¸ ê¸°ì—…<br><span class="text-gray-500 text-xs">ê´€ì‹¬ì„ ë³´ì´ë©° ëŒ€í™”ê°€ ì˜¤ê°€ëŠ” ìƒíƒœ</span></td>
+
+                                <td class="py-3 px-3 text-center font-bold text-blue-600">7ì¼</td>
+
+                                <td class="py-3 px-3 text-xs text-gray-600">ì§€ì†ì  ì—°ë½, ë¯¸íŒ… ì œì•ˆ, ì •ë³´ ìˆ˜ì§‘</td>
+
                             </tr>
+
                             <tr class="border-b hover:bg-white">
-                                <td class="py-3 px-3"><span class="status-badge bg-yellow-100 text-yellow-800">Á¦¾È´Ü°è</span></td>
-                                <td class="py-3 px-3">±¸Ã¼ÀûÀÎ Á¦¾È¼­/°ßÀû Á¦Ãâ<br><span class="text-gray-500 text-xs">°í°´ÀÌ °ËÅä ÁßÀÎ »óÅÂ</span></td>
-                                <td class="py-3 px-3 text-center font-bold text-orange-600">3ÀÏ</td>
-                                <td class="py-3 px-3 text-xs text-gray-600">Á¦¾È ¼³¸í, ÁúÀÇ ÀÀ´ë, Á¶°Ç Á¶À²</td>
+
+                                <td class="py-3 px-3"><span class="status-badge bg-yellow-100 text-yellow-800">ì œì•ˆë‹¨ê³„</span></td>
+
+                                <td class="py-3 px-3">êµ¬ì²´ì ì¸ ì œì•ˆì„œ/ê²¬ì  ì œì¶œ<br><span class="text-gray-500 text-xs">ê³ ê°ì´ ê²€í†  ì¤‘ì¸ ìƒíƒœ</span></td>
+
+                                <td class="py-3 px-3 text-center font-bold text-orange-600">3ì¼</td>
+
+                                <td class="py-3 px-3 text-xs text-gray-600">ì œì•ˆ ì„¤ëª…, ì§ˆì˜ ì‘ëŒ€, ì¡°ê±´ ì¡°ìœ¨</td>
+
                             </tr>
+
                             <tr class="border-b hover:bg-white">
-                                <td class="py-3 px-3"><span class="status-badge bg-purple-100 text-purple-800">Çù»óÁß</span></td>
-                                <td class="py-3 px-3">°è¾à Á¶°Ç Çù»ó ÁøÇà Áß<br><span class="text-gray-500 text-xs">°¡°İ, Á¶°Ç µî ÃÖÁ¾ Á¶À²</span></td>
-                                <td class="py-3 px-3 text-center font-bold text-red-600">2ÀÏ</td>
-                                <td class="py-3 px-3 text-xs text-gray-600">½Å¼ÓÇÑ ÀÀ´ë, °áÀç±ÇÀÚ Á¢ÃË, Å¬·ÎÂ¡</td>
+
+                                <td class="py-3 px-3"><span class="status-badge bg-purple-100 text-purple-800">í˜‘ìƒì¤‘</span></td>
+
+                                <td class="py-3 px-3">ê³„ì•½ ì¡°ê±´ í˜‘ìƒ ì§„í–‰ ì¤‘<br><span class="text-gray-500 text-xs">ê°€ê²©, ì¡°ê±´ ë“± ìµœì¢… ì¡°ìœ¨</span></td>
+
+                                <td class="py-3 px-3 text-center font-bold text-red-600">2ì¼</td>
+
+                                <td class="py-3 px-3 text-xs text-gray-600">ì‹ ì†í•œ ì‘ëŒ€, ê²°ì¬ê¶Œì ì ‘ì´‰, í´ë¡œì§•</td>
+
                             </tr>
+
                             <tr class="border-b hover:bg-white">
-                                <td class="py-3 px-3"><span class="status-badge bg-green-100 text-green-800">°è¾à¿Ï·á</span></td>
-                                <td class="py-3 px-3">°è¾à Ã¼°á ¿Ï·á<br><span class="text-gray-500 text-xs">»çÈÄ °ü¸® ¹× Ãß°¡ ¿µ¾÷ ±âÈ¸</span></td>
-                                <td class="py-3 px-3 text-center font-bold text-green-600">30ÀÏ</td>
-                                <td class="py-3 px-3 text-xs text-gray-600">¸¸Á·µµ È®ÀÎ, Ãß°¡ Á¦¾È, ¼Ò°³ ¿äÃ»</td>
+
+                                <td class="py-3 px-3"><span class="status-badge bg-green-100 text-green-800">ê³„ì•½ì™„ë£Œ</span></td>
+
+                                <td class="py-3 px-3">ê³„ì•½ ì²´ê²° ì™„ë£Œ<br><span class="text-gray-500 text-xs">ì‚¬í›„ ê´€ë¦¬ ë° ì¶”ê°€ ì˜ì—… ê¸°íšŒ</span></td>
+
+                                <td class="py-3 px-3 text-center font-bold text-green-600">30ì¼</td>
+
+                                <td class="py-3 px-3 text-xs text-gray-600">ë§Œì¡±ë„ í™•ì¸, ì¶”ê°€ ì œì•ˆ, ì†Œê°œ ìš”ì²­</td>
+
                             </tr>
+
                             <tr class="hover:bg-white">
-                                <td class="py-3 px-3"><span class="status-badge bg-red-100 text-red-800">º¸·ù</span></td>
-                                <td class="py-3 px-3">ÀÏ½ÃÀûÀ¸·Î ÁøÇà º¸·ù<br><span class="text-gray-500 text-xs">°í°´ »çÁ¤À¸·Î Àá½Ã Áß´Ü</span></td>
-                                <td class="py-3 px-3 text-center font-bold text-gray-600">30ÀÏ</td>
-                                <td class="py-3 px-3 text-xs text-gray-600">»óÈ² Ã¼Å©, ÀçÁ¢ÃË ½ÃÁ¡ Å½»ö</td>
+
+                                <td class="py-3 px-3"><span class="status-badge bg-red-100 text-red-800">ë³´ë¥˜</span></td>
+
+                                <td class="py-3 px-3">ì¼ì‹œì ìœ¼ë¡œ ì§„í–‰ ë³´ë¥˜<br><span class="text-gray-500 text-xs">ê³ ê° ì‚¬ì •ìœ¼ë¡œ ì ì‹œ ì¤‘ë‹¨</span></td>
+
+                                <td class="py-3 px-3 text-center font-bold text-gray-600">30ì¼</td>
+
+                                <td class="py-3 px-3 text-xs text-gray-600">ìƒí™© ì²´í¬, ì¬ì ‘ì´‰ ì‹œì  íƒìƒ‰</td>
+
                             </tr>
+
                         </tbody>
+
                     </table>
+
                 </div>
+
             </div>
 
-            <!-- °ü¸® ¼ÒÈ¦ °æ°í ¼³¸í -->
+
+
+            <!-- ê´€ë¦¬ ì†Œí™€ ê²½ê³  ì„¤ëª… -->
+
             <div class="mb-6">
+
                 <h4 class="font-bold text-lg text-gray-800 mb-3 flex items-center">
-                    <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>°ü¸® ¼ÒÈ¦ °æ°í¶õ?
+
+                    <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>ê´€ë¦¬ ì†Œí™€ ê²½ê³ ë€?
+
                 </h4>
+
                 <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+
                     <p class="text-sm text-gray-700 mb-3">
-                        <strong>¸¶Áö¸· Á¢ÃËÀÏ</strong>·ÎºÎÅÍ »óÅÂº° °ü¸®ÁÖ±â°¡ Áö³ª¸é <span class="text-red-600 font-bold">"°ü¸® ¼ÒÈ¦!"</span> °æ°í°¡ Ç¥½ÃµË´Ï´Ù.
+
+                        <strong>ë§ˆì§€ë§‰ ì ‘ì´‰ì¼</strong>ë¡œë¶€í„° ìƒíƒœë³„ ê´€ë¦¬ì£¼ê¸°ê°€ ì§€ë‚˜ë©´ <span class="text-red-600 font-bold">"ê´€ë¦¬ ì†Œí™€!"</span> ê²½ê³ ê°€ í‘œì‹œë©ë‹ˆë‹¤.
+
                     </p>
+
                     <ul class="text-sm text-gray-600 space-y-1 ml-4 list-disc">
-                        <li><strong>Çù»óÁß(2ÀÏ)</strong>ÀÌ °¡Àå ÂªÀ½ ¡æ °è¾à Á÷ÀüÀÌ¹Ç·Î Áï°¢ ´ëÀÀ ÇÊ¿ä</li>
-                        <li><strong>Á¦¾È´Ü°è(3ÀÏ)</strong> ¡æ °í°´ÀÇ °ü½ÉÀÌ ½Ä±â Àü ÈÄ¼Ó Á¶Ä¡</li>
-                        <li><strong>Á¢ÃËÁß(7ÀÏ)</strong> ¡æ °ü°è À¯Áö¸¦ À§ÇÑ Á¤±â ¿¬¶ô</li>
-                        <li><strong>ÀáÀç°í°´(14ÀÏ)</strong> ¡æ Ã¹ °ü°è Çü¼º¿¡ ½Ã°£ ¿©À¯</li>
-                        <li><strong>°è¾à¿Ï·á/º¸·ù(30ÀÏ)</strong> ¡æ Àå±âÀû °ü°è °ü¸®</li>
+
+                        <li><strong>í˜‘ìƒì¤‘(2ì¼)</strong>ì´ ê°€ì¥ ì§§ìŒ â†’ ê³„ì•½ ì§ì „ì´ë¯€ë¡œ ì¦‰ê° ëŒ€ì‘ í•„ìš”</li>
+
+                        <li><strong>ì œì•ˆë‹¨ê³„(3ì¼)</strong> â†’ ê³ ê°ì˜ ê´€ì‹¬ì´ ì‹ê¸° ì „ í›„ì† ì¡°ì¹˜</li>
+
+                        <li><strong>ì ‘ì´‰ì¤‘(7ì¼)</strong> â†’ ê´€ê³„ ìœ ì§€ë¥¼ ìœ„í•œ ì •ê¸° ì—°ë½</li>
+
+                        <li><strong>ì ì¬ê³ ê°(14ì¼)</strong> â†’ ì²« ê´€ê³„ í˜•ì„±ì— ì‹œê°„ ì—¬ìœ </li>
+
+                        <li><strong>ê³„ì•½ì™„ë£Œ/ë³´ë¥˜(30ì¼)</strong> â†’ ì¥ê¸°ì  ê´€ê³„ ê´€ë¦¬</li>
+
                     </ul>
+
                 </div>
+
             </div>
 
-            <!-- ¿ì¼±¼øÀ§ ¼³¸í -->
+
+
+            <!-- ìš°ì„ ìˆœìœ„ ì„¤ëª… -->
+
             <div class="mb-6">
+
                 <h4 class="font-bold text-lg text-gray-800 mb-3 flex items-center">
-                    <i class="fas fa-flag text-green-500 mr-2"></i>¿ì¼±¼øÀ§ Ç¥½Ã
+
+                    <i class="fas fa-flag text-green-500 mr-2"></i>ìš°ì„ ìˆœìœ„ í‘œì‹œ
+
                 </h4>
+
                 <div class="bg-gray-50 rounded-lg p-4">
+
                     <div class="flex flex-wrap gap-4 text-sm">
-                        <span class="flex items-center"><span class="priority-indicator priority-1"></span>¸Å¿ì ³·À½</span>
-                        <span class="flex items-center"><span class="priority-indicator priority-2"></span>³·À½</span>
-                        <span class="flex items-center"><span class="priority-indicator priority-3"></span>º¸Åë</span>
-                        <span class="flex items-center"><span class="priority-indicator priority-4"></span>³ôÀ½</span>
-                        <span class="flex items-center"><span class="priority-indicator priority-5"></span>¸Å¿ì ³ôÀ½</span>
+
+                        <span class="flex items-center"><span class="priority-indicator priority-1"></span>ë§¤ìš° ë‚®ìŒ</span>
+
+                        <span class="flex items-center"><span class="priority-indicator priority-2"></span>ë‚®ìŒ</span>
+
+                        <span class="flex items-center"><span class="priority-indicator priority-3"></span>ë³´í†µ</span>
+
+                        <span class="flex items-center"><span class="priority-indicator priority-4"></span>ë†’ìŒ</span>
+
+                        <span class="flex items-center"><span class="priority-indicator priority-5"></span>ë§¤ìš° ë†’ìŒ</span>
+
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">* ±â¾÷ ¸ñ·Ï ¿ŞÂÊÀÇ »ö»ó Á¡À¸·Î ¿ì¼±¼øÀ§¸¦ ºü¸£°Ô ÆÄ¾ÇÇÒ ¼ö ÀÖ½À´Ï´Ù.</p>
+
+                    <p class="text-xs text-gray-500 mt-2">* ê¸°ì—… ëª©ë¡ ì™¼ìª½ì˜ ìƒ‰ìƒ ì ìœ¼ë¡œ ìš°ì„ ìˆœìœ„ë¥¼ ë¹ ë¥´ê²Œ íŒŒì•…í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.</p>
+
                 </div>
+
             </div>
 
-            <!-- ÁÖ¿ä ±â´É ¼³¸í -->
+
+
+            <!-- ì£¼ìš” ê¸°ëŠ¥ ì„¤ëª… -->
+
             <div class="mb-6">
+
                 <h4 class="font-bold text-lg text-gray-800 mb-3 flex items-center">
-                    <i class="fas fa-mouse-pointer text-purple-500 mr-2"></i>ÁÖ¿ä ±â´É
+
+                    <i class="fas fa-mouse-pointer text-purple-500 mr-2"></i>ì£¼ìš” ê¸°ëŠ¥
+
                 </h4>
+
                 <div class="bg-gray-50 rounded-lg p-4">
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+
                         <div class="flex items-start">
+
                             <i class="fas fa-history text-blue-600 mt-1 mr-2 w-5"></i>
-                            <div><strong>Á¢ÃËÀÌ·Â</strong> - ÇØ´ç ±â¾÷°úÀÇ ¸ğµç Á¢ÃË ±â·Ï Á¶È¸</div>
+
+                            <div><strong>ì ‘ì´‰ì´ë ¥</strong> - í•´ë‹¹ ê¸°ì—…ê³¼ì˜ ëª¨ë“  ì ‘ì´‰ ê¸°ë¡ ì¡°íšŒ</div>
+
                         </div>
+
                         <div class="flex items-start">
+
                             <i class="fas fa-plus-circle text-green-600 mt-1 mr-2 w-5"></i>
-                            <div><strong>ÀÌ·ÂÃß°¡</strong> - »õ·Î¿î Á¢ÃË ³»¿ë ±â·Ï</div>
+
+                            <div><strong>ì´ë ¥ì¶”ê°€</strong> - ìƒˆë¡œìš´ ì ‘ì´‰ ë‚´ìš© ê¸°ë¡</div>
+
                         </div>
+
                         <div class="flex items-start">
+
                             <i class="fas fa-edit text-gray-600 mt-1 mr-2 w-5"></i>
-                            <div><strong>Á¤º¸¼öÁ¤</strong> - ±â¾÷ »óÅÂ, Å°¸Ç Á¤º¸ µî ¼öÁ¤</div>
+
+                            <div><strong>ì •ë³´ìˆ˜ì •</strong> - ê¸°ì—… ìƒíƒœ, í‚¤ë§¨ ì •ë³´ ë“± ìˆ˜ì •</div>
+
                         </div>
+
                         <div class="flex items-start">
+
                             <i class="fas fa-trash text-red-600 mt-1 mr-2 w-5"></i>
-                            <div><strong>»èÁ¦</strong> - ±â¾÷ ¹× °ü·Ã ÀÌ·Â ¸ğµÎ »èÁ¦</div>
+
+                            <div><strong>ì‚­ì œ</strong> - ê¸°ì—… ë° ê´€ë ¨ ì´ë ¥ ëª¨ë‘ ì‚­ì œ</div>
+
                         </div>
+
                     </div>
+
                 </div>
+
             </div>
 
-            <!-- ´ë½Ãº¸µå Ä«µå ¼³¸í -->
+
+
+            <!-- ëŒ€ì‹œë³´ë“œ ì¹´ë“œ ì„¤ëª… -->
+
             <div class="mb-4">
+
                 <h4 class="font-bold text-lg text-gray-800 mb-3 flex items-center">
-                    <i class="fas fa-th-large text-indigo-500 mr-2"></i>´ë½Ãº¸µå Ä«µå
+
+                    <i class="fas fa-th-large text-indigo-500 mr-2"></i>ëŒ€ì‹œë³´ë“œ ì¹´ë“œ
+
                 </h4>
+
                 <div class="bg-gray-50 rounded-lg p-4">
+
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+
                         <div class="bg-white p-3 rounded border">
-                            <div class="text-blue-600 font-bold">¿À´Ã ¿¬¶ôÇÒ ±â¾÷</div>
-                            <div class="text-xs text-gray-500">´ÙÀ½ ¿¬¶ô ¿¹Á¤ÀÏÀÌ ¿À´ÃÀÎ ±â¾÷</div>
+
+                            <div class="text-blue-600 font-bold">ì˜¤ëŠ˜ ì—°ë½í•  ê¸°ì—…</div>
+
+                            <div class="text-xs text-gray-500">ë‹¤ìŒ ì—°ë½ ì˜ˆì •ì¼ì´ ì˜¤ëŠ˜ì¸ ê¸°ì—…</div>
+
                         </div>
+
                         <div class="bg-white p-3 rounded border">
-                            <div class="text-red-600 font-bold">°ü¸® ¼ÒÈ¦ °æ°í</div>
-                            <div class="text-xs text-gray-500">°ü¸®ÁÖ±â°¡ ÃÊ°úµÈ ±â¾÷</div>
+
+                            <div class="text-red-600 font-bold">ê´€ë¦¬ ì†Œí™€ ê²½ê³ </div>
+
+                            <div class="text-xs text-gray-500">ê´€ë¦¬ì£¼ê¸°ê°€ ì´ˆê³¼ëœ ê¸°ì—…</div>
+
                         </div>
+
                         <div class="bg-white p-3 rounded border">
-                            <div class="text-green-600 font-bold">ÀüÃ¼ °ü¸® ±â¾÷</div>
-                            <div class="text-xs text-gray-500">µî·ÏµÈ ¸ğµç ±â¾÷ ¼ö</div>
+
+                            <div class="text-green-600 font-bold">ì „ì²´ ê´€ë¦¬ ê¸°ì—…</div>
+
+                            <div class="text-xs text-gray-500">ë“±ë¡ëœ ëª¨ë“  ê¸°ì—… ìˆ˜</div>
+
                         </div>
+
                         <div class="bg-white p-3 rounded border">
-                            <div class="text-purple-600 font-bold">¿¹»ó ¸ÅÃâ</div>
-                            <div class="text-xs text-gray-500">µî·ÏµÈ ¿¹»ó ¸ÅÃâ ÇÕ°è</div>
+
+                            <div class="text-purple-600 font-bold">ì˜ˆìƒ ë§¤ì¶œ</div>
+
+                            <div class="text-xs text-gray-500">ë“±ë¡ëœ ì˜ˆìƒ ë§¤ì¶œ í•©ê³„</div>
+
                         </div>
+
                     </div>
+
                 </div>
+
             </div>
+
+
 
             <div class="flex justify-end mt-6 pt-4 border-t">
+
                 <button @click="showHelpModal = false" 
+
                         class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    È®ÀÎ
+
+                    í™•ì¸
+
                 </button>
+
             </div>
+
         </div>
+
     </div>
 
-    <!-- ±â¾÷ µî·Ï ¸ğ´Ş -->
+
+
+    <!-- ê¸°ì—… ë“±ë¡ ëª¨ë‹¬ -->
+
     <div x-show="showAddCompanyModal" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+
         <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+
             <div class="mt-3">
+
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">°ü½É ±â¾÷ µî·Ï</h3>
+
+                    <h3 class="text-lg font-medium text-gray-900">ê´€ì‹¬ ê¸°ì—… ë“±ë¡</h3>
+
                     <button @click="closeAddCompanyModal()" class="text-gray-400 hover:text-gray-600">
+
                         <i class="fas fa-times"></i>
+
                     </button>
+
                 </div>
+
                 
-                <!-- ±â¾÷ °Ë»ö -->
+
+                <!-- ê¸°ì—… ê²€ìƒ‰ -->
+
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">±â¾÷ °Ë»ö</label>
+
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ê¸°ì—… ê²€ìƒ‰</label>
+
                     <input type="text" x-model="companySearch" @input="searchCompanies()"
-                           placeholder="±â¾÷¸í, ´ëÇ¥ÀÚ¸í ¶Ç´Â »ç¾÷ÀÚ¹øÈ£·Î °Ë»ö"
+
+                           placeholder="ê¸°ì—…ëª…, ëŒ€í‘œìëª… ë˜ëŠ” ì‚¬ì—…ìë²ˆí˜¸ë¡œ ê²€ìƒ‰"
+
                            class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                     
-                    <!-- °Ë»ö °á°ú -->
+
+                    <!-- ê²€ìƒ‰ ê²°ê³¼ -->
+
                     <div x-show="searchResults.length > 0" class="mt-2 max-h-40 overflow-y-auto border rounded-md">
+
                         <template x-for="result in searchResults">
+
                             <div @click="selectCompany(result)" 
+
                                  class="p-2 hover:bg-gray-50 cursor-pointer border-b">
+
                                 <div class="font-medium" x-text="result.company_name"></div>
+
                                 <div class="text-sm text-gray-500" x-text="result.representative_name + ' | ' + result.biz_no"></div>
+
                             </div>
+
                         </template>
+
                     </div>
+
                 </div>
 
-                <!-- ¼±ÅÃµÈ ±â¾÷ Á¤º¸ -->
+
+
+                <!-- ì„ íƒëœ ê¸°ì—… ì •ë³´ -->
+
                 <div x-show="selectedCompany" class="mb-4 p-3 bg-blue-50 rounded-md">
+
                     <div class="font-medium" x-text="selectedCompany?.company_name"></div>
+
                     <div class="text-sm text-gray-600" x-text="selectedCompany?.representative_name"></div>
+
                 </div>
 
-                <!-- ±â¾÷ µî·Ï Æû -->
+
+
+                <!-- ê¸°ì—… ë“±ë¡ í¼ -->
+
                 <form @submit.prevent="submitAddCompany()" x-show="selectedCompany">
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Å°¸Ç ÀÌ¸§*</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">í‚¤ë§¨ ì´ë¦„*</label>
+
                             <input type="text" x-model="newCompany.keyman_name" required
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Å°¸Ç Á÷±Ş</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">í‚¤ë§¨ ì§ê¸‰</label>
+
                             <input type="text" x-model="newCompany.keyman_position"
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Å°¸Ç ¿¬¶ôÃ³</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">í‚¤ë§¨ ì—°ë½ì²˜</label>
+
                             <input type="tel" x-model="newCompany.keyman_phone"
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Å°¸Ç ÀÌ¸ŞÀÏ</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">í‚¤ë§¨ ì´ë©”ì¼</label>
+
                             <input type="email" x-model="newCompany.keyman_email"
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">»óÅÂ</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ìƒíƒœ</label>
+
                             <select x-model="newCompany.status" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                <option value="prospect">ÀáÀç°í°´</option>
-                                <option value="contacted">Á¢ÃËÁß</option>
-                                <option value="proposal">Á¦¾È´Ü°è</option>
-                                <option value="negotiation">Çù»óÁß</option>
+
+                                <option value="prospect">ì ì¬ê³ ê°</option>
+
+                                <option value="contacted">ì ‘ì´‰ì¤‘</option>
+
+                                <option value="proposal">ì œì•ˆë‹¨ê³„</option>
+
+                                <option value="negotiation">í˜‘ìƒì¤‘</option>
+
                             </select>
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">¿ì¼±¼øÀ§</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ìš°ì„ ìˆœìœ„</label>
+
                             <select x-model="newCompany.priority_level" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                <option value="1">³·À½</option>
-                                <option value="2">º¸Åë</option>
-                                <option value="3">³ôÀ½</option>
-                                <option value="4">¸Å¿ì ³ôÀ½</option>
-                                <option value="5">ÃÖ¿ì¼±</option>
+
+                                <option value="1">ë‚®ìŒ</option>
+
+                                <option value="2">ë³´í†µ</option>
+
+                                <option value="3">ë†’ìŒ</option>
+
+                                <option value="4">ë§¤ìš° ë†’ìŒ</option>
+
+                                <option value="5">ìµœìš°ì„ </option>
+
                             </select>
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">´ÙÀ½ ¿¬¶ô ¿¹Á¤ÀÏ</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ë‹¤ìŒ ì—°ë½ ì˜ˆì •ì¼</label>
+
                             <input type="date" x-model="newCompany.next_contact_date"
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">¿¹»ó ¸ÅÃâ (º¸Çè°¡ÀÔ±İ¾×)</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ì˜ˆìƒ ë§¤ì¶œ (ë³´í—˜ê°€ì…ê¸ˆì•¡)</label>
+
                             <input type="number" x-model="newCompany.expected_amount"
-                                   placeholder="¿ø ´ÜÀ§·Î ÀÔ·Â (¿¹: 5000000)"
+
+                                   placeholder="ì› ë‹¨ìœ„ë¡œ ì…ë ¥ (ì˜ˆ: 5000000)"
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                     </div>
+
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">µî·Ï »çÀ¯</label>
+
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ë“±ë¡ ì‚¬ìœ </label>
+
                         <textarea x-model="newCompany.registration_reason" rows="2"
+
                                   class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+
                     </div>
+
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">¸Ş¸ğ</label>
+
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ë©”ëª¨</label>
+
                         <textarea x-model="newCompany.notes" rows="3"
+
                                   class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+
                     </div>
+
                     
+
                     <div class="flex justify-end space-x-3">
+
                         <button type="button" @click="closeAddCompanyModal()"
+
                                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
-                            Ãë¼Ò
+
+                            ì·¨ì†Œ
+
                         </button>
+
                         <button type="submit"
+
                                 class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                            µî·ÏÇÏ±â
+
+                            ë“±ë¡í•˜ê¸°
+
                         </button>
+
                     </div>
+
                 </form>
+
             </div>
+
         </div>
+
     </div>
 
-    <!-- ±â¾÷ Á¤º¸ ¼öÁ¤ ¸ğ´Ş -->
+
+
+    <!-- ê¸°ì—… ì •ë³´ ìˆ˜ì • ëª¨ë‹¬ -->
+
     <div x-show="showEditCompanyModal" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+
         <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+
             <div class="mt-3">
+
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">±â¾÷ Á¤º¸ ¼öÁ¤</h3>
+
+                    <h3 class="text-lg font-medium text-gray-900">ê¸°ì—… ì •ë³´ ìˆ˜ì •</h3>
+
                     <button @click="showEditCompanyModal = false" class="text-gray-400 hover:text-gray-600">
+
                         <i class="fas fa-times"></i>
+
                     </button>
+
                 </div>
 
-                <!-- ±â¾÷ Á¤º¸ Ç¥½Ã -->
+
+
+                <!-- ê¸°ì—… ì •ë³´ í‘œì‹œ -->
+
                 <div x-show="editingCompany" class="mb-4 p-3 bg-blue-50 rounded-md">
+
                     <div class="font-medium" x-text="editingCompany?.company_name"></div>
+
                     <div class="text-sm text-gray-600" x-text="editingCompany?.representative_name"></div>
+
                     <div class="text-sm text-gray-500" x-text="editingCompany?.biz_reg_no"></div>
+
                 </div>
 
-                <!-- ±â¾÷ ¼öÁ¤ Æû -->
+
+
+                <!-- ê¸°ì—… ìˆ˜ì • í¼ -->
+
                 <form @submit.prevent="submitEditCompany()" x-show="editingCompany">
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Å°¸Ç ÀÌ¸§*</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">í‚¤ë§¨ ì´ë¦„*</label>
+
                             <input type="text" x-model="editCompanyForm.keyman_name" required
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Å°¸Ç Á÷±Ş</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">í‚¤ë§¨ ì§ê¸‰</label>
+
                             <input type="text" x-model="editCompanyForm.keyman_position"
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Å°¸Ç ¿¬¶ôÃ³</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">í‚¤ë§¨ ì—°ë½ì²˜</label>
+
                             <input type="tel" x-model="editCompanyForm.keyman_phone"
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Å°¸Ç ÀÌ¸ŞÀÏ</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">í‚¤ë§¨ ì´ë©”ì¼</label>
+
                             <input type="email" x-model="editCompanyForm.keyman_email"
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">»óÅÂ</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ìƒíƒœ</label>
+
                             <select x-model="editCompanyForm.status" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                <option value="prospect">ÀáÀç°í°´</option>
-                                <option value="contacted">Á¢ÃËÁß</option>
-                                <option value="proposal">Á¦¾È´Ü°è</option>
-                                <option value="negotiation">Çù»óÁß</option>
-                                <option value="contract">°è¾à¿Ï·á</option>
-                                <option value="hold">º¸·ù</option>
+
+                                <option value="prospect">ì ì¬ê³ ê°</option>
+
+                                <option value="contacted">ì ‘ì´‰ì¤‘</option>
+
+                                <option value="proposal">ì œì•ˆë‹¨ê³„</option>
+
+                                <option value="negotiation">í˜‘ìƒì¤‘</option>
+
+                                <option value="contract">ê³„ì•½ì™„ë£Œ</option>
+
+                                <option value="hold">ë³´ë¥˜</option>
+
                             </select>
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">¿ì¼±¼øÀ§</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ìš°ì„ ìˆœìœ„</label>
+
                             <select x-model="editCompanyForm.priority_level" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                <option value="1">³·À½</option>
-                                <option value="2">º¸Åë</option>
-                                <option value="3">³ôÀ½</option>
-                                <option value="4">¸Å¿ì ³ôÀ½</option>
-                                <option value="5">ÃÖ¿ì¼±</option>
+
+                                <option value="1">ë‚®ìŒ</option>
+
+                                <option value="2">ë³´í†µ</option>
+
+                                <option value="3">ë†’ìŒ</option>
+
+                                <option value="4">ë§¤ìš° ë†’ìŒ</option>
+
+                                <option value="5">ìµœìš°ì„ </option>
+
                             </select>
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">¸¶Áö¸· Á¢ÃËÀÏ</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ë§ˆì§€ë§‰ ì ‘ì´‰ì¼</label>
+
                             <input type="date" x-model="editCompanyForm.last_contact_date"
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">´ÙÀ½ ¿¬¶ô ¿¹Á¤ÀÏ</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ë‹¤ìŒ ì—°ë½ ì˜ˆì •ì¼</label>
+
                             <input type="date" x-model="editCompanyForm.next_contact_date"
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">¿¹»ó ¸ÅÃâ (º¸Çè°¡ÀÔ±İ¾×)</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ì˜ˆìƒ ë§¤ì¶œ (ë³´í—˜ê°€ì…ê¸ˆì•¡)</label>
+
                             <input type="number" x-model="editCompanyForm.expected_amount"
-                                   placeholder="¿ø ´ÜÀ§·Î ÀÔ·Â (¿¹: 5000000)"
+
+                                   placeholder="ì› ë‹¨ìœ„ë¡œ ì…ë ¥ (ì˜ˆ: 5000000)"
+
                                    class="w-full px-3 py-2 border border-gray-300 rounded-md">
+
                         </div>
+
                     </div>
+
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">¸Ş¸ğ</label>
+
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ë©”ëª¨</label>
+
                         <textarea x-model="editCompanyForm.notes" rows="3"
+
                                   class="w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+
                     </div>
+
                     
+
                     <div class="flex justify-between">
+
                         <button type="button" @click="deleteCompanyFromModal()"
+
                                 class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
-                            <i class="fas fa-trash mr-1"></i> »èÁ¦
+
+                            <i class="fas fa-trash mr-1"></i> ì‚­ì œ
+
                         </button>
+
                         <div class="flex space-x-3">
+
                             <button type="button" @click="showEditCompanyModal = false"
+
                                     class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
-                                Ãë¼Ò
+
+                                ì·¨ì†Œ
+
                             </button>
+
                             <button type="submit"
+
                                     class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                                ¼öÁ¤ ¿Ï·á
+
+                                ìˆ˜ì • ì™„ë£Œ
+
                             </button>
+
                         </div>
+
                     </div>
+
                 </form>
+
             </div>
+
         </div>
+
     </div>
 
-    <!-- Á¢ÃË ÀÌ·Â ¸ğ´Ş -->
+
+
+    <!-- ì ‘ì´‰ ì´ë ¥ ëª¨ë‹¬ -->
+
     <div x-show="showContactModal" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+
         <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white">
+
             <div class="mt-3">
+
                 <div class="flex justify-between items-center mb-4">
+
                     <h3 class="text-lg font-medium text-gray-900">
-                        <span x-text="selectedCompanyForContact?.company_name"></span> - Á¢ÃË ÀÌ·Â
+
+                        <span x-text="selectedCompanyForContact?.company_name"></span> - ì ‘ì´‰ ì´ë ¥
+
                     </h3>
+
                     <button @click="showContactModal = false" class="text-gray-400 hover:text-gray-600">
+
                         <i class="fas fa-times"></i>
+
                     </button>
+
                 </div>
 
-                <!-- »õ Á¢ÃË ÀÌ·Â Ãß°¡ -->
+
+
+                <!-- ìƒˆ ì ‘ì´‰ ì´ë ¥ ì¶”ê°€ -->
+
                 <div class="bg-gray-50 p-4 rounded-md mb-4">
-                    <h4 class="font-medium mb-3">»õ Á¢ÃË ÀÌ·Â Ãß°¡</h4>
+
+                    <h4 class="font-medium mb-3">ìƒˆ ì ‘ì´‰ ì´ë ¥ ì¶”ê°€</h4>
+
                     <form @submit.prevent="submitContactHistory()">
+
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Á¢ÃËÀÏ*</label>
+
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ì ‘ì´‰ì¼*</label>
+
                                 <input type="date" x-model="newContact.contact_date" required
+
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+
                             </div>
+
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Á¢ÃË À¯Çü*</label>
+
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ì ‘ì´‰ ìœ í˜•*</label>
+
                                 <select x-model="newContact.contact_type" required
+
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
-                                    <option value="phone">ÀüÈ­</option>
-                                    <option value="visit">¹æ¹®</option>
-                                    <option value="email">ÀÌ¸ŞÀÏ</option>
-                                    <option value="message">¹®ÀÚ</option>
-                                    <option value="meeting">¹ÌÆÃ</option>
-                                    <option value="gift">¼±¹°Áö±Ş</option>
-                                    <option value="consulting">ÄÁ¼³ÆÃ</option>
-                                    <option value="proposal">Á¦¾È¼­ Á¦Ãâ</option>
-                                    <option value="contract">°è¾à Ã¼°á</option>
+
+                                    <option value="phone">ì „í™”</option>
+
+                                    <option value="visit">ë°©ë¬¸</option>
+
+                                    <option value="email">ì´ë©”ì¼</option>
+
+                                    <option value="message">ë¬¸ì</option>
+
+                                    <option value="meeting">ë¯¸íŒ…</option>
+
+                                    <option value="gift">ì„ ë¬¼ì§€ê¸‰</option>
+
+                                    <option value="consulting">ì»¨ì„¤íŒ…</option>
+
+                                    <option value="proposal">ì œì•ˆì„œ ì œì¶œ</option>
+
+                                    <option value="contract">ê³„ì•½ ì²´ê²°</option>
+
                                 </select>
+
                             </div>
+
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">ºñ¿ë</label>
+
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ë¹„ìš©</label>
+
                                 <input type="number" x-model="newContact.cost"
+
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+
                             </div>
+
                         </div>
+
                         <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">³»¿ë*</label>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ë‚´ìš©*</label>
+
                             <textarea x-model="newContact.content" required rows="3"
+
                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"></textarea>
+
                         </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+
                             <div>
+
                                 <label class="flex items-center">
+
                                     <input type="checkbox" x-model="newContact.follow_up_required" class="mr-2">
-                                    <span class="text-sm text-gray-700">ÈÄ¼Ó ¾à¼Ó ÇÊ¿ä</span>
+
+                                    <span class="text-sm text-gray-700">í›„ì† ì•½ì† í•„ìš”</span>
+
                                 </label>
+
                             </div>
+
                             <div x-show="newContact.follow_up_required">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">ÈÄ¼Ó ¾à¼ÓÀÏ</label>
+
+                                <label class="block text-sm font-medium text-gray-700 mb-1">í›„ì† ì•½ì†ì¼</label>
+
                                 <input type="date" x-model="newContact.follow_up_date"
+
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+
                             </div>
+
                         </div>
+
                         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm">
-                            ÀÌ·Â Ãß°¡
+
+                            ì´ë ¥ ì¶”ê°€
+
                         </button>
+
                     </form>
+
                 </div>
 
-                <!-- ±âÁ¸ Á¢ÃË ÀÌ·Â ¸ñ·Ï -->
+
+
+                <!-- ê¸°ì¡´ ì ‘ì´‰ ì´ë ¥ ëª©ë¡ -->
+
                 <div class="max-h-96 overflow-y-auto">
+
                     <template x-for="history in contactHistory" :key="history.id">
+
                         <div class="border-l-4 border-blue-200 pl-4 pb-4 mb-4">
+
                             <div class="flex justify-between items-start">
+
                                 <div class="flex-1">
+
                                     <div class="flex items-center mb-1">
+
                                         <span class="text-lg mr-2" x-text="getContactTypeIcon(history.contact_type)"></span>
+
                                         <span class="font-medium text-gray-900" x-text="getContactTypeText(history.contact_type)"></span>
+
                                         <span class="ml-2 text-sm text-gray-500" x-text="formatDate(history.contact_date)"></span>
+
                                         <span x-show="history.cost > 0" class="ml-2 text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+
                                             <span x-text="formatMoney(history.cost)"></span>
+
                                         </span>
+
                                     </div>
+
                                     <p class="text-gray-700 text-sm" x-text="history.content"></p>
+
                                     <div x-show="history.follow_up_required" class="mt-2">
+
                                         <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                            ÈÄ¼Ó ¾à¼Ó: <span x-text="formatDate(history.follow_up_date)"></span>
+
+                                            í›„ì† ì•½ì†: <span x-text="formatDate(history.follow_up_date)"></span>
+
                                         </span>
+
                                     </div>
+
                                 </div>
+
                             </div>
+
                         </div>
+
                     </template>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
+
+
 
     <script>
+        function formatBizNo(bn) {
+            if (!bn) return '-';
+            const clean = bn.toString().replace(/[^0-9]/g, '');
+            if (clean.length !== 10) return bn;
+            return clean.replace(/(\d{3})(\d{2})(\d{5})/, '$1-$2-$3');
+        }
+
+
         function pipelineApp() {
+
             return {
-                // µ¥ÀÌÅÍ
+
+                // ë°ì´í„°
+
                 allCompanies: [],
+
                 filteredCompanies: [],
+
                 todayContacts: [],
+
                 urgentCompanies: [],
+
                 contactHistory: [],
+
                 statusStats: {},
+
                 
-                // ÇÊÅÍ
+
+                // í•„í„°
+
                 statusFilter: '',
+
                 dashboardFilter: '',
+
                 
-                // ¸ğ´Ş »óÅÂ
+
+                // ëª¨ë‹¬ ìƒíƒœ
+
                 showHelpModal: false,
+
                 showDetailModal: false,
+
                 detailBizNo: '',
+
                 showAddCompanyModal: false,
+
                 showContactModal: false,
+
                 showEditCompanyModal: false,
+
                 
-                // °Ë»ö °ü·Ã
+
+                // ê²€ìƒ‰ ê´€ë ¨
+
                 companySearch: '',
+
                 searchResults: [],
+
                 selectedCompany: null,
+
                 
-                // Æû µ¥ÀÌÅÍ
+
+                // í¼ ë°ì´í„°
+
                 newCompany: {
+
                     keyman_name: '',
+
                     keyman_phone: '',
+
                     keyman_position: '',
+
                     keyman_email: '',
+
                     status: 'prospect',
+
                     priority_level: 3,
+
                     registration_reason: '',
+
                     next_contact_date: '',
+
                     expected_amount: 0,
+
                     notes: ''
+
                 },
+
                 
+
                 newContact: {
+
                     contact_date: new Date().toISOString().split('T')[0],
+
                     contact_type: 'phone',
+
                     content: '',
+
                     cost: 0,
+
                     follow_up_required: false,
+
                     follow_up_date: ''
+
                 },
+
                 
+
                 selectedCompanyForContact: null,
+
                 editingCompany: null,
+
                 
-                // ¼öÁ¤ Æû µ¥ÀÌÅÍ
+
+                // ìˆ˜ì • í¼ ë°ì´í„°
+
                 editCompanyForm: {
+
                     keyman_name: '',
+
                     keyman_phone: '',
+
                     keyman_position: '',
+
                     keyman_email: '',
+
                     status: 'prospect',
+
                     priority_level: 3,
+
                     last_contact_date: '',
+
                     next_contact_date: '',
+
                     expected_amount: 0,
+
                     notes: ''
+
                 },
 
-                // ÃÊ±âÈ­
+
+
+                // ì´ˆê¸°í™”
+
                 init() {
+
                     this.loadDashboardData();
+
                     this.checkAutoRegister();
+
                 },
 
-                // URL ÆÄ¶ó¹ÌÅÍ·Î ÀÚµ¿ µî·Ï ¸ğµå Ã¼Å©
+
+
+                // URL íŒŒë¼ë¯¸í„°ë¡œ ìë™ ë“±ë¡ ëª¨ë“œ ì²´í¬
+
                 checkAutoRegister() {
+
                     const urlParams = new URLSearchParams(window.location.search);
+
                     if (urlParams.get('register') === 'true') {
+
                         const bizNo = urlParams.get('biz_no');
+
                         const companyName = urlParams.get('company_name');
+
                         const representative = urlParams.get('representative');
+
                         
+
                         if (bizNo && companyName) {
-                            // ÀÚµ¿À¸·Î ±â¾÷ ¼±ÅÃ ¹× ¸ğ´Ş ¿­±â
+
+                            // ìë™ìœ¼ë¡œ ê¸°ì—… ì„ íƒ ë° ëª¨ë‹¬ ì—´ê¸°
+
                             this.selectedCompany = {
+
                                 biz_no: bizNo,
+
                                 company_name: companyName,
+
                                 representative_name: representative
+
                             };
+
                             this.companySearch = companyName;
+
                             this.showAddCompanyModal = true;
+
                         }
+
                     }
+
                 },
 
-                // ´ë½Ãº¸µå µ¥ÀÌÅÍ ·Îµå
+
+
+                // ëŒ€ì‹œë³´ë“œ ë°ì´í„° ë¡œë“œ
+
                 async loadDashboardData() {
+
                     try {
-                        console.log('API È£Ãâ ½ÃÀÛ...');
+
+                        console.log('API í˜¸ì¶œ ì‹œì‘...');
+
                         const response = await fetch('/api/pipeline/dashboard');
+
                         const data = await response.json();
-                        console.log('API ÀÀ´ä:', data);
+
+                        console.log('API ì‘ë‹µ:', data);
+
                         
+
                         if (data.success) {
+
                             this.allCompanies = data.data.all_companies;
+
                             this.todayContacts = data.data.today_contacts;
+
                             this.urgentCompanies = data.data.urgent_companies;
+
                             this.statusStats = data.data.status_stats;
+
                             console.log('allCompanies:', this.allCompanies);
+
                             console.log('urgentCompanies:', this.urgentCompanies);
+
                             this.filterCompanies();
+
                         } else {
-                            console.error('API ½ÇÆĞ:', data.message);
+
+                            console.error('API ì‹¤íŒ¨:', data.message);
+
                         }
+
                     } catch (error) {
-                        console.error('µ¥ÀÌÅÍ ·Îµå ½ÇÆĞ:', error);
-                        alert('µ¥ÀÌÅÍ¸¦ ºÒ·¯¿À´Â Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.');
+
+                        console.error('ë°ì´í„° ë¡œë“œ ì‹¤íŒ¨:', error);
+
+                        alert('ë°ì´í„°ë¥¼ ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.');
+
                     }
+
                 },
 
-                // ±â¾÷ °Ë»ö
+
+
+                // ê¸°ì—… ê²€ìƒ‰
+
                 async searchCompanies() {
+
                     if (this.companySearch.length < 2) {
+
                         this.searchResults = [];
+
                         return;
+
                     }
 
+
+
                     try {
+
                         const response = await fetch(`/api/companies/search?q=${encodeURIComponent(this.companySearch)}`);
+
                         const data = await response.json();
+
                         
+
                         if (data.success) {
+
                             this.searchResults = data.data;
+
                         }
+
                     } catch (error) {
-                        console.error('°Ë»ö ½ÇÆĞ:', error);
+
+                        console.error('ê²€ìƒ‰ ì‹¤íŒ¨:', error);
+
                     }
+
                 },
 
-                // ±â¾÷ ¼±ÅÃ
+
+
+                // ê¸°ì—… ì„ íƒ
+
                 selectCompany(company) {
+
                     this.selectedCompany = company;
+
                     this.searchResults = [];
+
                     this.companySearch = company.company_name;
+
                 },
 
-                // »õ ±â¾÷ µî·Ï
+
+
+                // ìƒˆ ê¸°ì—… ë“±ë¡
+
                 async submitAddCompany() {
+
                     if (!this.selectedCompany) {
-                        alert('±â¾÷À» ¸ÕÀú ¼±ÅÃÇØÁÖ¼¼¿ä.');
+
+                        alert('ê¸°ì—…ì„ ë¨¼ì € ì„ íƒí•´ì£¼ì„¸ìš”.');
+
                         return;
+
                     }
 
+
+
                     try {
+
                         const response = await fetch('/api/pipeline/company', {
+
                             method: 'POST',
+
                             headers: {
+
                                 'Content-Type': 'application/json',
+
                             },
+
                             body: JSON.stringify({
+
                                 biz_reg_no: this.selectedCompany.biz_no,
+
                                 ...this.newCompany
+
                             })
+
                         });
 
+
+
                         const data = await response.json();
+
                         
+
                         if (data.success) {
-                            alert('±â¾÷ÀÌ µî·ÏµÇ¾ú½À´Ï´Ù.');
+
+                            alert('ê¸°ì—…ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤.');
+
                             this.closeAddCompanyModal();
+
                             this.loadDashboardData();
+
                         } else {
+
                             alert(data.message);
+
                         }
+
                     } catch (error) {
-                        console.error('µî·Ï ½ÇÆĞ:', error);
-                        alert('µî·Ï Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.');
+
+                        console.error('ë“±ë¡ ì‹¤íŒ¨:', error);
+
+                        alert('ë“±ë¡ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.');
+
                     }
+
                 },
 
-                // Á¢ÃË ÀÌ·Â º¸±â
+
+
+                // ì ‘ì´‰ ì´ë ¥ ë³´ê¸°
+
                 async showContactHistory(company) {
+
                     this.selectedCompanyForContact = company;
+
                     
+
                     try {
+
                         const response = await fetch(`/api/pipeline/contact/${company.id}`);
+
                         const data = await response.json();
+
                         
+
                         if (data.success) {
+
                             this.contactHistory = data.data;
+
                             this.showContactModal = true;
+
                         }
+
                     } catch (error) {
-                        console.error('ÀÌ·Â Á¶È¸ ½ÇÆĞ:', error);
-                        alert('Á¢ÃË ÀÌ·ÂÀ» ºÒ·¯¿À´Â Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.');
+
+                        console.error('ì´ë ¥ ì¡°íšŒ ì‹¤íŒ¨:', error);
+
+                        alert('ì ‘ì´‰ ì´ë ¥ì„ ë¶ˆëŸ¬ì˜¤ëŠ” ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.');
+
                     }
+
                 },
 
-                // Á¢ÃË ÀÌ·Â Ãß°¡
+
+
+                // ì ‘ì´‰ ì´ë ¥ ì¶”ê°€
+
                 async submitContactHistory() {
+
                     try {
+
                         const response = await fetch('/api/pipeline/contact', {
+
                             method: 'POST',
+
                             headers: {
+
                                 'Content-Type': 'application/json',
+
                             },
+
                             body: JSON.stringify({
+
                                 managed_company_id: this.selectedCompanyForContact.id,
+
                                 ...this.newContact
+
                             })
+
                         });
 
+
+
                         const data = await response.json();
+
                         
+
                         if (data.success) {
-                            alert('Á¢ÃË ÀÌ·ÂÀÌ µî·ÏµÇ¾ú½À´Ï´Ù.');
+
+                            alert('ì ‘ì´‰ ì´ë ¥ì´ ë“±ë¡ë˜ì—ˆìŠµë‹ˆë‹¤.');
+
                             this.newContact = {
+
                                 contact_date: new Date().toISOString().split('T')[0],
+
                                 contact_type: 'phone',
+
                                 content: '',
+
                                 cost: 0,
+
                                 follow_up_required: false,
+
                                 follow_up_date: ''
+
                             };
+
                             this.showContactHistory(this.selectedCompanyForContact);
+
                             this.loadDashboardData();
+
                         } else {
+
                             alert(data.message);
+
                         }
+
                     } catch (error) {
-                        console.error('ÀÌ·Â µî·Ï ½ÇÆĞ:', error);
-                        alert('ÀÌ·Â µî·Ï Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.');
+
+                        console.error('ì´ë ¥ ë“±ë¡ ì‹¤íŒ¨:', error);
+
+                        alert('ì´ë ¥ ë“±ë¡ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.');
+
                     }
+
                 },
 
-                // ±â¾÷ Ãß°¡ ¸ğ´Ş ´İ±â
+
+
+                // ê¸°ì—… ì¶”ê°€ ëª¨ë‹¬ ë‹«ê¸°
+
                 closeAddCompanyModal() {
+
                     this.showAddCompanyModal = false;
+
                     this.selectedCompany = null;
+
                     this.companySearch = '';
+
                     this.searchResults = [];
+
                     this.newCompany = {
+
                         keyman_name: '',
+
                         keyman_phone: '',
+
                         keyman_position: '',
+
                         keyman_email: '',
+
                         status: 'prospect',
+
                         priority_level: 3,
+
                         registration_reason: '',
+
                         next_contact_date: '',
+
                         expected_amount: 0,
+
                         notes: ''
+
                     };
+
                 },
 
-                // ´ë½Ãº¸µå Ä«µå Å¬¸¯ ÇÊÅÍ¸µ
+
+
+                // ëŒ€ì‹œë³´ë“œ ì¹´ë“œ í´ë¦­ í•„í„°ë§
+
                 filterByDashboard(filterType) {
-                    // °°Àº Ä«µå ´Ù½Ã Å¬¸¯ÇÏ¸é ÇÊÅÍ ÇØÁ¦
+
+                    // ê°™ì€ ì¹´ë“œ ë‹¤ì‹œ í´ë¦­í•˜ë©´ í•„í„° í•´ì œ
+
                     if (this.dashboardFilter === filterType) {
+
                         this.dashboardFilter = '';
+
                         this.statusFilter = '';
+
                         this.filteredCompanies = [...this.allCompanies];
+
                     } else {
+
                         this.dashboardFilter = filterType;
-                        this.statusFilter = ''; // »óÅÂ ÇÊÅÍ ÃÊ±âÈ­
+
+                        this.statusFilter = ''; // ìƒíƒœ í•„í„° ì´ˆê¸°í™”
+
                         
+
                         if (filterType === 'today') {
+
                             this.filteredCompanies = [...this.todayContacts];
+
                         } else if (filterType === 'urgent') {
+
                             this.filteredCompanies = [...this.urgentCompanies];
+
                         } else if (filterType === 'all') {
+
                             this.filteredCompanies = [...this.allCompanies];
+
                         }
+
                     }
+
                 },
 
-                // ±â¾÷ »ó¼¼ ÆË¾÷ ¿­±â
+
+
+                // ê¸°ì—… ìƒì„¸ íŒì—… ì—´ê¸°
+
                 openCompanyDetail(company) {
+
                     this.detailBizNo = company.biz_reg_no;
+
                     this.showDetailModal = true;
+
                 },
 
-                // ±â¾÷ »ó¼¼ ÆË¾÷ ´İ±â
+
+
+                // ê¸°ì—… ìƒì„¸ íŒì—… ë‹«ê¸°
+
                 closeDetailModal() {
+
                     this.showDetailModal = false;
+
                     this.detailBizNo = '';
+
                 },
 
-                // ÇÊÅÍ¸µ
+
+
+                // í•„í„°ë§
+
                 filterCompanies() {
-                    this.dashboardFilter = ''; // ´ë½Ãº¸µå ÇÊÅÍ ÃÊ±âÈ­
+
+                    this.dashboardFilter = ''; // ëŒ€ì‹œë³´ë“œ í•„í„° ì´ˆê¸°í™”
+
                     if (this.statusFilter) {
+
                         this.filteredCompanies = this.allCompanies.filter(c => c.status === this.statusFilter);
+
                     } else {
+
                         this.filteredCompanies = [...this.allCompanies];
+
                     }
+
                 },
 
-                // À¯Æ¿¸®Æ¼ ÇÔ¼öµé
+
+
+                // ìœ í‹¸ë¦¬í‹° í•¨ìˆ˜ë“¤
+
                 formatDate(dateString) {
+
                     if (!dateString) return '-';
+
                     return new Date(dateString).toLocaleDateString('ko-KR');
+
                 },
+
+
 
                 formatMoney(amount) {
-                    if (!amount) return '0¿ø';
-                    return new Intl.NumberFormat('ko-KR').format(amount) + '¿ø';
+
+                    if (!amount) return '0ì›';
+
+                    return new Intl.NumberFormat('ko-KR').format(amount) + 'ì›';
+
                 },
+
+
 
                 calculateDday(targetDate) {
+
                     if (!targetDate) return '';
+
                     
+
                     const today = new Date();
+
                     const target = new Date(targetDate);
+
                     const diffTime = target - today;
+
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
                     
+
                     if (diffDays === 0) return 'D-Day';
+
                     if (diffDays > 0) return `D-${diffDays}`;
+
                     return `D+${Math.abs(diffDays)}`;
+
                 },
+
+
 
                 getDdayClass(targetDate) {
+
                     if (!targetDate) return '';
+
                     
+
                     const today = new Date();
+
                     const target = new Date(targetDate);
+
                     const diffTime = target - today;
+
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
                     
+
                     if (diffDays <= 0) return 'text-red-600 font-bold';
+
                     if (diffDays <= 3) return 'text-orange-600 font-medium';
+
                     return 'text-gray-600';
+
                 },
+
+
 
                 getStatusText(status) {
+
                     const statusMap = {
-                        'prospect': 'ÀáÀç°í°´',
-                        'contacted': 'Á¢ÃËÁß',
-                        'proposal': 'Á¦¾È´Ü°è',
-                        'negotiation': 'Çù»óÁß',
-                        'contract': '°è¾à¿Ï·á',
-                        'hold': 'º¸·ù'
+
+                        'prospect': 'ì ì¬ê³ ê°',
+
+                        'contacted': 'ì ‘ì´‰ì¤‘',
+
+                        'proposal': 'ì œì•ˆë‹¨ê³„',
+
+                        'negotiation': 'í˜‘ìƒì¤‘',
+
+                        'contract': 'ê³„ì•½ì™„ë£Œ',
+
+                        'hold': 'ë³´ë¥˜'
+
                     };
+
                     return statusMap[status] || status;
+
                 },
+
+
 
                 getStatusBadgeClass(status) {
+
                     const classMap = {
+
                         'prospect': 'bg-gray-100 text-gray-800',
+
                         'contacted': 'bg-blue-100 text-blue-800',
+
                         'proposal': 'bg-yellow-100 text-yellow-800',
+
                         'negotiation': 'bg-orange-100 text-orange-800',
+
                         'contract': 'bg-green-100 text-green-800',
+
                         'hold': 'bg-red-100 text-red-800'
+
                     };
+
                     return classMap[status] || 'bg-gray-100 text-gray-800';
+
                 },
+
+
 
                 getContactTypeText(type) {
+
                     const typeMap = {
-                        'phone': 'ÀüÈ­',
-                        'visit': '¹æ¹®',
-                        'email': 'ÀÌ¸ŞÀÏ',
-                        'message': '¹®ÀÚ',
-                        'meeting': '¹ÌÆÃ',
-                        'gift': '¼±¹°Áö±Ş',
-                        'consulting': 'ÄÁ¼³ÆÃ',
-                        'proposal': 'Á¦¾È¼­ Á¦Ãâ',
-                        'contract': '°è¾à Ã¼°á'
+
+                        'phone': 'ì „í™”',
+
+                        'visit': 'ë°©ë¬¸',
+
+                        'email': 'ì´ë©”ì¼',
+
+                        'message': 'ë¬¸ì',
+
+                        'meeting': 'ë¯¸íŒ…',
+
+                        'gift': 'ì„ ë¬¼ì§€ê¸‰',
+
+                        'consulting': 'ì»¨ì„¤íŒ…',
+
+                        'proposal': 'ì œì•ˆì„œ ì œì¶œ',
+
+                        'contract': 'ê³„ì•½ ì²´ê²°'
+
                     };
+
                     return typeMap[type] || type;
+
                 },
+
+
 
                 getContactTypeIcon(type) {
+
                     const iconMap = {
+
                         'phone': '?',
+
                         'visit': '?',
+
                         'email': '?',
+
                         'message': '?',
+
                         'meeting': '?',
+
                         'gift': '?',
+
                         'consulting': '?',
+
                         'proposal': '?',
+
                         'contract': '?'
+
                     };
+
                     return iconMap[type] || '?';
+
                 },
+
+
 
                 isUrgent(company) {
+
                     return this.urgentCompanies.some(urgent => urgent.id === company.id);
+
                 },
+
+
 
                 get totalExpectedAmount() {
+
                     return this.allCompanies.reduce((sum, company) => sum + (company.expected_amount || 0), 0);
+
                 },
 
-                // ±â¾÷ Á¤º¸ ¼öÁ¤
+
+
+                // ê¸°ì—… ì •ë³´ ìˆ˜ì •
+
                 editCompany(company) {
+
                     this.editingCompany = company;
+
                     this.editCompanyForm = {
+
                         keyman_name: company.keyman_name || '',
+
                         keyman_phone: company.keyman_phone || '',
+
                         keyman_position: company.keyman_position || '',
+
                         keyman_email: company.keyman_email || '',
+
                         status: company.status || 'prospect',
+
                         priority_level: company.priority_level || 3,
+
                         last_contact_date: company.last_contact_date || '',
+
                         next_contact_date: company.next_contact_date || '',
+
                         expected_amount: company.expected_amount || 0,
+
                         notes: company.notes || ''
+
                     };
+
                     this.showEditCompanyModal = true;
+
                 },
 
-                // ±â¾÷ Á¤º¸ ¼öÁ¤ Á¦Ãâ
+
+
+                // ê¸°ì—… ì •ë³´ ìˆ˜ì • ì œì¶œ
+
                 async submitEditCompany() {
+
                     if (!this.editingCompany) return;
 
+
+
                     try {
+
                         const response = await fetch(`/api/pipeline/company/${this.editingCompany.id}`, {
+
                             method: 'PUT',
+
                             headers: {
+
                                 'Content-Type': 'application/json',
+
                             },
+
                             body: JSON.stringify(this.editCompanyForm)
+
                         });
 
+
+
                         const data = await response.json();
+
                         
+
                         if (data.success) {
-                            alert('±â¾÷ Á¤º¸°¡ ¼öÁ¤µÇ¾ú½À´Ï´Ù.');
+
+                            alert('ê¸°ì—… ì •ë³´ê°€ ìˆ˜ì •ë˜ì—ˆìŠµë‹ˆë‹¤.');
+
                             this.showEditCompanyModal = false;
+
                             this.loadDashboardData();
+
                         } else {
+
                             alert(data.message);
+
                         }
+
                     } catch (error) {
-                        console.error('¼öÁ¤ ½ÇÆĞ:', error);
-                        alert('¼öÁ¤ Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.');
+
+                        console.error('ìˆ˜ì • ì‹¤íŒ¨:', error);
+
+                        alert('ìˆ˜ì • ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.');
+
                     }
+
                 },
 
-                // ±â´É È®ÀåÀ» À§ÇÑ ÇÃ·¹ÀÌ½ºÈ¦´õ
+
+
+                // ê¸°ëŠ¥ í™•ì¥ì„ ìœ„í•œ í”Œë ˆì´ìŠ¤í™€ë”
+
                 addContactRecord(company) {
+
                     this.showContactHistory(company);
+
                 },
 
-                // ±â¾÷ »èÁ¦ (±×¸®µå¿¡¼­)
+
+
+                // ê¸°ì—… ì‚­ì œ (ê·¸ë¦¬ë“œì—ì„œ)
+
                 async deleteCompany(company) {
-                    if (!confirm(`"${company.company_name}" ±â¾÷À» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?\n\n¡Ø °ü·Ã Á¢ÃË ÀÌ·Âµµ ÇÔ²² »èÁ¦µË´Ï´Ù.`)) {
+
+                    if (!confirm(`"${company.company_name}" ê¸°ì—…ì„ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?\n\nâ€» ê´€ë ¨ ì ‘ì´‰ ì´ë ¥ë„ í•¨ê»˜ ì‚­ì œë©ë‹ˆë‹¤.`)) {
+
                         return;
+
                     }
+
                     await this.performDeleteCompany(company.id);
+
                 },
 
-                // ±â¾÷ »èÁ¦ (¼öÁ¤ ¸ğ´Ş¿¡¼­)
+
+
+                // ê¸°ì—… ì‚­ì œ (ìˆ˜ì • ëª¨ë‹¬ì—ì„œ)
+
                 async deleteCompanyFromModal() {
+
                     if (!this.editingCompany) return;
-                    if (!confirm(`"${this.editingCompany.company_name}" ±â¾÷À» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?\n\n¡Ø °ü·Ã Á¢ÃË ÀÌ·Âµµ ÇÔ²² »èÁ¦µË´Ï´Ù.`)) {
+
+                    if (!confirm(`"${this.editingCompany.company_name}" ê¸°ì—…ì„ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?\n\nâ€» ê´€ë ¨ ì ‘ì´‰ ì´ë ¥ë„ í•¨ê»˜ ì‚­ì œë©ë‹ˆë‹¤.`)) {
+
                         return;
+
                     }
+
                     await this.performDeleteCompany(this.editingCompany.id);
+
                     this.showEditCompanyModal = false;
+
                 },
 
-                // ½ÇÁ¦ »èÁ¦ ¼öÇà
+
+
+                // ì‹¤ì œ ì‚­ì œ ìˆ˜í–‰
+
                 async performDeleteCompany(companyId) {
+
                     try {
+
                         const response = await fetch(`/api/pipeline/company/${companyId}`, {
+
                             method: 'DELETE',
+
                             headers: {
+
                                 'Content-Type': 'application/json',
+
                             }
+
                         });
 
+
+
                         const data = await response.json();
+
                         
+
                         if (data.success) {
-                            alert('±â¾÷ÀÌ »èÁ¦µÇ¾ú½À´Ï´Ù.');
+
+                            alert('ê¸°ì—…ì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤.');
+
                             this.loadDashboardData();
+
                         } else {
-                            alert(data.message || '»èÁ¦¿¡ ½ÇÆĞÇß½À´Ï´Ù.');
+
+                            alert(data.message || 'ì‚­ì œì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.');
+
                         }
+
                     } catch (error) {
-                        console.error('»èÁ¦ ½ÇÆĞ:', error);
-                        alert('»èÁ¦ Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.');
+
+                        console.error('ì‚­ì œ ì‹¤íŒ¨:', error);
+
+                        alert('ì‚­ì œ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.');
+
                     }
+
                 }
+
             }
+
         }
+
     </script>
+
 </body>
+
 </html>

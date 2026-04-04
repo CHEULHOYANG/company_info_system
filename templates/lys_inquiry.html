@@ -1,765 +1,765 @@
-<!DOCTYPE html>
-<html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YS Honors Corporate Consulting</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background: #0f172a;
-            color: white;
-            min-height: 100vh;
-        }
-
-        /* Header - 렌더 사이트와 동일 */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            background: white;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 0 40px;
-        }
-
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 65px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-
-        .logo img {
-            height: 32px;
-        }
-
-        .logo-text {
-            font-weight: 700;
-            font-size: 17px;
-            color: #1e3a5f;
-        }
-
-        .logo-subtitle {
-            font-size: 10px;
-            color: #64748b;
-        }
-
-        .nav {
-            display: flex;
-            gap: 28px;
-            align-items: center;
-        }
-
-        .nav a {
-            color: #374151;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .nav a:hover {
-            color: #3b82f6;
-        }
-
-        .cta-btn {
-            background: #3b82f6;
-            color: white;
-            padding: 8px 18px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-
-        .cta-btn:hover {
-            background: #2563eb;
-        }
-
-        /* Main Content */
-        .container {
-            width: 100%;
-            max-width: 1024px;
-            margin: 0 auto;
-            padding: 120px 20px 60px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Start Screen */
-        .start-screen {
-            text-align: center;
-            max-width: 600px;
-        }
-
-        .start-title {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            color: white;
-        }
-
-        .start-subtitle {
-            font-size: 17px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 48px;
-            line-height: 1.6;
-        }
-
-        .start-btn {
-            background: #3b82f6;
-            color: white;
-            padding: 16px 40px;
-            border-radius: 50px;
-            font-size: 17px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: all 0.3s;
-        }
-
-        .start-btn:hover {
-            background: #2563eb;
-            transform: scale(1.05);
-        }
-
-        /* Quiz Container */
-        .quiz-container {
-            display: none;
-            width: 100%;
-            max-width: 640px;
-        }
-
-        /* Progress Bar */
-        .progress-wrapper {
-            margin-bottom: 48px;
-        }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .progress-track {
-            width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: #3b82f6;
-            border-radius: 2px;
-            transition: width 0.4s ease;
-        }
-
-        /* Card Slider - 세로 카드 with 3D perspective */
-        .card-slider {
-            position: relative;
-            width: 100%;
-            overflow: visible;
-            perspective: 1200px;
-        }
-
-        .cards-track {
-            position: relative;
-            width: 100%;
-        }
-
-        /* Question Card - 세로 (Portrait) with 3D animations */
-        .question-card {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            max-width: 640px;
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 70px 50px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            min-height: 480px;
-            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-            transform-style: preserve-3d;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .question-card.active {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateX(0) rotateZ(0deg) scale(1);
-        }
-
-        .question-card.card-swipe-left {
-            animation: swipeLeft 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
-        }
-
-        .question-card.card-swipe-right {
-            animation: swipeRight 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
-        }
-
-        @keyframes swipeLeft {
-            0% {
-                transform: translateX(0) rotateZ(0deg) scale(1);
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateX(-80%) rotateZ(-45deg) scale(0.8);
-                opacity: 0;
-            }
-        }
-
-        @keyframes swipeRight {
-            0% {
-                transform: translateX(0) rotateZ(0deg) scale(1);
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateX(80%) rotateZ(45deg) scale(0.8);
-                opacity: 0;
-            }
-        }
-
-        .question-text {
-            font-size: 26px;
-            font-weight: 600;
-            line-height: 1.5;
-            margin-bottom: 56px;
-            color: white;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 16px;
-        }
-
-        .answer-btn {
-            padding: 18px 42px;
-            border-radius: 12px;
-            font-size: 17px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-        }
-
-        .btn-pass {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        .btn-pass:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .btn-select {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .btn-select:hover {
-            background: #2563eb;
-        }
-
-        /* Contact Form */
-        .contact-form {
-            display: none;
-            width: 100%;
-            max-width: 600px;
-        }
-
-        .contact-card {
-            background: white;
-            border: none;
-            border-radius: 20px;
-            padding: 32px 36px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
-                0 0 0 1px rgba(0, 0, 0, 0.05);
-        }
-
-        .contact-title {
-            font-size: 28px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 8px;
-            color: #1f2937;
-        }
-
-        .contact-subtitle {
-            text-align: center;
-            color: #6b7280;
-            font-size: 15px;
-            margin-bottom: 24px;
-        }
-
-        .selected-items {
-            background: #f0f9ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 24px;
-        }
-
-        .selected-items h4 {
-            font-size: 15px;
-            color: #2563eb;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-
-        .selected-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .selected-tag {
-            background: #dbeafe;
-            color: #1e40af;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #374151;
-            font-weight: 500;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px 14px;
-            background: #f9fafb;
-            border: 1px solid #d1d5db;
-            border-radius: 10px;
-            color: #1f2937;
-            font-size: 15px;
-            font-family: inherit;
-            transition: all 0.2s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 120px;
-        }
-
-        button.submit-btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: #3b82f6;
-            color: white;
-            margin-top: 24px;
-        }
-
-        button.submit-btn:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        }
-
-        /* Footer */
-        .footer {
-            background: #0f172a;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 50px 20px 24px;
-            margin-top: 80px;
-        }
-
-        .footer-container {
-            max-width: 1100px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 48px;
-        }
-
-        .footer h4 {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: white;
-        }
-
-        .footer p {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 13px;
-            line-height: 1.8;
-        }
-
-        .footer a {
-            color: #3b82f6;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-
-        .footer-bottom {
-            max-width: 1100px;
-            margin: 32px auto 0;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 12px;
-        }
-
-        /* PDF Hidden */
-        .pdf-content {
-            display: none;
-            background: white;
-            color: black;
-            padding: 40px;
-        }
-
-        @media (max-width: 768px) {
-            .nav {
-                display: none;
-            }
-
-            .header {
-                padding: 0 20px;
-            }
-
-            .question-card {
-                padding: 50px 28px;
-                min-height: 420px;
-            }
-
-            .answer-btn {
-                padding: 16px 36px;
-                font-size: 16px;
-            }
-
-            .question-text {
-                font-size: 22px;
-            }
-
-            .footer-container {
-                grid-template-columns: 1fr;
-                gap: 28px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <a href="/lys" class="logo">
-                <img src="/static/images/logo.png" alt="YS Honors">
-                <div>
-                    <div class="logo-text">YS Honors</div>
-                    <div class="logo-subtitle">Corporate Consulting</div>
-                </div>
-            </a>
-            <nav class="nav">
-                <a href="/lys">홈</a>
-                <a href="/lys/team">전문가 소개</a>
-                <a href="/lys#services">컨설팅 분야</a>
-                <a href="/lys#news">경영 뉴스</a>
-                <a href="/lys/inquiry" class="cta-btn">상담신청</a>
-            </nav>
-        </div>
-    </header>
-
-    <div class="container">
-        <!-- Start Screen -->
-        <div class="start-screen">
-            <div class="start-title">CEO 자가진단 체크리스트</div>
-            <div class="start-subtitle">귀사의 상황에 맞는 맞춤형 솔루션을 위해<br>몇 가지 간단한 질문에 답해주세요.</div>
-            <button class="start-btn" onclick="startQuiz()">진단 시작하기</button>
-        </div>
-
-        <!-- Quiz Container -->
-        <div class="quiz-container">
-            <div class="progress-wrapper">
-                <div class="progress-label">
-                    <span>진행률</span>
-                    <span id="progressText">0%</span>
-                </div>
-                <div class="progress-track">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-            </div>
-
-            <div class="card-slider">
-                <div class="cards-track" id="cardsTrack">
-                    {% for question in questions %}
-                    <div class="question-card" data-question-id="{{ question.id }}">
-                        <div class="question-text">{{ question.question_text }}</div>
-                        <div class="button-group">
-                            <button class="answer-btn btn-pass" onclick="answerQuestion(false)">✕ 아니오</button>
-                            <button class="answer-btn btn-select" onclick="answerQuestion(true)">✓ 예</button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Contact Form -->
-        <div class="contact-form">
-            <div class="contact-card">
-                <div class="contact-title">상담신청 제출</div>
-                <div class="contact-subtitle">선택하신 항목을 확인하고 연락처를 입력해주세요</div>
-
-                <div class="selected-items">
-                    <h4>선택된 항목 (<span id="selectedCount">0</span>개)</h4>
-                    <div class="selected-list" id="selectedList"></div>
-                </div>
-
-                <form id="contactForm">
-                    <div class="form-group">
-                        <label>대표자 성함 *</label>
-                        <input type="text" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label>회사명</label>
-                        <input type="text" name="company">
-                    </div>
-                    <div class="form-group">
-                        <label>연락처 *</label>
-                        <input type="tel" name="phone" required placeholder="010-0000-0000">
-                    </div>
-                    <div class="form-group">
-                        <label>기타 문의사항</label>
-                        <textarea name="content" placeholder="추가로 궁금하신 점이나 상담받고 싶은 내용을 자유롭게 입력해주세요."></textarea>
-                    </div>
-                    <button type="submit" class="submit-btn">제출하기</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div>
-                <h4>YS Honors Corporate Consulting</h4>
-                <p>신뢰의 연결고리, YS 아너스<br>고객사와의 끊어지지 않는 신뢰 관계를 약속합니다.</p>
-            </div>
-            <div>
-                <h4>Quick Links</h4>
-                <a href="/lys">홈</a>
-                <a href="/lys/team">전문가 소개</a>
-                <a href="https://blog.naver.com/ssneobiz" target="_blank">블로그</a>
-            </div>
-            <div>
-                <h4>Contact</h4>
-                <p>문의: <a href="/lys/inquiry">상담신청 페이지</a>를 이용해주세요.</p>
-                <p>관리자 로그인: <a href="/lys/admin">Admin</a></p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>© 2025 YS Honors. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <!-- PDF Content -->
-    <div class="pdf-content" id="pdfContent">
-        <h1 style="text-align:center;margin-bottom:20px;">YS Honors CEO 자가진단 체크리스트</h1>
-        <p style="text-align:center;color:#666;margin-bottom:40px;">작성일: <span id="pdfDate"></span></p>
-        <div id="pdfSelectedItems"></div>
-        <div id="pdfContactInfo" style="margin-top:30px;"></div>
-    </div>
-
-    <script>
-        const questions = {{ questions| tojson | safe }};
-        let currentQuestion = 0;
-        let selectedQuestions = [];
-
-        function startQuiz() {
-            document.querySelector('.start-screen').style.display = 'none';
-            document.querySelector('.quiz-container').style.display = 'block';
-            updateProgress();
-            showCurrentCard();
-        }
-
-        function showCurrentCard() {
-            const cards = document.querySelectorAll('.question-card');
-            if (currentQuestion < cards.length) {
-                cards[currentQuestion].classList.add('active');
-            }
-        }
-
-        function updateProgress() {
-            const progress = ((currentQuestion) / questions.length) * 100;
-            document.getElementById('progressFill').style.width = progress + '%';
-            document.getElementById('progressText').textContent = Math.round(progress) + '%';
-        }
-
-        function answerQuestion(selected) {
-            const cards = document.querySelectorAll('.question-card');
-            const currentCard = cards[currentQuestion];
-
-            if (selected) {
-                selectedQuestions.push(questions[currentQuestion].question_text);
-                // 예(Yes) - 오른쪽으로 스와이프
-                currentCard.classList.add('card-swipe-right');
-            } else {
-                // 아니오(No) - 왼쪽으로 스와이프
-                currentCard.classList.add('card-swipe-left');
-            }
-
-            currentQuestion++;
-
-            // 애니메이션 완료 후 다음 카드 표시
-            setTimeout(() => {
-                currentCard.classList.remove('active');
-
-                if (currentQuestion < questions.length) {
-                    showCurrentCard();
-                    updateProgress();
-                } else {
-                    // 모든 질문 완료
-                    showContactForm();
-                }
-            }, 600);
-        }
-
-        function showContactForm() {
-            document.querySelector('.quiz-container').style.display = 'none';
-            document.querySelector('.contact-form').style.display = 'block';
-
-            // 선택된 항목 표시
-            const selectedList = document.getElementById('selectedList');
-            const selectedCount = document.getElementById('selectedCount');
-
-            selectedCount.textContent = selectedQuestions.length;
-            selectedList.innerHTML = selectedQuestions.map(q =>
-                `<div class="selected-tag">${q}</div>`
-            ).join('');
-
-            // 상단으로 스크롤
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        document.getElementById('contactForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const formData = new FormData(this);
-            const data = {
-                name: formData.get('name'),
-                company: formData.get('company'),
-                phone: formData.get('phone'),
-                content: formData.get('content'),
-                checklist: selectedQuestions
-            };
-
-            try {
-                const response = await fetch('/api/lys/inquiry', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-                if (result.success) {
-                    alert('상담 신청이 완료되었습니다. 빠른 시일 내에 연락드리겠습니다.');
-                    window.location.href = '/lys';
-                } else {
-                    alert('오류: ' + result.message);
-                }
-            } catch (error) {
-                alert('서버 오류가 발생했습니다.');
-            }
-        });
-
-        function downloadPDF() {
-            const formData = new FormData(document.getElementById('contactForm'));
-
-            // PDF 내용 생성
-            const pdfDate = new Date().toLocaleDateString('ko-KR');
-            document.getElementById('pdfDate').textContent = pdfDate;
-
-            const pdfItems = document.getElementById('pdfSelectedItems');
-            pdfItems.innerHTML = '<h3>선택 항목</h3><ol>' +
-                selectedQuestions.map(q => `<li style="margin-bottom:10px;">${q}</li>`).join('') +
-                '</ol>';
-
-            const pdfContactInfo = document.getElementById('pdfContactInfo');
-            pdfContactInfo.innerHTML = `
-                <h3>연락처 정보</h3>
-                <p><strong>성함:</strong> ${formData.get('name')}</p>
-                <p><strong>회사명:</strong> ${formData.get('company') || '-'}</p>
-                <p><strong>연락처:</strong> ${formData.get('phone')}</p>
-                ${formData.get('content') ? `<p><strong>기타:</strong> ${formData.get('content')}</p>` : ''}
-            `;
-
-            const element = document.getElementById('pdfContent');
-            const opt = {
-                margin: 10,
-                filename: `YS_Honors_진단서_${formData.get('name')}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(element).save();
-        }
-    </script>
-</body>
-
-</html>
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YS Honors Corporate Consulting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+        }
+
+        /* Header - 렌더 사이트와 동일 */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0 40px;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 65px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo img {
+            height: 32px;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 17px;
+            color: #1e3a5f;
+        }
+
+        .logo-subtitle {
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        .nav {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .nav a {
+            color: #374151;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav a:hover {
+            color: #3b82f6;
+        }
+
+        .cta-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .cta-btn:hover {
+            background: #2563eb;
+        }
+
+        /* Main Content */
+        .container {
+            width: 100%;
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 120px 20px 60px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .start-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: white;
+        }
+
+        .start-subtitle {
+            font-size: 17px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 48px;
+            line-height: 1.6;
+        }
+
+        .start-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 16px 40px;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .start-btn:hover {
+            background: #2563eb;
+            transform: scale(1.05);
+        }
+
+        /* Quiz Container */
+        .quiz-container {
+            display: none;
+            width: 100%;
+            max-width: 640px;
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            margin-bottom: 48px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3b82f6;
+            border-radius: 2px;
+            transition: width 0.4s ease;
+        }
+
+        /* Card Slider - 세로 카드 with 3D perspective */
+        .card-slider {
+            position: relative;
+            width: 100%;
+            overflow: visible;
+            perspective: 1200px;
+        }
+
+        .cards-track {
+            position: relative;
+            width: 100%;
+        }
+
+        /* Question Card - 세로 (Portrait) with 3D animations */
+        .question-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            max-width: 640px;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 70px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 480px;
+            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .question-card.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0) rotateZ(0deg) scale(1);
+        }
+
+        .question-card.card-swipe-left {
+            animation: swipeLeft 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+        }
+
+        .question-card.card-swipe-right {
+            animation: swipeRight 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+        }
+
+        @keyframes swipeLeft {
+            0% {
+                transform: translateX(0) rotateZ(0deg) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(-80%) rotateZ(-45deg) scale(0.8);
+                opacity: 0;
+            }
+        }
+
+        @keyframes swipeRight {
+            0% {
+                transform: translateX(0) rotateZ(0deg) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(80%) rotateZ(45deg) scale(0.8);
+                opacity: 0;
+            }
+        }
+
+        .question-text {
+            font-size: 26px;
+            font-weight: 600;
+            line-height: 1.5;
+            margin-bottom: 56px;
+            color: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .answer-btn {
+            padding: 18px 42px;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-pass {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .btn-pass:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-select {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-select:hover {
+            background: #2563eb;
+        }
+
+        /* Contact Form */
+        .contact-form {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .contact-card {
+            background: white;
+            border: none;
+            border-radius: 20px;
+            padding: 32px 36px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
+        .contact-title {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+
+        .contact-subtitle {
+            text-align: center;
+            color: #6b7280;
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        .selected-items {
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .selected-items h4 {
+            font-size: 15px;
+            color: #2563eb;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .selected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .selected-tag {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            color: #1f2937;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        button.submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #3b82f6;
+            color: white;
+            margin-top: 24px;
+        }
+
+        button.submit-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Footer */
+        .footer {
+            background: #0f172a;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 50px 20px 24px;
+            margin-top: 80px;
+        }
+
+        .footer-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 48px;
+        }
+
+        .footer h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: white;
+        }
+
+        .footer p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .footer a {
+            color: #3b82f6;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .footer-bottom {
+            max-width: 1100px;
+            margin: 32px auto 0;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+        }
+
+        /* PDF Hidden */
+        .pdf-content {
+            display: none;
+            background: white;
+            color: black;
+            padding: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                display: none;
+            }
+
+            .header {
+                padding: 0 20px;
+            }
+
+            .question-card {
+                padding: 50px 28px;
+                min-height: 420px;
+            }
+
+            .answer-btn {
+                padding: 16px 36px;
+                font-size: 16px;
+            }
+
+            .question-text {
+                font-size: 22px;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr;
+                gap: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/lys" class="logo">
+                <img src="/static/images/logo.png" alt="YS Honors">
+                <div>
+                    <div class="logo-text">YS Honors</div>
+                    <div class="logo-subtitle">Corporate Consulting</div>
+                </div>
+            </a>
+            <nav class="nav">
+                <a href="/lys">홈</a>
+                <a href="/lys/team">전문가 소개</a>
+                <a href="/lys#services">컨설팅 분야</a>
+                <a href="/lys#news">경영 뉴스</a>
+                <a href="/lys/inquiry" class="cta-btn">상담신청</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Start Screen -->
+        <div class="start-screen">
+            <div class="start-title">CEO 자가진단 체크리스트</div>
+            <div class="start-subtitle">귀사의 상황에 맞는 맞춤형 솔루션을 위해<br>몇 가지 간단한 질문에 답해주세요.</div>
+            <button class="start-btn" onclick="startQuiz()">진단 시작하기</button>
+        </div>
+
+        <!-- Quiz Container -->
+        <div class="quiz-container">
+            <div class="progress-wrapper">
+                <div class="progress-label">
+                    <span>진행률</span>
+                    <span id="progressText">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="card-slider">
+                <div class="cards-track" id="cardsTrack">
+                    {% for question in questions %}
+                    <div class="question-card" data-question-id="{{ question.id }}">
+                        <div class="question-text">{{ question.question_text }}</div>
+                        <div class="button-group">
+                            <button class="answer-btn btn-pass" onclick="answerQuestion(false)">✕ 아니오</button>
+                            <button class="answer-btn btn-select" onclick="answerQuestion(true)">✓ 예</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="contact-form">
+            <div class="contact-card">
+                <div class="contact-title">상담신청 제출</div>
+                <div class="contact-subtitle">선택하신 항목을 확인하고 연락처를 입력해주세요</div>
+
+                <div class="selected-items">
+                    <h4>선택된 항목 (<span id="selectedCount">0</span>개)</h4>
+                    <div class="selected-list" id="selectedList"></div>
+                </div>
+
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label>대표자 성함 *</label>
+                        <input type="text" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>회사명</label>
+                        <input type="text" name="company">
+                    </div>
+                    <div class="form-group">
+                        <label>연락처 *</label>
+                        <input type="tel" name="phone" required placeholder="010-0000-0000">
+                    </div>
+                    <div class="form-group">
+                        <label>기타 문의사항</label>
+                        <textarea name="content" placeholder="추가로 궁금하신 점이나 상담받고 싶은 내용을 자유롭게 입력해주세요."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">제출하기</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div>
+                <h4>YS Honors Corporate Consulting</h4>
+                <p>신뢰의 연결고리, YS 아너스<br>고객사와의 끊어지지 않는 신뢰 관계를 약속합니다.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <a href="/lys">홈</a>
+                <a href="/lys/team">전문가 소개</a>
+                <a href="https://blog.naver.com/ssneobiz" target="_blank">블로그</a>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>문의: <a href="/lys/inquiry">상담신청 페이지</a>를 이용해주세요.</p>
+                <p>관리자 로그인: <a href="/lys/admin">Admin</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 YS Honors. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- PDF Content -->
+    <div class="pdf-content" id="pdfContent">
+        <h1 style="text-align:center;margin-bottom:20px;">YS Honors CEO 자가진단 체크리스트</h1>
+        <p style="text-align:center;color:#666;margin-bottom:40px;">작성일: <span id="pdfDate"></span></p>
+        <div id="pdfSelectedItems"></div>
+        <div id="pdfContactInfo" style="margin-top:30px;"></div>
+    </div>
+
+    <script>
+        const questions = {{ questions| tojson | safe }};
+        let currentQuestion = 0;
+        let selectedQuestions = [];
+
+        function startQuiz() {
+            document.querySelector('.start-screen').style.display = 'none';
+            document.querySelector('.quiz-container').style.display = 'block';
+            updateProgress();
+            showCurrentCard();
+        }
+
+        function showCurrentCard() {
+            const cards = document.querySelectorAll('.question-card');
+            if (currentQuestion < cards.length) {
+                cards[currentQuestion].classList.add('active');
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = Math.round(progress) + '%';
+        }
+
+        function answerQuestion(selected) {
+            const cards = document.querySelectorAll('.question-card');
+            const currentCard = cards[currentQuestion];
+
+            if (selected) {
+                selectedQuestions.push(questions[currentQuestion].question_text);
+                // 예(Yes) - 오른쪽으로 스와이프
+                currentCard.classList.add('card-swipe-right');
+            } else {
+                // 아니오(No) - 왼쪽으로 스와이프
+                currentCard.classList.add('card-swipe-left');
+            }
+
+            currentQuestion++;
+
+            // 애니메이션 완료 후 다음 카드 표시
+            setTimeout(() => {
+                currentCard.classList.remove('active');
+
+                if (currentQuestion < questions.length) {
+                    showCurrentCard();
+                    updateProgress();
+                } else {
+                    // 모든 질문 완료
+                    showContactForm();
+                }
+            }, 600);
+        }
+
+        function showContactForm() {
+            document.querySelector('.quiz-container').style.display = 'none';
+            document.querySelector('.contact-form').style.display = 'block';
+
+            // 선택된 항목 표시
+            const selectedList = document.getElementById('selectedList');
+            const selectedCount = document.getElementById('selectedCount');
+
+            selectedCount.textContent = selectedQuestions.length;
+            selectedList.innerHTML = selectedQuestions.map(q =>
+                `<div class="selected-tag">${q}</div>`
+            ).join('');
+
+            // 상단으로 스크롤
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.getElementById('contactForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = {
+                name: formData.get('name'),
+                company: formData.get('company'),
+                phone: formData.get('phone'),
+                content: formData.get('content'),
+                checklist: selectedQuestions
+            };
+
+            try {
+                const response = await fetch('/api/lys/inquiry', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('상담 신청이 완료되었습니다. 빠른 시일 내에 연락드리겠습니다.');
+                    window.location.href = '/lys';
+                } else {
+                    alert('오류: ' + result.message);
+                }
+            } catch (error) {
+                alert('서버 오류가 발생했습니다.');
+            }
+        });
+
+        function downloadPDF() {
+            const formData = new FormData(document.getElementById('contactForm'));
+
+            // PDF 내용 생성
+            const pdfDate = new Date().toLocaleDateString('ko-KR');
+            document.getElementById('pdfDate').textContent = pdfDate;
+
+            const pdfItems = document.getElementById('pdfSelectedItems');
+            pdfItems.innerHTML = '<h3>선택 항목</h3><ol>' +
+                selectedQuestions.map(q => `<li style="margin-bottom:10px;">${q}</li>`).join('') +
+                '</ol>';
+
+            const pdfContactInfo = document.getElementById('pdfContactInfo');
+            pdfContactInfo.innerHTML = `
+                <h3>연락처 정보</h3>
+                <p><strong>성함:</strong> ${formData.get('name')}</p>
+                <p><strong>회사명:</strong> ${formData.get('company') || '-'}</p>
+                <p><strong>연락처:</strong> ${formData.get('phone')}</p>
+                ${formData.get('content') ? `<p><strong>기타:</strong> ${formData.get('content')}</p>` : ''}
+            `;
+
+            const element = document.getElementById('pdfContent');
+            const opt = {
+                margin: 10,
+                filename: `YS_Honors_진단서_${formData.get('name')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+
+</html>

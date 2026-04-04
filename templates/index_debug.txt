@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>기업 정보 조회 (ych_m010)</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 1400px;
+            width: 95%;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            color: #4a90e2;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-subtext {
+            font-size: 16px;
+            font-weight: normal;
+            opacity: 0.9;
+        }
+
+        .back-button,
+        .logout-button-new {
+            background: rgba(108, 117, 125, 0.8);
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 15px;
+            border: 1px solid rgba(108, 117, 125, 0.3);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .back-button:hover,
+        .logout-button-new:hover {
+            background: rgba(108, 117, 125, 1);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .subscription-badge {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            margin-left: 8px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .main-actions {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .reset-button {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .excel-button {
+            background: linear-gradient(45deg, #2196f3, #1976d2);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .search-container {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .search-grid input,
+        .search-grid select {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            color: #333;
+        }
+
+        .search-grid input:focus,
+        .search-grid select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .range-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .range-input input {
+            flex: 1;
+        }
+
+        .range-input span {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .results-table thead {
+            background: linear-gradient(45deg, #b3d9ff, #87ceeb);
+            color: #000;
+        }
+
+        .results-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            color: #000;
+        }
+
+        .results-table tbody tr:nth-child(even) {
+            background: #e3f2fd;
+        }
+
+        .results-table tbody tr:nth-child(odd) {
+            background: #f0f8ff;
+        }
+
+        .results-table tbody tr:hover {
+            background: #bbdefb;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .results-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #000;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .loading {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+        }
+
+        .footer-actions {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        #load-next-btn {
+            background: linear-gradient(45deg, #9c27b0, #673ab7);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+        }
+
+        #load-next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
+        }
+
+        .scroll-buttons {
+            position: fixed;
+            right: 30px;
+            bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .scroll-buttons button {
+            background: rgba(108, 117, 125, 0.8);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(108, 117, 125, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .scroll-buttons button:hover {
+            background: rgba(108, 117, 125, 1);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .main-actions {
+                justify-content: center;
+            }
+
+            .scroll-buttons {
+                right: 15px;
+                bottom: 15px;
+            }
+
+            .results-table {
+                font-size: 12px;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 8px;
+            }
+        }
+
+        /* Corporate Modal Styles */
+        .corp-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999 !important;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .corp-modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 25px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 1000px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .corp-modal-header {
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .corp-modal-title {
+            color: #333;
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .corp-close-btn {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .corp-close-btn:hover {
+            color: #000;
+        }
+
+        .corp-stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .corp-stats-table th,
+        .corp-stats-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .corp-stats-table th {
+            background-color: #e9ecef;
+            color: #333;
+        }
+
+        .corp-stats-table td.text-left {
+            text-align: left;
+        }
+
+        .corp-stats-table .stat-found {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .corp-stats-table .stat-insert {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .corp-stats-table .stat-update {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .corp-stats-table .stat-error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        /* New File Upload Area Styles */
+        .file-upload-area {
+            border: 2px dashed #dcdde1;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background: #fafafa;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .file-upload-area:hover {
+            border-color: #4a90e2;
+            background: #f0f7ff;
+        }
+
+        .folder-icon {
+            font-size: 48px;
+            color: #f1c40f;
+            margin-bottom: 10px;
+        }
+
+        .corp-file-input-hidden {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+    </style>
+    <script src="{{ url_for('static', filename='js/auto-logout.js') }}"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>기업 정보 조회 (ych_m010) <span id="results-count" class="header-subtext"></span></h1>
+            <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px; flex-wrap: wrap;">
+                <a href="{{ url_for('history_search') }}" class="back-button">접촉이력 조회</a>
+                <a href="{{ url_for('main') }}" class="back-button">메인으로</a>
+                <span style="font-weight:bold; color:#333;">{{ user_name }}님</span>
+                {% if subscription_info %}
+                {% if subscription_info.days_remaining > 0 %}
+                <span class="subscription-badge" style="color:#28a745; background:rgba(40, 167, 69, 0.2);">
+                    {% if subscription_info.subscription_type == 'ANNUAL' %}
+                    연간 구독 ({{ subscription_info.days_remaining }}일 남음)
+                    {% elif subscription_info.subscription_type == 'MONTHLY' %}
+                    월간 구독 ({{ subscription_info.days_remaining }}일 남음)
+                    {% else %}
+                    무료 구독 ({{ subscription_info.days_remaining }}일 남음)
+                    {% endif %}
+                </span>
+                {% elif subscription_info.days_remaining == 0 %}
+                <span class="subscription-badge" style="color:#dc3545; background:rgba(220, 53, 69, 0.2);">
+                    오늘 만료
+                </span>
+                {% else %}
+                <span class="subscription-badge" style="color:#dc3545; background:rgba(220, 53, 69, 0.2);">
+                    구독 만료 ({{ subscription_info.days_remaining|abs }}일 지남)
+                </span>
+                {% endif %}
+                {% else %}
+                <span class="subscription-badge" style="color:#007bff; background:rgba(0, 123, 255, 0.2);">
+                    첫달 무료 체험
+                </span>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="logout-button-new">로그아웃</a>
+            </div>
+        </header>
+
+        <div class="main-actions">
+            {% if session.get('user_id') in ['ct0001','ct0002'] %}
+            <button type="button" id="excel-download-button" class="action-button excel-button">엑셀저장</button>
+            {% else %}
+            <button type="button" class="action-button excel-button" disabled
+                style="opacity:0.45;cursor:not-allowed;">엑셀저장</button>
+            {% endif %}
+            {% if session.get('user_id') in ['ct0001','ct0002'] %}
+            <button type="button" id="corp-upload-btn" class="action-button"
+                style="background: linear-gradient(45deg, #9c27b0, #673ab7); box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);">데이터
+                일괄 추가</button>
+            {% endif %}
+            <button type="reset" id="reset-button" form="search-form" class="action-button reset-button">초기화</button>
+            <button type="button" id="search-button" class="action-button search-button">검색</button>
+        </div>
+
+        <div class="search-container">
+            <form id="search-form" class="search-grid" onsubmit="return false;">
+                <input type="text" name="company_name" placeholder="기업명">
+                <input type="text" name="biz_no" placeholder="사업자번호">
+                <input type="text" name="industry_name" placeholder="업종명">
+                <select name="company_size">
+                    <option value="전체">기업규모 (전체)</option>
+                    <option value="대기업">대기업</option>
+                    <option value="중견기업">중견기업</option>
+                    <option value="중소기업">중소기업</option>
+                    <option value="소기업">소기업</option>
+                    <option value="한시중소기업">한시중소기업</option>
+                    <option value="기타">기타</option>
+                </select>
+                <input type="text" name="region" placeholder="지역 (예: 서울 강남)">
+                <div class="range-input">
+                    <input type="number" name="ret_min" placeholder="이익잉여금 Min (백만)">
+                    <span>~</span>
+                    <input type="number" name="ret_max" placeholder="이익잉여금 Max (백만)">
+                </div>
+            </form>
+        </div>
+
+        <div class="results-container">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th style="width: 3%;"><input type="checkbox" id="check-all"></th>
+                        <th style="width: 5%;">순번</th>
+                        <th>사업자번호</th>
+                        <th>기업명</th>
+                        <th>대표자명</th>
+                        <th>업종</th>
+                        <th style="width: 20%;">도로명주소</th>
+                        <th style="width: 20%;">지번주소</th>
+                        <th>최신년도</th>
+                        <th>자산총계(백만)</th>
+                        <th>매출액(백만)</th>
+                        <th>이익잉여금(백만)</th>
+                    </tr>
+                </thead>
+                <tbody id="company-list">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer-actions">
+            <button id="load-next-btn" style="display:none;">다음</button>
+        </div>
+    </div>
+
+    <div class="scroll-buttons">
+        <button id="scroll-top">▲</button>
+        <button id="scroll-bottom">▼</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const companyList = document.getElementById('company-list');
+            const searchButton = document.getElementById('search-button');
+            const searchForm = document.getElementById('search-form');
+            const resultsCountSpan = document.getElementById('results-count');
+            const resetButton = document.getElementById('reset-button');
+            const excelButton = document.getElementById('excel-download-button');
+            const loadNextBtn = document.getElementById('load-next-btn');
+
+            const emailButton = document.getElementById('email-batch-button');
+            if (emailButton) {
+                emailButton.addEventListener('click', () => {
+                    const checkedBizNos = [];
+                    document.querySelectorAll('.company-checkbox:checked').forEach(cb => {
+                        checkedBizNos.push(cb.getAttribute('data-biz-no'));
+                    });
+                    if (checkedBizNos.length === 0) {
+                        alert('발송할 대상을 선택해주세요.');
+                        return;
+                    }
+                    localStorage.setItem('selected_biz_nos', JSON.stringify(checkedBizNos));
+                    window.location.href = '/email_system';
+                });
+            }
+
+            document.addEventListener('change', (e) => {
+                if (e.target.id === 'check-all') {
+                    document.querySelectorAll('.company-checkbox').forEach(cb => cb.checked = e.target.checked);
+                }
+            });
+
+            let currentPage = 1;
+            let isFetching = false;
+
+            function fetchCompanies(page = 1) {
+                if (isFetching) return;
+                isFetching = true;
+
+                if (page === 1) {
+                    companyList.innerHTML = '<tr><td colspan="12" class="loading">검색 중...</td></tr>';
+                }
+
+                const formData = new FormData(searchForm);
+                const params = new URLSearchParams(formData);
+                params.set('page', page);
+
+                fetch(`/api/companies?${params.toString()}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (page === 1) {
+                            companyList.innerHTML = '';
+                        }
+                        resultsCountSpan.textContent = `조회건수 : ${data.totalRows.toLocaleString()}건`;
+
+                        if (data.companies.length === 0 && page === 1) {
+                            companyList.innerHTML = '<tr><td colspan="12">검색 결과가 없습니다.</td></tr>';
+                            loadNextBtn.style.display = 'none';
+                            return;
+                        }
+
+                        const baseIndex = data.offset || (page - 1) * 50;
+                        data.companies.forEach((company, index) => {
+                            const row = document.createElement('tr');
+                            const rowNum = baseIndex + index + 1;
+
+                            const formatToMillion = (value) => {
+                                if (value === null || value === undefined) return '';
+                                return Math.round(value / 1000000).toLocaleString();
+                            };
+
+                            row.innerHTML = `
+                            <td class="text-center" onclick="event.stopPropagation();"><input type="checkbox" class="company-checkbox" data-biz-no="${company.biz_no}"></td>
+                            <td class="text-center">${rowNum}</td>
+                            <td class="text-center" data-biz-no="${company.biz_no}">${company.biz_no}</td>
+                            <td data-biz-no="${company.biz_no}">${company.company_name}</td>
+                            <td class="text-center">${company.representative_name || ''}</td>
+                            <td>${company.industry_name || ''}</td>
+                            <td>${company.address || ''}</td>
+                            <td>${company.jibun_address || ''}</td>
+                            <td class="text-center">${company.fiscal_year || ''}</td>
+                            <td class="text-right">${formatToMillion(company.total_assets)}</td>
+                            <td class="text-right">${formatToMillion(company.sales_revenue)}</td>
+                            <td class="text-right">${formatToMillion(company.retained_earnings)}</td>
+                        `;
+
+                            row.style.cursor = 'pointer';
+                            row.title = '클릭하면 상세 정보를 확인할 수 있습니다';
+                            row.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const cleanBizNo = company.biz_no.replace(/-/g, '');
+                                const detailUrl = `/company_detail/${cleanBizNo}?source=main`;
+                                window.location.href = detailUrl;
+                            });
+
+                            companyList.appendChild(row);
+                        });
+
+                        if (data.hasNextPage) {
+                            loadNextBtn.style.display = 'block';
+                            currentPage = page + 1;
+                        } else {
+                            loadNextBtn.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Failed to fetch companies:', error);
+                        companyList.innerHTML = '<tr><td colspan="12">데이터 조회 중 오류가 발생했습니다.</td></tr>';
+                    })
+                    .finally(() => {
+                        isFetching = false;
+                    });
+            }
+
+            searchButton.addEventListener('click', () => {
+                currentPage = 1;
+                fetchCompanies(currentPage);
+            });
+
+            loadNextBtn.addEventListener('click', () => {
+                fetchCompanies(currentPage);
+            });
+
+            searchForm.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchButton.click();
+                }
+            });
+
+            resetButton.addEventListener('click', () => {
+                searchForm.reset();
+                fetchCompanies(1);
+            });
+
+            if (excelButton) {
+                excelButton.addEventListener('click', () => {
+                    const formData = new FormData(searchForm);
+                    const params = new URLSearchParams(formData);
+                    window.location.href = `/export_excel?${params.toString()}`;
+                });
+            }
+
+            const scrollTopBtn = document.getElementById('scroll-top');
+            const scrollBottomBtn = document.getElementById('scroll-bottom');
+            scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+            scrollBottomBtn.addEventListener('click', () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+
+            fetchCompanies(1);
+        });
+    </script>
+
+    <!-- Corporate Batch Upload Modal -->
+    <div id="corpUploadModal" class="corp-modal">
+        <div class="corp-modal-content" style="max-width: 700px; padding: 0; border-radius: 12px;">
+            <div class="corp-modal-header"
+                style="padding: 18px 24px; border-bottom: 2px solid #4a90e2; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0;">
+                <h2 class="corp-modal-title" style="margin:0; font-size: 20px; color: #2c3e50; font-weight: 600;">데이터 일괄
+                    추가 (법인)</h2>
+                <span class="close-corp-modal corp-close-btn"
+                    style="font-size: 24px; color: #999; cursor: pointer;">&times;</span>
+            </div>
+
+            <div style="padding: 24px;">
+                <div style="text-align: right; margin-bottom: 15px;">
+                    <button type="button" id="downloadTemplateBtn" class="action-button corp-btn-template"
+                        style="background: #95a5a6; display: inline-flex; align-items: center; gap: 5px;">
+                        <span>📥</span> 등록 양식 다운로드
+                    </button>
+                    <p style="font-size: 13px; color: #666; margin-top: 5px;">
+                        엑셀 파일(.xlsx)을 업로드하면 자동으로 DB에 반영됩니다.<br>
+                        기존 기업/주주 정보는 스마트하게 병합됩니다.
+                    </p>
+                </div>
+
+                <div id="uploadMainContent">
+                    <div class="file-upload-area" id="dropZone">
+                        <div class="folder-icon">📁</div>
+                        <p style="color: #666; margin: 10px 0; font-size: 15px; font-weight: 500;">
+                            클릭하여 파일 선택 또는 드래그<br>
+                            <span style="font-size: 13px; color: #999; font-weight: normal;">(.xlsx 파일만 지원)</span>
+                        </p>
+                        <div id="selectedFileName"
+                            style="font-weight: bold; color: #4a90e2; margin-top: 10px; display: none; background: #e8f4fd; padding: 8px; border-radius: 4px;">
+                        </div>
+                        <input type="file" id="corpFileUpload" accept=".xlsx" class="corp-file-input-hidden">
+                    </div>
+
+                    <div id="validationLoading" class="corp-loading"
+                        style="display:none; text-align: center; margin: 20px 0; padding: 20px; background: #fff8e1; border-radius: 8px;">
+                        <span style="display:inline-block; animation:spin 1s linear infinite;">⌛</span>
+                        <span style="font-weight: bold; color: #f39c12;">데이터 검증 중...</span>
+                    </div>
+
+                    <div id="validationResult" class="corp-validation-results"
+                        style="display:none; margin-top:20px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                        <h4 class="corp-validation-title"
+                            style="margin: 0; padding: 12px 15px; background: #f1f2f6; border-bottom: 1px solid #e0e0e0; font-size: 14px;">
+                            검증 결과 요약</h4>
+                        <div id="validationStats" class="corp-stats" style="padding: 15px;"></div>
+                        <div class="corp-success-msg" style="padding: 0 15px 15px; color: #2ecc71; font-weight: bold;">
+                            ✅ 검증 완료. 실행하시겠습니까?
+                        </div>
+                    </div>
+
+                    <div id="executionSection" class="corp-execution-section"
+                        style="display:none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+                            <span style="font-size: 13px; font-weight: bold; color: #555;">🔒 관리자 승인:</span>
+                            <input type="password" id="corpUploadPassword" placeholder="비밀번호 입력"
+                                class="corp-password-input" style="width: 200px;">
+                        </div>
+                        <div id="executionLoading" class="corp-execution-loading"
+                            style="text-align: right; display:none;">
+                            ⚠️ DB 반영 중... 잠시만 기다려주세요.
+                        </div>
+                    </div>
+
+                    <div id="progressSection"
+                        style="display:none; margin-top: 15px; padding: 15px; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px;">
+                            <span style="font-weight: bold; color: #333;">진행률:</span>
+                            <div
+                                style="flex: 1; background: #e0e0e0; border-radius: 10px; height: 20px; overflow: hidden;">
+                                <div id="uploadProgressBar"
+                                    style="width: 0%; height: 100%; background: linear-gradient(90deg, #4a90e2, #2ecc71); transition: width 0.3s ease;">
+                                </div>
+                            </div>
+                            <span id="progressText"
+                                style="font-weight: bold; color: #4a90e2; min-width: 40px;">0%</span>
+                        </div>
+                        <div id="tableStatus" style="font-size: 13px; color: #555;"></div>
+                    </div>
+
+                    <div id="uploadStatus" class="corp-status-log" style="display: none; margin-top: 20px; white-space: pre-wrap; font-size: 13px; color: #666; max-height: 100px; overflow-y: auto; background: #eee; padding: 10px; border-radius: 5px;"></div>
+                </div>
+
+                <div
+                    style="text-align: right; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="action-button" id="closeModalBtn"
+                        style="background: #95a5a6;">닫기</button>
+                    <button type="button" id="validateUploadBtn" class="action-button"
+                        style="background: #4a90e2; width: 120px;">검증 시작</button>
+                    <button type="button" id="executeUploadBtn" class="action-button corp-btn-execute"
+                        style="background: #2ecc71; display: none; width: 140px;">업로드 및 실행</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Corporate Batch Upload Logic ---
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('corpUploadModal');
+            const openBtn = document.getElementById('corp-upload-btn');
+            const closeSpan = document.querySelector('.close-corp-modal');
+            const closeBtn = document.getElementById('closeModalBtn');
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('corpFileUpload');
+            const fileNameDisplay = document.getElementById('selectedFileName');
+
+            if (openBtn) {
+                openBtn.onclick = function (e) {
+                    e.preventDefault();
+                    modal.style.display = "block";
+                    resetModalState();
+                }
+            }
+
+            function closeModal() {
+                modal.style.display = "none";
+            }
+            if (closeSpan) closeSpan.onclick = closeModal;
+            if (closeBtn) closeBtn.onclick = closeModal;
+
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            };
+
+            function resetModalState() {
+                fileInput.value = '';
+                fileNameDisplay.textContent = '';
+                fileNameDisplay.style.display = 'none';
+                document.getElementById('validationResult').style.display = 'none';
+                document.getElementById('executionSection').style.display = 'none';
+                document.getElementById('uploadStatus').style.display = 'none';
+                document.getElementById('progressSection').style.display = 'none';
+                document.getElementById('corpUploadPassword').value = '';
+                document.getElementById('validationLoading').style.display = 'none';
+                const execBtn = document.getElementById('executeUploadBtn');
+                execBtn.style.display = 'none';
+                execBtn.disabled = false;
+            }
+
+            dropZone.onclick = () => fileInput.click();
+
+            dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = '#4a90e2'; };
+            dropZone.ondragleave = () => { dropZone.style.borderColor = '#dcdde1'; };
+            dropZone.ondrop = (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#dcdde1';
+                if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
+            };
+
+            fileInput.onchange = () => { if (fileInput.files.length) handleFileSelect(fileInput.files[0]); };
+
+            function handleFileSelect(file) {
+                fileNameDisplay.textContent = "📄 선택된 파일: " + file.name;
+                fileNameDisplay.style.display = 'block';
+            }
+
+            function renderStatsTable(stats) {
+                const tables = ['Company_Basic', 'Company_Financial', 'Company_Additional', 'Company_Representative', 'Company_Shareholder'];
+                let html = '<table class="corp-stats-table"><thead><tr><th>테이블명</th><th>발견</th><th>추가</th><th>수정</th><th>실패</th></tr></thead><tbody>';
+                tables.forEach(tbl => {
+                    html += `<tr><td class="text-left">${tbl}</td><td>${stats[tbl+'_Found']||0}</td><td class="stat-insert">${stats[tbl+'_Inserted']||0}</td><td class="stat-update">${stats[tbl+'_Updated']||0}</td><td class="stat-error">${stats[tbl+'_Error']||0}</td></tr>`;
+                });
+                html += '</tbody></table>';
+                return html;
+            }
+
+            document.getElementById('downloadTemplateBtn').onclick = () => window.location.href = '/api/corporate/template';
+
+            document.getElementById('validateUploadBtn').onclick = function () {
+                const file = fileInput.files[0] || (dropZone.files ? dropZone.files[0] : null);
+                if (!file) { alert("파일을 선택해주세요."); return; }
+                const formData = new FormData();
+                formData.append('company_file', file);
+                document.getElementById('validationLoading').style.display = 'block';
+                fetch('/api/corporate/validate_upload', { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('validationLoading').style.display = 'none';
+                        if (data.success) {
+                            document.getElementById('validationStats').innerHTML = renderStatsTable(data.stats);
+                            document.getElementById('validationResult').style.display = 'block';
+                            document.getElementById('executionSection').style.display = 'block';
+                            document.getElementById('executeUploadBtn').style.display = 'inline-block';
+                        } else { alert("검증 실패: " + data.message); }
+                    });
+            };
+
+            document.getElementById('executeUploadBtn').onclick = function () {
+                const pwd = document.getElementById('corpUploadPassword').value;
+                if (!pwd) { alert("비밀번호를 입력해주세요."); return; }
+                if (!confirm("정말로 DB에 반영하시겠습니까?")) return;
+
+                document.getElementById('progressSection').style.display = 'block';
+                const progressBar = document.getElementById('uploadProgressBar');
+                const progressText = document.getElementById('progressText');
+                const tableStatus = document.getElementById('tableStatus');
+
+                fetch('/api/corporate/execute_upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pwd })
+                }).then(response => {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    function read() {
+                        reader.read().then(({ value, done }) => {
+                            if (done) return;
+                            const text = decoder.decode(value);
+                            text.split('\n').forEach(line => {
+                                if (line.startsWith('data: ')) {
+                                    const data = JSON.parse(line.substring(6));
+                                    if (data.type === 'progress') {
+                                        const pct = Math.round((data.current / data.total) * 100);
+                                        progressBar.style.width = pct + '%';
+                                        progressText.textContent = pct + '%';
+                                    } else if (data.type === 'complete') {
+                                        alert("업로드 완료!");
+                                        location.reload();
+                                    }
+                                }
+                            });
+                            read();
+                        });
+                    }
+                    read();
+                });
+            };
+        });
+    </script>
+</body>
+
+</html>

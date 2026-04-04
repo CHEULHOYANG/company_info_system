@@ -1,4 +1,4 @@
-﻿import openpyxl
+import openpyxl
 from openpyxl.utils import get_column_letter
 import os
 import sys
@@ -18,23 +18,23 @@ OUTPUT_WB_NAME = "Company_Representative_Output.xlsx" # 결과를 저장할 새 
 COL_BIZ_NO = 24  # X열
 
 # 대표자 1 정보
-COL_REP1_NAME = 43      
-COL_REP1_GENDER = 44    
-COL_REP1_AGE = 45       
-COL_REP1_BIRTH_DATE = 46
+COL_REP1_NAME = 44      
+COL_REP1_GENDER = 45    
+COL_REP1_AGE = 46       
+COL_REP1_BIRTH_DATE = 47
 COL_REP1_IS_GFC = None  # GFC 필드는 빈값으로 처리
 
 # 대표자 2 정보
-COL_REP2_NAME = 51      
-COL_REP2_GENDER = 52    
-COL_REP2_AGE = 53       
-COL_REP2_BIRTH_DATE = 54
+COL_REP2_NAME = 52      
+COL_REP2_GENDER = 53    
+COL_REP2_AGE = 54       
+COL_REP2_BIRTH_DATE = 55
 
 # 대표자 3 정보
-COL_REP3_NAME = 59      
-COL_REP3_GENDER = 60    
-COL_REP3_AGE = 61       
-COL_REP3_BIRTH_DATE = 62
+COL_REP3_NAME = 60      
+COL_REP3_GENDER = 61    
+COL_REP3_AGE = 62       
+COL_REP3_BIRTH_DATE = 63
 
 # --- 상수 정의 ---
 DATA_START_ROW = 3

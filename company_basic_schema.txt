@@ -1,0 +1,32 @@
+CREATE TABLE Company_Basic (
+            biz_no VARCHAR(12) PRIMARY KEY,
+            company_name VARCHAR(255),
+            company_size VARCHAR(50),
+            company_type VARCHAR(50),
+            industry_code VARCHAR(10),
+            industry_name VARCHAR(255),
+            zip_code VARCHAR(10),
+            address VARCHAR(500),
+            region VARCHAR(50),
+            city_district VARCHAR(50),
+            phone_number VARCHAR(20),
+            email VARCHAR(255),
+            fax_number VARCHAR(20),
+            gfc_transaction_yn CHAR(1),
+            group_transaction_yn CHAR(1),
+            ked_transaction_yn CHAR(1),
+            patent_transaction_yn CHAR(1),
+            establish_date DATE,
+            corporate_reg_no VARCHAR(20),
+            representative_name VARCHAR(100),
+            national_pension INTEGER,
+            pension_count INTEGER,
+            pension_date DATE
+        , email_usable TEXT DEFAULT 'UNKNOWN', manage_category TEXT DEFAULT "법인기업", category TEXT DEFAULT 'GENERAL', email_fix_status INTEGER DEFAULT 0, last_send_at TEXT, last_send_status TEXT)
+
+-- Sample Data (Top 5) --
+{'biz_no': '1048118121', 'company_name': '지에스건설', 'company_size': '대기업', 'company_type': '법인기업', 'industry_code': 'F41112', 'industry_name': '아파트 건설업', 'zip_code': '3159', 'address': '서울 종로구 종로 33 (청진동)', 'region': '서울', 'city_district': '종로구', 'phone_number': '02  21541112', 'email': 'webmaster@gsconst.co.kr', 'fax_number': '02  21540807', 'gfc_transaction_yn': '', 'group_transaction_yn': '', 'ked_transaction_yn': '', 'patent_transaction_yn': 'Y', 'establish_date': '1969-12-19', 'corporate_reg_no': '1.10111E+12', 'representative_name': '허창수', 'national_pension': 5157, 'pension_count': 5286, 'pension_date': '2025-02-21', 'email_usable': '1', 'manage_category': '법인기업', 'category': 'GENERAL', 'email_fix_status': 0, 'last_send_at': None, 'last_send_status': None}
+{'biz_no': '2148106859', 'company_name': '삼라', 'company_size': '대기업', 'company_type': '법인기업', 'industry_code': 'L68121', 'industry_name': '주거용 건물 개발 및 공급업', 'zip_code': '17362', 'address': '경기 이천시 애련정로 126 (창전동)', 'region': '경기', 'city_district': '이천시', 'phone_number': '02  69409500', 'email': '', 'fax_number': '02  69409508', 'gfc_transaction_yn': '', 'group_transaction_yn': '', 'ked_transaction_yn': '', 'patent_transaction_yn': '', 'establish_date': '1969-08-26', 'corporate_reg_no': '1.10111E+12', 'representative_name': '조유선', 'national_pension': 16, 'pension_count': 13, 'pension_date': '2024-04-24', 'email_usable': '0', 'manage_category': '법인기업', 'category': 'GENERAL', 'email_fix_status': 0, 'last_send_at': None, 'last_send_status': None}
+{'biz_no': '2028116825', 'company_name': '한화', 'company_size': '대기업', 'company_type': '법인기업', 'industry_code': 'C20494', 'industry_name': '화약 및 불꽃제품 제조업', 'zip_code': '4541', 'address': '서울 중구 청계천로 86 (장교동)', 'region': '서울', 'city_district': '중구 ', 'phone_number': '02  729 1114', 'email': '', 'fax_number': '02  729 1680', 'gfc_transaction_yn': ' ', 'group_transaction_yn': ' ', 'ked_transaction_yn': '', 'patent_transaction_yn': 'Y', 'establish_date': '1952-10-28', 'corporate_reg_no': '1.10111E+12', 'representative_name': '김승모', 'national_pension': 2759, 'pension_count': 4795, 'pension_date': '2025-02-28', 'email_usable': '0', 'manage_category': '법인기업', 'category': 'GENERAL', 'email_fix_status': 0, 'last_send_at': None, 'last_send_status': None}
+{'biz_no': '1348100016', 'company_name': '태양금속공업', 'company_size': '중견기업', 'company_type': '법인기업', 'industry_code': 'C30310', 'industry_name': '자동차 엔진용 신품 부품 제조업', 'zip_code': '15428', 'address': '경기 안산시 단원구 해봉로 212 (성곡동)', 'region': '경기', 'city_district': '안산시', 'phone_number': '031 490 5500', 'email': '', 'fax_number': '031 492 1132', 'gfc_transaction_yn': '', 'group_transaction_yn': '', 'ked_transaction_yn': '', 'patent_transaction_yn': 'Y', 'establish_date': '1964-12-24', 'corporate_reg_no': '1.10111E+12', 'representative_name': '한우삼', 'national_pension': 448, 'pension_count': 469, 'pension_date': '2025-04-17', 'email_usable': '0', 'manage_category': '법인기업', 'category': 'GENERAL', 'email_fix_status': 0, 'last_send_at': None, 'last_send_status': None}
+{'biz_no': '1048101106', 'company_name': '신성통상', 'company_size': '중견기업', 'company_type': '법인기업', 'industry_code': 'G46413', 'industry_name': '남녀용 겉옷 및 셔츠 도매업', 'zip_code': '5364', 'address': '서울 강동구 풍성로63길 84 (둔촌동)', 'region': '서울', 'city_district': '강동구', 'phone_number': '02  37099000', 'email': '', 'fax_number': '02  64880151', 'gfc_transaction_yn': ' ', 'group_transaction_yn': ' ', 'ked_transaction_yn': '', 'patent_transaction_yn': 'Y', 'establish_date': '1968-01-11', 'corporate_reg_no': '1.10111E+12', 'representative_name': '염태순', 'national_pension': 1119, 'pension_count': 1146, 'pension_date': '2024-12-31', 'email_usable': '0', 'manage_category': '법인기업', 'category': 'GENERAL', 'email_fix_status': 0, 'last_send_at': None, 'last_send_status': None}

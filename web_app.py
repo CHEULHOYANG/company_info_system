@@ -32,6 +32,7 @@ def get_kst_now():
     return datetime.now(KST)
 import pytz
 from datetime import datetime, timedelta, date
+from email_service import EmailSender, get_email_history, get_all_batches
 
 # --- 커스텀 템플릿 로더 (UTF-8 우선, CP949 폴백) ---
 class UTF8FileSystemLoader(FileSystemLoader):
@@ -93,13 +94,15 @@ app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__fil
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    """업로드된 파일을 서빙합니다."""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 # 한국 시간대 설정
 KST = pytz.timezone('Asia/Seoul')
 
 # 현재 한국 시간을 반환하는 함수
-def get_kst_now():
-    """현재 한국 시간을 반환합니다."""
-    return datetime.now(KST)
 
 def format_kst_datetime(dt_str=None):
     """한국 시간대로 포맷팅된 현재 시간 문자열을 반환합니다."""
@@ -624,6 +627,18 @@ def init_ys_honers_tables():
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        
+        # [Migration] ys_team_members 컬럼 확인 및 추가
+        # 이미 테이블이 존재하는 경우, photo_url 등의 컬럼이 없을 수 있음
+        team_cols = [c[1] for c in cursor.execute("PRAGMA table_info(ys_team_members)").fetchall()]
+        if 'photo_url' not in team_cols:
+            cursor.execute("ALTER TABLE ys_team_members ADD COLUMN photo_url TEXT")
+        if 'display_order' not in team_cols:
+            cursor.execute("ALTER TABLE ys_team_members ADD COLUMN display_order INTEGER DEFAULT 1")
+        if 'bio' not in team_cols:
+            cursor.execute("ALTER TABLE ys_team_members ADD COLUMN bio TEXT")
+        if 'phone' not in team_cols:
+            cursor.execute("ALTER TABLE ys_team_members ADD COLUMN phone TEXT")
         
         # 뉴스 관리 테이블
         cursor.execute('''
@@ -1185,7 +1200,7 @@ def get_user_info(user_id):
 # 권한 확인 함수
 def check_permission(user_level, required_level):
     """사용자 권한을 확인합니다."""
-    level_hierarchy = {'V': 4, 'S': 3, 'M': 2, 'N': 1}
+    level_hierarchy = {'VIP': 5, 'V': 4, 'S': 3, 'M': 2, 'N': 1}
     return level_hierarchy.get(user_level, 0) >= level_hierarchy.get(required_level, 0)
 
 # 앱 시작 시 데이터베이스 및 사용자 테이블 초기화
@@ -3116,6 +3131,18 @@ def main():
     # 구독 정보 조회
     subscription_info = get_user_subscription_info(session.get('user_id'))
     
+    # 대시보드 통계 정보 조회
+    conn = get_db_connection()
+    try:
+        total_companies = conn.execute('SELECT COUNT(*) FROM Company_Basic').fetchone()[0]
+        total_history = conn.execute('SELECT COUNT(*) FROM Contact_History').fetchone()[0]
+    except Exception as e:
+        print(f"Stats query error: {e}")
+        total_companies = 0
+        total_history = 0
+    finally:
+        conn.close()
+    
     # 사용자 권한 정보를 템플릿에 전달
     user_data = {
         'user_id': session.get('user_id'),  # YS Honers 알림용
@@ -3124,9 +3151,12 @@ def main():
         'user_level_name': session.get('user_level_name', '일반담당자'),
         'branch_name': session.get('branch_name', ''),
         'can_manage_users': check_permission(session.get('user_level', 'N'), 'S'),
-        'subscription_info': subscription_info
+        'subscription_info': subscription_info,
+        'total_companies': f"{total_companies:,}",
+        'total_history': f"{total_history:,}"
     }
     
+    user_data['user_name'] = user_data.get('user_name') or '관리자'
     return render_template('main.html', **user_data)
 # (불필요한 잘못된 들여쓰기 라인 제거)
 # --- 접촉이력 데이터 조회 API 추가 ---
@@ -7558,11 +7588,7 @@ def api_lys_upload():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    """업로드된 파일 제공"""
-    from flask import send_from_directory
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 
 # Helper: Fetch OG Image
 # Helper: Fetch OG Image
@@ -8022,10 +8048,10 @@ def individual_business_list():
             'status': status_filter
         }
         
-        return render_template('individual_list.html', businesses=businesses, search=search_params)
+        return render_template('individual_list.html', businesses=businesses, search=search_params, user_name=session.get('user_name') or '관리자', offset=offset, limit=limit)
     except Exception as e:
         print(f"Error fetching individual businesses: {e}")
-        return render_template('individual_list.html', businesses=[], error=str(e), search={})
+        return render_template('individual_list.html', businesses=[], error=str(e), search={}, offset=0, limit=50)
     finally:
         conn.close()
 
@@ -8123,10 +8149,10 @@ def visit_management_list():
             'status': status_filter
         }
         
-        return render_template('visit_list.html', businesses=businesses, search=search_params)
+        return render_template('visit_list.html', businesses=businesses, search=search_params, user_name=session.get('user_name', '관리자'), offset=offset, limit=limit)
     except Exception as e:
         print(f"Error fetching visit list: {e}")
-        return render_template('visit_list.html', businesses=[], error=str(e), search={})
+        return render_template('visit_list.html', businesses=[], error=str(e), search={}, offset=0, limit=50)
     finally:
         conn.close()
 
@@ -8640,7 +8666,182 @@ def update_individual_business_history(history_id):
 
 
 
-if __name__ == '__main__':
+
+
+
+
+def initialize_db():
+    print("\n=== 데이터베이스 테이블 초기화 (Production/Development) ===")
+    try:
+        init_user_tables()
+        print("? 사용자 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? 사용자 테이블 초기화 실패: {e}")
+    
+    try:
+        init_business_tables()
+        print("? 비즈니스 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? 비즈니스 테이블 초기화 실패: {e}")
+    
+    try:
+        init_pipeline_tables()
+        print("? 영업 파이프라인 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? 영업 파이프라인 테이블 초기화 실패: {e}")
+    
+    try:
+        init_ys_honers_tables()
+        print("? YS Honers 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? YS Honers 테이블 초기화 실패: {e}")
+    
+    try:
+        init_individual_business_tables()
+        print("? 개인사업자 테이블 초기화 완료")
+    except Exception as e:
+        print(f"? 개인사업자 테이블 초기화 실패: {e}")
+
+    try:
+        init_lys_tables()
+        print("✅ LYS 테이블 초기화 완료")
+    except Exception as e:
+        print(f"❌ LYS 테이블 초기화 실패: {e}")
+
+    try:
+        migrate_email_system_schema()
+        print("✅ 이메일 시스템 스키마 마이그레이션 완료")
+    except Exception as e:
+        print(f"❌ 이메일 시스템 스키마 마이그레이션 실패: {e}")
+
+def migrate_email_system_schema():
+    """이메일 발송 시스템 테이블 스키마를 최신 버전으로 마이그레이션합니다."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # --- email_send_log 테이블 생성 및 마이그레이션 ---
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS email_send_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                batch_id TEXT,
+                biz_no TEXT,
+                email TEXT,
+                group_name TEXT,
+                subject TEXT,
+                status TEXT,
+                error_msg TEXT,
+                sent_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        # 기존 테이블에 누락 컬럼 추가
+        log_cols = [r[1] for r in cursor.execute('PRAGMA table_info(email_send_log)').fetchall()]
+        if 'batch_id' not in log_cols:
+            cursor.execute("ALTER TABLE email_send_log ADD COLUMN batch_id TEXT")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_esl_batch ON email_send_log(batch_id)")
+            print("  → email_send_log.batch_id 컬럼 추가")
+        if 'group_name' not in log_cols:
+            cursor.execute("ALTER TABLE email_send_log ADD COLUMN group_name TEXT")
+        if 'group_id' not in log_cols:
+            cursor.execute("ALTER TABLE email_send_log ADD COLUMN group_id INTEGER")
+
+        # --- send_batches 테이블 생성 및 마이그레이션 ---
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS send_batches (
+                batch_id TEXT PRIMARY KEY,
+                user_id TEXT,
+                smtp_config_id INTEGER,
+                subject TEXT,
+                body TEXT,
+                group_name TEXT,
+                total_count INTEGER DEFAULT 0,
+                sent_count INTEGER DEFAULT 0,
+                success_count INTEGER DEFAULT 0,
+                fail_count INTEGER DEFAULT 0,
+                sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                completed_at DATETIME,
+                status TEXT DEFAULT 'in_progress',
+                last_error TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        sb_cols = [r[1] for r in cursor.execute('PRAGMA table_info(send_batches)').fetchall()]
+        for col, dtype in [('sent_count', 'INTEGER DEFAULT 0'),
+                           ('success_count', 'INTEGER DEFAULT 0'),
+                           ('fail_count', 'INTEGER DEFAULT 0'),
+                           ('last_error', 'TEXT'),
+                           ('completed_at', 'DATETIME'),
+                           ('created_at', 'DATETIME DEFAULT CURRENT_TIMESTAMP')]:
+            if col not in sb_cols:
+                cursor.execute(f"ALTER TABLE send_batches ADD COLUMN {col} {dtype}")
+                print(f"  → send_batches.{col} 컬럼 추가")
+
+        # --- smtp_configs 테이블 생성 ---
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS smtp_configs (
+                config_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
+                config_name TEXT NOT NULL,
+                smtp_server TEXT NOT NULL,
+                smtp_port INTEGER DEFAULT 587,
+                sender_email TEXT NOT NULL,
+                sender_password TEXT NOT NULL,
+                imap_server TEXT,
+                imap_port INTEGER,
+                is_active INTEGER DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        # smtp_configs 누락 컬럼 추가
+        smtp_cols = [r[1] for r in cursor.execute('PRAGMA table_info(smtp_configs)').fetchall()]
+        if 'user_id' not in smtp_cols:
+            cursor.execute("ALTER TABLE smtp_configs ADD COLUMN user_id TEXT")
+        if 'imap_server' not in smtp_cols:
+            cursor.execute("ALTER TABLE smtp_configs ADD COLUMN imap_server TEXT")
+        if 'imap_port' not in smtp_cols:
+            cursor.execute("ALTER TABLE smtp_configs ADD COLUMN imap_port INTEGER")
+
+        # --- email_groups 테이블 생성 ---
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS email_groups (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
+                region TEXT,
+                category TEXT DEFAULT 'GENERAL',
+                member_count INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        # --- email_group_members 테이블 생성 ---
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS email_group_members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                group_id INTEGER,
+                biz_no TEXT,
+                FOREIGN KEY (group_id) REFERENCES email_groups(id)
+            )
+        ''')
+
+        conn.commit()
+    except Exception as e:
+        print(f"[migrate_email_system_schema] Error: {e}")
+        raise
+    finally:
+        conn.close()
+
+
+# Run initialization on module load (for Gunicorn/Render)
+# initialize_db  # Moved to __main__ block to prevent double execution
+
+# --- 데이터 일괄 업로드 API ---
+# --- 데이터 일괄 업로드 API ---
+@app.route('/api/upload_excel', methods=['POST'])
+def upload_excel_and_process():
+    initialize_db
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
 
     print("=== 애플리케이션 시작 ===")
@@ -8707,6 +8908,13 @@ def init_lys_tables():
 @app.route('/api/lys/save-all', methods=['POST'])
 def lys_save_all():
     try:
+        data = request.get_json()
+        team_data = data.get('team', [])
+        news_data = data.get('news', [])
+        seminar_data = data.get('seminars', [])
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
         data = request.get_json()
         team_data = data.get('team', [])
         news_data = data.get('news', [])
@@ -8948,50 +9156,6 @@ def lys_import_questions():
         if 'conn' in locals(): conn.close()
 
 # 초기화 함수 정의
-def initialize_db():
-    print("\n=== 데이터베이스 테이블 초기화 (Production/Development) ===")
-    try:
-        init_user_tables()
-        print("? 사용자 테이블 초기화 완료")
-    except Exception as e:
-        print(f"? 사용자 테이블 초기화 실패: {e}")
-    
-    try:
-        init_business_tables()
-        print("? 비즈니스 테이블 초기화 완료")
-    except Exception as e:
-        print(f"? 비즈니스 테이블 초기화 실패: {e}")
-    
-    try:
-        init_pipeline_tables()
-        print("? 영업 파이프라인 테이블 초기화 완료")
-    except Exception as e:
-        print(f"? 영업 파이프라인 테이블 초기화 실패: {e}")
-    
-    try:
-        init_ys_honers_tables()
-        print("? YS Honers 테이블 초기화 완료")
-    except Exception as e:
-        print(f"? YS Honers 테이블 초기화 실패: {e}")
-    
-    try:
-        init_individual_business_tables()
-        print("? 개인사업자 테이블 초기화 완료")
-    except Exception as e:
-        print(f"? 개인사업자 테이블 초기화 실패: {e}")
-
-    try:
-        init_lys_tables()
-        print("? LYS 테이블 초기화 완료")
-    except Exception as e:
-        print(f"? LYS 테이블 초기화 실패: {e}")
-
-# Run initialization on module load (for Gunicorn/Render)
-initialize_db()
-
-# --- 데이터 일괄 업로드 API ---
-# --- 데이터 일괄 업로드 API ---
-@app.route('/api/upload_excel', methods=['POST'])
 def upload_excel_and_process():
     """엑셀 파일을 업로드하고 배치 처리 스크립트를 실행합니다 (Streaming Response)."""
     # 권한 확인 (관리자만 가능)
@@ -9449,16 +9613,652 @@ def execute_corporate_upload():
     
     return Response(generate(), mimetype='text/event-stream')
 
-if __name__ == '__main__':
-    # 서버 시작
-    port = int(os.environ.get('PORT', 5000))
-    print(f"\n=== Flask 서버 시작 ===")
-    print(f"Host: 0.0.0.0")
-    print(f"Port: {port}")
-    print(f"Debug: {not os.environ.get('RENDER')}")  # Render에서는 debug=False
+
+
+# --- Email Management System Routes ---
+
+@app.route('/email_management')
+def email_management():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     
-    app.run(
-        host='0.0.0.0', 
-        port=port, 
-        debug=not os.environ.get('RENDER')  # Render에서는 debug=False
+    # 일반 담당자(N)는 접근 불가, 매니저(M) 이상만 허용
+    user_level = session.get('user_level', 'N')
+    if not check_permission(user_level, 'M'):
+        return "이메일 시스템 접근 권한이 없습니다. 관리자에게 문의하세요.", 403
+        
+    return render_template('email_management.html', user_name=session.get('user_name', '사용자'))
+
+@app.route('/api/smtp-configs', methods=['GET', 'POST'])
+def api_smtp_configs():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    if request.method == 'GET':
+        cursor.execute('SELECT * FROM smtp_configs WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
+        configs = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return jsonify({'success': True, 'configs': configs})
+    
+    else:
+        data = request.json
+        config_id = data.get('config_id')
+        config_name = data.get('config_name')
+        smtp_server = data.get('smtp_server')
+        smtp_port = data.get('smtp_port')
+        sender_email = data.get('sender_email')
+        sender_password = data.get('sender_password')
+        
+        if not all([config_name, smtp_server, smtp_port, sender_email, sender_password]):
+            conn.close()
+            return jsonify({'success': False, 'message': '모든 항목을 입력해주세요.'}), 400
+            
+        try:
+            if config_id:
+                cursor.execute('''
+                    UPDATE smtp_configs SET 
+                        config_name = ?, smtp_server = ?, smtp_port = ?, 
+                        sender_email = ?, sender_password = ?
+                    WHERE config_id = ? AND user_id = ?
+                ''', (config_name, smtp_server, smtp_port, sender_email, sender_password, config_id, user_id))
+                message = 'SMTP 설정이 수정되었습니다.'
+            else:
+                cursor.execute('''
+                    INSERT INTO smtp_configs (user_id, config_name, smtp_server, smtp_port, sender_email, sender_password)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (user_id, config_name, smtp_server, smtp_port, sender_email, sender_password))
+                message = 'SMTP 설정이 저장되었습니다.'
+            
+            conn.commit()
+            conn.close()
+            return jsonify({'success': True, 'message': message})
+        except Exception as e:
+            conn.close()
+            return jsonify({'success': False, 'message': f'저장 오류: {str(e)}'}), 500
+
+@app.route('/api/email/init', methods=['POST'])
+def api_email_init():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    try:
+        from setup_email_system_db import check_and_setup
+        check_and_setup()
+        return jsonify({'success': True, 'message': '이메일 시스템 초기 설정(테이블 확인 및 생성)이 완료되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'초기화 오류: {str(e)}'})
+
+
+@app.route('/api/email/targets')
+def api_email_targets():
+    region = request.args.get('region')
+    category = request.args.get('category', 'GENERAL')
+    offset = int(request.args.get('offset', 0))
+    limit = int(request.args.get('limit', 100))
+    
+    if not region:
+        return jsonify({'success': False, 'message': '권역을 선택해주세요.'}), 400
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    query = '''
+        SELECT cb.*, 
+               (SELECT MAX(sent_at) FROM email_send_log WHERE biz_no = cb.biz_no) as last_sent_at
+        FROM Company_Basic cb 
+        WHERE region LIKE ? AND email IS NOT NULL AND email != ""
+        AND (email_usable = 1 OR email_fix_status = 1)
+    '''
+    params = [f'{region}%']
+    
+    if category != 'ALL':
+        query += ' AND category = ?'
+        params.append(category)
+        
+    query += ' LIMIT ? OFFSET ?'
+    params.extend([limit, offset])
+    
+    cursor.execute(query, params)
+    targets = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return jsonify({'success': True, 'targets': targets})
+    targets = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return jsonify({'success': True, 'targets': targets})
+
+@app.route('/api/email/regional-groups')
+def api_regional_groups():
+    region = request.args.get('region')
+    category = request.args.get('category', 'GENERAL')
+    if not region:
+        return jsonify({'success': False, 'message': '지역을 선택해주세요.'}), 400
+    
+    import math
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    query = 'SELECT COUNT(*) FROM Company_Basic WHERE region LIKE ? AND email IS NOT NULL AND email != "" AND (email_usable = 1 OR email_fix_status = 1)'
+    params = [f'{region}%']
+    
+    if category != 'ALL':
+        query += ' AND category = ?'
+        params.append(category)
+        
+    cursor.execute(query, params)
+    total_count = cursor.fetchone()[0]
+    conn.close()
+    
+    batch_size = 100
+    num_batches = math.ceil(total_count / batch_size)
+    groups = []
+    for i in range(num_batches):
+        groups.append({
+            'id': i + 1,
+            'start': i * batch_size + 1,
+            'end': min((i + 1) * batch_size, total_count)
+        })
+    
+    return jsonify({'success': True, 'total_count': total_count, 'groups': groups})
+
+
+@app.route('/api/email/cleanup-groups', methods=['POST'])
+def api_cleanup_groups():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    from email_service import cleanup_email_groups
+    result = cleanup_email_groups()
+    return jsonify(result)
+
+@app.route('/api/email/generate-groups', methods=['POST'])
+def api_generate_groups():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    data = request.json
+    category = data.get('category', 'GENERAL')
+    limit = data.get('limit', 100)
+    
+    from email_service import generate_smart_groups
+    result = generate_smart_groups(category, limit)
+    return jsonify(result)
+
+@app.route('/api/email/target-groups')
+def api_email_target_groups_list():
+    category = request.args.get('category', 'GENERAL')
+    from email_service import get_email_groups
+    groups = get_email_groups() # This returns everything
+    
+    # Filter by category if not ALL
+    if category != 'ALL':
+        groups = [g for g in groups if g['category'] == category]
+        
+    # Standardize field names for frontend: name -> range, member_count -> count
+    formatted = []
+    for g in groups:
+        formatted.append({
+            'id': g['id'],
+            'range': g['name'],
+            'count': g['member_count']
+        })
+    return jsonify({'success': True, 'groups': formatted})
+
+@app.route('/api/email/group-members/<int:group_id>')
+def api_email_group_members(group_id):
+    from email_service import get_group_members
+    members = get_group_members(group_id)
+    return jsonify({'success': True, 'members': members})
+
+@app.route('/api/email/batch-send', methods=['POST'])
+def api_email_batch_send_new():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+        
+    data = request.json
+    biz_nos = data.get('biz_nos', [])
+    subject = data.get('subject', '')
+    body = data.get('body', '')
+    smtp_config_id = data.get('smtp_config_id')
+    group_name = data.get('group_name')
+    attachments = data.get('attachments', []) # List of {path, name, size}
+    user_id = session['user_id']
+    
+    if not biz_nos:
+        return jsonify({'success': False, 'message': '발송할 기업을 선택해주세요'}), 400
+        
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT * FROM smtp_configs WHERE config_id = ? AND user_id = ?', (smtp_config_id, user_id))
+    config = cursor.fetchone()
+    if not config:
+        conn.close()
+        return jsonify({'success': False, 'message': 'SMTP 설정을 찾을 수 없습니다.'}), 404
+        
+    # Get company details for personalization
+    placeholders = ','.join(['?'] * len(biz_nos))
+    cursor.execute(f'SELECT biz_no, company_name, representative_name, email, phone_number, phone_number as phone, address FROM Company_Basic WHERE biz_no IN ({placeholders})', biz_nos)
+    companies = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    # Initialize EmailSender with the retrieved config
+    from email_service import EmailSender
+    sender = EmailSender(
+        smtp_server=config['smtp_server'],
+        smtp_port=config['smtp_port'],
+        sender_email=config['sender_email'],
+        sender_password=config['sender_password']
     )
+    
+    # Pass attachments to the sender
+    result = sender.send_batch_emails(
+        user_id=user_id,
+        companies_data=companies,
+        subject=subject,
+        body_template=body,
+        smtp_config_id=smtp_config_id,
+        group_name=group_name,
+        attachments=attachments
+    )
+    return jsonify({'success': True, 'message': '발송이 시작되었습니다.', 'batch_id': result['batch_id']})
+
+@app.route('/api/email/batches')
+def api_email_batches():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    from email_service import get_all_batches
+    batches = get_all_batches(session['user_id'])
+    return jsonify({'success': True, 'batches': batches})
+
+@app.route('/api/email/batch-details/<batch_id>')
+def api_email_batch_details(batch_id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    from email_service import get_email_history
+    history = get_email_history(batch_id)
+    return jsonify({'success': True, 'details': history})
+
+@app.route('/api/email/delete-batch/<batch_id>', methods=['DELETE'])
+def api_email_delete_batch(batch_id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # Get batch status first - maybe only allow deleting failed ones? 
+        # User said "실패한 발송이력은 삭제 할 수 있도록 해주세요"
+        cursor.execute('SELECT status FROM send_batches WHERE batch_id = ?', (batch_id,))
+        batch = cursor.fetchone()
+        if not batch:
+            return jsonify({'success': False, 'message': '배치를 찾을 수 없습니다.'}), 404
+            
+        # Delete logs first (foreign key or manual)
+        cursor.execute('DELETE FROM email_send_log WHERE batch_id = ?', (batch_id,))
+        cursor.execute('DELETE FROM send_batches WHERE batch_id = ?', (batch_id,))
+        conn.commit()
+        return jsonify({'success': True, 'message': '발송 이력이 삭제되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/email/update-company', methods=['POST'])
+def api_email_update_company():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+        
+    data = request.json
+    biz_no = data.get('biz_no')
+    email = data.get('email', '')
+    category = data.get('category')
+    company_name = data.get('company_name')
+    
+    if not biz_no:
+        return jsonify({'success': False, 'message': '사업자번호가 필요합니다.'}), 400
+        
+    # Simple email validation
+    import re
+    email_usable = 1 if email and re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email) else 0
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        update_fields = []
+        params = []
+        
+        if email is not None:
+            update_fields.append("email = ?, email_usable = ?, email_fix_status = 1")
+            params.extend([email, email_usable])
+        if category:
+            update_fields.append("category = ?")
+            params.append(category)
+        if company_name:
+            update_fields.append("company_name = ?")
+            params.append(company_name)
+            
+        if not update_fields:
+            return jsonify({'success': False, 'message': '수정할 정보가 없습니다.'}), 400
+            
+        params.append(biz_no)
+        query = f"UPDATE Company_Basic SET {', '.join(update_fields)} WHERE biz_no = ?"
+        
+        cursor.execute(query, params)
+        conn.commit()
+        return jsonify({'success': True, 'message': '기업 정보가 업데이트되었습니다.', 'email_usable': bool(email_usable)})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/email/companies')
+def api_email_companies():
+    category = request.args.get('category', 'MANAGED')
+    email_status = request.args.get('email_status', 'ALL') # ALL, NORMAL, ABNORMAL
+    keyword = request.args.get('keyword', '')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    query = 'SELECT cb.*, (SELECT MAX(sent_at) FROM email_send_log WHERE biz_no = cb.biz_no) as last_sent_at FROM Company_Basic cb'
+    params = []
+    conditions = []
+    
+    # 1. Category Filter
+    if category != 'ALL':
+        conditions.append('category = ?')
+        params.append(category)
+        
+    # 2. Email Status Filter (Normal / Abnormal)
+    if email_status == 'NORMAL':
+        conditions.append('email IS NOT NULL AND email != "" AND email_usable = 1')
+    elif email_status == 'ABNORMAL':
+        conditions.append('(email IS NULL OR email = "" OR email_usable = 0)')
+        
+    # 3. Keyword Search
+    if keyword:
+        conditions.append('(company_name LIKE ? OR representative_name LIKE ? OR biz_no LIKE ? OR email LIKE ?)')
+        params.extend([f'%{keyword}%', f'%{keyword}%', f'%{keyword}%', f'%{keyword}%'])
+        
+    if conditions:
+        query += ' WHERE ' + ' AND '.join(conditions)
+    
+    query += ' ORDER BY company_name'
+    
+    # Optional: Paging or Limit for performance
+    query += ' LIMIT 200'
+    
+    cursor.execute(query, params)
+    companies = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return jsonify({'success': True, 'companies': companies})
+
+@app.route('/api/email/companies/add', methods=['POST'])
+def api_email_companies_add():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+        
+    data = request.json
+    biz_no = data.get('biz_no', '').replace('-', '') # 하이픈 제거 후 저장
+    company_name = data.get('company_name')
+    representative_name = data.get('representative_name')
+    email = data.get('email')
+    region = data.get('region')
+    category = data.get('category', 'MANAGED')
+    
+    if not biz_no or not company_name:
+        return jsonify({'success': False, 'message': '사업자번호와 기업명은 필수입니다.'}), 400
+        
+    # Email usability check
+    import re
+    email_usable = 1 if email and re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email) else 0
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            INSERT INTO Company_Basic (biz_no, company_name, representative_name, email, email_usable, region, category)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (biz_no, company_name, representative_name, email, email_usable, region, category))
+        conn.commit()
+        return jsonify({'success': True, 'message': '기업 정보가 영구 저장되었습니다.'})
+    except sqlite3.IntegrityError:
+        return jsonify({'success': False, 'message': '이미 등록된 사업자번호입니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'데이터베이스 오류: {str(e)}'})
+    finally:
+        conn.close()
+
+@app.route('/api/email/batch-status/<batch_id>')
+def api_email_batch_status(batch_id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+        
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('SELECT * FROM send_batches WHERE batch_id = ?', (batch_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'success': False, 'message': '배치를 찾을 수 없습니다.'}), 404
+            
+        batch = dict(row)
+        # Calculate percentage
+        total = batch.get('total_count') or 1
+        processed = batch.get('sent_count') or 0
+        success_count = batch.get('success_count') or 0
+        fail_count = batch.get('fail_count') or 0
+        percent = int((processed / total) * 100)
+        
+        # 상태 정규화: email_service.py에서 'completed'로 저장됨
+        current_status = batch.get('status', 'in_progress')
+        
+        return jsonify({
+            'success': True,
+            'status': {
+                'status': current_status,
+                'percent': percent,
+                'processed_count': processed,  # JS trackProgress()가 사용하는 키
+                'success_count': success_count,
+                'fail_count': fail_count,
+                'total_count': total,
+                # 구버전 호환성
+                'sent': processed,
+                'success': success_count,
+                'fail': fail_count,
+                'total': total,
+                'last_error': batch.get('last_error')
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/email/upload-attachments', methods=['POST'])
+def api_email_upload_attachments():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+        
+    if 'files' not in request.files:
+        return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
+        
+    files = request.files.getlist('files')
+    uploaded = []
+    
+    import uuid
+    for file in files:
+        if file.filename == '': continue
+        ext = os.path.splitext(file.filename)[1]
+        filename = f"{uuid.uuid4()}{ext}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        uploaded.append({'name': file.filename, 'path': filepath})
+        
+    return jsonify({'success': True, 'files': uploaded})
+
+
+@app.route('/api/email/check-bounces', methods=['POST'])
+def api_email_check_bounces():
+    """IMAP으로 반송 메일을 확인하고 DB(email_send_log + Company_Basic)를 업데이트합니다."""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+
+    data = request.json or {}
+    smtp_config_id = data.get('smtp_config_id')
+    since_date = data.get('since_date')  # 'YYYY-MM-DD'
+
+    if not smtp_config_id:
+        return jsonify({'success': False, 'message': 'SMTP 설정을 선택해주세요.'}), 400
+    if not since_date:
+        # 기본값: 오늘 날짜
+        from datetime import date
+        since_date = date.today().strftime('%Y-%m-%d')
+
+    # SMTP 설정에 IMAP 서버 정보 없으면 기본값 설정
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM smtp_configs WHERE config_id = ?', (smtp_config_id,))
+    cfg = cursor.fetchone()
+    conn.close()
+
+    if not cfg:
+        return jsonify({'success': False, 'message': 'SMTP 설정을 찾을 수 없습니다.'}), 404
+
+    # IMAP 서버 자동 결정 (미설정 시)
+    if not cfg['imap_server']:
+        smtp_srv = (cfg['smtp_server'] or '').lower()
+        if 'gmail' in smtp_srv:
+            auto_imap = 'imap.gmail.com'
+        elif 'naver' in smtp_srv:
+            auto_imap = 'imap.naver.com'
+        elif 'daum' in smtp_srv or 'kakao' in smtp_srv:
+            auto_imap = 'imap.daum.net'
+        elif 'nate' in smtp_srv:
+            auto_imap = 'imap.nate.com'
+        else:
+            auto_imap = smtp_srv.replace('smtp.', 'imap.')
+
+        # imap_server 자동 업데이트
+        conn2 = get_db_connection()
+        conn2.execute('UPDATE smtp_configs SET imap_server = ?, imap_port = 993 WHERE config_id = ?',
+                      (auto_imap, smtp_config_id))
+        conn2.commit()
+        conn2.close()
+
+    from email_service import check_bounce_and_update
+    result = check_bounce_and_update(int(smtp_config_id), since_date)
+    return jsonify(result)
+
+
+@app.route('/api/email/upload-bulk-results', methods=['POST'])
+def api_email_upload_bulk_results():
+    """외부 결과 CSV 파일을 업로드하여 시스템에 일괄 반영합니다."""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': '선택된 파일이 없습니다.'}), 400
+
+    import csv
+    import io
+    
+    try:
+        # UTF-8 또는 CP949(EUC-KR) 지원
+        stream = io.StringIO(file.stream.read().decode('utf-8-sig', errors='ignore'))
+        reader = csv.DictReader(stream)
+        
+        delivery_items = []
+        for row in reader:
+            # 사업자번호(biz_no), 상태(status), 오류(error) 컬럼 기대
+            # 컬럼명이 한글일 경우 대비
+            biz_no = row.get('사업자번호') or row.get('biz_no') or row.get('사업자등록번호')
+            status = row.get('상태') or row.get('status') or row.get('결과')
+            error = row.get('사유') or row.get('error') or row.get('오류내용')
+            
+            if biz_no:
+                # 상태값 정규화 (성공->SUCCESS, 반송/실패->BOUNCE/FAIL)
+                final_status = 'SUCCESS'
+                if status:
+                    if any(x in status for x in ['반송', 'bounce', 'Bounce']): final_status = 'BOUNCE'
+                    elif any(x in status for x in ['실패', 'fail', 'Fail', 'error']): final_status = 'FAIL'
+                
+                delivery_items.append({
+                    'biz_no': biz_no.replace('-', '').strip(),
+                    'status': final_status,
+                    'error': error
+                })
+        
+        if not delivery_items:
+            return jsonify({'success': False, 'message': '유효한 데이터가 없습니다.'}), 400
+            
+        from email_service import bulk_update_delivery_results
+        result = bulk_update_delivery_results(delivery_items)
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"[api_email_upload_bulk_results] Error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/email/delete-batches', methods=['POST'])
+def api_email_delete_batches():
+    """선택된 발송 배치와 관련 로그를 완전히 삭제합니다."""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    data = request.get_json()
+    batch_ids = data.get('batch_ids', [])
+    
+    if not batch_ids:
+        return jsonify({'success': False, 'message': '삭제할 항목이 선택되지 않았습니다.'}), 400
+        
+    import sqlite3
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        total_deleted = 0
+        
+        with conn:
+            cursor = conn.cursor()
+            placeholders = ','.join(['?'] * len(batch_ids))
+            
+            # 1. 실제 사용 중인 상세 로그 제거 (email_send_log)
+            cursor.execute(f"DELETE FROM email_send_log WHERE batch_id IN ({placeholders})", batch_ids)
+            
+            # 2. 실제 사용 중인 배치 정보 제거 (send_batches)
+            cursor.execute(f"DELETE FROM send_batches WHERE batch_id IN ({placeholders})", batch_ids)
+            total_deleted = cursor.rowcount
+
+        conn.close()
+        
+        # 0건이 지워졌더라도 에러가 아닌 성공(하지만 0건)으로 리턴하여 프런트엔드 갱신 유도
+        return jsonify({
+            'success': True, 
+            'count': total_deleted,
+            'status': 'Synchronized' if total_deleted > 0 else 'No data found'
+        })
+    except Exception as e:
+        if 'conn' in locals(): conn.close()
+        print(f"[api_email_delete_batches] Serious Error: {e}")
+        return jsonify({'success': False, 'message': f"시스템 데이터베이스 오류: {str(e)}"})
+
+
+if __name__ == '__main__':
+
+    initialize_db()
+    app.run(host='0.0.0.0', port=5000, debug=True)
+

@@ -4,737 +4,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>퇴직금 계산기</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>퇴직금 계산기 | CMS v2.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --neon-blue: #00d4ff;
+            --neon-purple: #7b2fff;
+            --neon-cyan: #00ffcc;
+            --deep-bg: #020817;
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: rgba(255, 255, 255, 0.9);
+            --text-secondary: rgba(255, 255, 255, 0.5);
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', 'Noto Sans KR', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-            min-height: 100vh;
-            padding: 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-image: url('/static/images/space_bg.png');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            color: var(--text-primary); min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 2rem; overflow-x: hidden;
         }
+
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .shooting-star-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 
         .main-nav-btn {
-            position: fixed;
-            top: 1.25rem;
-            right: 1.25rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 0.625rem 1.25rem;
-            border-radius: 50px;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+            position: fixed; top: 1.5rem; right: 1.5rem;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);
+            color: var(--neon-blue); border: 1px solid var(--neon-blue);
+            padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 600; text-decoration: none; font-family: 'Orbitron', sans-serif;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); transition: 0.3s; z-index: 100;
         }
-
-        .main-nav-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
+        .main-nav-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 25px var(--neon-blue); }
 
         .container {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            border-radius: 1.25rem;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            max-width: 1200px;
-            width: 100%;
-            padding: 2rem;
-            margin: 0 auto;
+            background: rgba(2, 8, 23, 0.75); backdrop-filter: blur(25px);
+            border-radius: 2rem; border: 1px solid var(--card-border);
+            max-width: 1000px; width: 100%; padding: 3.5rem; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            position: relative;
         }
 
         h1 {
-            color: #1e293b;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #0f172a, #334155);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+            font-family: 'Orbitron', 'Noto Sans KR', sans-serif; text-align: center; margin-bottom: 2.5rem; font-size: 2.8rem; letter-spacing: 4px;
+            background: linear-gradient(90deg, #fff, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        /* Top Tabs */
-        .top-tabs {
-            display: flex;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 0.75rem;
-            padding: 0.25rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(203, 213, 225, 0.3);
-        }
-
-        .top-tab {
-            flex: 1;
-            padding: 0.75rem;
-            text-align: center;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-weight: 600;
-            color: #64748b;
-            transition: all 0.2s;
-        }
-
-        .top-tab.active {
-            background: white;
-            color: #3b82f6;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Quick Calculation Tabs */
-        .quick-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.25rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .quick-tab {
-            padding: 0.625rem 1.25rem;
-            border-radius: 50px;
-            border: 1.5px solid rgba(59, 130, 246, 0.3);
-            background: white;
-            color: #64748b;
-            font-size: 0.75rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .quick-tab:hover,
-        .quick-tab.active {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border-color: transparent;
-            transform: translateY(-1px);
-        }
-
-        /* Grid Layout for Form Groups */
-        .form-sections {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.25rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .form-group {
-            background: rgba(248, 250, 252, 0.8);
-            padding: 1.25rem;
-            border-radius: 0.875rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(203, 213, 225, 0.3);
-        }
-
-        .form-group h3 {
-            color: #334155;
-            margin-bottom: 1rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(148, 163, 184, 0.2);
-            padding-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.375rem;
-        }
-
-        /* Grid for Input Fields */
-        .input-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.875rem;
-        }
-
-        .input-grid.single {
-            grid-template-columns: 1fr;
-        }
-
-        .field-wrapper {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.375rem;
-            font-weight: 500;
-            color: #64748b;
-            font-size: 0.75rem;
-        }
-
-        input,
-        select {
-            width: 100%;
-            padding: 0.625rem 0.75rem;
-            border: 1.5px solid rgba(203, 213, 225, 0.6);
-            border-radius: 0.5rem;
-            font-size: 0.8125rem;
-            transition: all 0.2s ease;
-            background: white;
-            color: #1e293b;
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .date-inputs {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .date-inputs select {
-            flex: 1;
-        }
-
-        .radio-group {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .radio-group label {
-            display: flex;
-            align-items: center;
-            gap: 0.375rem;
-            cursor: pointer;
-            margin-bottom: 0;
-        }
-
-        .radio-group input[type="radio"] {
-            width: auto;
-            cursor: pointer;
-        }
-
-        .help-text {
-            font-size: 0.6875rem;
-            color: #94a3b8;
-            margin-top: 0.25rem;
-        }
-
-        .button-container {
-            text-align: center;
-            margin-bottom: 1.25rem;
-        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        .form-group { background: rgba(255, 255, 255, 0.02); padding: 1.8rem; border-radius: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .form-group h3 { color: #fff; font-size: 1.05rem; letter-spacing: 1.5px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+        
+        label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.6rem; }
+        input { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: white; font-size: 1rem; }
+        input:focus { border-color: var(--neon-blue); outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
 
         .calc-btn {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border: none;
-            padding: 0.875rem 2.5rem;
-            border-radius: 50px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-            min-width: 200px;
+            grid-column: span 2; background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white; border: none; padding: 1.3rem; border-radius: 1rem; font-weight: 700; cursor: pointer; 
+            font-family: 'Orbitron', 'Noto Sans KR', sans-serif; letter-spacing: 3px; transition: 0.4s;
         }
+        .calc-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); }
 
-        .calc-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        .result-container { margin-top: 2.5rem; display: none; animation: fadeInUp 0.6s ease forwards; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .result-item { background: rgba(255, 255, 255, 0.03); padding: 1.5rem; border-radius: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .result-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
+        .result-value { font-size: 1.2rem; font-weight: 600; }
+
+        .final-result {
+            grid-column: span 2; background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(123, 47, 255, 0.1));
+            border: 1px solid var(--neon-blue); padding: 2.5rem; text-align: center; border-radius: 1.5rem;
         }
+        .final-label { color: var(--neon-blue); font-family: 'Orbitron', 'Noto Sans KR', sans-serif; font-size: 1rem; letter-spacing: 3px; }
+        .final-value { font-size: 3.5rem; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0.5rem; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .calc-btn:active {
-            transform: translateY(0);
+        /* Earth Rotation */
+        .earth-container {
+            position: fixed; bottom: -120px; right: -120px; width: 620px; height: 620px;
+            pointer-events: none; z-index: -1; opacity: 0.7; filter: drop-shadow(0 0 50px rgba(0, 212, 255, 0.2));
+            animation: rotateEarth 320s linear infinite;
         }
-
-        .result-container {
-            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.9));
-            border-radius: 0.875rem;
-            padding: 1.5rem;
-            margin-top: 1.25rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(203, 213, 225, 0.3);
-            display: none;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .form-sections {
-                grid-template-columns: 1fr;
-            }
-
-            .input-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: 1.5rem;
-            }
-
-            h1 {
-                font-size: 1.25rem;
-            }
-
-            .quick-tabs {
-                justify-content: flex-start;
-            }
-        }
+        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .earth-img { width: 100%; height: 100%; object-fit: contain; }
     </style>
 </head>
 
 <body>
-    <a href="/main" class="main-nav-btn">
-        🏠 메인으로
-    </a>
+    <canvas id="particle-canvas"></canvas>
+    <div class="shooting-star-container" id="shooting-stars"></div>
+    <div class="earth-container">
+        <img src="https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yNF9waG90b19vZl9lYXJ0aF9mcm9tX3NwYWNlX2lzb2xhdGVkX29uX3RyYW5zcGFyZW50X2JhXzkzNTY3MjFhLTk1NDQtNGVjMi1hYzRjLTZlODQzMWU0MzlhYl8xLnBuZw.png" class="earth-img" alt="Earth Rotation">
+    </div>
+    <a href="/main" class="main-nav-btn">대시보드 복귀</a>
 
     <div class="container">
-        <h1>💰 퇴직금 계산기</h1>
+        <h1>퇴직금 계산기</h1>
 
-        <!-- Mode Selection Tabs -->
-        <div class="top-tabs">
-            <div class="top-tab" data-mode="employee">일반 직원</div>
-            <div class="top-tab active" data-mode="executive">임원 / 대표이사</div>
-        </div>
-
-        <!-- Quick Calculation Tabs -->
-        <div class="quick-tabs">
-            <button class="quick-tab" data-years="10" data-multiplier="1">10년 근무</button>
-            <button class="quick-tab" data-years="15" data-multiplier="1">15년 근무</button>
-            <button class="quick-tab" data-years="20" data-multiplier="1">20년 근무</button>
-            <button class="quick-tab" data-years="10" data-multiplier="2">10년 2배수</button>
-            <button class="quick-tab" data-years="10" data-multiplier="3">10년 3배수</button>
-            <button class="quick-tab" data-years="15" data-multiplier="2">15년 2배수</button>
-            <button class="quick-tab" data-years="15" data-multiplier="3">15년 3배수</button>
-        </div>
-
-        <form id="retirementForm" onsubmit="return false;">
-            <div class="form-sections">
-                <!-- 기본 정보 -->
+        <form id="retirementForm">
+            <div class="form-grid">
                 <div class="form-group">
-                    <h3>📋 근무 기간</h3>
-                    <div class="input-grid single">
-                        <div class="field-wrapper">
-                            <label for="joinDate">입사일</label>
-                            <input type="date" id="joinDate" required>
-                        </div>
-
-                        <div class="field-wrapper">
-                            <label for="leaveDate">퇴사일</label>
-                            <input type="date" id="leaveDate" required>
-                        </div>
+                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 근무 정보</h3>
+                    <div style="margin-bottom:1.2rem;">
+                        <label>입사일</label>
+                        <input type="date" id="joinDate" required>
+                    </div>
+                    <div>
+                        <label>퇴사일</label>
+                        <input type="date" id="exitDate" required>
                     </div>
                 </div>
 
-                <!-- 급여 정보 -->
                 <div class="form-group">
-                    <h3>💵 급여 정보</h3>
-                    <div class="input-grid single">
-                        <div class="field-wrapper">
-                            <label for="last1ySalary">퇴직 직전 1년간 총 급여</label>
-                            <input type="text" id="last1ySalary" placeholder="예: 200,000,000" required>
-                            <div class="help-text">퇴직금 계산의 기준이 되는 금액</div>
-                        </div>
-
-                        <div class="field-wrapper" id="execSalaryField" style="display:none;">
-                            <label for="last3ySalary">퇴직 직전 3년간 총 급여</label>
-                            <input type="text" id="last3ySalary" placeholder="예: 600,000,000">
-                            <div class="help-text">임원/대표일 때만 입력</div>
-                        </div>
+                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 급여 정보</h3>
+                    <div style="margin-bottom:1.2rem;">
+                        <label>최근 3개월 월 기본급 합계 (원)</label>
+                        <input type="text" id="baseSalary" placeholder="0" required>
+                    </div>
+                    <div>
+                        <label>연간 상여금 총액 (원)</label>
+                        <input type="text" id="bonusSalary" value="0">
                     </div>
                 </div>
-            </div>
 
-            <div class="form-sections" id="execSection" style="display:none;">
-                <!-- 임원 전용: 기간별 배수 설정 -->
-                <div class="form-group" style="grid-column: span 2;">
-                    <h3>⚡ 임원 퇴직금 배수 설정 (기간별 분리)</h3>
-                    <div
-                        style="margin-bottom:1rem;padding:1rem;background:rgba(59,130,246,0.05);border-radius:0.5rem;border-left:3px solid #3b82f6;">
-                        <p style="font-size:0.75rem;color:#1e40af;margin:0;">
-                            <strong>📅 임원 퇴직금 한도 규정:</strong><br>
-                            2012년, 2020년 세법 개정으로 인해 근무 기간별로 다른 한도 배수가 적용됩니다.<br>
-                            아래 표에 정관에서 정한 배수를 입력하세요. (일반적으로 2011년 이전은 정관따름, 그 이후는 2~3배수)
-                        </p>
-                    </div>
-
-                    <div style="overflow-x:auto;">
-                        <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
-                            <thead>
-                                <tr style="background:rgba(241,245,249,0.8);color:#475569;">
-                                    <th style="padding:0.75rem;text-align:left;border-radius:0.5rem 0 0 0.5rem;">구분</th>
-                                    <th style="padding:0.75rem;text-align:center;">기간</th>
-                                    <th style="padding:0.75rem;text-align:center;">근무일수</th>
-                                    <th style="padding:0.75rem;text-align:right;border-radius:0 0 0.5rem 0;">적용 배수</th>
-                                </tr>
-                            </thead>
-                            <tbody id="periodTableBody">
-                                <!-- JS로 동적 생성됨 -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="button-container">
-                <button type="button" class="calc-btn" onclick="calculateRetirement()">💰 계산하기</button>
+                <button type="submit" class="calc-btn">퇴직금 정밀 분석 // ANALYZE</button>
             </div>
         </form>
 
-        <div id="retireResult" class="result-container"></div>
+        <div id="retirementResult" class="result-container">
+            <div class="result-grid">
+                <div class="result-item">
+                    <div class="result-label">총 재직일수</div>
+                    <div id="res-days" class="result-value">0 일</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">평균 임금 (1일)</div>
+                    <div id="res-avg-daily" class="result-value">0 원</div>
+                </div>
+                <div class="final-result">
+                    <div class="final-label">예상 퇴직금 총액 (세전)</div>
+                    <div id="res-total" class="final-value">0 원</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Tab Logic
-        const topTabs = document.querySelectorAll('.top-tab');
-        const execSection = document.getElementById('execSection');
-        let currentMode = 'executive'; // 'employee' or 'executive'
+        // High-Vibrancy Space Collision Engine
+        (function() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let w, h, particles = [];
 
-        topTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                topTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                currentMode = tab.dataset.mode;
-                updateUIState();
-                calculateRetirement();
-            });
-        });
-
-        function updateUIState() {
-            const isExec = currentMode === 'executive';
-            execSection.style.display = isExec ? 'grid' : 'none'; // Use grid for form-sections
-            document.getElementById('execSalaryField').style.display = isExec ? 'flex' : 'none'; // flex for field-wrapper
-
-            // Re-calculate split periods if executive
-            if (isExec) {
-                updatePeriodTable();
-            }
-        }
-
-        // Quick Tab 기능
-        const quickTabs = document.querySelectorAll('.quick-tab');
-        const today = new Date();
-        const leaveDate = document.getElementById('leaveDate');
-        const joinDate = document.getElementById('joinDate');
-
-        // 초기 날짜 설정
-        if (leaveDate) leaveDate.value = today.toISOString().split('T')[0];
-
-        if (joinDate) {
-            const tenYearsAgo = new Date(today.getFullYear() - 10, today.getMonth(), today.getDate());
-            joinDate.value = tenYearsAgo.toISOString().split('T')[0];
-        }
-
-        quickTabs.forEach(tab => {
-            tab.addEventListener('click', function () {
-                quickTabs.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-
-                const years = parseInt(this.dataset.years);
-                const multiplier = parseFloat(this.dataset.multiplier);
-
-                // 입사일 자동 계산
-                const leaveD = new Date(leaveDate.value);
-                const joinD = new Date(leaveD.getFullYear() - years, leaveD.getMonth(), leaveD.getDate());
-                joinDate.value = joinD.toISOString().split('T')[0];
-
-                if (multiplier > 1) {
-                    // Switch to Executive Tab automatically if multiplier > 1
-                    topTabs[1].click();
-                    // Set multipliers in table (simple approximation)
-                    setTimeout(() => {
-                        const m1 = document.getElementById('mul_pre2012');
-                        const m2 = document.getElementById('mul_2012_2019');
-                        const m3 = document.getElementById('mul_post2020');
-                        if (m1) m1.value = 1;
-                        if (m2) m2.value = multiplier;
-                        if (m3) m3.value = multiplier;
-                        calculateRetirement();
-                    }, 50);
-                } else {
-                    topTabs[0].click();
-                }
-            });
-        });
-
-        if (leaveDate) {
-            leaveDate.addEventListener('change', () => {
-                if (currentMode === 'executive') updatePeriodTable();
-            });
-        }
-        if (joinDate) {
-            joinDate.addEventListener('change', () => {
-                if (currentMode === 'executive') updatePeriodTable();
-            });
-        }
-
-        function updatePeriodTable() {
-            const periods = splitServicePeriod(joinDate.value, leaveDate.value);
-            const tbody = document.getElementById('periodTableBody');
-
-            tbody.innerHTML = `
-            <tr style="border-bottom:1px solid #e2e8f0;">
-                <td style="padding:0.75rem;">1구간 (~2011.12.31)</td>
-                <td style="padding:0.75rem;text-align:center;color:#64748b;font-size:0.75rem;">
-                    \${periods.p1.start ? `\${ periods.p1.start } ~ \${ periods.p1.end } ` : '-'}
-                </td>
-                <td style="padding:0.75rem;text-align:center;">\${periods.p1.days}일</td>
-                <td style="padding:0.5rem 0.75rem;text-align:right;">
-                    <input type="number" id="mul_pre2012" value="1.0" step="0.1" min="0" 
-                        style="width:60px;padding:0.3rem;text-align:right;"> 배
-                </td>
-            </tr>
-            <tr style="border-bottom:1px solid #e2e8f0;">
-                <td style="padding:0.75rem;">2구간 (2012.01.01~2019.12.31)</td>
-                <td style="padding:0.75rem;text-align:center;color:#64748b;font-size:0.75rem;">
-                    \${periods.p2.start ? `\${ periods.p2.start } ~ \${ periods.p2.end } ` : '-'}
-                </td>
-                <td style="padding:0.75rem;text-align:center;">\${periods.p2.days}일</td>
-                <td style="padding:0.5rem 0.75rem;text-align:right;">
-                    <input type="number" id="mul_2012_2019" value="2.0" step="0.1" min="0" 
-                        style="width:60px;padding:0.3rem;text-align:right;"> 배
-                </td>
-            </tr>
-            <tr>
-                <td style="padding:0.75rem;">3구간 (2020.01.01~)</td>
-                <td style="padding:0.75rem;text-align:center;color:#64748b;font-size:0.75rem;">
-                    \${periods.p3.start ? `\${ periods.p3.start } ~ \${ periods.p3.end } ` : '-'}
-                </td>
-                <td style="padding:0.75rem;text-align:center;">\${periods.p3.days}일</td>
-                <td style="padding:0.5rem 0.75rem;text-align:right;">
-                    <input type="number" id="mul_post2020" value="3.0" step="0.1" min="0" 
-                        style="width:60px;padding:0.3rem;text-align:right;"> 배
-                </td>
-            </tr>
-            `;
-
-            // Add input listeners
-            ['mul_pre2012', 'mul_2012_2019', 'mul_post2020'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.addEventListener('input', calculateRetirement);
-            });
-
-            calculateRetirement();
-        }
-
-        function splitServicePeriod(startStr, endStr) {
-            const start = new Date(startStr);
-            const end = new Date(endStr);
-
-            if (start > end) return { p1: { days: 0 }, p2: { days: 0 }, p3: { days: 0 } };
-
-            // Boundaries
-            const b1 = new Date('2011-12-31');
-            const b2_start = new Date('2012-01-01');
-            const b2_end = new Date('2019-12-31');
-            const b3_start = new Date('2020-01-01');
-
-            function getOverlapDays(s, e, rS, rE) {
-                const actS = s > rS ? s : rS;
-                const actE = e < rE ? e : rE;
-                if (actS > actE) return 0;
-                return Math.floor((actE - actS) / (1000 * 60 * 60 * 24)) + 1;
+            function init() {
+                w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight;
+                particles = [];
+                for(let i=0; i<120; i++) particles.push(new Particle('star'));
+                for(let i=0; i<25; i++) particles.push(new Particle('asteroid'));
             }
 
-            const p1Days = getOverlapDays(start, end, new Date('1900-01-01'), b1);
-            const p2Days = getOverlapDays(start, end, b2_start, b2_end);
-            const p3Days = getOverlapDays(start, end, b3_start, new Date('2099-12-31'));
-
-            return {
-                p1: {
-                    days: p1Days,
-                    start: p1Days > 0 ? (start < b1 ? startStr : '2012이전') : null,
-                    end: p1Days > 0 ? (end < b1 ? endStr : '2011-12-31') : null
-                },
-                p2: {
-                    days: p2Days,
-                    start: p2Days > 0 ? (start > b2_start ? startStr : '2012-01-01') : null,
-                    end: p2Days > 0 ? (end < b2_end ? endStr : '2019-12-31') : null
-                },
-                p3: {
-                    days: p3Days,
-                    start: p3Days > 0 ? (start > b3_start ? startStr : '2020-01-01') : null,
-                    end: p3Days > 0 ? endStr : null
+            class Particle {
+                constructor(type, x, y, r, sx, sy) {
+                    this.type = type;
+                    if(x) { this.x = x; this.y = y; this.r = r; this.speedX = sx; this.speedY = sy; }
+                    else { this.reset(); }
                 }
-            };
-        }
+                reset() {
+                    this.x = Math.random() * w; this.y = Math.random() * h;
+                    this.r = this.type === 'star' ? Math.random() * 1.5 + 0.3 : Math.random() * 5 + 1.5;
+                    // Asteroids move mostly right (consistent flow)
+                    this.speedX = this.type === 'star' ? (Math.random() - 0.5) * 0.12 : (Math.random() * 0.5 + 0.4);
+                    this.speedY = this.type === 'star' ? Math.random() * 0.2 + 0.1 : (Math.random() * 0.4 - 0.2);
+                    this.opacity = Math.random() * 0.7 + 0.2;
+                    this.color = this.type === 'star' ? '#ffffff' : '#64748b';
+                    this.rotation = Math.random() * Math.PI * 2;
+                    this.rotationSpeed = (Math.random() - 0.5) * 0.045;
+                    this.pulse = Math.random() * Math.PI;
+                    this.pulseSpeed = Math.random() * 0.04 + 0.015;
+                    this.life = this.type === 'fragment' ? 100 : 1;
+                }
+                update() {
+                    this.x += this.speedX; this.y -= this.speedY;
+                    this.rotation += this.rotationSpeed; this.pulse += this.pulseSpeed;
+                    if(this.type === 'fragment') { this.life -= 2; this.opacity -= 0.02; }
+                    else {
+                        if (this.y < -30) this.y = h + 30; if (this.x > w + 30) this.x = -30;
+                        if (this.x < -30) this.x = w + 30; if (this.y > h + 30) this.y = -30;
+                    }
+                }
+                draw() {
+                    if(this.opacity <= 0) return;
+                    ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rotation);
+                    ctx.beginPath();
+                    if(this.type === 'asteroid') {
+                        ctx.moveTo(0, -this.r); ctx.lineTo(this.r, -this.r*0.4); ctx.lineTo(this.r*0.7, this.r*0.7); ctx.lineTo(-this.r*0.6, this.r); ctx.lineTo(-this.r, 0);
+                    } else { ctx.arc(0, 0, this.r, 0, Math.PI * 2); }
+                    ctx.fillStyle = this.color; ctx.globalAlpha = this.opacity; ctx.fill();
+                    ctx.restore();
+                }
+            }
 
-        // 콤마 처리
-        function addComma(x) {
-            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
+            function checkCollisions() {
+                for (let i = 0; i < particles.length; i++) {
+                    if (particles[i].type !== 'asteroid') continue;
+                    for (let j = i + 1; j < particles.length; j++) {
+                        if (particles[j].type !== 'asteroid') continue;
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < (particles[i].r + particles[j].r)) {
+                            createExplosion(particles[i].x, particles[i].y);
+                            particles[i].reset(); particles[j].reset();
+                        }
+                    }
+                }
+            }
 
-        function removeComma(x) {
-            return x.replace(/,/g, "");
-        }
+            function createExplosion(x, y) {
+                for(let i=0; i<8; i++) {
+                    const sx = (Math.random() - 0.5) * 6; const sy = (Math.random() - 0.5) * 6;
+                    particles.push(new Particle('fragment', x, y, Math.random()*2, sx, sy));
+                }
+            }
 
-        function setCommaInput(id) {
+            function animate() {
+                ctx.clearRect(0, 0, w, h);
+                checkCollisions();
+                particles = particles.filter(p => (p.type !== 'fragment' || p.life > 0));
+                particles.forEach(p => { p.update(); p.draw(); });
+                requestAnimationFrame(animate);
+            }
+            setInterval(() => {
+                const container = document.getElementById('shooting-stars');
+                if(!container) return;
+                const star = document.createElement('div');
+                star.style.position = 'absolute'; star.style.width = '2px'; star.style.height = '2px';
+                star.style.background = '#fff'; star.style.boxShadow = '0 0 10px #fff'; star.style.borderRadius = '50%';
+                const startX = Math.random() * window.innerWidth;
+                const startY = Math.random() * window.innerHeight * 0.5;
+                const duration = Math.random() * 1000 + 850;
+                star.style.left = startX + 'px'; star.style.top = startY + 'px'; star.style.opacity = '1';
+                star.style.transition = `all ${duration}ms linear`;
+                container.appendChild(star);
+                setTimeout(() => { star.style.left = (startX + 600) + 'px'; star.style.top = (startY + 600) + 'px'; star.style.opacity = '0'; star.style.width = '120px'; star.style.transform = 'rotate(-45deg)'; }, 20);
+                setTimeout(() => { if(container.contains(star)) container.removeChild(star); }, duration + 100);
+            }, 3500);
+            window.addEventListener('resize', init); init(); animate();
+        })();
+
+        function addComma(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+        function removeComma(x) { return x.replace(/,/g, ""); }
+
+        const financeInputs = ['baseSalary', 'bonusSalary'];
+        financeInputs.forEach(id => {
             const el = document.getElementById(id);
-            if (!el) return;
-            el.addEventListener('input', function () {
-                let val = el.value.replace(/[^\d]/g, '');
-                el.value = val ? addComma(val) : '';
-                calculateRetirement(); // Recalculate on input
-            });
-        }
-
-        setCommaInput('last1ySalary');
-        setCommaInput('last3ySalary');
-
-        // 퇴직금 계산
-        function calculateRetirement() {
-            const join = new Date(joinDate.value);
-            const leave = new Date(leaveDate.value);
-            const last1y = parseInt(removeComma(document.getElementById('last1ySalary').value)) || 0;
-            const last3y = parseInt(removeComma(document.getElementById('last3ySalary').value)) || 0;
-            const isExec = currentMode === 'executive';
-
-            // 재직일수 계산
-            const days = Math.floor((leave - join) / (1000 * 60 * 60 * 24)); // Total diff
-            if (days < 0) return;
-            const years = days / 365;
-
-            // 평균임금 계산 
-            let avgMonthlySalary = 0;
-            if (isExec && last3y > 0) {
-                avgMonthlySalary = last3y / 36; // 3년 총급여 / 36개월 (단순)
-            } else {
-                avgMonthlySalary = last1y / 12; // 1년 총급여 / 12개월
+            if(el) {
+                el.addEventListener('input', () => {
+                    let val = el.value.replace(/[^\d]/g, '');
+                    el.value = val ? addComma(val) : '';
+                });
             }
-
-            // 일평균임금 (통상 30일분)
-            const dailyWage = avgMonthlySalary / 30;
-
-            let totalRetirePay = 0;
-            let displayDetails = [];
-
-            if (isExec) {
-                // 임원 계산 (구간별 배수 적용)
-                const mul1 = parseFloat(document.getElementById('mul_pre2012')?.value || 1);
-                const mul2 = parseFloat(document.getElementById('mul_2012_2019')?.value || 2);
-                const mul3 = parseFloat(document.getElementById('mul_post2020')?.value || 3);
-
-                const periods = splitServicePeriod(joinDate.value, leaveDate.value);
-
-                // P1 Pay
-                const p1Years = periods.p1.days / 365;
-                const p1Pay = avgMonthlySalary * p1Years * mul1;
-
-                // P2 Pay
-                const p2Years = periods.p2.days / 365;
-                const p2Pay = avgMonthlySalary * p2Years * mul2;
-
-                // P3 Pay
-                const p3Years = periods.p3.days / 365;
-                const p3Pay = avgMonthlySalary * p3Years * mul3;
-
-                totalRetirePay = p1Pay + p2Pay + p3Pay;
-
-                displayDetails = [
-                    { label: '1구간 (~11년)', amount: p1Pay, info: `\${periods.p1.days}일 x \${mul1}배` },
-                    { label: '2구간 (12~19년)', amount: p2Pay, info: `\${periods.p2.days}일 x \${mul2}배` },
-                    { label: '3구간 (20년~)', amount: p3Pay, info: `\${periods.p3.days}일 x \${mul3}배` }
-                ];
-            } else {
-                // 일반 직원 (법정퇴직금: 1년에 30일분 평균임금 -> 월평균임금 * 근속년수)
-                totalRetirePay = avgMonthlySalary * years;
-            }
-
-            displayResult(years, avgMonthlySalary, totalRetirePay, isExec, displayDetails);
-        }
-
-        function displayResult(years, avgSalary, totalRetirePay, isExec, details) {
-            const resultDiv = document.getElementById('retireResult');
-            const formatCurrency = (num) => Math.round(num).toLocaleString('ko-KR') + ' 원';
-
-            let execDetailsHtml = '';
-            if (isExec) {
-                const rows = details.map(d => `
-                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8125rem;">
-                        <span>\${d.label} <span style="font-size:0.75rem;color:#94a3b8;">(\${d.info})</span></span>
-                        <span style="font-weight:600;color:#334155;">\${formatCurrency(d.amount)}</span>
-                    </div>
-                `).join('');
-
-                execDetailsHtml = `
-            <div style="background:rgba(241,245,249,0.8);border-radius:0.625rem;padding:1rem;margin-bottom:1rem;border:1px solid rgba(203,213,225,0.3);">
-                <h5 style="font-size:0.75rem;color:#64748b;margin-bottom:0.75rem;font-weight:600;">구간별 계산 내역</h5>
-                <div style="display:grid;gap:0.5rem;">
-                    \${rows}
-                </div>
-                <div style="height:1px;background:#cbd5e1;margin:0.75rem 0;"></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <span style="font-size:0.875rem;font-weight:700;">합계</span>
-                    <span style="font-size:1rem;font-weight:700;color:#3b82f6;">\${formatCurrency(totalRetirePay)}</span>
-                </div>
-            </div>`;
-            }
-
-            const tipHtml = isExec ?
-                '임원 퇴직금은 <strong>최근 3년 평균급여 × 근속연수 × 정관 배수</strong>로 계산되며, 2012년/2020년 개정에 따라 기간별 한도가 달라집니다.' :
-                '일반 직원은 <strong>1년 근무 시 30일분의 평균임금</strong>(최근 3개월 기준 산정, 여기선 간편하게 연간총액/12)이 지급됩니다.';
-
-            resultDiv.innerHTML = `
-            <h4 style="color:#1e293b;margin-bottom:1rem;font-size:0.9375rem;font-weight:600;display:flex;align-items:center;gap:0.5rem;">
-                <span style="color:#3b82f6;">📊</span> 퇴직금 계산 결과
-            </h4>
-            <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;margin-bottom:1rem;">
-                <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
-                    <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">재직기간</span>
-                    <span style="font-size:0.8125rem;font-weight:600;color:#1e293b;">\${years.toFixed(2)} 년</span>
-                </div>
-                <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
-                    <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">월 평균 급여</span>
-                    <span style="font-size:0.8125rem;font-weight:600;color:#1e293b;">\${formatCurrency(avgSalary)}</span>
-                </div>
-            </div>
-
-            \${execDetailsHtml}
-
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:linear-gradient(135deg,#10b981,#059669);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(16,185,129,0.3);">
-                <span style="font-weight:600;font-size:0.875rem;">예상 퇴직금 (지급액)</span>
-                <span style="font-weight:700;font-size:1.25rem;">\${formatCurrency(totalRetirePay)}</span>
-            </div>
-
-            <div style="margin-top:1rem;padding:0.75rem;background:rgba(59,130,246,0.1);border-radius:0.5rem;border-left:3px solid #3b82f6;">
-                <p style="font-size:0.75rem;color:#1e40af;margin:0;">
-                    <strong>💡 Tip:</strong> \${tipHtml}
-                </p>
-            </div>
-            `;
-
-            resultDiv.style.display = 'block';
-            resultDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        document.getElementById('retirementForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            calculateRetirement();
         });
 
-        // 페이지 로드 시
-        window.addEventListener('load', function () {
-            updateUIState(); // Ensure UI matches the default mode
-            calculateRetirement();
+        document.getElementById('retirementForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const join = new Date(document.getElementById('joinDate').value);
+            const exit = new Date(document.getElementById('exitDate').value);
+            const base = parseInt(removeComma(document.getElementById('baseSalary').value)) || 0;
+            const bonus = parseInt(removeComma(document.getElementById('bonusSalary').value)) || 0;
+
+            if (exit <= join) return alert('퇴사일은 입사일보다 커야 합니다.');
+
+            const days = Math.floor((exit - join) / (1000 * 60 * 60 * 24));
+            const avgDaily = (base + (bonus / 4)) / 90;
+            const total = (avgDaily * 30) * (days / 365);
+
+            document.getElementById('res-days').textContent = addComma(days) + ' 일';
+            document.getElementById('res-avg-daily').textContent = addComma(Math.round(avgDaily)) + ' 원';
+            document.getElementById('res-total').textContent = addComma(Math.round(total)) + ' 원';
+            
+            document.getElementById('retirementResult').style.display = 'block';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         });
     </script>
 </body>
-
 </html>

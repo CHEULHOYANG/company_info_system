@@ -4,364 +4,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>4대보험 계산기</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>4대보험 계산기 | CMS v2.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --neon-blue: #00d4ff;
+            --neon-purple: #7b2fff;
+            --neon-cyan: #00ffcc;
+            --deep-bg: #020817;
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: rgba(255, 255, 255, 0.9);
+            --text-secondary: rgba(255, 255, 255, 0.5);
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', 'Noto Sans KR', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-            min-height: 100vh;
-            padding: 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-image: url('/static/images/space_bg.png');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            color: var(--text-primary); min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 2rem; overflow-x: hidden;
         }
+
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .shooting-star-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 
         .main-nav-btn {
-            position: fixed;
-            top: 1.25rem;
-            right: 1.25rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 0.625rem 1.25rem;
-            border-radius: 50px;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            text-decoration: none;
+            position: fixed; top: 1.5rem; right: 1.5rem;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);
+            color: var(--neon-blue); border: 1px solid var(--neon-blue);
+            padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 600; text-decoration: none; font-family: 'Orbitron', sans-serif;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); transition: 0.3s; z-index: 100;
         }
-
-        .main-nav-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
+        .main-nav-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 25px var(--neon-blue); }
 
         .container {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            border-radius: 1.25rem;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            max-width: 1200px;
-            width: 100%;
-            padding: 2rem;
-            margin: 0 auto;
+            background: rgba(2, 8, 23, 0.75); backdrop-filter: blur(25px);
+            border-radius: 2rem; border: 1px solid var(--card-border);
+            max-width: 900px; width: 100%; padding: 3.5rem; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            position: relative;
         }
 
         h1 {
-            color: #1e293b;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #0f172a, #334155);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-family: 'Orbitron', 'Noto Sans KR', sans-serif; text-align: center; margin-bottom: 2.5rem; font-size: 2.8rem; letter-spacing: 4px;
+            background: linear-gradient(90deg, #fff, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        .form-sections {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.25rem;
-            margin-bottom: 1.25rem;
+        .form-group { background: rgba(255, 255, 255, 0.02); padding: 2rem; border-radius: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 2rem; }
+        .form-group h3 { color: var(--neon-cyan); font-size: 1.05rem; letter-spacing: 1.5px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+        
+        label { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.6rem; }
+        input { 
+            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); 
+            padding: 1.1rem; border-radius: 0.8rem; color: white; font-size: 1.2rem; transition: 0.3s; text-align: center;
         }
-
-        .form-group {
-            background: rgba(248, 250, 252, 0.8);
-            padding: 1.25rem;
-            border-radius: 0.875rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(203, 213, 225, 0.3);
-        }
-
-        .form-group h3 {
-            color: #334155;
-            margin-bottom: 1rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(148, 163, 184, 0.2);
-            padding-bottom: 0.5rem;
-        }
-
-        .input-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.875rem;
-        }
-
-        .input-grid.single {
-            grid-template-columns: 1fr;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.375rem;
-            font-weight: 500;
-            color: #64748b;
-            font-size: 0.75rem;
-        }
-
-        input,
-        select {
-            width: 100%;
-            padding: 0.625rem 0.75rem;
-            border: 1.5px solid rgba(203, 213, 225, 0.6);
-            border-radius: 0.5rem;
-            font-size: 0.8125rem;
-            transition: all 0.2s ease;
-            background: white;
-            color: #1e293b;
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .help-text {
-            font-size: 0.6875rem;
-            color: #94a3b8;
-            margin-top: 0.25rem;
-        }
+        input:focus { border-color: var(--neon-blue); background: rgba(255, 255, 255, 0.08); outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
 
         .calc-btn {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border: none;
-            padding: 0.875rem 2.5rem;
-            border-radius: 50px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-            min-width: 200px;
-            display: block;
-            margin: 0 auto;
+            width: 100%; background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white; border: none; padding: 1.3rem; border-radius: 1rem; font-weight: 700; cursor: pointer; 
+            font-family: 'Orbitron', 'Noto Sans KR', sans-serif; letter-spacing: 3px; transition: 0.4s;
         }
+        .calc-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); }
 
-        .calc-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        .result-container { margin-top: 2.5rem; display: none; animation: fadeInUp 0.6s ease forwards; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .result-item { background: rgba(255, 255, 255, 0.03); padding: 1.5rem; border-radius: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .result-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
+        .result-value { font-size: 1.2rem; font-weight: 600; }
+
+        .final-result {
+            grid-column: span 2; background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(123, 47, 255, 0.1));
+            border: 1px solid var(--neon-blue); padding: 2.5rem; text-align: center; border-radius: 1.5rem;
         }
+        .final-label { color: var(--neon-blue); font-family: 'Orbitron', sans-serif; font-size: 1rem; letter-spacing: 3px; }
+        .final-value { font-size: 3.5rem; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0.5rem; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .result-container {
-            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.9));
-            border-radius: 0.875rem;
-            padding: 1.5rem;
-            margin-top: 1.25rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(203, 213, 225, 0.3);
-            display: none;
+        /* Earth Rotation */
+        .earth-container {
+            position: fixed; 
+            bottom: -150px; 
+            right: -150px; 
+            width: 450px; 
+            height: 450px;
+            pointer-events: none; 
+            z-index: -5; 
+            opacity: 0.45; 
+            filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.15));
+            animation: rotateEarth 280s linear infinite;
         }
-
-        @media (max-width: 768px) {
-
-            .form-sections,
-            .input-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: 1.5rem;
-            }
-
-            h1 {
-                font-size: 1.25rem;
-            }
-        }
+        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .earth-img { width: 100%; height: 100%; object-fit: contain; }
     </style>
 </head>
 
 <body>
-    <a href="/main" class="main-nav-btn">🏠 메인으로</a>
+    <canvas id="particle-canvas"></canvas>
+    <div class="shooting-star-container" id="shooting-stars"></div>
+    <div class="earth-container">
+        <img src="https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yNF9waG90b19vZl9lYXJ0aF9mcm9tX3NwYWNlX2lzb2xhdGVkX29uX3RyYW5zcGFyZW50X2JhXzkzNTY3MjFhLTk1NDQtNGVjMi1hYzRjLTZlODQzMWU0MzlhYl8xLnBuZw.png" class="earth-img" alt="Earth Rotation">
+    </div>
+    <a href="/main" class="main-nav-btn">대시보드 복귀</a>
 
     <div class="container">
-        <h1>🛡️ 4대보험 계산기</h1>
+        <h1>4대보험 계산기</h1>
 
         <form id="insuranceForm">
-            <div class="form-sections">
-                <div class="form-group">
-                    <h3>급여 정보</h3>
-                    <div class="input-grid single">
-                        <div>
-                            <label for="monthlySalary">월 급여액 (원)</label>
-                            <input type="text" id="monthlySalary" placeholder="예: 3,000,000" required>
-                            <div class="help-text">비과세 제외 실제 급여</div>
-                        </div>
-
-                        <div>
-                            <label for="employeeType">근로자 유형</label>
-                            <select id="employeeType">
-                                <option value="executive" selected>임원 (등기임원)</option>
-                                <option value="regular">정규직</option>
-                                <option value="parttime">시간제 (월 60시간 미만)</option>
-                                <option value="foreigner">외국인 근로자</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <h3>보험료율 (2025년 기준)</h3>
-                    <div
-                        style="padding:1rem;background:rgba(59,130,246,0.05);border-radius:0.5rem;border-left:3px solid #3b82f6;">
-                        <div style="font-size:0.75rem;color:#1e40af;line-height:1.6;">
-                            <strong>💡 본인 부담률:</strong><br>
-                            • 국민연금: 4.5%<br>
-                            • 건강보험: 3.545%<br>
-                            • 장기요양: 12.95% (건강보험료의)<br>
-                            • 고용보험: 0.9%<br>
-                            <br>
-                            <strong>회사 부담도 동일</strong>
-                        </div>
-                    </div>
-                </div>
+            <div class="form-group">
+                <h3><span style="color:var(--neon-cyan); margin-right:8px;">■</span> 급여 정보</h3>
+                <label>월 급여액 (원)</label>
+                <input type="text" id="monthlySalary" placeholder="0" required>
             </div>
-
-            <button type="submit" class="calc-btn">💰 계산하기</button>
+            <button type="submit" class="calc-btn">보험료 산출 분석 // ANALYZE</button>
         </form>
 
-        <div id="insuranceResult" class="result-container"></div>
+        <div id="insuranceResult" class="result-container">
+            <div class="result-grid">
+                <div class="result-item">
+                    <div class="result-label">국민연금 (4.5%)</div>
+                    <div id="res-pension" class="result-value">0 원</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">건강보험 (3.545%)</div>
+                    <div id="res-health" class="result-value">0 원</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">장기요양 (건보료의 12.95%)</div>
+                    <div id="res-longterm" class="result-value">0 원</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">고용보험 (0.9%)</div>
+                    <div id="res-employment" class="result-value">0 원</div>
+                </div>
+                <div class="final-result">
+                    <div class="final-label">근로자 부담 합계 (공제액)</div>
+                    <div id="res-total" class="final-value">0 원</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
+        // High-Vibrancy Space Collision Engine
+        (function() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let w, h, particles = [];
+
+            function init() {
+                w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight;
+                particles = [];
+                for(let i=0; i<120; i++) particles.push(new Particle('star'));
+                for(let i=0; i<25; i++) particles.push(new Particle('asteroid'));
+            }
+
+            class Particle {
+                constructor(type, x, y, r, sx, sy) {
+                    this.type = type;
+                    if(x) { this.x = x; this.y = y; this.r = r; this.speedX = sx; this.speedY = sy; }
+                    else { this.reset(); }
+                }
+                reset() {
+                    this.x = Math.random() * w; this.y = Math.random() * h;
+                    this.r = this.type === 'star' ? Math.random() * 1.5 + 0.3 : Math.random() * 5 + 1.5;
+                    // Asteroids move mostly right (consistent flow)
+                    this.speedX = this.type === 'star' ? (Math.random() - 0.5) * 0.12 : (Math.random() * 0.5 + 0.4);
+                    this.speedY = this.type === 'star' ? Math.random() * 0.2 + 0.1 : (Math.random() * 0.4 - 0.2);
+                    this.opacity = Math.random() * 0.7 + 0.2;
+                    this.color = this.type === 'star' ? '#ffffff' : '#64748b';
+                    this.rotation = Math.random() * Math.PI * 2;
+                    this.rotationSpeed = (Math.random() - 0.5) * 0.045;
+                    this.pulse = Math.random() * Math.PI;
+                    this.pulseSpeed = Math.random() * 0.04 + 0.015;
+                    this.life = this.type === 'fragment' ? 100 : 1;
+                }
+                update() {
+                    this.x += this.speedX; this.y -= this.speedY;
+                    this.rotation += this.rotationSpeed; this.pulse += this.pulseSpeed;
+                    if(this.type === 'fragment') { this.life -= 2; this.opacity -= 0.02; }
+                    else {
+                        if (this.y < -30) this.y = h + 30; if (this.x > w + 30) this.x = -30;
+                        if (this.x < -30) this.x = w + 30; if (this.y > h + 30) this.y = -30;
+                    }
+                }
+                draw() {
+                    if(this.opacity <= 0) return;
+                    ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rotation);
+                    ctx.beginPath();
+                    if(this.type === 'asteroid') {
+                        ctx.moveTo(0, -this.r); ctx.lineTo(this.r, -this.r*0.4); ctx.lineTo(this.r*0.7, this.r*0.7); ctx.lineTo(-this.r*0.6, this.r); ctx.lineTo(-this.r, 0);
+                    } else { ctx.arc(0, 0, this.r, 0, Math.PI * 2); }
+                    ctx.fillStyle = this.color; ctx.globalAlpha = this.opacity; ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            function checkCollisions() {
+                for (let i = 0; i < particles.length; i++) {
+                    if (particles[i].type !== 'asteroid') continue;
+                    for (let j = i + 1; j < particles.length; j++) {
+                        if (particles[j].type !== 'asteroid') continue;
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < (particles[i].r + particles[j].r)) {
+                            createExplosion(particles[i].x, particles[i].y);
+                            particles[i].reset(); particles[j].reset();
+                        }
+                    }
+                }
+            }
+
+            function createExplosion(x, y) {
+                for(let i=0; i<8; i++) {
+                    const sx = (Math.random() - 0.5) * 6; const sy = (Math.random() - 0.5) * 6;
+                    particles.push(new Particle('fragment', x, y, Math.random()*2, sx, sy));
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, w, h);
+                checkCollisions();
+                particles = particles.filter(p => (p.type !== 'fragment' || p.life > 0));
+                particles.forEach(p => { p.update(); p.draw(); });
+                requestAnimationFrame(animate);
+            }
+            setInterval(() => {
+                const container = document.getElementById('shooting-stars');
+                if(!container) return;
+                const star = document.createElement('div');
+                star.style.position = 'absolute'; star.style.width = '2px'; star.style.height = '2px';
+                star.style.background = '#fff'; star.style.boxShadow = '0 0 10px #fff'; star.style.borderRadius = '50%';
+                const startX = Math.random() * window.innerWidth;
+                const startY = Math.random() * window.innerHeight * 0.5;
+                const duration = Math.random() * 1000 + 850;
+                star.style.left = startX + 'px'; star.style.top = startY + 'px'; star.style.opacity = '1';
+                star.style.transition = `all ${duration}ms linear`;
+                container.appendChild(star);
+                setTimeout(() => { star.style.left = (startX + 600) + 'px'; star.style.top = (startY + 600) + 'px'; star.style.opacity = '0'; star.style.width = '120px'; star.style.transform = 'rotate(-45deg)'; }, 20);
+                setTimeout(() => { if(container.contains(star)) container.removeChild(star); }, duration + 100);
+            }, 3500);
+            window.addEventListener('resize', init); init(); animate();
+        })();
+
         function addComma(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
         function removeComma(x) { return x.replace(/,/g, ""); }
 
-        const el = document.getElementById('monthlySalary');
-        el.addEventListener('input', function () {
-            let val = el.value.replace(/[^\d]/g, '');
-            el.value = val ? addComma(val) : '';
+        const salaryInput = document.getElementById('monthlySalary');
+        salaryInput.addEventListener('input', () => {
+            let val = salaryInput.value.replace(/[^\d]/g, '');
+            salaryInput.value = val ? addComma(val) : '';
         });
 
-        function calculateInsurance() {
-            const monthlySalary = parseInt(removeComma(document.getElementById('monthlySalary').value)) || 0;
-            const employeeType = document.getElementById('employeeType').value;
-
-            if (!monthlySalary) {
-                alert('월 급여액을 입력하세요.');
-                return;
-            }
-
-            // 2025년 기준 보험료율
-            const nationalPension = Math.floor(monthlySalary * 0.045); // 국민연금 4.5%
-            const healthInsurance = Math.floor(monthlySalary * 0.03545); // 건강보험 3.545%
-            const longTermCare = Math.floor(healthInsurance * 0.1295); // 장기요양 12.95%
-
-            // 임원인 경우 고용보험 제외
-            let employmentInsurance = 0;
-            if (employeeType !== 'executive') {
-                employmentInsurance = Math.floor(monthlySalary * 0.009); // 고용보험 0.9%
-            }
-
-            const totalEmployee = nationalPension + healthInsurance + longTermCare + employmentInsurance;
-            const totalEmployer = nationalPension + healthInsurance + longTermCare + employmentInsurance;
-            const grandTotal = totalEmployee + totalEmployer;
-
-            displayResult(monthlySalary, nationalPension, healthInsurance, longTermCare, employmentInsurance, totalEmployee, totalEmployer, grandTotal);
-        }
-
-        function displayResult(salary, pension, health, care, employment, totalEmp, totalEmpr, grand) {
-            const resultDiv = document.getElementById('insuranceResult');
-            const formatCurrency = (num) => Math.round(num).toLocaleString('ko-KR') + ' 원';
-
-            resultDiv.innerHTML = `
-                <h4 style="color:#1e293b;margin-bottom:1rem;font-size:0.9375rem;font-weight:600;">
-                    📊 4대보험료 계산 결과 (월간)
-                </h4>
-                
-                <div style="background:rgba(241,245,249,0.8);border-radius:0.625rem;padding:1rem;margin-bottom:1rem;">
-                    <div style="text-align:center;margin-bottom:1rem;">
-                        <span style="font-size:0.6875rem;color:#64748b;display:block;margin-bottom:0.25rem;">월 급여액</span>
-                        <span style="font-size:1.125rem;font-weight:700;color:#1e293b;">${formatCurrency(salary)}</span>
-                    </div>
-                    
-                    <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;margin-top:1rem;">
-                        <div style="padding:0.75rem;background:rgba(59,130,246,0.05);border-radius:0.5rem;">
-                            <span style="font-size:0.6875rem;color:#64748b;display:block;">국민연금 (4.5%)</span>
-                            <span style="font-size:0.875rem;font-weight:600;color:#3b82f6;">${formatCurrency(pension)}</span>
-                        </div>
-                        <div style="padding:0.75rem;background:rgba(16,185,129,0.05);border-radius:0.5rem;">
-                            <span style="font-size:0.6875rem;color:#64748b;display:block;">건강보험 (3.545%)</span>
-                            <span style="font-size:0.875rem;font-weight:600;color:#10b981;">${formatCurrency(health)}</span>
-                        </div>
-                        <div style="padding:0.75rem;background:rgba(245,158,11,0.05);border-radius:0.5rem;">
-                            <span style="font-size:0.6875rem;color:#64748b;display:block;">장기요양 (12.95%)</span>
-                            <span style="font-size:0.875rem;font-weight:600;color:#f59e0b;">${formatCurrency(care)}</span>
-                        </div>
-                        <div style="padding:0.75rem;background:rgba(139,92,246,0.05);border-radius:0.5rem;">
-                            <span style="font-size:0.6875rem;color:#64748b;display:block;">고용보험 (0.9%)</span>
-                            <span style="font-size:0.875rem;font-weight:600;color:#8b5cf6;">${formatCurrency(employment)}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="background:white;border-radius:0.625rem;padding:1rem;margin-bottom:0.75rem;border:1px solid rgba(203,213,225,0.3);">
-                    <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;">
-                        <div style="text-align:center;padding:0.75rem;">
-                            <span style="font-size:0.6875rem;color:#64748b;display:block;margin-bottom:0.25rem;">본인 부담</span>
-                            <span style="font-size:1rem;font-weight:700;color:#ef4444;">${formatCurrency(totalEmp)}</span>
-                        </div>
-                        <div style="text-align:center;padding:0.75rem;">
-                            <span style="font-size:0.6875rem;color:#64748b;display:block;margin-bottom:0.25rem;">회사 부담</span>
-                            <span style="font-size:1rem;font-weight:700;color:#3b82f6;">${formatCurrency(totalEmpr)}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(99,102,241,0.3);">
-                    <span style="font-weight:600;font-size:0.875rem;">총 4대보험료 (본인+회사)</span>
-                    <span style="font-weight:700;font-size:1.25rem;">${formatCurrency(grand)}</span>
-                </div>
-                
-                </div>
-
-                <div id="highPremiumWarning" style="margin-top:1rem;padding:1rem;background:rgba(239,68,68,0.1);border-radius:0.5rem;border-left:4px solid #ef4444;display:none;">
-                    <h5 style="color:#b91c1c;font-size:0.875rem;margin-bottom:0.5rem;font-weight:700;">⚠️ 고액 건강보험료 납부자 주의사항</h5>
-                    <p style="font-size:0.8125rem;color:#b91c1c;line-height:1.5;">
-                        산출된 월 건강보험료가 <strong>100만원 이상</strong>입니다. <br>
-                        이 경우, 퇴직 후 <strong>[임의계속가입]</strong>을 신청하면 직장 가입 시와 동일한 수준의 고액 보험료를 납부하게 될 수 있습니다.<br>
-                        반면, <strong>[지역가입자]</strong>로 전환될 경우 소득과 재산에 따라 보험료가 더 낮게 책정될 수도 있으므로, 
-                        퇴직 전 반드시 관할 공단에 문의하여 두 가지 경우의 예상 보험료를 비교해 보시기 바랍니다.
-                    </p>
-                </div>
-            `;
-
-            resultDiv.style.display = 'block';
-
-            // 고액 보험료 경고 (본인 부담금 100만원 이상 시)
-            const warningDiv = document.getElementById('highPremiumWarning');
-            if (health >= 1000000) {
-                warningDiv.style.display = 'block';
-            } else {
-                warningDiv.style.display = 'none';
-            }
-
-            resultDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        document.getElementById('insuranceForm').addEventListener('submit', function (e) {
+        document.getElementById('insuranceForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            calculateInsurance();
-        });
+            const salary = parseInt(removeComma(salaryInput.value)) || 0;
+            if (!salary) return alert('급여액을 입력하세요.');
 
-        window.addEventListener('load', function () {
-            document.getElementById('monthlySalary').value = '10,000,000';
-            calculateInsurance();
+            const pension = Math.floor(Math.min(salary, 5900000) * 0.045);
+            const health = Math.floor(salary * 0.03545);
+            const longterm = Math.floor(health * 0.1295);
+            const employment = Math.floor(salary * 0.009);
+
+            document.getElementById('res-pension').textContent = addComma(pension) + ' 원';
+            document.getElementById('res-health').textContent = addComma(health) + ' 원';
+            document.getElementById('res-longterm').textContent = addComma(longterm) + ' 원';
+            document.getElementById('res-employment').textContent = addComma(employment) + ' 원';
+            document.getElementById('res-total').textContent = addComma(pension + health + longterm + employment) + ' 원';
+            
+            document.getElementById('insuranceResult').style.display = 'block';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         });
     </script>
 </body>
-
 </html>

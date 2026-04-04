@@ -1,4 +1,4 @@
-﻿import openpyxl
+import openpyxl
 from openpyxl.utils import get_column_letter
 import os
 import sys
@@ -17,34 +17,26 @@ DATA_START_ROW = 3
 COL_BIZ_NO = 24  # X열
 
 # 특허 관련 컬럼
-COL_PATENT_APPLICATIONS_COUNT = 165  # 165
-COL_REGISTERED_PATENTS_COUNT = 164   # 164
+COL_PATENT_APPLICATIONS_COUNT = 166
+COL_REGISTERED_PATENTS_COUNT = 165
 
 # 기업부설연구소, 이노비즈, 메인비즈, 벤처 관련 컬럼
-COL_HAS_RESEARCH_INSTITUTE = 152     # 기업부설연구소여부 (152)
-COL_RESEARCH_INSTITUTE_DATE = 153    # 기업부설연구소 인정일자 (변동없음 가정, 사용자 언급없음 -> 153 유지? 사용자 "기업부설연구소여부: 150번째". 인정일자는 언급 없음. 기존코드 153. 보통 여부 옆에 날짜가 옴. 150옆은 151? Check if user provided info. Only "150". I will assume adjacent columns shift too? Or just stick to what user said. If 152->150 (shift -2). Then 153->151? I can't be sure. User only specified 150. I will change 152->150. I will leave others unless I know. Actually, "Inno-Biz 154". "Main-Biz 157". "Patent App 165". "Patent Reg 164".
-# Wait, Patent App was 164 -> 165 (+1). Patent Reg was 163 -> 164 (+1).
-# Lab was 152 -> 150 (-2).
-# InnoBiz was 154. (Old code 154). Same.
-# MainBiz was 157. (Old code 157). Same.
-# Group 166. GFC 167.
-# I will update ONLY what is specified. I'll leave dates alone unless they look wrong.
-# If Lab YN moved 152->150, likely the Date moved too? But I don't know where.
-# I will stick to explicitly requested changes.
+COL_HAS_RESEARCH_INSTITUTE = 153
+COL_RESEARCH_INSTITUTE_DATE = 154
 
-COL_IS_INNOBIZ = 154                 # 이노비즈 여부
-COL_INNOBIZ_CERT_DATE = 155          # 이노비즈 인정일자 (유지)
-COL_INNOBIZ_EXPIRY_DATE = 156        # 이노비즈 만료일자 (유지)
-COL_IS_MAINBIZ = 157                 # 메인비즈 여부
-COL_MAINBIZ_CERT_DATE = 158          # 메인비즈 인정일자 (유지)
-COL_MAINBIZ_EXPIRY_DATE = 159        # 메인비즈 만료일자 (유지)
-COL_IS_VENTURE = 160                 # 벤처인증여부 (유지)
-COL_VENTURE_CERT_DATE = 161          # 벤처인증 발급일자 (유지)
-COL_VENTURE_EXPIRY_DATE = 162        # 벤처인증 만료일자 (유지)
+COL_IS_INNOBIZ = 155
+COL_INNOBIZ_CERT_DATE = 156
+COL_INNOBIZ_EXPIRY_DATE = 157
+COL_IS_MAINBIZ = 158
+COL_MAINBIZ_CERT_DATE = 159
+COL_MAINBIZ_EXPIRY_DATE = 160
+COL_IS_VENTURE = 161
+COL_VENTURE_CERT_DATE = 162
+COL_VENTURE_EXPIRY_DATE = 163
 
 # 신규 추가 컬럼
-COL_GROUP_AGREEMENT_YN = 166
-COL_GFC_YN = 167
+COL_GROUP_AGREEMENT_YN = 167
+COL_GFC_YN = 168
 
 def get_numeric_value(cell_val):
     """

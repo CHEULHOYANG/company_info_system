@@ -1,412 +1,335 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>증여세 계산기</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>증여세 계산기 | CMS v2.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --neon-blue: #00d4ff;
+            --neon-purple: #7b2fff;
+            --neon-cyan: #00ffcc;
+            --deep-bg: #020817;
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: rgba(255, 255, 255, 0.9);
+            --text-secondary: rgba(255, 255, 255, 0.5);
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', 'Noto Sans KR', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-            min-height: 100vh;
-            padding: 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-image: url('/static/images/space_bg.png');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            color: var(--text-primary); min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 2rem; overflow-x: hidden;
         }
+
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .shooting-star-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 
         .main-nav-btn {
-            position: fixed;
-            top: 1.25rem;
-            right: 1.25rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 0.625rem 1.25rem;
-            border-radius: 50px;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+            position: fixed; top: 1.5rem; right: 1.5rem;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);
+            color: var(--neon-blue); border: 1px solid var(--neon-blue);
+            padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 600; text-decoration: none; font-family: 'Orbitron', sans-serif;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); transition: 0.3s; z-index: 100;
         }
-
-        .main-nav-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
+        .main-nav-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 25px var(--neon-blue); }
 
         .container {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            border-radius: 1.25rem;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            max-width: 1200px;
-            width: 100%;
-            padding: 2rem;
-            margin: 0 auto;
+            background: rgba(2, 8, 23, 0.75); backdrop-filter: blur(25px);
+            border-radius: 2rem; border: 1px solid var(--card-border);
+            max-width: 1000px; width: 100%; padding: 3.5rem; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            position: relative;
         }
 
         h1 {
-            color: #1e293b;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #0f172a, #334155);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-family: 'Orbitron', 'Noto Sans KR', sans-serif; text-align: center; margin-bottom: 2.5rem; font-size: 2.8rem; letter-spacing: 4px;
+            background: linear-gradient(90deg, #fff, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        .form-sections {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.25rem;
-            margin-bottom: 1.25rem;
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; margin-bottom: 2rem; }
+        .form-group { background: rgba(255, 255, 255, 0.02); padding: 1.8rem; border-radius: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .form-group h3 { color: #fff; font-size: 1.05rem; letter-spacing: 1.5px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+        
+        label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.6rem; }
+        input, select { 
+            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); 
+            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: white; font-size: 1rem; transition: 0.3s;
         }
-
-        .form-group {
-            background: rgba(248, 250, 252, 0.8);
-            padding: 1.25rem;
-            border-radius: 0.875rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(203, 213, 225, 0.3);
-        }
-
-        .form-group h3 {
-            color: #334155;
-            margin-bottom: 1rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(148, 163, 184, 0.2);
-            padding-bottom: 0.5rem;
-        }
-
-        .input-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.875rem;
-        }
-
-        .input-grid.single {
-            grid-template-columns: 1fr;
-        }
-
-        .field-wrapper {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.375rem;
-            font-weight: 500;
-            color: #64748b;
-            font-size: 0.75rem;
-        }
-
-        input,
-        select {
-            width: 100%;
-            padding: 0.625rem 0.75rem;
-            border: 1.5px solid rgba(203, 213, 225, 0.6);
-            border-radius: 0.5rem;
-            font-size: 0.8125rem;
-            transition: all 0.2s ease;
-            background: white;
-            color: #1e293b;
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .help-text {
-            font-size: 0.6875rem;
-            color: #94a3b8;
-            margin-top: 0.25rem;
-        }
-
-        .button-container {
-            text-align: center;
-            margin-bottom: 1.25rem;
-        }
+        input:focus { border-color: var(--neon-blue); background: rgba(255, 255, 255, 0.08); outline: none; box-shadow: 0 0 15px rgba(0, 21Cut: true, 2, 255, 0.2); }
 
         .calc-btn {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border: none;
-            padding: 0.875rem 2.5rem;
-            border-radius: 50px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-            min-width: 200px;
+            grid-column: span 2; background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white; border: none; padding: 1.3rem; border-radius: 1rem; font-weight: 700; cursor: pointer; 
+            font-family: 'Orbitron', 'Noto Sans KR', sans-serif; letter-spacing: 3px; transition: 0.4s;
+        }
+        .calc-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); }
+
+        .result-container { margin-top: 2.5rem; display: none; animation: fadeInUp 0.6s ease forwards; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .result-item { background: rgba(255, 255, 255, 0.03); padding: 1.5rem; border-radius: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .result-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
+        .result-value { font-size: 1.2rem; font-weight: 600; }
+
+        .final-result {
+            grid-column: span 2; background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(123, 47, 255, 0.1));
+            border: 1px solid var(--neon-blue); padding: 2.5rem; text-align: center; border-radius: 1.5rem;
+        }
+        .final-label { color: var(--neon-blue); font-family: 'Orbitron', sans-serif; font-size: 1rem; letter-spacing: 3px; }
+        .final-value {
+            font-size: 3.5rem; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-blue));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0.5rem;
         }
 
-        .calc-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        /* Earth Rotation Layer Animation */
+        .earth-container {
+            position: fixed; bottom: -120px; right: -120px; width: 620px; height: 620px;
+            pointer-events: none; z-index: -1; opacity: 0.7; filter: drop-shadow(0 0 50px rgba(0, 212, 255, 0.2));
+            animation: rotateEarth 320s linear infinite;
         }
-
-        .result-container {
-            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.9));
-            border-radius: 0.875rem;
-            padding: 1.5rem;
-            margin-top: 1.25rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(203, 213, 225, 0.3);
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .form-sections {
-                grid-template-columns: 1fr;
-            }
-
-            .input-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: 1.5rem;
-            }
-
-            h1 {
-                font-size: 1.25rem;
-            }
-        }
+        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .earth-img { width: 100%; height: 100%; object-fit: contain; }
     </style>
 </head>
 
 <body>
-    <a href="/main" class="main-nav-btn">
-        🏠 메인으로
-    </a>
+    <canvas id="particle-canvas"></canvas>
+    <div class="shooting-star-container" id="shooting-stars"></div>
+    <div class="earth-container">
+        <img src="https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yNF9waG90b19vZl9lYXJ0aF9mcm9tX3NwYWNlX2lzb2xhdGVkX29uX3RyYW5zcGFyZW50X2JhXzkzNTY3MjFhLTk1NDQtNGVjMi1hYzRjLTZlODQzMWU0MzlhYl8xLnBuZw.png" class="earth-img" alt="Earth Rotation">
+    </div>
+    <a href="/main" class="main-nav-btn">대시보드 복귀</a>
 
     <div class="container">
-        <h1>🎁 증여세 계산기</h1>
+        <h1>증여세 계산기</h1>
 
         <form id="giftForm">
-            <div class="form-sections">
+            <div class="form-grid">
                 <div class="form-group">
-                    <h3>증여 기본 정보</h3>
-                    <div class="input-grid single">
-                        <div class="field-wrapper">
-                            <label for="relationship">수증자 관계</label>
-                            <select id="relationship" required>
-                                <option value="">선택하세요</option>
-                                <option value="spouse">배우자</option>
-                                <option value="adult_child">성년 자녀 (만 19세 이상)</option>
-                                <option value="minor_child">미성년 자녀 (만 19세 미만)</option>
-                                <option value="grandchild">손자녀</option>
-                                <option value="other_relative">기타 친족 (6촌 이내)</option>
-                                <option value="non_relative">타인</option>
-                            </select>
-                        </div>
-
-                        <div class="field-wrapper">
-                            <label for="giftType">증여 재산 유형</label>
-                            <select id="giftType">
-                                <option value="cash">현금</option>
-                                <option value="real_estate">부동산</option>
-                                <option value="stock">주식</option>
-                                <option value="other">기타</option>
-                            </select>
-                        </div>
+                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 증여 자산</h3>
+                    <div style="margin-bottom:1.5rem;">
+                        <label>증여 재산가액 (원)</label>
+                        <input type="text" id="giftAmount" placeholder="0" required>
+                    </div>
+                    <div style="margin-bottom:1.5rem;">
+                        <label>수증자와의 관계</label>
+                        <select id="relationship">
+                            <option value="spouse">배우자 (6억 미과세)</option>
+                            <option value="child">직계비속-성년 (5천 미과세)</option>
+                            <option value="minorChild">직계비속-미성년 (2천 미과세)</option>
+                            <option value="parent">직계존속 (5천 미과세)</option>
+                            <option value="relative">기타친족 (1천 미과세)</option>
+                            <option value="none">타인 (공제 없음)</option>
+                        </select>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <h3>증여 금액 정보</h3>
-                    <div class="input-grid single">
-                        <div class="field-wrapper">
-                            <label for="giftAmount">증여 재산가액 (원)</label>
-                            <input type="text" id="giftAmount" placeholder="예: 500,000,000" required>
-                            <div class="help-text">증여받을 재산의 가액</div>
-                        </div>
-
-                        <div class="field-wrapper">
-                            <label for="previousGifts">과거 10년간 증여액 합계 (원)</label>
-                            <input type="text" id="previousGifts" placeholder="예: 100,000,000">
-                            <div class="help-text">동일인에게서 받은 증여 합계</div>
-                        </div>
+                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 추가 공제</h3>
+                    <div style="margin-bottom:1.5rem; display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="marriageDeduction" style="width: 20px; height: 20px;">
+                        <label style="margin-bottom: 0;">혼인/출산 증여재산 공제 (1억 추가)</label>
+                    </div>
+                    <div style="margin-bottom:1.5rem;">
+                        <label>채무 인수액 (원)</label>
+                        <input type="text" id="debts" value="0">
+                    </div>
+                    <div>
+                        <label>기납부 세액 (원)</label>
+                        <input type="text" id="priorTax" value="0">
                     </div>
                 </div>
-            </div>
 
-            <div class="button-container">
-                <button type="submit" class="calc-btn">💰 계산하기</button>
+                <button type="submit" class="calc-btn">증여세 계산 수행 // ANALYZE</button>
             </div>
         </form>
 
-        <div id="giftResult" class="result-container"></div>
+        <div id="giftResult" class="result-container">
+            <div class="result-grid">
+                <div class="result-item">
+                    <div class="result-label">관계 구분</div>
+                    <div id="res-relative" class="result-value">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">혼인/출산 공제</div>
+                    <div id="res-marriage" class="result-value">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">증여재산 공제액</div>
+                    <div id="res-deduction" class="result-value" style="color: var(--neon-cyan)">0 원</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">적용 세율</div>
+                    <div id="res-tax-rate" class="result-value">-</div>
+                </div>
+                <div class="final-result">
+                    <div class="final-label">예상 증여세 납부액</div>
+                    <div id="res-total-tax" class="final-value">0 원</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        function addComma(x) {
-            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
+        // High-Vibrancy Space Collision Engine
+        (function() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let w, h, particles = [];
 
-        function removeComma(x) {
-            return x.replace(/,/g, "");
-        }
+            function init() {
+                w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight;
+                particles = [];
+                for(let i=0; i<120; i++) particles.push(new Particle('star'));
+                for(let i=0; i<25; i++) particles.push(new Particle('asteroid'));
+            }
 
-        function setCommaInput(id) {
+            class Particle {
+                constructor(type, x, y, r, sx, sy) {
+                    this.type = type;
+                    if(x) { this.x = x; this.y = y; this.r = r; this.speedX = sx; this.speedY = sy; }
+                    else { this.reset(); }
+                }
+                reset() {
+                    this.x = Math.random() * w; this.y = Math.random() * h;
+                    this.r = this.type === 'star' ? Math.random() * 1.5 + 0.3 : Math.random() * 5 + 1.5;
+                    // Asteroids move mostly right (consistent flow)
+                    this.speedX = this.type === 'star' ? (Math.random() - 0.5) * 0.12 : (Math.random() * 0.5 + 0.4);
+                    this.speedY = this.type === 'star' ? Math.random() * 0.2 + 0.1 : (Math.random() * 0.4 - 0.2);
+                    this.opacity = Math.random() * 0.7 + 0.2;
+                    this.color = this.type === 'star' ? '#ffffff' : '#64748b';
+                    this.rotation = Math.random() * Math.PI * 2;
+                    this.rotationSpeed = (Math.random() - 0.5) * 0.045;
+                    this.pulse = Math.random() * Math.PI;
+                    this.pulseSpeed = Math.random() * 0.04 + 0.015;
+                    this.life = this.type === 'fragment' ? 100 : 1;
+                }
+                update() {
+                    this.x += this.speedX; this.y -= this.speedY;
+                    this.rotation += this.rotationSpeed; this.pulse += this.pulseSpeed;
+                    if(this.type === 'fragment') { this.life -= 2; this.opacity -= 0.02; }
+                    else {
+                        if (this.y < -30) this.y = h + 30; if (this.x > w + 30) this.x = -30;
+                        if (this.x < -30) this.x = w + 30; if (this.y > h + 30) this.y = -30;
+                    }
+                }
+                draw() {
+                    if(this.opacity <= 0) return;
+                    ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rotation);
+                    ctx.beginPath();
+                    if(this.type === 'asteroid') {
+                        ctx.moveTo(0, -this.r); ctx.lineTo(this.r, -this.r*0.4); ctx.lineTo(this.r*0.7, this.r*0.7); ctx.lineTo(-this.r*0.6, this.r); ctx.lineTo(-this.r, 0);
+                    } else { ctx.arc(0, 0, this.r, 0, Math.PI * 2); }
+                    ctx.fillStyle = this.color; ctx.globalAlpha = this.opacity; ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            function checkCollisions() {
+                for (let i = 0; i < particles.length; i++) {
+                    if (particles[i].type !== 'asteroid') continue;
+                    for (let j = i + 1; j < particles.length; j++) {
+                        if (particles[j].type !== 'asteroid') continue;
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < (particles[i].r + particles[j].r)) {
+                            createExplosion(particles[i].x, particles[i].y);
+                            particles[i].reset(); particles[j].reset();
+                        }
+                    }
+                }
+            }
+
+            function createExplosion(x, y) {
+                for(let i=0; i<8; i++) {
+                    const sx = (Math.random() - 0.5) * 6; const sy = (Math.random() - 0.5) * 6;
+                    particles.push(new Particle('fragment', x, y, Math.random()*2, sx, sy));
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, w, h);
+                checkCollisions();
+                particles = particles.filter(p => (p.type !== 'fragment' || p.life > 0));
+                particles.forEach(p => { p.update(); p.draw(); });
+                requestAnimationFrame(animate);
+            }
+            setInterval(() => {
+                const container = document.getElementById('shooting-stars');
+                if(!container) return;
+                const star = document.createElement('div');
+                star.style.position = 'absolute'; star.style.width = '2px'; star.style.height = '2px';
+                star.style.background = '#fff'; star.style.boxShadow = '0 0 10px #fff'; star.style.borderRadius = '50%';
+                const startX = Math.random() * window.innerWidth;
+                const startY = Math.random() * window.innerHeight * 0.5;
+                const duration = Math.random() * 1000 + 850;
+                star.style.left = startX + 'px'; star.style.top = startY + 'px'; star.style.opacity = '1';
+                star.style.transition = `all ${duration}ms linear`;
+                container.appendChild(star);
+                setTimeout(() => { star.style.left = (startX + 600) + 'px'; star.style.top = (startY + 600) + 'px'; star.style.opacity = '0'; star.style.width = '120px'; star.style.transform = 'rotate(-45deg)'; }, 20);
+                setTimeout(() => { if(container.contains(star)) container.removeChild(star); }, duration + 100);
+            }, 3500);
+            window.addEventListener('resize', init); init(); animate();
+        })();
+
+        // Calc Logic
+        function addComma(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+        function removeComma(x) { return x.replace(/,/g, ""); }
+
+        const inputIds = ['giftAmount', 'debts', 'priorTax'];
+        inputIds.forEach(id => {
             const el = document.getElementById(id);
-            if (!el) return;
-            el.addEventListener('input', function () {
-                let val = el.value.replace(/[^\d]/g, '');
-                el.value = val ? addComma(val) : '';
-            });
-        }
-
-        setCommaInput('giftAmount');
-        setCommaInput('previousGifts');
-
-        const deductionLimits = {
-            'spouse': 600000000,
-            'adult_child': 50000000,
-            'minor_child': 20000000,
-            'grandchild': 50000000,
-            'other_relative': 10000000,
-            'non_relative': 0
-        };
-
-        function calculateGiftTax() {
-            const rel = document.getElementById('relationship').value;
-            const giftAmount = parseInt(removeComma(document.getElementById('giftAmount').value)) || 0;
-            const previousGifts = parseInt(removeComma(document.getElementById('previousGifts').value)) || 0;
-
-            if (!rel) {
-                alert('수증자 관계를 선택하세요.');
-                return;
+            if(el) {
+                el.addEventListener('input', () => {
+                    let v = el.value.replace(/[^\d]/g, '');
+                    el.value = v ? addComma(v) : '';
+                });
             }
-            if (!giftAmount) {
-                alert('증여 재산가액을 입력하세요.');
-                return;
-            }
-
-            const limit = deductionLimits[rel] || 0;
-            const usedDeduction = Math.min(previousGifts, limit);
-            const available = Math.max(limit - usedDeduction, 0);
-            const currentDeduction = Math.min(giftAmount, available);
-
-            const taxBase = Math.max(0, giftAmount - currentDeduction);
-
-            let tax = 0;
-            let taxRate = '';
-            if (taxBase <= 100000000) {
-                tax = taxBase * 0.1;
-                taxRate = '10%';
-            } else if (taxBase <= 500000000) {
-                tax = taxBase * 0.2 - 10000000;
-                taxRate = '20%';
-            } else if (taxBase <= 1000000000) {
-                tax = taxBase * 0.3 - 60000000;
-                taxRate = '30%';
-            } else if (taxBase <= 3000000000) {
-                tax = taxBase * 0.4 - 160000000;
-                taxRate = '40%';
-            } else {
-                tax = taxBase * 0.5 - 460000000;
-                taxRate = '50%';
-            }
-
-            const reportingCredit = Math.floor(tax * 0.03); // 신고세액공제 3%
-            const finalTax = Math.floor(tax - reportingCredit);
-
-            displayResult(giftAmount, previousGifts, currentDeduction, taxBase, tax, reportingCredit, finalTax, taxRate);
-        }
-
-        function displayResult(giftAmount, previousGifts, currentDeduction, taxBase, tax, reportingCredit, finalTax, taxRate) {
-            const resultDiv = document.getElementById('giftResult');
-            const formatCurrency = (num) => Math.round(num).toLocaleString('ko-KR') + ' 원';
-
-            resultDiv.innerHTML = `
-                <h4 style="color:#1e293b;margin-bottom:1rem;font-size:0.9375rem;font-weight:600;">
-                    📊 증여세 계산 결과
-                </h4>
-                
-                <div style="background:rgba(241,245,249,0.8);border-radius:0.625rem;padding:1rem;margin-bottom:1rem;border:1px solid rgba(203,213,225,0.3);">
-                    <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;">
-                        <div style="padding:0.625rem;">
-                            <span style="font-size:0.6875rem;color:#64748b;display:block;margin-bottom:0.25rem;">증여재산가액</span>
-                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(giftAmount)}</span>
-                        </div>
-                        <div style="padding:0.625rem;">
-                            <span style="font-size:0.6875rem;color:#64748b;display:block;margin-bottom:0.25rem;">과거 증여액</span>
-                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(previousGifts)}</span>
-                        </div>
-                        <div style="padding:0.625rem;">
-                            <span style="font-size:0.6875rem;color:#64748b;display:block;margin-bottom:0.25rem;">증여재산공제</span>
-                            <span style="font-size:0.875rem;font-weight:600;color:#10b981;">${formatCurrency(currentDeduction)}</span>
-                        </div>
-                        <div style="padding:0.625rem;">
-                            <span style="font-size:0.6875rem;color:#64748b;display:block;margin-bottom:0.25rem;">과세표준</span>
-                            <span style="font-size:0.875rem;font-weight:600;color:#1e293b;">${formatCurrency(taxBase)}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="display:flex;flex-direction:column;gap:0.5rem;padding:1rem 1.25rem;background:linear-gradient(135deg,#8b5cf6,#6366f1);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(139,92,246,0.3);">
-                    <div style="display:flex;justify-content:space-between;align-items:center;opacity:0.9;">
-                        <span style="font-weight:500;font-size:0.8125rem;">산출세액 (적용세율: ${taxRate})</span>
-                        <span style="font-weight:600;font-size:1rem;">${formatCurrency(tax)}</span>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;opacity:0.9;">
-                        <span style="font-weight:500;font-size:0.8125rem;">신고세액공제 (3%)</span>
-                        <span style="font-weight:600;font-size:1rem;">- ${formatCurrency(reportingCredit)}</span>
-                    </div>
-                    <div style="height:1px;background:rgba(255,255,255,0.3);margin:0.25rem 0;"></div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span style="font-weight:700;font-size:1rem;">최종 납부세액</span>
-                        <span style="font-weight:700;font-size:1.5rem;">${formatCurrency(finalTax)}</span>
-                    </div>
-                </div>
-                
-                <div style="margin-top:1rem;padding:0.75rem;background:rgba(59,130,246,0.1);border-radius:0.5rem;border-left:3px solid #3b82f6;">
-                    <p style="font-size:0.75rem;color:#1e40af;margin:0;">
-                        <strong>💡 Tip:</strong> 증여재산공제는 10년간 합산됩니다. 배우자 6억원, 성년자녀 5천만원, 미성년자녀 2천만원, 손자녀 5천만원, 기타친족 1천만원입니다.
-                    </p>
-                </div>
-            `;
-
-            resultDiv.style.display = 'block';
-            resultDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        document.getElementById('giftForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            calculateGiftTax();
         });
 
-        window.addEventListener('load', function () {
-            document.getElementById('relationship').value = 'adult_child';
-            document.getElementById('giftAmount').value = '500,000,000';
-            document.getElementById('previousGifts').value = '0';
-            calculateGiftTax();
+        document.getElementById('giftForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const gift = parseInt(removeComma(document.getElementById('giftAmount').value)) || 0;
+            const rel = document.getElementById('relationship').value;
+            const marriageOn = document.getElementById('marriageDeduction').checked;
+            const debt = parseInt(removeComma(document.getElementById('debts').value)) || 0;
+            const prior = parseInt(removeComma(document.getElementById('priorTax').value)) || 0;
+
+            let ded = 0;
+            const relMap = {
+                'spouse': { name: '배우자', val: 600000000 },
+                'child': { name: '직계비속(성년)', val: 50000000 },
+                'minorChild': { name: '직계비속(미성년)', val: 20000000 },
+                'parent': { name: '직계존속', val: 50000000 },
+                'relative': { name: '기타친족', val: 10000000 },
+                'none': { name: '타인', val: 0 }
+            };
+            ded = relMap[rel].val;
+            if(marriageOn) ded += 100000000;
+
+            const taxBase = Math.max(0, gift - debt - ded);
+            let rate = 0, stepDed = 0;
+            if(taxBase <= 100000000) { rate = 0.1; stepDed = 0; }
+            else if(taxBase <= 500000000) { rate = 0.2; stepDed = 10000000; }
+            else if(taxBase <= 1000000000) { rate = 0.3; stepDed = 60000000; }
+            else if(taxBase <= 3000000000) { rate = 0.4; stepDed = 160000000; }
+            else { rate = 0.5; stepDed = 460000000; }
+
+            const tax = Math.max(0, (taxBase * rate) - stepDed - prior);
+
+            document.getElementById('res-relative').textContent = relMap[rel].name;
+            document.getElementById('res-marriage').textContent = marriageOn ? '적용 (+1억)' : '미적용';
+            document.getElementById('res-deduction').textContent = addComma(ded) + ' 원';
+            document.getElementById('res-tax-rate').textContent = (rate * 100) + ' %';
+            document.getElementById('res-total-tax').textContent = addComma(Math.round(tax)) + ' 원';
+            
+            document.getElementById('giftResult').style.display = 'block';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         });
     </script>
 </body>
-
 </html>

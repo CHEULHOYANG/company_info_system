@@ -1,4 +1,4 @@
-﻿import openpyxl
+import openpyxl
 from openpyxl.utils import get_column_letter
 import os
 import sys
@@ -88,32 +88,32 @@ def process_financial_data():
                 
                 # Single Values (Assuming same for all 3 years based on request structure)
                 # e.g. "138번째 * 1000, 138번째 * 1000, 138번째 * 1000"
-                total_assets = get_numeric_value(ws_source.cell(row=i, column=138).value) * 1000
-                total_liabilities = get_numeric_value(ws_source.cell(row=i, column=136).value) * 1000
-                capital_surplus = get_numeric_value(ws_source.cell(row=i, column=137).value) * 1000 # 137,137,137
-                earned_reserve = get_numeric_value(ws_source.cell(row=i, column=124).value) * 1000 # 124,124,124
-                additional_paid_in_capital = get_numeric_value(ws_source.cell(row=i, column=125).value) * 1000 # 125,125,125
+                total_assets = get_numeric_value(ws_source.cell(row=i, column=139).value) * 1000
+                total_liabilities = get_numeric_value(ws_source.cell(row=i, column=137).value) * 1000
+                capital_surplus = get_numeric_value(ws_source.cell(row=i, column=138).value) * 1000 # 137,137,137
+                earned_reserve = get_numeric_value(ws_source.cell(row=i, column=125).value) * 1000 # 124,124,124
+                additional_paid_in_capital = get_numeric_value(ws_source.cell(row=i, column=126).value) * 1000 # 125,125,125
                 
-                land_asset = get_numeric_value(ws_source.cell(row=i, column=116).value) * 1000
-                building_asset = get_numeric_value(ws_source.cell(row=i, column=117).value) * 1000
-                investment_real_ground = get_numeric_value(ws_source.cell(row=i, column=118).value) * 1000
-                investment_real_building = get_numeric_value(ws_source.cell(row=i, column=119).value) * 1000
-                rental_income = get_numeric_value(ws_source.cell(row=i, column=120).value) * 1000
-                rent_amt = get_numeric_value(ws_source.cell(row=i, column=121).value) * 1000
+                land_asset = get_numeric_value(ws_source.cell(row=i, column=117).value) * 1000
+                building_asset = get_numeric_value(ws_source.cell(row=i, column=118).value) * 1000
+                investment_real_ground = get_numeric_value(ws_source.cell(row=i, column=119).value) * 1000
+                investment_real_building = get_numeric_value(ws_source.cell(row=i, column=120).value) * 1000
+                rental_income = get_numeric_value(ws_source.cell(row=i, column=121).value) * 1000
+                rent_amt = get_numeric_value(ws_source.cell(row=i, column=122).value) * 1000
                 
-                advances_paid = get_numeric_value(ws_source.cell(row=i, column=126).value) * 1000
-                advances_received = get_numeric_value(ws_source.cell(row=i, column=127).value) * 1000
-                capital_stock_value = get_numeric_value(ws_source.cell(row=i, column=128).value) * 1000
-                undistributed_retained_earnings = get_numeric_value(ws_source.cell(row=i, column=129).value) * 1000
+                advances_paid = get_numeric_value(ws_source.cell(row=i, column=127).value) * 1000
+                advances_received = get_numeric_value(ws_source.cell(row=i, column=128).value) * 1000
+                capital_stock_value = get_numeric_value(ws_source.cell(row=i, column=129).value) * 1000
+                undistributed_retained_earnings = get_numeric_value(ws_source.cell(row=i, column=130).value) * 1000
                 
-                current_assets = get_numeric_value(ws_source.cell(row=i, column=130).value) * 1000
-                cash_equivalents = get_numeric_value(ws_source.cell(row=i, column=131).value) * 1000
-                short_term_loan = get_numeric_value(ws_source.cell(row=i, column=132).value) * 1000
-                short_term_deposit = get_numeric_value(ws_source.cell(row=i, column=133).value) * 1000
-                principal_short_long_term_bonds = get_numeric_value(ws_source.cell(row=i, column=134).value) * 1000
-                interest_income = get_numeric_value(ws_source.cell(row=i, column=135).value) * 1000
-                capital_reserve = get_numeric_value(ws_source.cell(row=i, column=137).value) * 1000 # Same as capital_surplus? User said 137 again.
-                shares_issued_count = get_numeric_value(ws_source.cell(row=i, column=139).value)
+                current_assets = get_numeric_value(ws_source.cell(row=i, column=131).value) * 1000
+                cash_equivalents = get_numeric_value(ws_source.cell(row=i, column=132).value) * 1000
+                short_term_loan = get_numeric_value(ws_source.cell(row=i, column=133).value) * 1000
+                short_term_deposit = get_numeric_value(ws_source.cell(row=i, column=134).value) * 1000
+                principal_short_long_term_bonds = get_numeric_value(ws_source.cell(row=i, column=135).value) * 1000
+                interest_income = get_numeric_value(ws_source.cell(row=i, column=136).value) * 1000
+                capital_reserve = get_numeric_value(ws_source.cell(row=i, column=138).value) * 1000 # Same as capital_surplus? User said 137 again.
+                shares_issued_count = get_numeric_value(ws_source.cell(row=i, column=140).value)
 
                 # Process 3 Years
                 # Year 1 (2024): 99, 100, 101, 122, 143
@@ -131,27 +131,20 @@ def process_financial_data():
                         # net_income: 100, 103, 106 -> Duplicate? Usually Net Income is different.
                         # Let's check headers. If 100 is Op Income, Net might be 101?
                         # But User explicitly said "100,103,106" for both.
-                        # Wait, "operating_income ... 100,103,106"
-                        # "net_income ... 100,103,106"
-                        # This looks like a copy-paste error in user request OR they are the same in this file?
-                        # "total_equity ... 101, 104, 107"
-                        # "retained_earnings ... 122, 122, 122" (Shared?)
-                        # "corporate_tax ... 143, 144, 145"
-                        
-                        # I will follow user request strictly. If they map to same column, so be it.
-                        'equity': 101, 'retained': 122, 'corp_tax': 143
+                        'sales': 100, 'op_inc': 101, 'net_inc': 101,
+                        'equity': 102, 'retained': 123, 'corp_tax': 144
                     },
                     # Year 2
                     {
                         'year': YEARS[1],
-                        'sales': 102, 'op_inc': 103, 'net_inc': 103,
-                        'equity': 104, 'retained': 122, 'corp_tax': 144
+                        'sales': 103, 'op_inc': 104, 'net_inc': 104,
+                        'equity': 105, 'retained': 123, 'corp_tax': 145
                     },
                     # Year 3
                     {
                         'year': YEARS[2],
-                        'sales': 105, 'op_inc': 106, 'net_inc': 106,
-                        'equity': 107, 'retained': 122, 'corp_tax': 145
+                        'sales': 106, 'op_inc': 107, 'net_inc': 107,
+                        'equity': 108, 'retained': 123, 'corp_tax': 146
                     }
                 ]
 

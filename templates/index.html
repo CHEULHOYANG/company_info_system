@@ -313,8 +313,6 @@
             }
         }
 
-        /* fixed brace */
-
         /* Corporate Modal Styles */
         .corp-modal {
             display: none;
@@ -326,7 +324,6 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.4);
-            /* backdrop-filter removed for stability */
         }
 
         .corp-modal-content {
@@ -336,7 +333,6 @@
             border: 1px solid #888;
             width: 90%;
             max-width: 1000px;
-            /* Widened for detailed stats */
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
@@ -368,77 +364,6 @@
             color: #000;
         }
 
-        .corp-step {
-            margin-bottom: 30px;
-        }
-
-        .corp-step-title {
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 10px;
-        }
-
-        .corp-step-desc {
-            font-size: 14px;
-            color: #777;
-            margin-bottom: 10px;
-        }
-
-        .corp-btn-template {
-            padding: 8px 16px;
-            font-size: 13px;
-            background: #607d8b;
-        }
-
-        .corp-upload-container {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .corp-file-input {
-            border: 1px solid #ddd;
-            padding: 8px;
-            border-radius: 5px;
-            flex-grow: 1;
-        }
-
-        .corp-btn-validate {
-            padding: 10px 20px;
-            background: #2196F3;
-        }
-
-        .corp-loading {
-            display: none;
-            text-align: center;
-            padding: 15px;
-            color: #2196F3;
-        }
-
-        .corp-validation-results {
-            display: none;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #e9ecef;
-        }
-
-        .corp-validation-title {
-            margin-top: 0;
-            color: #333;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-        }
-
-        .corp-stats {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #555;
-            overflow-x: auto;
-        }
-
-        /* New Table Styles for Stats */
         .corp-stats-table {
             width: 100%;
             border-collapse: collapse;
@@ -482,57 +407,6 @@
             font-weight: bold;
         }
 
-        .corp-success-msg {
-            margin-top: 15px;
-            color: #28a745;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .corp-execution-section {
-            display: none;
-            border-top: 1px dashed #ccc;
-            padding-top: 20px;
-            margin-top: 20px;
-        }
-
-        .corp-password-input {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: 200px;
-        }
-
-        .corp-btn-execute {
-            background: #f44336;
-            padding: 10px 24px;
-        }
-
-        .corp-btn-execute:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .corp-execution-loading {
-            display: none;
-            margin-top: 10px;
-            color: #f44336;
-        }
-
-        .corp-status-log {
-            margin-top: 20px;
-            white-space: pre-wrap;
-            font-size: 13px;
-            color: #666;
-            max-height: 100px;
-            overflow-y: auto;
-            background: #eee;
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
-        }
-
         /* New File Upload Area Styles */
         .file-upload-area {
             border: 2px dashed #dcdde1;
@@ -554,7 +428,6 @@
         .folder-icon {
             font-size: 48px;
             color: #f1c40f;
-            /* Yellow folder color */
             margin-bottom: 10px;
         }
 
@@ -580,25 +453,25 @@
                 <a href="{{ url_for('main') }}" class="back-button">메인으로</a>
                 <span style="font-weight:bold; color:#333;">{{ user_name }}님</span>
                 {% if subscription_info %}
-                {% if subscription_info.days_remaining > 0 %}
-                <span class="subscription-badge" style="color:#28a745; background:rgba(40, 167, 69, 0.2);">
-                    {% if subscription_info.subscription_type == 'ANNUAL' %}
-                    연간 구독 ({{ subscription_info.days_remaining }}일 남음)
-                    {% elif subscription_info.subscription_type == 'MONTHLY' %}
-                    월간 구독 ({{ subscription_info.days_remaining }}일 남음)
+                    {% if subscription_info.days_remaining > 0 %}
+                    <span class="subscription-badge" style="color:#28a745; background:rgba(40, 167, 69, 0.2);">
+                        {% if subscription_info.subscription_type == 'ANNUAL' %}
+                        연간 구독 ({{ subscription_info.days_remaining }}일 남음)
+                        {% elif subscription_info.subscription_type == 'MONTHLY' %}
+                        월간 구독 ({{ subscription_info.days_remaining }}일 남음)
+                        {% else %}
+                        무료 구독 ({{ subscription_info.days_remaining }}일 남음)
+                        {% endif %}
+                    </span>
+                    {% elif subscription_info.days_remaining == 0 %}
+                    <span class="subscription-badge" style="color:#dc3545; background:rgba(220, 53, 69, 0.2);">
+                        오늘 만료
+                    </span>
                     {% else %}
-                    무료 구독 ({{ subscription_info.days_remaining }}일 남음)
+                    <span class="subscription-badge" style="color:#dc3545; background:rgba(220, 53, 69, 0.2);">
+                        구독 만료 ({{ subscription_info.days_remaining|abs }}일 지남)
+                    </span>
                     {% endif %}
-                </span>
-                {% elif subscription_info.days_remaining == 0 %}
-                <span class="subscription-badge" style="color:#dc3545; background:rgba(220, 53, 69, 0.2);">
-                    오늘 만료
-                </span>
-                {% else %}
-                <span class="subscription-badge" style="color:#dc3545; background:rgba(220, 53, 69, 0.2);">
-                    구독 만료 ({{ subscription_info.days_remaining|abs }}일 지남)
-                </span>
-                {% endif %}
                 {% else %}
                 <span class="subscription-badge" style="color:#007bff; background:rgba(0, 123, 255, 0.2);">
                     첫달 무료 체험
@@ -609,7 +482,6 @@
         </header>
 
         <div class="main-actions">
-
             {% if session.get('user_id') in ['ct0001','ct0002'] %}
             <button type="button" id="excel-download-button" class="action-button excel-button">엑셀저장</button>
             {% else %}
@@ -652,12 +524,13 @@
             <table class="results-table">
                 <thead>
                     <tr>
+                        <th style="width: 3%;"><input type="checkbox" id="check-all"></th>
                         <th style="width: 5%;">순번</th>
                         <th>사업자번호</th>
                         <th>기업명</th>
                         <th>대표자명</th>
                         <th>업종</th>
-                        <th style="width: 25%;">주소</th>
+                        <th style="width: 20%;">주소</th>
                         <th>최신년도</th>
                         <th>자산총계(백만)</th>
                         <th>매출액(백만)</th>
@@ -689,6 +562,12 @@
             const excelButton = document.getElementById('excel-download-button');
             const loadNextBtn = document.getElementById('load-next-btn');
 
+            document.addEventListener('change', (e) => {
+                if (e.target.id === 'check-all') {
+                    document.querySelectorAll('.company-checkbox').forEach(cb => cb.checked = e.target.checked);
+                }
+            });
+
             let currentPage = 1;
             let isFetching = false;
 
@@ -696,9 +575,8 @@
                 if (isFetching) return;
                 isFetching = true;
 
-                // '다음' 버튼 클릭 시에는 기존 목록을 유지하고 로딩 표시를 하지 않음
                 if (page === 1) {
-                    companyList.innerHTML = '<tr><td colspan="10" class="loading">검색 중...</td></tr>';
+                    companyList.innerHTML = '<tr><td colspan="11" class="loading">검색 중...</td></tr>';
                 }
 
                 const formData = new FormData(searchForm);
@@ -709,12 +587,12 @@
                     .then(response => response.json())
                     .then(data => {
                         if (page === 1) {
-                            companyList.innerHTML = ''; // 새 검색 시 기존 목록 초기화
+                            companyList.innerHTML = '';
                         }
                         resultsCountSpan.textContent = `조회건수 : ${data.totalRows.toLocaleString()}건`;
 
                         if (data.companies.length === 0 && page === 1) {
-                            companyList.innerHTML = '<tr><td colspan="10">검색 결과가 없습니다.</td></tr>';
+                            companyList.innerHTML = '<tr><td colspan="11">검색 결과가 없습니다.</td></tr>';
                             loadNextBtn.style.display = 'none';
                             return;
                         }
@@ -724,13 +602,13 @@
                             const row = document.createElement('tr');
                             const rowNum = baseIndex + index + 1;
 
-                            // 백만 단위로 변환하는 함수
                             const formatToMillion = (value) => {
                                 if (value === null || value === undefined) return '';
                                 return Math.round(value / 1000000).toLocaleString();
                             };
 
                             row.innerHTML = `
+                            <td class="text-center" onclick="event.stopPropagation();"><input type="checkbox" class="company-checkbox" data-biz-no="${company.biz_no}"></td>
                             <td class="text-center">${rowNum}</td>
                             <td class="text-center" data-biz-no="${company.biz_no}">${company.biz_no}</td>
                             <td data-biz-no="${company.biz_no}">${company.company_name}</td>
@@ -743,20 +621,12 @@
                             <td class="text-right">${formatToMillion(company.retained_earnings)}</td>
                         `;
 
-                            // 행 클릭 이벤트 추가 - 기업 상세 조회 페이지로 이동
                             row.style.cursor = 'pointer';
-                            row.title = '클릭하면 상세 정보를 확인할 수 있습니다';
                             row.addEventListener('click', (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-
-                                // 사업자번호에서 하이픈 제거하여 정확한 라우팅 보장
                                 const cleanBizNo = company.biz_no.replace(/-/g, '');
                                 const detailUrl = `/company_detail/${cleanBizNo}?source=main`;
-
-                                console.log('기업 클릭:', company.company_name, '사업자번호:', cleanBizNo, 'URL:', detailUrl);
-
-                                // 같은 창에서 상세조회 페이지 열기 (팝업 차단 방지)
                                 window.location.href = detailUrl;
                             });
 
@@ -780,7 +650,7 @@
             }
 
             searchButton.addEventListener('click', () => {
-                currentPage = 1; // 검색 버튼 클릭 시 항상 1페이지부터
+                currentPage = 1;
                 fetchCompanies(currentPage);
             });
 
@@ -815,384 +685,11 @@
 
             fetchCompanies(1);
         });
-
-
     </script>
 
-
-    <!-- Additional Styles & Keyframes -->
-    <style>
-        @keyframes spin {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .close-corp-modal:hover {
-            color: #333;
-        }
-
-        .modal {
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-    </style>
-
-    <script>
-        // --- Corporate Batch Upload Logic (Data Add Style) ---
-        document.addEventListener('DOMContentLoaded', function () {
-            const modal = document.getElementById('corpUploadModal');
-            const openBtn = document.getElementById('corp-upload-btn');
-            const closeSpan = document.querySelector('.close-corp-modal');
-            const closeBtn = document.getElementById('closeModalBtn');
-            const dropZone = document.getElementById('dropZone');
-            const fileInput = document.getElementById('corpFileUpload');
-            const fileNameDisplay = document.getElementById('selectedFileName');
-
-            // Open Modal - Alert: Fixed Stability
-            if (openBtn) {
-                openBtn.onclick = function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log("Opening Modal");
-                    modal.style.display = "block";
-                    resetModalState();
-                }
-            }
-
-            // Close Modal Logic
-            function closeModal() {
-                modal.style.display = "none";
-            }
-            if (closeSpan) closeSpan.onclick = closeModal;
-            if (closeBtn) closeBtn.onclick = closeModal;
-
-            // Close on background click (Safe Mode)
-            window.addEventListener('click', function (event) {
-                if (event.target == modal) {
-                    closeModal();
-                }
-            });
-
-            // Reset Modal
-            function resetModalState() {
-                fileInput.value = '';
-                fileNameDisplay.textContent = '';
-                fileNameDisplay.style.display = 'none';
-
-                document.getElementById('validationResult').style.display = 'none';
-                document.getElementById('executionSection').style.display = 'none';
-                document.getElementById('uploadStatus').style.display = 'none';
-                document.getElementById('uploadStatus').textContent = '';
-                document.getElementById('corpUploadPassword').value = '';
-                document.getElementById('validationLoading').style.display = 'none';
-
-                const execBtn = document.getElementById('executeUploadBtn');
-                execBtn.style.display = 'none'; // Hide execute button initially
-                execBtn.disabled = false;
-                execBtn.textContent = '업로드 및 실행';
-                execBtn.style.opacity = '1';
-                execBtn.style.cursor = 'pointer';
-
-                const dropP = dropZone.querySelector('p');
-                if (dropP) dropP.style.display = 'block';
-            }
-
-            // File Drop & Select Logic
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = '#4a90e2';
-                dropZone.style.background = '#f0f7ff';
-            });
-
-            dropZone.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = '#dcdde1';
-                dropZone.style.background = '#fafafa';
-            });
-
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = '#dcdde1';
-                dropZone.style.background = '#fafafa';
-
-                if (e.dataTransfer.files.length > 0) {
-                    fileInput.files = e.dataTransfer.files;
-                    handleFileSelect(fileInput.files[0]);
-                }
-            });
-
-            fileInput.addEventListener('change', function () {
-                if (this.files.length > 0) {
-                    handleFileSelect(this.files[0]);
-                }
-            });
-
-            function handleFileSelect(file) {
-                fileNameDisplay.textContent = "📄 선택된 파일: " + file.name;
-                fileNameDisplay.style.display = 'block';
-
-                // Hide instruction text slightly
-                const dropP = dropZone.querySelector('p');
-                if (dropP) dropP.style.display = 'none';
-
-                // Reset UI for new validation
-                document.getElementById('validationResult').style.display = 'none';
-                document.getElementById('executionSection').style.display = 'none';
-                document.getElementById('uploadStatus').style.display = 'none';
-
-                const execBtn = document.getElementById('executeUploadBtn');
-                execBtn.style.display = 'none';
-                execBtn.disabled = false;
-                execBtn.textContent = '업로드 및 실행';
-            }
-
-            // Helper: Render Detailed Stats Table
-            function renderStatsTable(stats) {
-                const tables = ['Company_Basic', 'Company_Financial', 'Company_Additional', 'Company_Representative', 'Company_Shareholder'];
-                let html = `
-                <table class="corp-stats-table" style="width:100%;">
-                    <thead>
-                        <tr>
-                            <th>테이블명</th>
-                            <th>발견</th>
-                            <th>추가</th>
-                            <th>수정</th>
-                            <th>실패</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
-
-                let totalFound = 0, totalInsert = 0, totalUpdate = 0, totalError = 0;
-
-                tables.forEach(tbl => {
-                    const found = stats[`${tbl}_Found`] || 0;
-                    const ins = stats[`${tbl}_Inserted`] || 0;
-                    const upd = stats[`${tbl}_Updated`] || 0;
-                    const err = stats[`${tbl}_Error`] || 0;
-
-                    totalFound += found;
-                    totalInsert += ins;
-                    totalUpdate += upd;
-                    totalError += err;
-
-                    html += `
-                        <tr>
-                            <td class="text-left" style="font-size:12px;">${tbl}</td>
-                            <td>${found.toLocaleString()}</td>
-                            <td class="stat-insert">${ins > 0 ? '+' : ''}${ins.toLocaleString()}</td>
-                            <td class="stat-update">${upd.toLocaleString()}</td>
-                            <td class="stat-error">${err.toLocaleString()}</td>
-                        </tr>`;
-                });
-
-                html += `
-                        <tr style="background:#f8f9fa; font-weight:bold;">
-                            <td class="text-left">합계 (Total)</td>
-                            <td>${totalFound.toLocaleString()}</td>
-                            <td>${totalInsert.toLocaleString()}</td>
-                            <td>${totalUpdate.toLocaleString()}</td>
-                            <td>${totalError.toLocaleString()}</td>
-                        </tr>
-                    </tbody>
-                </table>`;
-                return html;
-            }
-
-            // 1. Download Template
-            document.getElementById('downloadTemplateBtn').onclick = function () {
-                window.location.href = '/api/corporate/template';
-            }
-
-            // 2. Validate
-            document.getElementById('validateUploadBtn').onclick = function () {
-                const file = fileInput.files[0];
-                if (!file) {
-                    alert("파일을 선택해주세요.");
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('company_file', file);
-
-                const loading = document.getElementById('validationLoading');
-                const statsDiv = document.getElementById('validationStats');
-                const resultDiv = document.getElementById('validationResult');
-                const execSection = document.getElementById('executionSection');
-                const statusDiv = document.getElementById('uploadStatus');
-                const execBtn = document.getElementById('executeUploadBtn');
-
-                loading.style.display = 'block';
-                resultDiv.style.display = 'none';
-                execSection.style.display = 'none'; // Ensure execution section is hidden
-                statusDiv.style.display = 'none';
-                execBtn.style.display = 'none'; // Hide execute button
-
-                fetch('/api/corporate/validate_upload', {
-                    method: 'POST',
-                    body: formData
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        loading.style.display = 'none';
-                        if (data.success) {
-                            statsDiv.innerHTML = renderStatsTable(data.stats || {});
-
-                            // Check for LastError (Server-side processing error)
-                            if (data.stats && data.stats.LastError) {
-                                const errorMsg = data.stats.LastError;
-                                statusDiv.innerHTML = `<div style="padding:10px; background:#fff3cd; color:#856404; border:1px solid #ffeeba; border-radius:4px; margin-top:10px; word-break:break-all;">⚠️ <strong>일부 데이터 처리 중 에러가 발생했습니다:</strong><br>${errorMsg}</div>`;
-                                statusDiv.style.display = 'block';
-                            }
-
-                            resultDiv.style.display = 'block';
-                            execSection.style.display = 'block'; // Show password input section
-
-                            // Show Execute Button now
-                            execBtn.style.display = 'inline-block';
-                            execBtn.disabled = false;
-                            execBtn.textContent = '업로드 및 실행';
-
-                        } else {
-                            alert("검증 실패: " + data.message);
-                            statusDiv.style.display = 'block';
-                            statusDiv.textContent = data.message;
-                        }
-                    })
-                    .catch(err => {
-                        loading.style.display = 'none';
-                        alert("서버 오류: " + err);
-                    });
-            }
-
-            // 3. Execute with SSE Progress
-            document.getElementById('executeUploadBtn').onclick = function () {
-                const password = document.getElementById('corpUploadPassword').value;
-                if (!password) {
-                    alert("관리자 비밀번호를 입력해주세요.");
-                    return;
-                }
-
-                const progressSection = document.getElementById('progressSection');
-                const progressBar = document.getElementById('uploadProgressBar');
-                const progressText = document.getElementById('progressText');
-                const tableStatus = document.getElementById('tableStatus');
-                const statusDiv = document.getElementById('uploadStatus');
-                const statsDiv = document.getElementById('validationStats');
-                const btn = this;
-
-                if (confirm("정말로 DB에 반영하시겠습니까? (되돌릴 수 없습니다)")) {
-                    // Show progress UI
-                    progressSection.style.display = 'block';
-                    progressBar.style.width = '0%';
-                    progressText.textContent = '0%';
-                    tableStatus.innerHTML = '';
-                    statusDiv.style.display = 'none';
-                    btn.disabled = true;
-                    btn.style.opacity = '0.7';
-                    btn.style.cursor = 'not-allowed';
-
-                    // Track progress across tables
-                    const tableOrder = ['Company_Basic', 'Company_Representative', 'Company_Shareholder', 'Company_Financial', 'Company_Additional'];
-                    let currentTableIndex = 0;
-                    let tableProgress = {};
-                    let finalStats = {};
-
-                    // First, send password via POST then connect SSE
-                    fetch('/api/corporate/execute_upload', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ password: password })
-                    }).then(response => {
-                        const reader = response.body.getReader();
-                        const decoder = new TextDecoder();
-
-                        function processStream() {
-                            reader.read().then(({ value, done }) => {
-                                if (done) return;
-
-                                const text = decoder.decode(value);
-                                const lines = text.split('\n');
-
-                                lines.forEach(line => {
-                                    if (line.startsWith('data: ')) {
-                                        try {
-                                            const data = JSON.parse(line.substring(6));
-
-                                            if (data.type === 'table_start') {
-                                                tableProgress[data.table] = { total: data.total, current: 0 };
-                                                tableStatus.innerHTML += `<div id="status-${data.table}" style="margin:5px 0; font-size:13px;">
-                                                    <span style="color:#f39c12;">⏳</span> ${data.table}: 0 / ${data.total} 처리중...
-                                                </div>`;
-                                            } else if (data.type === 'progress') {
-                                                if (tableProgress[data.table]) {
-                                                    tableProgress[data.table].current = data.current;
-                                                    const statusEl = document.getElementById('status-' + data.table);
-                                                    if (statusEl) {
-                                                        statusEl.innerHTML = `<span style="color:#f39c12;">⏳</span> ${data.table}: ${data.current} / ${data.total} 처리중...`;
-                                                    }
-                                                    // Update overall progress
-                                                    let totalDone = 0, totalAll = 0;
-                                                    Object.values(tableProgress).forEach(t => {
-                                                        totalDone += t.current;
-                                                        totalAll += t.total;
-                                                    });
-                                                    const pct = totalAll > 0 ? Math.round((totalDone / totalAll) * 100) : 0;
-                                                    progressBar.style.width = pct + '%';
-                                                    progressText.textContent = pct + '%';
-                                                }
-                                            } else if (data.type === 'table_done') {
-                                                const statusEl = document.getElementById('status-' + data.table);
-                                                if (statusEl) {
-                                                    const total = data.inserted + data.updated;
-                                                    statusEl.innerHTML = `<span style="color:#2ecc71;">✅</span> ${data.table}: ${total}건 완료 (추가: ${data.inserted}, 수정: ${data.updated})`;
-                                                }
-                                            } else if (data.type === 'complete') {
-                                                progressBar.style.width = '100%';
-                                                progressText.textContent = '100%';
-                                                statsDiv.innerHTML = renderStatsTable(data.stats || {});
-                                                statusDiv.innerHTML = `<div style="padding:10px; background:#e8f5e9; color:#2e7d32; border-radius:4px; font-weight:bold;">✅ [성공] 모든 데이터 처리가 완료되었습니다.</div>`;
-                                                statusDiv.style.display = 'block';
-                                                btn.textContent = '반영 완료';
-                                            } else if (data.type === 'error') {
-                                                statusDiv.innerHTML = `<div style="padding:10px; background:#ffebee; color:#c62828; border-radius:4px; font-weight:bold;">❌ 오류: ${data.message}</div>`;
-                                                statusDiv.style.display = 'block';
-                                                btn.disabled = false;
-                                                btn.style.opacity = '1';
-                                                btn.style.cursor = 'pointer';
-                                            }
-                                        } catch (e) { }
-                                    }
-                                });
-
-                                processStream();
-                            });
-                        }
-
-                        processStream();
-                    }).catch(err => {
-                        statusDiv.innerHTML = `<div style="padding:10px; background:#ffebee; color:#c62828; border-radius:4px;">❌ 서버 통신 오류: ${err}</div>`;
-                        statusDiv.style.display = 'block';
-                        btn.disabled = false;
-                        btn.style.opacity = '1';
-                        btn.style.cursor = 'pointer';
-                    });
-                }
-            }
-        });
-    </script>
-    <!-- Corporate Batch Upload Modal (Data Add Style) -->
+    <!-- Corporate Batch Upload Modal -->
     <div id="corpUploadModal" class="corp-modal">
-        <div class="modal-content corp-modal-content" style="max-width: 700px; padding: 0; border-radius: 12px;">
+        <div class="corp-modal-content" style="max-width: 700px; padding: 0; border-radius: 12px;">
             <div class="corp-modal-header"
                 style="padding: 18px 24px; border-bottom: 2px solid #4a90e2; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0;">
                 <h2 class="corp-modal-title" style="margin:0; font-size: 20px; color: #2c3e50; font-weight: 600;">데이터 일괄
@@ -1202,7 +699,6 @@
             </div>
 
             <div style="padding: 24px;">
-                <!-- Download Template (Right aligned) -->
                 <div style="text-align: right; margin-bottom: 15px;">
                     <button type="button" id="downloadTemplateBtn" class="action-button corp-btn-template"
                         style="background: #95a5a6; display: inline-flex; align-items: center; gap: 5px;">
@@ -1215,7 +711,6 @@
                 </div>
 
                 <div id="uploadMainContent">
-                    <!-- Drop Zone -->
                     <div class="file-upload-area" id="dropZone">
                         <div class="folder-icon">📁</div>
                         <p style="color: #666; margin: 10px 0; font-size: 15px; font-weight: 500;">
@@ -1228,14 +723,12 @@
                         <input type="file" id="corpFileUpload" accept=".xlsx" class="corp-file-input-hidden">
                     </div>
 
-                    <!-- Validation Loading -->
                     <div id="validationLoading" class="corp-loading"
                         style="display:none; text-align: center; margin: 20px 0; padding: 20px; background: #fff8e1; border-radius: 8px;">
                         <span style="display:inline-block; animation:spin 1s linear infinite;">⌛</span>
                         <span style="font-weight: bold; color: #f39c12;">데이터 검증 중...</span>
                     </div>
 
-                    <!-- Validation Results -->
                     <div id="validationResult" class="corp-validation-results"
                         style="display:none; margin-top:20px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
                         <h4 class="corp-validation-title"
@@ -1247,7 +740,6 @@
                         </div>
                     </div>
 
-                    <!-- Password & Execution -->
                     <div id="executionSection" class="corp-execution-section"
                         style="display:none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
                         <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
@@ -1261,7 +753,6 @@
                         </div>
                     </div>
 
-                    <!-- Progress Section -->
                     <div id="progressSection"
                         style="display:none; margin-top: 15px; padding: 15px; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px;">
                         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px;">
@@ -1278,11 +769,9 @@
                         <div id="tableStatus" style="font-size: 13px; color: #555;"></div>
                     </div>
 
-                    <!-- Status Log -->
-                    <div id="uploadStatus" class="corp-status-log"></div>
+                    <div id="uploadStatus" class="corp-status-log" style="display: none; margin-top: 20px; white-space: pre-wrap; font-size: 13px; color: #666; max-height: 100px; overflow-y: auto; background: #eee; padding: 10px; border-radius: 5px;"></div>
                 </div>
 
-                <!-- Footer Actions -->
                 <div
                     style="text-align: right; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" class="action-button" id="closeModalBtn"
@@ -1295,6 +784,143 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // --- Corporate Batch Upload Logic ---
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('corpUploadModal');
+            const openBtn = document.getElementById('corp-upload-btn');
+            const closeSpan = document.querySelector('.close-corp-modal');
+            const closeBtn = document.getElementById('closeModalBtn');
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('corpFileUpload');
+            const fileNameDisplay = document.getElementById('selectedFileName');
+
+            if (openBtn) {
+                openBtn.onclick = function (e) {
+                    e.preventDefault();
+                    modal.style.display = "block";
+                    resetModalState();
+                }
+            }
+
+            function closeModal() {
+                modal.style.display = "none";
+            }
+            if (closeSpan) closeSpan.onclick = closeModal;
+            if (closeBtn) closeBtn.onclick = closeModal;
+
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            };
+
+            function resetModalState() {
+                fileInput.value = '';
+                fileNameDisplay.textContent = '';
+                fileNameDisplay.style.display = 'none';
+                document.getElementById('validationResult').style.display = 'none';
+                document.getElementById('executionSection').style.display = 'none';
+                document.getElementById('uploadStatus').style.display = 'none';
+                document.getElementById('progressSection').style.display = 'none';
+                document.getElementById('corpUploadPassword').value = '';
+                document.getElementById('validationLoading').style.display = 'none';
+                const execBtn = document.getElementById('executeUploadBtn');
+                execBtn.style.display = 'none';
+                execBtn.disabled = false;
+            }
+
+            dropZone.onclick = () => fileInput.click();
+
+            dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = '#4a90e2'; };
+            dropZone.ondragleave = () => { dropZone.style.borderColor = '#dcdde1'; };
+            dropZone.ondrop = (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#dcdde1';
+                if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
+            };
+
+            fileInput.onchange = () => { if (fileInput.files.length) handleFileSelect(fileInput.files[0]); };
+
+            function handleFileSelect(file) {
+                fileNameDisplay.textContent = "📄 선택된 파일: " + file.name;
+                fileNameDisplay.style.display = 'block';
+            }
+
+            function renderStatsTable(stats) {
+                const tables = ['Company_Basic', 'Company_Financial', 'Company_Additional', 'Company_Representative', 'Company_Shareholder'];
+                let html = '<table class="corp-stats-table"><thead><tr><th>테이블명</th><th>발견</th><th>추가</th><th>수정</th><th>실패</th></tr></thead><tbody>';
+                tables.forEach(tbl => {
+                    html += `<tr><td class="text-left">${tbl}</td><td>${stats[tbl+'_Found']||0}</td><td class="stat-insert">${stats[tbl+'_Inserted']||0}</td><td class="stat-update">${stats[tbl+'_Updated']||0}</td><td class="stat-error">${stats[tbl+'_Error']||0}</td></tr>`;
+                });
+                html += '</tbody></table>';
+                return html;
+            }
+
+            document.getElementById('downloadTemplateBtn').onclick = () => window.location.href = '/api/corporate/template';
+
+            document.getElementById('validateUploadBtn').onclick = function () {
+                const file = fileInput.files[0] || (dropZone.files ? dropZone.files[0] : null);
+                if (!file) { alert("파일을 선택해주세요."); return; }
+                const formData = new FormData();
+                formData.append('company_file', file);
+                document.getElementById('validationLoading').style.display = 'block';
+                fetch('/api/corporate/validate_upload', { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('validationLoading').style.display = 'none';
+                        if (data.success) {
+                            document.getElementById('validationStats').innerHTML = renderStatsTable(data.stats);
+                            document.getElementById('validationResult').style.display = 'block';
+                            document.getElementById('executionSection').style.display = 'block';
+                            document.getElementById('executeUploadBtn').style.display = 'inline-block';
+                        } else { alert("검증 실패: " + data.message); }
+                    });
+            };
+
+            document.getElementById('executeUploadBtn').onclick = function () {
+                const pwd = document.getElementById('corpUploadPassword').value;
+                if (!pwd) { alert("비밀번호를 입력해주세요."); return; }
+                if (!confirm("정말로 DB에 반영하시겠습니까?")) return;
+
+                document.getElementById('progressSection').style.display = 'block';
+                const progressBar = document.getElementById('uploadProgressBar');
+                const progressText = document.getElementById('progressText');
+                const tableStatus = document.getElementById('tableStatus');
+
+                fetch('/api/corporate/execute_upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: pwd })
+                }).then(response => {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    function read() {
+                        reader.read().then(({ value, done }) => {
+                            if (done) return;
+                            const text = decoder.decode(value);
+                            text.split('\n').forEach(line => {
+                                if (line.startsWith('data: ')) {
+                                    const data = JSON.parse(line.substring(6));
+                                    if (data.type === 'progress') {
+                                        const pct = Math.round((data.current / data.total) * 100);
+                                        progressBar.style.width = pct + '%';
+                                        progressText.textContent = pct + '%';
+                                    } else if (data.type === 'complete') {
+                                        alert("업로드 완료!");
+                                        location.reload();
+                                    }
+                                }
+                            });
+                            read();
+                        });
+                    }
+                    read();
+                });
+            };
+        });
+    </script>
 </body>
 
 </html>

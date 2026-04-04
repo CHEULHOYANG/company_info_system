@@ -147,6 +147,7 @@ def ensure_base_tables(conn):
             industry_code VARCHAR(10),
             industry_name VARCHAR(255),
             zip_code VARCHAR(10),
+            jibun_address VARCHAR(500),
             address VARCHAR(500),
             region VARCHAR(50),
             city_district VARCHAR(50),
@@ -260,6 +261,17 @@ def ensure_base_tables(conn):
         )
     ''')
     conn.commit()
+
+    # [Migration] Ensure jibun_address exists in Company_Basic
+    cursor.execute("PRAGMA table_info(Company_Basic)")
+    cols = [row[1] for row in cursor.fetchall()]
+    if "jibun_address" not in cols:
+        try:
+            cursor.execute("ALTER TABLE Company_Basic ADD COLUMN jibun_address VARCHAR(500)")
+            conn.commit()
+            log("Added jibun_address column to Company_Basic table via migration.")
+        except Exception as e:
+            log(f"Migration error: {e}")
 
 def connect_db():
     try:

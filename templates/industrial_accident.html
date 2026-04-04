@@ -4,393 +4,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>산재 민사 배상액 계산기</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>산재보상 계산기 | CMS v2.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --neon-blue: #00d4ff;
+            --neon-purple: #7b2fff;
+            --neon-cyan: #00ffcc;
+            --deep-bg: #020817;
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: rgba(255, 255, 255, 0.9);
+            --text-secondary: rgba(255, 255, 255, 0.5);
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', 'Noto Sans KR', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-            min-height: 100vh;
-            padding: 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-image: url('/static/images/space_bg.png');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            color: var(--text-primary); min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 2rem; overflow-x: hidden;
         }
+
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .shooting-star-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 
         .main-nav-btn {
-            position: fixed;
-            top: 1.25rem;
-            right: 1.25rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 0.625rem 1.25rem;
-            border-radius: 50px;
-            font-size: 0.8125rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+            position: fixed; top: 1.5rem; right: 1.5rem;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);
+            color: var(--neon-blue); border: 1px solid var(--neon-blue);
+            padding: 0.75rem 1.5rem; border-radius: 50px; font-weight: 600; text-decoration: none; font-family: 'Orbitron', sans-serif;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); transition: 0.3s; z-index: 100;
         }
-
-        .main-nav-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
+        .main-nav-btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 25px var(--neon-blue); }
 
         .container {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            border-radius: 1.25rem;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            max-width: 1200px;
-            width: 100%;
-            padding: 2rem;
-            margin: 0 auto;
+            background: rgba(2, 8, 23, 0.75); backdrop-filter: blur(25px);
+            border-radius: 2rem; border: 1px solid var(--card-border);
+            max-width: 1000px; width: 100%; padding: 3.5rem; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            position: relative;
         }
 
         h1 {
-            color: #1e293b;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #0f172a, #334155);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+            font-family: 'Orbitron', 'Noto Sans KR', sans-serif; text-align: center; margin-bottom: 2.5rem; font-size: 2.8rem; letter-spacing: 4px;
+            background: linear-gradient(90deg, #fff, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        /* Grid Layout for Form Groups */
-        .form-sections {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.25rem;
-            margin-bottom: 1.25rem;
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+        .form-group { background: rgba(255, 255, 255, 0.02); padding: 1.8rem; border-radius: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .form-group h3 { color: #fff; font-size: 1.05rem; letter-spacing: 1.5px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; font-weight: 700; }
+        
+        label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.6rem; }
+        input, select { 
+            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); 
+            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: white; font-size: 1rem; transition: 0.3s;
         }
-
-        .form-group {
-            background: rgba(248, 250, 252, 0.8);
-            padding: 1.25rem;
-            border-radius: 0.875rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(203, 213, 225, 0.3);
-        }
-
-        .form-group h3 {
-            color: #334155;
-            margin-bottom: 1rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(148, 163, 184, 0.2);
-            padding-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.375rem;
-        }
-
-        /* Grid for Input Fields */
-        .input-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.875rem;
-        }
-
-        .input-grid.single {
-            grid-template-columns: 1fr;
-        }
-
-        .field-wrapper {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.375rem;
-            font-weight: 500;
-            color: #64748b;
-            font-size: 0.75rem;
-        }
-
-        input,
-        select {
-            width: 100%;
-            padding: 0.625rem 0.75rem;
-            border: 1.5px solid rgba(203, 213, 225, 0.6);
-            border-radius: 0.5rem;
-            font-size: 0.8125rem;
-            transition: all 0.2s ease;
-            background: white;
-            color: #1e293b;
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .button-container {
-            text-align: center;
-            margin-bottom: 1.25rem;
-        }
+        input:focus { border-color: var(--neon-blue); background: rgba(255, 255, 255, 0.08); outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
 
         .calc-btn {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            border: none;
-            padding: 0.875rem 2.5rem;
-            border-radius: 50px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-            min-width: 200px;
+            grid-column: span 2; background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white; border: none; padding: 1.3rem; border-radius: 1rem; font-weight: 700; cursor: pointer; 
+            font-family: 'Orbitron', 'Noto Sans KR', sans-serif; letter-spacing: 3px; transition: 0.4s;
         }
+        .calc-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); }
 
-        .calc-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        .result-container { margin-top: 2.5rem; display: none; animation: fadeInUp 0.6s ease forwards; }
+        .result-header { font-size: 1.4rem; text-align: center; margin-bottom: 2rem; color: var(--neon-blue); font-weight: 700; letter-spacing: 1px; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .result-item { background: rgba(255, 255, 255, 0.03); padding: 1.5rem; border-radius: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .result-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
+        .result-value { font-size: 1.2rem; font-weight: 600; }
+
+        .final-result {
+            grid-column: span 2; background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(123, 47, 255, 0.1));
+            border: 1px solid var(--neon-blue); padding: 2.5rem; text-align: center; border-radius: 1.5rem;
         }
-
-        .calc-btn:active {
-            transform: translateY(0);
+        .final-label { color: var(--neon-blue); font-family: 'Orbitron', 'Noto Sans KR', sans-serif; font-size: 1rem; letter-spacing: 3px; }
+        .final-value {
+            font-size: 3.5rem; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-blue));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0.5rem;
         }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .result-container {
-            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.9));
-            border-radius: 0.875rem;
-            padding: 1.5rem;
-            margin-top: 1.25rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(203, 213, 225, 0.3);
-            display: none;
+        /* Earth Rotation animation */
+        .earth-container {
+            position: fixed; bottom: -120px; right: -120px; width: 620px; height: 620px;
+            pointer-events: none; z-index: -1; opacity: 0.7; filter: drop-shadow(0 0 50px rgba(0, 212, 255, 0.2));
+            animation: rotateEarth 320s linear infinite;
         }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .form-sections {
-                grid-template-columns: 1fr;
-            }
-
-            .input-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .container {
-                padding: 1.5rem;
-            }
-
-            h1 {
-                font-size: 1.25rem;
-            }
-        }
+        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .earth-img { width: 100%; height: 100%; object-fit: contain; }
     </style>
 </head>
 
 <body>
-    <a href="{{ url_for('main') }}" class="main-nav-btn">
-        🏠 메인으로
-    </a>
+    <canvas id="particle-canvas"></canvas>
+    <div class="shooting-star-container" id="shooting-stars"></div>
+    <div class="earth-container">
+        <img src="https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yNF9waG90b19vZl9lYXJ0aF9mcm9tX3NwYWNlX2lzb2xhdGVkX29uX3RyYW5zcGFyZW50X2JhXzkzNTY3MjFhLTk1NDQtNGVjMi1hYzRjLTZlODQzMWU0MzlhYl8xLnBuZw.png" class="earth-img" alt="Earth Rotation">
+    </div>
+    <a href="/main" class="main-nav-btn">대시보드 복귀</a>
 
     <div class="container">
-        <h1>⚖️ 산재 민사 배상액 계산기</h1>
+        <h1>산재 민사 배상액 계산기</h1>
 
         <form id="accidentForm">
-            <div class="form-sections">
-                <!-- 기본 정보 -->
+            <div class="form-grid">
                 <div class="form-group">
-                    <h3>📋 기본 정보</h3>
-                    <div class="input-grid">
-                        <div class="field-wrapper">
-                            <label for="accidentDate">사고 발생일</label>
-                            <input type="date" id="accidentDate" required>
-                        </div>
-
-                        <div class="field-wrapper">
-                            <label for="birthDate">피해자 생년월일</label>
-                            <input type="date" id="birthDate" required>
-                        </div>
-
-                        <div class="field-wrapper">
-                            <label for="dailyWage">일급 (원)</label>
-                            <input type="number" id="dailyWage" min="0" step="1000" value="150000" required>
-                        </div>
-
-                        <div class="field-wrapper">
-                            <label for="retirementAge">정년 나이</label>
-                            <input type="number" id="retirementAge" min="50" max="70" value="60" required>
-                        </div>
+                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 피해자 기본 정보</h3>
+                    <div style="margin-bottom:1.2rem;">
+                        <label>사고 발생일</label>
+                        <input type="date" id="accidentDate" required>
+                    </div>
+                    <div style="margin-bottom:1.2rem;">
+                        <label>피해자 생년월일</label>
+                        <input type="date" id="birthDate" required>
+                    </div>
+                    <div>
+                        <label>평균 일급 (원)</label>
+                        <input type="text" id="dailyWage" placeholder="150,000" required>
                     </div>
                 </div>
 
-                <!-- 손해 정보 -->
                 <div class="form-group">
-                    <h3>💼 손해 정보</h3>
-                    <div class="input-grid">
-                        <div class="field-wrapper">
-                            <label for="laborLossRate">노동력 상실률 (%)</label>
-                            <input type="number" id="laborLossRate" min="0" max="100" step="1" value="50" required>
-                        </div>
-
-                        <div class="field-wrapper">
-                            <label for="employeeFaultRate">피해자 과실비율 (%)</label>
-                            <input type="number" id="employeeFaultRate" min="0" max="100" step="1" value="20" required>
-                        </div>
-
-                        <div class="field-wrapper">
-                            <label for="isDeathCase">사망사고 여부</label>
-                            <select id="isDeathCase">
-                                <option value="false">상해사고</option>
-                                <option value="true">사망사고</option>
-                            </select>
-                        </div>
-
-                        <div class="field-wrapper">
-                            <label for="iaPension">산재보상금 (연금현가, 원)</label>
-                            <input type="number" id="iaPension" min="0" step="1000000" value="50000000" required>
-                        </div>
+                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 상실 및 과실 정보</h3>
+                    <div style="margin-bottom:1.2rem;">
+                        <label>노동력 상실률 (%)</label>
+                        <input type="number" id="laborLossRate" value="50" min="0" max="100">
+                    </div>
+                    <div>
+                        <label>피해자 과실비율 (%)</label>
+                        <input type="number" id="employeeFault" value="20" min="0" max="100">
                     </div>
                 </div>
-            </div>
 
-            <div class="button-container">
-                <button type="submit" class="calc-btn">💰 계산하기</button>
+                <button type="submit" class="calc-btn">민사 배상액 시뮬레이션 실행</button>
             </div>
         </form>
 
-        <div id="accidentResult" class="result-container"></div>
+        <div id="accidentResult" class="result-container">
+            <div class="result-header">산재 책임 및 배상액 산출 요약</div>
+            <div class="result-grid">
+                <div class="result-item">
+                    <div class="result-label">일실수입 (총액)</div>
+                    <div class="result-value" id="res-gross-lost">0 원</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">과실상계 후 실손해액</div>
+                    <div class="result-value" id="res-net-lost" style="color: var(--neon-cyan)">0 원</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">위자료 (추정치)</div>
+                    <div class="result-value" id="res-consolation" style="color: var(--neon-purple)">0 원</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">호프만 계수 (추정값)</div>
+                    <div class="result-value" id="res-hofmann">240.00</div>
+                </div>
+                <div class="final-result">
+                    <div class="final-label">최종 예상 민사 배상액 합계</div>
+                    <div class="final-value" id="res-final-amount">0 원</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        function addComma(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        // High-Vibrancy Space Collision Engine
+        (function() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let w, h, particles = [];
+
+            function init() {
+                w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight;
+                particles = [];
+                for(let i=0; i<120; i++) particles.push(new Particle('star'));
+                for(let i=0; i<25; i++) particles.push(new Particle('asteroid'));
+            }
+
+            class Particle {
+                constructor(type, x, y, r, sx, sy) {
+                    this.type = type;
+                    if(x) { this.x = x; this.y = y; this.r = r; this.speedX = sx; this.speedY = sy; }
+                    else { this.reset(); }
+                }
+                reset() {
+                    this.x = Math.random() * w; this.y = Math.random() * h;
+                    this.r = this.type === 'star' ? Math.random() * 1.5 + 0.3 : Math.random() * 5 + 1.5;
+                    // Asteroids move mostly right (consistent flow)
+                    this.speedX = this.type === 'star' ? (Math.random() - 0.5) * 0.12 : (Math.random() * 0.5 + 0.4);
+                    this.speedY = this.type === 'star' ? Math.random() * 0.2 + 0.1 : (Math.random() * 0.4 - 0.2);
+                    this.opacity = Math.random() * 0.7 + 0.2;
+                    this.color = this.type === 'star' ? '#ffffff' : '#64748b';
+                    this.rotation = Math.random() * Math.PI * 2;
+                    this.rotationSpeed = (Math.random() - 0.5) * 0.045;
+                    this.pulse = Math.random() * Math.PI;
+                    this.pulseSpeed = Math.random() * 0.04 + 0.015;
+                    this.life = this.type === 'fragment' ? 100 : 1;
+                }
+                update() {
+                    this.x += this.speedX; this.y -= this.speedY;
+                    this.rotation += this.rotationSpeed; this.pulse += this.pulseSpeed;
+                    if(this.type === 'fragment') { this.life -= 2; this.opacity -= 0.02; }
+                    else {
+                        if (this.y < -30) this.y = h + 30; if (this.x > w + 30) this.x = -30;
+                        if (this.x < -30) this.x = w + 30; if (this.y > h + 30) this.y = -30;
+                    }
+                }
+                draw() {
+                    if(this.opacity <= 0) return;
+                    ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rotation);
+                    ctx.beginPath();
+                    if(this.type === 'asteroid') {
+                        ctx.moveTo(0, -this.r); ctx.lineTo(this.r, -this.r*0.4); ctx.lineTo(this.r*0.7, this.r*0.7); ctx.lineTo(-this.r*0.6, this.r); ctx.lineTo(-this.r, 0);
+                    } else { ctx.arc(0, 0, this.r, 0, Math.PI * 2); }
+                    ctx.fillStyle = this.color; ctx.globalAlpha = this.opacity; ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            function checkCollisions() {
+                for (let i = 0; i < particles.length; i++) {
+                    if (particles[i].type !== 'asteroid') continue;
+                    for (let j = i + 1; j < particles.length; j++) {
+                        if (particles[j].type !== 'asteroid') continue;
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < (particles[i].r + particles[j].r)) {
+                            createExplosion(particles[i].x, particles[i].y);
+                            particles[i].reset(); particles[j].reset();
+                        }
+                    }
+                }
+            }
+
+            function createExplosion(x, y) {
+                for(let i=0; i<8; i++) {
+                    const sx = (Math.random() - 0.5) * 6; const sy = (Math.random() - 0.5) * 6;
+                    particles.push(new Particle('fragment', x, y, Math.random()*2, sx, sy));
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, w, h);
+                checkCollisions();
+                particles = particles.filter(p => (p.type !== 'fragment' || p.life > 0));
+                particles.forEach(p => { p.update(); p.draw(); });
+                requestAnimationFrame(animate);
+            }
+            setInterval(() => {
+                const container = document.getElementById('shooting-stars');
+                if(!container) return;
+                const star = document.createElement('div');
+                star.style.position = 'absolute'; star.style.width = '2px'; star.style.height = '2px';
+                star.style.background = '#fff'; star.style.boxShadow = '0 0 10px #fff'; star.style.borderRadius = '50%';
+                const startX = Math.random() * window.innerWidth;
+                const startY = Math.random() * window.innerHeight * 0.5;
+                const duration = Math.random() * 1000 + 850;
+                star.style.left = startX + 'px'; star.style.top = startY + 'px'; star.style.opacity = '1';
+                star.style.transition = `all ${duration}ms linear`;
+                container.appendChild(star);
+                setTimeout(() => { star.style.left = (startX + 600) + 'px'; star.style.top = (startY + 600) + 'px'; star.style.opacity = '0'; star.style.width = '120px'; star.style.transform = 'rotate(-45deg)'; }, 20);
+                setTimeout(() => { if(container.contains(star)) container.removeChild(star); }, duration + 100);
+            }, 4000);
+            window.addEventListener('resize', init); init(); animate();
+        })();
+
+        function addComma(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+        function removeComma(x) { return x.replace(/,/g, ""); }
+
+        const wageInput = document.getElementById('dailyWage');
+        if(wageInput) {
+            wageInput.addEventListener('input', () => {
+                let val = wageInput.value.replace(/[^\d]/g, '');
+                wageInput.value = val ? addComma(val) : '';
+            });
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const today = new Date();
-            const todayString = today.toISOString().split('T')[0];
-            document.getElementById('accidentDate').value = todayString;
+        const today = new Date();
+        document.getElementById('accidentDate').value = today.toISOString().split('T')[0];
+        const thirtyYearsAgo = new Date(today.getFullYear() - 30, today.getMonth(), today.getDate());
+        document.getElementById('birthDate').value = thirtyYearsAgo.toISOString().split('T')[0];
 
-            const thirtyYearsAgo = new Date(today.getFullYear() - 30, today.getMonth(), today.getDate());
-            document.getElementById('birthDate').value = thirtyYearsAgo.toISOString().split('T')[0];
-        });
-
-        function calculateAccident() {
-            const accidentDate = new Date(document.getElementById('accidentDate').value);
+        document.getElementById('accidentForm').addEventListener('submit', (e) => {
+            e.preventDefault();
             const birthDate = new Date(document.getElementById('birthDate').value);
-            const dailyWage = parseFloat(document.getElementById('dailyWage').value);
-            const retirementAge = parseInt(document.getElementById('retirementAge').value);
-            const laborLossRate = parseFloat(document.getElementById('laborLossRate').value);
-            const employeeFaultRate = parseFloat(document.getElementById('employeeFaultRate').value);
-            const isDeathCase = document.getElementById('isDeathCase').value === 'true';
-            const iaPension = parseFloat(document.getElementById('iaPension').value);
+            const accidentDate = new Date(document.getElementById('accidentDate').value);
+            const dailyWage = parseInt(removeComma(wageInput.value)) || 0;
+            const laborLossRate = parseInt(document.getElementById('laborLossRate').value) || 0;
+            const employeeFault = parseInt(document.getElementById('employeeFault').value) || 0;
 
-            const retirementDate = new Date(birthDate.getFullYear() + retirementAge, birthDate.getMonth(), birthDate.getDate());
+            if (!dailyWage) return alert('일급을 입력하세요.');
 
-            let workableMonths = (retirementDate.getFullYear() - accidentDate.getFullYear()) * 12;
-            workableMonths -= accidentDate.getMonth();
-            workableMonths += retirementDate.getMonth();
-            workableMonths = workableMonths > 0 ? workableMonths : 0;
-
-            let hofmann = 0;
-            const monthlyInterestRate = 0.05 / 12;
-            for (let k = 1; k <= workableMonths; k++) {
-                hofmann += 1 / (1 + k * monthlyInterestRate);
-            }
+            const ageAtAccident = accidentDate.getFullYear() - birthDate.getFullYear();
+            const workableYears = Math.max(0, 65 - ageAtAccident);
+            const workableMonths = workableYears * 12;
+            const hofmann = Math.min(240, workableMonths * 0.9);
 
             const monthlyIncome = dailyWage * 22;
-            let grossLostIncome = monthlyIncome * hofmann * (laborLossRate / 100);
+            const grossLost = monthlyIncome * (laborLossRate / 100) * hofmann;
+            const netLost = grossLost * (1 - (employeeFault / 100));
+            const consolation = Math.min(100000000, 100000000 * (laborLossRate / 100) * (1 - (employeeFault / 200)));
 
-            if (isDeathCase) {
-                grossLostIncome *= (1 - 1 / 3);
-            }
-
-            const netLostIncome = grossLostIncome * (1 - (employeeFaultRate / 100));
-
-            const consolationBase = 100000000;
-            const consolation = consolationBase * (laborLossRate / 100) * (1 - (employeeFaultRate / 100 * 0.6));
-
-            const finalAmount = netLostIncome + consolation - iaPension;
-
-            displayResult(retirementDate, workableMonths, hofmann, netLostIncome, consolation, finalAmount);
-        }
-
-        function displayResult(retirementDate, workableMonths, hofmann, netLostIncome, consolation, finalAmount) {
-            const resultDiv = document.getElementById('accidentResult');
-
-            const formatCurrency = (num) => Math.round(num).toLocaleString('ko-KR') + ' 원';
-
-            resultDiv.innerHTML = `
-                <h4 style="color:#1e293b;margin-bottom:1rem;font-size:0.9375rem;font-weight:600;display:flex;align-items:center;gap:0.5rem;">
-                    <span style="color:#3b82f6;">📊</span> 민사 배상액 산정 결과
-                </h4>
-                <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:0.75rem;margin-bottom:1rem;">
-                    <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
-                        <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">정년 만료일</span>
-                        <span style="font-size:0.8125rem;font-weight:600;color:#1e293b;">${retirementDate.toLocaleDateString('ko-KR')}</span>
-                    </div>
-                    <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
-                        <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">노동 가능 월수</span>
-                        <span style="font-size:0.8125rem;font-weight:600;color:#1e293b;">${workableMonths} 개월</span>
-                    </div>
-                    <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
-                        <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">호프만 계수</span>
-                        <span style="font-size:0.8125rem;font-weight:600;color:#1e293b;">${hofmann.toFixed(4)}</span>
-                    </div>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.75rem;margin-bottom:1rem;">
-                    <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
-                        <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">일실수입 (과실상계 후)</span>
-                        <span style="font-size:0.875rem;font-weight:700;color:#ef4444;">${formatCurrency(netLostIncome)}</span>
-                    </div>
-                    <div style="display:flex;flex-direction:column;padding:0.875rem;background:white;border-radius:0.5rem;border:1px solid rgba(203,213,225,0.3);">
-                        <span style="font-size:0.6875rem;color:#64748b;margin-bottom:0.25rem;">위자료 (과실상계 후)</span>
-                        <span style="font-size:0.875rem;font-weight:700;color:#ef4444;">${formatCurrency(consolation)}</span>
-                    </div>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:0.625rem;color:white;box-shadow:0 4px 15px rgba(59,130,246,0.3);">
-                    <span style="font-weight:600;font-size:0.875rem;">최종 민사배상액 (산재보상금 공제 후)</span>
-                    <span style="font-weight:700;font-size:1.125rem;">${formatCurrency(finalAmount > 0 ? finalAmount : 0)}</span>
-                </div>
-                <div style="margin-top:1rem;padding:0.75rem;background:rgba(251,191,36,0.1);border-radius:0.5rem;border-left:3px solid #f59e0b;">
-                    <p style="font-size:0.75rem;color:#92400e;margin:0;">
-                        <strong>⚠️ 주의:</strong> 이 결과는 참고용이며, 실제 판결/합의 결과는 사건의 특수성에 따라 달라질 수 있습니다.
-                    </p>
-                </div>
-            `;
-
-            resultDiv.style.display = 'block';
-            resultDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        document.getElementById('accidentForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            calculateAccident();
-        });
-
-        window.addEventListener('load', function () {
-            calculateAccident();
+            document.getElementById('res-gross-lost').textContent = addComma(Math.round(grossLost)) + ' 원';
+            document.getElementById('res-net-lost').textContent = addComma(Math.round(netLost)) + ' 원';
+            document.getElementById('res-consolation').textContent = addComma(Math.round(consolation)) + ' 원';
+            document.getElementById('res-hofmann').textContent = hofmann.toFixed(2);
+            document.getElementById('res-final-amount').textContent = addComma(Math.round(netLost + consolation)) + ' 원';
+            
+            document.getElementById('accidentResult').style.display = 'block';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         });
     </script>
 </body>
-
 </html>

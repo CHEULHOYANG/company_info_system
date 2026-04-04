@@ -1,0 +1,304 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Email CMS Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Quill.js for Rich Text Editing -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --accent: #ec4899;
+            --bg-glass: rgba(255, 255, 255, 0.7);
+            --border-glass: rgba(255, 255, 255, 0.2);
+            --shadow-premium: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+            margin: 0; padding: 0; min-height: 100vh;
+            color: #1f2937;
+        }
+
+        .dashboard {
+            max-width: 1400px; margin: 40px auto; display: grid;
+            grid-template-columns: 350px 1fr; gap: 30px; padding: 0 20px;
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: var(--bg-glass); backdrop-filter: blur(8.5px);
+            -webkit-backdrop-filter: blur(8.5px); border-radius: 20px;
+            border: 1px solid var(--border-glass); box-shadow: var(--shadow-premium);
+            padding: 25px; transition: 0.3s ease;
+        }
+
+        header {
+            grid-column: 1 / span 2; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px;
+        }
+
+        h1 { font-weight: 800; font-size: 2.2rem; background: linear-gradient(to right, var(--primary), var(--secondary));
+             -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
+
+        .btn-nav { text-decoration: none; padding: 10px 20px; border-radius: 30px; font-weight: 600;
+                   background: white; color: var(--primary); border: 1px solid var(--primary);
+                   transition: 0.3s; margin-left:10px; }
+        .btn-nav:hover { background: var(--primary); color: white; transform: translateY(-3px); }
+
+        /* Left Panel - Control Group */
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        
+        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; color: #4b5563; display: flex; align-items: center; gap: 10px; }
+        .section-title i { color: var(--primary); }
+
+        .group-selector { max-height: 400px; overflow-y: auto; padding-right: 5px; }
+        .group-item {
+            padding: 12px 15px; border-radius: 12px; border: 1px solid #e5e7eb;
+            margin-bottom: 10px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.5);
+        }
+        .group-item:hover { border-color: var(--primary); transform: translateX(5px); }
+        .group-item.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+        .group-item .count { font-size: 0.8rem; padding: 2px 8px; border-radius: 10px; background: rgba(0,0,0,0.1); }
+
+        /* Right Panel - Editor & Content */
+        .editor-container { min-height: 600px; display: flex; flex-direction: column; gap: 20px; }
+        
+        #editor { height: 400px; background: white; border-radius: 0 0 12px 12px; font-size: 16px; border: none !important; }
+        .ql-toolbar { border-radius: 12px 12px 0 0; background: #f9fafb; border: none !important; border-bottom: 1px solid #e5e7eb !important; }
+
+        input[type="text"] {
+            width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb;
+            font-size: 1rem; box-sizing: border-box; outline: none; transition: 0.2s;
+        }
+        input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+
+        /* Modern Progress Overlay */
+        #progress-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+            z-index: 1000; justify-content: center; align-items: center; flex-direction: column; color: white;
+        }
+        .gauge-container { position: relative; width: 250px; height: 250px; }
+        .gauge-circle { transform: rotate(-90deg); width: 100%; height: 100%; }
+        .gauge-circle circle { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease; }
+        .gauge-bg { stroke: rgba(255,255,255,0.1); }
+        .gauge-bar { stroke: url(#gradient-neon); stroke-dasharray: 628; stroke-dashoffset: 628; }
+        .gauge-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .gauge-text .percent { font-size: 3rem; font-weight: 800; display: block; }
+        .gauge-text .status { font-size: 0.9rem; opacity: 0.7; }
+
+        .btn-send {
+            width: 100%; padding: 18px; border-radius: 15px; border: none; font-size: 1.2rem; font-weight: 800;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+        .btn-send:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(99, 102, 241, 0.4); }
+        .btn-send:active { transform: translateY(-1px); }
+
+        /* Custom Font Support in Quill */
+        .ql-font-batang { font-family: 'Batang', serif; }
+        .ql-font-gulim { font-family: 'Gulim', sans-serif; }
+        .ql-font-gothic { font-family: 'Malgun Gothic', sans-serif; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1><i class="fas fa-paper-plane"></i> Email CMS Dashboard</h1>
+            <div class="nav-links">
+                <span style="margin-right: 15px; font-weight: 600; color: #4b5563;">환영합니다, {{ user_name }}님</span>
+                <a href="{{ url_for('index') }}" class="btn-nav">기업 검색</a>
+                <a href="{{ url_for('main') }}" class="btn-nav">대시보드</a>
+            </div>
+        </header>
+
+        <div class="sidebar">
+            <div class="glass-card">
+                <div class="section-title"><i class="fas fa-users-viewfinder"></i> 발송 그룹 선택</div>
+                <div style="margin-bottom: 10px; font-size: 0.85rem; color: #6b7280;">서울그룹 시리즈 (사업자당 100개씩 배정)</div>
+                <div class="group-selector" id="group-list">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="section-title"><i class="fas fa-cog"></i> SMTP 설정 선택</div>
+                <select id="smtp-config-id" style="width:100%; padding: 12px; border-radius: 10px; border: 1px solid #e5e7eb;">
+                    <!-- Loaded dynamically -->
+                </select>
+                <div style="margin-top: 15px; font-size:0.8rem; color: #888;">
+                    <i class="fas fa-info-circle"></i> SMTP 설정은 사용자 프로필 또는 메인 설정에서 관리 가능합니다.
+                </div>
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <div class="glass-card" style="padding: 0; overflow:hidden;">
+                <input type="text" id="email-subject" placeholder="여기에 이메일 제목을 입력하세요..." style="border:none; border-bottom:1px solid #eee; border-radius:12px 12px 0 0;">
+                <div id="editor"></div>
+            </div>
+            <button class="btn-send" onclick="initiateSend()">🚀 이메일 일괄 발송 시작</button>
+        </div>
+    </div>
+
+    <!-- Modern Progress Overlay -->
+    <div id="progress-overlay">
+        <div class="gauge-container">
+            <svg class="gauge-circle">
+                <defs>
+                    <linearGradient id="gradient-neon" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <circle class="gauge-bg" cx="125" cy="125" r="100"></circle>
+                <circle class="gauge-bar" id="progress-arc" cx="125" cy="125" r="100"></circle>
+            </svg>
+            <div class="gauge-text">
+                <span class="percent" id="pct-text">0%</span>
+                <span class="status" id="status-text">준비 중...</span>
+            </div>
+        </div>
+        <div style="margin-top: 30px; text-align: center;">
+            <p id="progress-summary" style="font-size: 1.1rem; margin-bottom: 20px;">처리 중인 데이터가 없습니다.</p>
+            <button id="btn-close" class="btn-nav" style="display:none; background:white; cursor:pointer;" onclick="location.reload()">결과 확인 및 닫기</button>
+        </div>
+    </div>
+
+    <script>
+        // Quill Font & Size Support
+        const Size = Quill.import('attributors/style/size');
+        Size.whitelist = ['4px', '8px', '10px', '12px', '14px', '16px', '18px', '20px', '24px', '32px', '48px', '64px', '84px'];
+        Quill.register(Size, true);
+
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    [{ 'size': Size.whitelist }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    ['link', 'image', 'video'],
+                    ['clean']
+                ]
+            }
+        });
+
+        let selectedGroupId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadGroups();
+            loadSmtpConfigs();
+        });
+
+        async function loadGroups() {
+            const res = await fetch('/api/email_groups').then(r => r.json());
+            const list = document.getElementById('group-list');
+            res.groups.forEach(g => {
+                const div = document.createElement('div');
+                div.className = 'group-item';
+                div.innerHTML = `<span>${g.name}</span> <span class="count">${g.member_count}개</span>`;
+                div.onclick = () => {
+                    document.querySelectorAll('.group-item').forEach(el => el.classList.remove('active'));
+                    div.classList.add('active');
+                    selectedGroupId = g.id;
+                };
+                list.appendChild(div);
+            });
+        }
+
+        async function loadSmtpConfigs() {
+            const res = await fetch('/api/smtp-configs').then(r => r.json());
+            const select = document.getElementById('smtp-config-id');
+            res.configs.forEach(cfg => {
+                const opt = document.createElement('option');
+                opt.value = cfg.config_id;
+                opt.textContent = `${cfg.config_name} (${cfg.sender_email})`;
+                select.appendChild(opt);
+            });
+        }
+
+        async function initiateSend() {
+            const subject = document.getElementById('email-subject').value;
+            const body = quill.root.innerHTML;
+            const smtpId = document.getElementById('smtp-config-id').value;
+
+            if (!selectedGroupId) return alert('발송 대상 그룹을 선택해주세요.');
+            if (!subject) return alert('이메일 제목을 입력해주세요.');
+            if (quill.getText().trim() === '') return alert('이메일 본문을 입력해주세요.');
+
+            if (!confirm('이메일 대량 발송을 시작하시겠습니까?')) return;
+
+            const res = await fetch('/api/email_batch_send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    group_id: selectedGroupId,
+                    smtp_config_id: smtpId,
+                    subject: subject,
+                    body: body
+                })
+            }).then(r => r.json());
+
+            if (res.success) {
+                monitorProgress(res.batch_id);
+            } else {
+                alert(res.message);
+            }
+        }
+
+        function monitorProgress(batch_id) {
+            const overlay = document.getElementById('progress-overlay');
+            const arc = document.getElementById('progress-arc');
+            const pctText = document.getElementById('pct-text');
+            const summary = document.getElementById('progress-summary');
+            const btnClose = document.getElementById('btn-close');
+
+            overlay.style.display = 'flex';
+
+            const timer = setInterval(async () => {
+                const data = await fetch(`/api/batch_status/${batch_id}`).then(r => r.json());
+                if (data.success) {
+                    const b = data.batch;
+                    const pct = Math.round((b.sent_count / b.total_count) * 100) || 0;
+                    
+                    // Arc animation
+                    const offset = 628 - (628 * pct / 100);
+                    arc.style.strokeDashoffset = offset;
+                    pctText.textContent = pct + '%';
+                    
+                    summary.innerHTML = `총 ${b.total_count}건 중 ${b.sent_count}건 처리됨<br>
+                                       <span style="color:#2ecc71">성공: ${b.success_count}</span> | 
+                                       <span style="color:#ff7675">실패: ${b.fail_count}</span>`;
+
+                    if (b.status === 'completed' || b.status === 'error') {
+                        clearInterval(timer);
+                        document.getElementById('status-text').textContent = (b.status === 'completed' ? '발송 완료' : '오류 발생');
+                        btnClose.style.display = 'inline-block';
+                    } else {
+                        document.getElementById('status-text').textContent = '서버에서 발송 중...';
+                    }
+                }
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
