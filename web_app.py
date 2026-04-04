@@ -1395,6 +1395,9 @@ def fix_db_schema():
             )
         ''')
 
+        # 3. 기존 데이터 카테고리 보정 (미분류 데이터를 '일반대상'으로 지정)
+        cursor.execute("UPDATE Company_Basic SET category = 'GENERAL' WHERE category IS NULL OR category = ''")
+
         conn.commit()
         print("[SCHEMA FIX] Schema maintenance COMPLETED successfully.")
     except Exception as e:
@@ -10086,7 +10089,7 @@ def api_email_update_company():
 
 @app.route('/api/email/companies')
 def api_email_companies():
-    category = request.args.get('category', 'MANAGED')
+    category = request.args.get('category', 'GENERAL')
     email_status = request.args.get('email_status', 'ALL') # ALL, NORMAL, ABNORMAL
     keyword = request.args.get('keyword', '')
     
@@ -10099,8 +10102,11 @@ def api_email_companies():
     
     # 1. Category Filter
     if category != 'ALL':
-        conditions.append('category = ?')
-        params.append(category)
+        if category == 'GENERAL':
+            conditions.append("(category = 'GENERAL' OR category IS NULL OR category = '')")
+        else:
+            conditions.append('category = ?')
+            params.append(category)
         
     # 2. Email Status Filter (Normal / Abnormal)
     if email_status == 'NORMAL':
@@ -10138,7 +10144,7 @@ def api_email_companies_add():
     representative_name = data.get('representative_name')
     email = data.get('email')
     region = data.get('region')
-    category = data.get('category', 'MANAGED')
+    category = data.get('category', 'GENERAL')
     
     if not biz_no or not company_name:
         return jsonify({'success': False, 'message': '사업자번호와 기업명은 필수입니다.'}), 400
