@@ -24,8 +24,33 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 load_dotenv()  # .env 파일이 있으면 자동으로 환경 변수로 로드
 
+# --- 기본 설정 ---
+app = Flask(__name__)
+app.secret_key = 'your_very_secret_key_12345'
+
+# 한글 인코딩 설정 - JSON 응답에서 한글 깨짐 방지
+app.config['JSON_AS_ASCII'] = False
+app.config['JSONIFY_MIMETYPE'] = 'application/json; charset=utf-8'
+
+# 모든 응답에 UTF-8 강제 설정
+@app.before_request
+def before_request():
+    """모든 요청 전에 실행"""
+    pass
+
+@app.after_request
+def after_request(response):
+    """모든 응답 후에 UTF-8 헤더를 강제로 설정"""
+    if response.content_type.startswith('text/html'):
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
+    elif response.content_type.startswith('application/json'):
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    elif response.content_type.startswith('text/'):
+        response.headers['Content-Type'] = response.content_type + '; charset=utf-8'
+    return response
+
 # 버전 정보 및 비상 보정 API
-APP_VERSION = "2026.04.04.2200_FINAL"
+APP_VERSION = "2026.04.04.2215_FINAL"
 
 @app.route('/api/v3/version')
 def api_v3_version():
@@ -88,31 +113,6 @@ class UTF8FileSystemLoader(FileSystemLoader):
                 return source, filename, uptodate
         
         raise TemplateNotFound(template)
-
-# --- 기본 설정 ---
-app = Flask(__name__)
-app.secret_key = 'your_very_secret_key_12345'
-
-# 한글 인코딩 설정 - JSON 응답에서 한글 깨짐 방지
-app.config['JSON_AS_ASCII'] = False
-app.config['JSONIFY_MIMETYPE'] = 'application/json; charset=utf-8'
-
-# 모든 응답에 UTF-8 강제 설정
-@app.before_request
-def before_request():
-    """모든 요청 전에 실행"""
-    pass
-
-@app.after_request
-def after_request(response):
-    """모든 응답 후에 UTF-8 헤더를 강제로 설정"""
-    if response.content_type.startswith('text/html'):
-        response.headers['Content-Type'] = 'text/html; charset=utf-8'
-    elif response.content_type.startswith('application/json'):
-        response.headers['Content-Type'] = 'application/json; charset=utf-8'
-    elif response.content_type.startswith('text/'):
-        response.headers['Content-Type'] = response.content_type + '; charset=utf-8'
-    return response
 
 # 업로드 폴더 설정
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
