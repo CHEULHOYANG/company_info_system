@@ -409,6 +409,8 @@ def generate_smart_groups(category='GENERAL', limit_per_group=100):
             query = f'''
                 SELECT biz_no FROM Company_Basic 
                 WHERE email_usable = 1 
+                AND email IS NOT NULL 
+                AND email != ''
                 AND category = ?
                 AND region IN ({",".join(["'"+r+"'" for r in db_regions])})
                 {filter_sql}

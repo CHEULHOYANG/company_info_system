@@ -1565,7 +1565,7 @@
                 smtp_server: document.getElementById('smtp-server').value,
                 smtp_port: parseInt(document.getElementById('smtp-port').value),
                 sender_email: document.getElementById('smtp-email').value,
-                smtp_password: document.getElementById('smtp-password').value
+                sender_password: document.getElementById('smtp-password').value
             };
             const data = await fetchAPI('/api/v3/email-setup', {
                 method: 'POST',
