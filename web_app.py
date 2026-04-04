@@ -1203,6 +1203,97 @@ def check_permission(user_level, required_level):
     level_hierarchy = {'VIP': 5, 'V': 4, 'S': 3, 'M': 2, 'N': 1}
     return level_hierarchy.get(user_level, 0) >= level_hierarchy.get(required_level, 0)
 
+def fix_db_schema():
+    """데이터베이스 스키마를 최신 상태로 유지 (컬럼 자동 추가 및 테이블 초기화)"""
+    print("--- Fixing DB Schema ---")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # 1. Company_Basic 테이블 컬럼 확인 및 추가
+        cursor.execute("PRAGMA table_info(Company_Basic)")
+        cols = [row['name'] for row in cursor.fetchall()]
+        
+        if 'email_usable' not in cols:
+            print("Adding column email_usable to Company_Basic")
+            cursor.execute("ALTER TABLE Company_Basic ADD COLUMN email_usable INTEGER DEFAULT 1")
+            
+        if 'last_send_at' not in cols:
+            print("Adding column last_send_at to Company_Basic")
+            cursor.execute("ALTER TABLE Company_Basic ADD COLUMN last_send_at TEXT")
+            
+        if 'last_send_status' not in cols:
+            print("Adding column last_send_status to Company_Basic")
+            cursor.execute("ALTER TABLE Company_Basic ADD COLUMN last_send_status TEXT")
+
+        if 'email_fix_status' not in cols:
+            print("Adding column email_fix_status to Company_Basic")
+            cursor.execute("ALTER TABLE Company_Basic ADD COLUMN email_fix_status INTEGER DEFAULT 0")
+
+        # 2. 이메일 관리용 추가 테이블 생성
+        # 이메일 그룹 테이블
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS email_groups (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                category TEXT DEFAULT 'GENERAL',
+                member_count INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        # 이메일 그룹 멤버 테이블
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS email_group_members (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                group_id INTEGER,
+                biz_no TEXT,
+                joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(group_id) REFERENCES email_groups(id)
+            )
+        ''')
+
+        # 이메일 발송 배치 테이블
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS send_batches (
+                batch_id TEXT PRIMARY KEY,
+                user_id TEXT,
+                smtp_config_id INTEGER,
+                subject TEXT,
+                body TEXT,
+                total_count INTEGER DEFAULT 0,
+                sent_count INTEGER DEFAULT 0,
+                success_count INTEGER DEFAULT 0,
+                fail_count INTEGER DEFAULT 0,
+                sent_at TIMESTAMP,
+                completed_at TIMESTAMP,
+                status TEXT DEFAULT 'pending',
+                group_name TEXT,
+                last_error TEXT
+            )
+        ''')
+
+        # 이메일 개별 발송 로그 테이블
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS email_send_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                batch_id TEXT,
+                biz_no TEXT,
+                email TEXT,
+                group_name TEXT,
+                subject TEXT,
+                status TEXT,
+                sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                error_msg TEXT
+            )
+        ''')
+
+        conn.commit()
+        print("Schema fix and table initialization complete.")
+    except Exception as e:
+        print(f"Error fixing DB schema: {e}")
+    finally:
+        conn.close()
+
 # 앱 시작 시 데이터베이스 및 사용자 테이블 초기화
 def initialize_application():
     """애플리케이션 초기화 함수"""
@@ -1242,6 +1333,10 @@ def initialize_application():
     
     # 사용자 테이블 초기화
     init_user_tables()
+    
+    # DB 스키마 최신화 (컬럼 추가 및 이메일 테이블 초기화)
+    fix_db_schema()
+    
     print("=== Initialization Complete ===")
 
 # 앱 시작 시 초기화 실행
