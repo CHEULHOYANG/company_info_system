@@ -1287,6 +1287,22 @@ def fix_db_schema():
             )
         ''')
 
+        # SMTP 릴레이 설정 테이블 (추가 누락분)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS smtp_configs (
+                config_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
+                config_name TEXT NOT NULL,
+                smtp_server TEXT NOT NULL,
+                smtp_port INTEGER NOT NULL,
+                sender_email TEXT NOT NULL,
+                sender_password TEXT NOT NULL,
+                imap_server TEXT,
+                imap_port INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
         conn.commit()
         print("Schema fix and table initialization complete.")
     except Exception as e:
