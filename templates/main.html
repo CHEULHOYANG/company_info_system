@@ -197,8 +197,8 @@
 
     <header>
         <div class="user-panel">
-            {# 이메일 관리 버튼 권한 제어 #}
-            {% if session.get('user_level') in ['V', 'S', 'M'] %}
+            {# 이메일 관리 버튼 권한 제어: 메인, VIP, 서브, 매니저 허용 #}
+            {% if session.get('user_level') in ['V', 'VIP', 'S', 'M'] %}
             <a href="/email_management" class="btn-top">이메일 관리</a>
             {% else %}
             <a href="javascript:void(0)" class="btn-top" style="opacity: 0.5; cursor: not-allowed;" title="매니저 등급 이상만 가능합니다">이메일 관리</a>
@@ -206,7 +206,7 @@
             
             <div class="user-info-inline">
                 <span style="font-weight: 700; color: #fff;">{{ user_name or '관리자' }}님</span>
-                {% if session.get('user_level') in ['V', 'S'] %}
+                {% if session.get('user_level') == 'V' %}
                 <a href="/user_management" class="admin-gear" title="관리자 설정" style="margin-left: 5px;">
                     <i class="fas fa-cog"></i>
                 </a>
@@ -292,7 +292,7 @@
 
     <footer>
         CMS // YS-HONERS DEEP SPACE CONTROL // REV 
-        {% if session.get('user_level') in ['V', 'S'] %}
+        {% if session.get('user_level') == 'V' %}
         <a href="/user_management" class="admin-gear" title="System Settings">
             <i class="fas fa-cog"></i>
         </a>

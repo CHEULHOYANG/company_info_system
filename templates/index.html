@@ -474,7 +474,7 @@
                 <a href="{{ url_for('history_search') }}" class="back-button">접촉이력 조회</a>
                 <a href="{{ url_for('main') }}" class="back-button">메인으로</a>
                 <span style="font-weight:bold; color:#333;">{{ user_name }}님</span>
-                {% if session.get('user_level') in ['V', 'S'] %}
+                {% if session.get('user_level') == 'V' %}
                 <a href="{{ url_for('user_management') }}" class="admin-gear" title="관리자 설정">
                     <i class="fas fa-cog"></i>
                 </a>
@@ -521,8 +521,8 @@
                 일괄 추가</button>
             {% endif %}
             
-            {# 이메일 발송 버튼: 일반담당자(N)는 사용 불가 #}
-            {% if session.get('user_level') in ['V', 'S', 'M'] %}
+            {# 이메일 발송 버튼: 메인/VIP/서브/매니저 사용 가능, 일반담당자(N)는 사용 불가 #}
+            {% if session.get('user_level') in ['V', 'VIP', 'S', 'M'] %}
             <button type="button" id="email-batch-button" class="action-button"
                 style="background: linear-gradient(45deg, #17a2b8, #117a8b); box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);">📧 이메일 발송</button>
             {% else %}

@@ -421,7 +421,9 @@ def init_emergency_database(conn):
                 establish_date TEXT,
                 company_size TEXT,
                 industry_name TEXT,
-                region TEXT
+                region TEXT,
+                email TEXT,
+                category TEXT DEFAULT 'GENERAL'
             )
         ''')
         
@@ -1321,28 +1323,43 @@ def fix_db_schema():
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Company_Basic'")
         has_main_table = cursor.fetchone()
         
-        if has_main_table:
-            print("[SCHEMA FIX] Company_Basic table detected. Checking columns...")
-            cursor.execute("PRAGMA table_info(Company_Basic)")
-            cols = [row['name'] for row in cursor.fetchall()]
-            
-            # 컬럼 추가 (각각 별도 try-except로 안전하게 처리)
-            column_tasks = [
-                ('email_usable', "ALTER TABLE Company_Basic ADD COLUMN email_usable INTEGER DEFAULT 1"),
-                ('last_send_at', "ALTER TABLE Company_Basic ADD COLUMN last_send_at TEXT"),
-                ('last_send_status', "ALTER TABLE Company_Basic ADD COLUMN last_send_status TEXT"),
-                ('email_fix_status', "ALTER TABLE Company_Basic ADD COLUMN email_fix_status INTEGER DEFAULT 0")
-            ]
-            
-            for col_name, sql in column_tasks:
-                if col_name not in cols:
-                    try:
-                        print(f"[SCHEMA FIX] Adding column {col_name} to Company_Basic")
-                        cursor.execute(sql)
-                    except Exception as col_err:
-                        print(f"[SCHEMA FIX] Error adding {col_name}: {col_err}")
-        else:
-            print("[SCHEMA FIX] Company_Basic table not found yet. Skipping column upgrades.")
+        if not has_main_table:
+            print("[SCHEMA FIX] Company_Basic table not found. Creating it now...")
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS Company_Basic (
+                    biz_no TEXT PRIMARY KEY,
+                    company_name TEXT,
+                    representative_name TEXT,
+                    establish_date TEXT,
+                    company_size TEXT,
+                    industry_name TEXT,
+                    region TEXT,
+                    email TEXT,
+                    category TEXT DEFAULT 'GENERAL'
+                )
+            ''')
+        
+        print("[SCHEMA FIX] Checking columns for Company_Basic...")
+        cursor.execute("PRAGMA table_info(Company_Basic)")
+        cols = [row['name'] for row in cursor.fetchall()]
+        
+        # 컬럼 추가 (각각 별도 try-except로 안전하게 처리)
+        column_tasks = [
+            ('email', "ALTER TABLE Company_Basic ADD COLUMN email TEXT"),
+            ('category', "ALTER TABLE Company_Basic ADD COLUMN category TEXT DEFAULT 'GENERAL'"),
+            ('email_usable', "ALTER TABLE Company_Basic ADD COLUMN email_usable INTEGER DEFAULT 1"),
+            ('last_send_at', "ALTER TABLE Company_Basic ADD COLUMN last_send_at TEXT"),
+            ('last_send_status', "ALTER TABLE Company_Basic ADD COLUMN last_send_status TEXT"),
+            ('email_fix_status', "ALTER TABLE Company_Basic ADD COLUMN email_fix_status INTEGER DEFAULT 0")
+        ]
+        
+        for col_name, sql in column_tasks:
+            if col_name not in cols:
+                try:
+                    print(f"[SCHEMA FIX] Adding column {col_name} to Company_Basic")
+                    cursor.execute(sql)
+                except Exception as col_err:
+                    print(f"[SCHEMA FIX] Error adding {col_name}: {col_err}")
 
         # 2. 이메일 관리용 추가 테이블 생성 (독립적 수행)
         print("[SCHEMA FIX] Initializing email management tables...")
