@@ -9818,11 +9818,6 @@ def execute_corporate_upload():
     
     return Response(generate(), mimetype='text/event-stream')
 
-
-
-    return Response(generate(), mimetype='text/event-stream')
-
-
 @app.route('/api/email/targets')
 def api_email_targets():
     region = request.args.get('region')
