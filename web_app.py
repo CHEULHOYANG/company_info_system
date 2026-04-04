@@ -24,6 +24,31 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 load_dotenv()  # .env 파일이 있으면 자동으로 환경 변수로 로드
 
+# 버전 정보 및 비상 보정 API
+APP_VERSION = "2026.04.04.2200_FINAL"
+
+@app.route('/api/v3/version')
+def api_v3_version():
+    return jsonify({'version': APP_VERSION, 'status': 'STABLE_BUILD'})
+
+@app.route('/api/v3/repair-categories', methods=['POST'])
+def api_v3_repair_categories():
+    """미분류 데이터를 강제로 일반대상(GENERAL)으로 보정합니다."""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE Company_Basic SET category = 'GENERAL' WHERE category IS NULL OR category = ''")
+        row_count = cursor.rowcount
+        conn.commit()
+        return jsonify({'success': True, 'message': f'{row_count}건의 미분류 데이터가 일반대상으로 복구되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        conn.close()
+
 # 한국 시간대 설정
 KST = pytz.timezone('Asia/Seoul')
 
@@ -106,10 +131,10 @@ def email_management():
     if not check_permission(user_level, 'M'):
         return "이메일 시스템 접근 권한이 없습니다. 관리자에게 문의하세요.", 403
         
-    return render_template('email_management.html', user_name=session.get('user_name', '사용자'))
+    return render_template('email_management.html', user_name=session.get('user_name', '사용자'), version=APP_VERSION)
 
-@app.route('/api/smtp-configs', methods=['GET', 'POST'])
-def api_smtp_configs():
+@app.route('/api/v3/email-setup', methods=['GET', 'POST'])
+def api_v3_email_setup():
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
     

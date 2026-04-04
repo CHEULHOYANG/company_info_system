@@ -271,7 +271,7 @@
     <header>
         <div class="header-left">
             <div class="brand-text">기업 통합 메일 관제 센터</div>
-            <div style="font-family: 'Orbitron', sans-serif; font-size: 11px; color: var(--neon-cyan); letter-spacing: 2px;">V2.0 퀀텀 고속 중계 엔진</div>
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 11px; color: var(--neon-cyan); letter-spacing: 2px;">V2.0 퀀텀 고속 중계 엔진 ({{ version }})</div>
         </div>
         <div class="header-right">
             <a href="/main" class="btn-top" style="border-radius: 50px; background: rgba(0, 212, 255, 0.1); border-color: var(--neon-blue);"><i class="fas fa-th-large"></i> 대시보드</a>
@@ -322,6 +322,7 @@
                 <div class="card-header">
                     <h2 class="card-title">기업 주소록 마스터</h2>
                     <div style="display:flex; gap:10px;">
+                        <button class="btn btn-repair" onclick="repairCategories()"><i class="fas fa-tools"></i> 데이터 분류 복구</button>
                         <button class="btn btn-outline" onclick="openCorpAddModal()"><i class="fas fa-plus"></i> 주소 추가</button>
                     </div>
                 </div>
@@ -1078,7 +1079,7 @@
         }
 
         async function loadSmtpConfigs() {
-            const data = await fetchAPI('/api/smtp-configs');
+            const data = await fetchAPI('/api/v3/email-setup');
             if (data.success) {
                 const list = document.getElementById('smtp-list');
                 const select = document.getElementById('send-smtp-id');
@@ -1559,14 +1560,18 @@
         }
 
         async function saveSmtpConfig() {
-            const payload = {
+            const config = {
                 config_name: document.getElementById('smtp-name').value,
                 smtp_server: document.getElementById('smtp-server').value,
                 smtp_port: parseInt(document.getElementById('smtp-port').value),
                 sender_email: document.getElementById('smtp-email').value,
                 smtp_password: document.getElementById('smtp-password').value
             };
-            const data = await fetchAPI('/api/smtp-configs/add', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            const data = await fetchAPI('/api/v3/email-setup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
             if (data.success) { alert("노드가 활성화되었습니다."); closeSmtpModal(); loadSmtpConfigs(); }
             else alert("구성 실패: " + data.message);
         }
@@ -1746,7 +1751,7 @@
             const sel = document.getElementById('bounce-smtp-select');
             if (!sel) return;
             try {
-                const data = await fetchAPI('/api/smtp-configs');
+                const data = await fetchAPI('/api/v3/email-setup');
                 if (data.success && data.configs && data.configs.length > 0) {
                     data.configs.forEach(cfg => {
                         const opt = document.createElement('option');
@@ -1824,6 +1829,20 @@
             }
         }
 
+        async function repairCategories() {
+            if(!confirm("미분류된 모든 데이터를 '일반대상'으로 복구하시겠습니까? (이 작업은 수 초가 소요될 수 있습니다)")) return;
+            
+            const data = await fetchAPI('/api/v3/repair-categories', { method: 'POST' });
+            
+            if (data.success) {
+                alert(data.message);
+                loadCompanies();
+            } else {
+                alert("복구 실패: " + data.message);
+            }
+        }
+
+        // 초기화
         window.onload = () => {
             showTab('setup');
             loadTargetGroups();
