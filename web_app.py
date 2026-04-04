@@ -94,6 +94,85 @@ app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__fil
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
+# --- Email Management System Routes (Relocated to top for reliability) ---
+
+@app.route('/email_management')
+def email_management():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # 일반 담당자(N)는 접근 불가, 매니저(M) 이상만 허용
+    user_level = session.get('user_level', 'N')
+    if not check_permission(user_level, 'M'):
+        return "이메일 시스템 접근 권한이 없습니다. 관리자에게 문의하세요.", 403
+        
+    return render_template('email_management.html', user_name=session.get('user_name', '사용자'))
+
+@app.route('/api/smtp-configs', methods=['GET', 'POST'])
+def api_smtp_configs():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    if request.method == 'GET':
+        cursor.execute('SELECT * FROM smtp_configs WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
+        configs = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return jsonify({'success': True, 'configs': configs})
+    
+    else:
+        data = request.json
+        config_id = data.get('config_id')
+        config_name = data.get('config_name')
+        smtp_server = data.get('smtp_server')
+        smtp_port = data.get('smtp_port')
+        sender_email = data.get('sender_email')
+        sender_password = data.get('sender_password')
+        
+        if not all([config_name, smtp_server, smtp_port, sender_email, sender_password]):
+            if conn: conn.close()
+            return jsonify({'success': False, 'message': '모든 항목을 입력해주세요.'}), 400
+            
+        try:
+            if config_id:
+                cursor.execute('''
+                    UPDATE smtp_configs SET 
+                        config_name = ?, smtp_server = ?, smtp_port = ?, 
+                        sender_email = ?, sender_password = ?
+                    WHERE config_id = ? AND user_id = ?
+                ''', (config_name, smtp_server, smtp_port, sender_email, sender_password, config_id, user_id))
+                message = 'SMTP 설정이 수정되었습니다.'
+            else:
+                cursor.execute('''
+                    INSERT INTO smtp_configs (user_id, config_name, smtp_server, smtp_port, sender_email, sender_password)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (user_id, config_name, smtp_server, smtp_port, sender_email, sender_password))
+                message = 'SMTP 설정이 저장되었습니다.'
+            
+            conn.commit()
+            conn.close()
+            return jsonify({'success': True, 'message': message})
+        except Exception as e:
+            if conn: conn.close()
+            return jsonify({'success': False, 'message': f'저장 오류: {str(e)}'}), 500
+
+@app.route('/api/email/init', methods=['POST'])
+def api_email_init():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    try:
+        # DB 초기화 다시 명시적 호출
+        fix_db_schema()
+        return jsonify({'success': True, 'message': '이메일 시스템 초기 설정(테이블 확인 및 생성)이 완료되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'초기화 오류: {str(e)}'})
+
+# --- End Relocated Routes ---
+
 @app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     """업로드된 파일을 서빙합니다."""
@@ -9741,82 +9820,7 @@ def execute_corporate_upload():
 
 
 
-# --- Email Management System Routes ---
-
-@app.route('/email_management')
-def email_management():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    # 일반 담당자(N)는 접근 불가, 매니저(M) 이상만 허용
-    user_level = session.get('user_level', 'N')
-    if not check_permission(user_level, 'M'):
-        return "이메일 시스템 접근 권한이 없습니다. 관리자에게 문의하세요.", 403
-        
-    return render_template('email_management.html', user_name=session.get('user_name', '사용자'))
-
-@app.route('/api/smtp-configs', methods=['GET', 'POST'])
-def api_smtp_configs():
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
-    
-    user_id = session['user_id']
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    if request.method == 'GET':
-        cursor.execute('SELECT * FROM smtp_configs WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
-        configs = [dict(row) for row in cursor.fetchall()]
-        conn.close()
-        return jsonify({'success': True, 'configs': configs})
-    
-    else:
-        data = request.json
-        config_id = data.get('config_id')
-        config_name = data.get('config_name')
-        smtp_server = data.get('smtp_server')
-        smtp_port = data.get('smtp_port')
-        sender_email = data.get('sender_email')
-        sender_password = data.get('sender_password')
-        
-        if not all([config_name, smtp_server, smtp_port, sender_email, sender_password]):
-            conn.close()
-            return jsonify({'success': False, 'message': '모든 항목을 입력해주세요.'}), 400
-            
-        try:
-            if config_id:
-                cursor.execute('''
-                    UPDATE smtp_configs SET 
-                        config_name = ?, smtp_server = ?, smtp_port = ?, 
-                        sender_email = ?, sender_password = ?
-                    WHERE config_id = ? AND user_id = ?
-                ''', (config_name, smtp_server, smtp_port, sender_email, sender_password, config_id, user_id))
-                message = 'SMTP 설정이 수정되었습니다.'
-            else:
-                cursor.execute('''
-                    INSERT INTO smtp_configs (user_id, config_name, smtp_server, smtp_port, sender_email, sender_password)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ''', (user_id, config_name, smtp_server, smtp_port, sender_email, sender_password))
-                message = 'SMTP 설정이 저장되었습니다.'
-            
-            conn.commit()
-            conn.close()
-            return jsonify({'success': True, 'message': message})
-        except Exception as e:
-            conn.close()
-            return jsonify({'success': False, 'message': f'저장 오류: {str(e)}'}), 500
-
-@app.route('/api/email/init', methods=['POST'])
-def api_email_init():
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
-    
-    try:
-        from setup_email_system_db import check_and_setup
-        check_and_setup()
-        return jsonify({'success': True, 'message': '이메일 시스템 초기 설정(테이블 확인 및 생성)이 완료되었습니다.'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': f'초기화 오류: {str(e)}'})
+    return Response(generate(), mimetype='text/event-stream')
 
 
 @app.route('/api/email/targets')
