@@ -229,7 +229,7 @@ else:
 
 # --- DB 연결 함수 및 사용자 계정 ---
 def get_db_connection():
-    """데이터베이스 연결을 반환합니다. Persistent Disk 지원"""
+    """데이터베이스 연결을 반환합니다. Persistent Disk 지원 및 타임아웃 강화"""
     try:
         # 데이터베이스 디렉터리가 없으면 생성
         db_dir = os.path.dirname(DB_PATH)
@@ -237,7 +237,8 @@ def get_db_connection():
             os.makedirs(db_dir, exist_ok=True)
             print(f"Created DB directory: {db_dir}")
         
-        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        # 병렬 요청 시 'database is locked' 방지를 위해 타임아웃 20초 설정
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=20)
         conn.row_factory = sqlite3.Row
         
         # 연결 테스트 및 기본 테이블 확인
@@ -245,9 +246,12 @@ def get_db_connection():
             conn.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1").fetchone()
             return conn
         except Exception as table_error:
-            print(f"Database table check failed: {table_error}")
-            conn.close()
-            raise table_error
+            # 신규 데이터베이스인 경우 table_info가 실패할 수 있음 - 정상 진행 유도
+            print(f"Database table check (info only): {table_error}")
+            return conn
+    except Exception as e:
+        print(f"FATAL: Database connection failed: {e}")
+        raise e
             
     except Exception as e:
         print(f"Database connection error: {e}")

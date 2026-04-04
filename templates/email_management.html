@@ -1016,8 +1016,24 @@
         }
 
         async function fetchAPI(url, options = {}) {
-            try { const res = await fetch(url, options); return await res.json(); }
-            catch(e) { console.error("API Error:", e); return { success: false, message: e.toString() }; }
+            try { 
+                const res = await fetch(url, options);
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch(parseErr) {
+                    // HTML Response (likely 500 or 404)
+                    console.error("Non-JSON Server Response:", text);
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(text, 'text/html');
+                    // Extract title or first paragraph/body for debugging
+                    const errorDetails = doc.body ? doc.body.innerText.trim().substring(0, 300) : text.substring(0, 300);
+                    return { success: false, message: `Server Error (${res.status}): ${errorDetails}` };
+                }
+            } catch(e) { 
+                console.error("Network Fetch Error:", e); 
+                return { success: false, message: "통신 오류: " + e.toString() }; 
+            }
         }
 
         async function loadCompanies(keyword = '') {
