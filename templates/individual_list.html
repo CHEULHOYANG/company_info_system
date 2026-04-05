@@ -47,13 +47,12 @@
         }
 
         .earth-container {
-            position: fixed; bottom: -150px; right: -150px; width: 450px; height: 450px;
-            pointer-events: none; z-index: -10; opacity: 0.3;
-            filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.15));
-            animation: rotateEarth 280s linear infinite;
+            position: fixed; bottom: -50px; right: -50px; width: 400px; height: 400px;
+            pointer-events: none; z-index: -10; opacity: 0.5;
+            display: flex; align-items: flex-end; justify-content: flex-end;
         }
+        .earth-img { width: 100%; height: 100%; animation: rotateEarth 100s linear infinite; filter: drop-shadow(0 0 30px rgba(0,212,255,0.3)); }
         @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .earth-img { width: 100%; height: 100%; object-fit: contain; }
 
         header {
             height: 65px; display: flex; align-items: center; justify-content: space-between;
@@ -136,8 +135,10 @@
             transition: 0.3s; font-size: 14px;
         }
         .form-group input:focus, .form-group select:focus {
-            outline: none; border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+            outline: none; border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); background: rgba(255,255,255,0.08);
         }
+
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* BRIGHT CALENDAR STYLE */
         input[type="date"] {
@@ -330,7 +331,18 @@
     <canvas id="particle-canvas"></canvas>
     <div class="shooting-star-container" id="shooting-stars"></div>
     <div class="earth-container">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Earth_Blender_render_4_transparent_background.png/1024px-Earth_Blender_render_4_transparent_background.png" class="earth-img" alt="Earth Rotation Element">
+        <!-- Using high-reliability inline SVG to prevent broken image issues -->
+        <svg class="earth-img" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <radialGradient id="earthGradCorp" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:#020617;stop-opacity:0.6" />
+                </radialGradient>
+            </defs>
+            <circle cx="50%" cy="50%" r="48" fill="url(#earthGradCorp)" stroke="#00d4ff" stroke-width="0.5" />
+            <path d="M50 2 A48 48 0 0 1 50 98 M2 50 A48 48 0 0 1 98 50 M15 50 A35 48 0 0 1 85 50 M50 15 A48 35 0 0 1 50 85" fill="none" stroke="rgba(0,212,255,0.2)" stroke-width="0.3" />
+            <path d="M30 25 Q40 30 45 20 T60 25 T75 35 T70 55 T50 70 T30 60 T25 40 Z" fill="rgba(0,212,255,0.15)" stroke="rgba(0,212,255,0.4)" stroke-width="0.5" />
+        </svg>
     </div>
 
     <header>
@@ -405,16 +417,14 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="text-align: center;">순번</th>
-                        <th>기업명</th>
-                        <th>사업자번호</th>
-                        <th>대표자명</th>
-                        <th>생년</th>
-                        <th>업종</th>
-                        <th>재무년도</th>
-                        <th>매출액(억)</th>
-                        <th>당기순이익(억)</th>
-                        <th>등록일</th>
+                        <th style="text-align: center; width: 60px;">순번</th>
+                        <th style="width: 180px;">기업명</th>
+                        <th style="width: 120px;">사업자번호</th>
+                        <th style="width: 100px;">대표자명</th>
+                        <th style="width: 250px;">주소</th>
+                        <th style="width: 120px;">업종</th>
+                        <th style="width: 80px;">매출액(억)</th>
+                        <th style="width: 90px; text-align: center;">등록일</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -428,28 +438,23 @@
                                     {% if item.status and item.status != '접촉대기' %}
                                         {% set status_type = 'contact' if '접촉' in item.status else 'other' %}
                                         {% if '완료' in item.status or '료' in item.status %}{% set status_type = 'completed' %}{% endif %}
-                                        {% if '실패' in item.status %}{% set status_type = 'failed' %}{% endif %}
                                         <span class="status-badge status-{{ status_type }}">
                                             {{ item.status }}
                                         </span>
-                                    {% else %}
-                                        <span class="status-badge status-pending">접촉대기</span>
                                     {% endif %}
                                 </div>
                             </div>
                         </td>
                         <td data-label="사업자번호">{{ item.business_number or '-' }}</td>
                         <td data-label="대표자명">{{ item.representative_name or '-' }}</td>
-                        <td data-label="생년">{{ item.birth_year or '-' }}</td>
-                        <td data-label="업종">{{ item.industry_type or '-' }}</td>
-                        <td data-label="재무년도">{{ item.financial_year or '-' }}</td>
+                        <td data-label="주소"><div class="truncate" style="max-width: 230px;">{{ item.address or '-' }}</div></td>
+                        <td data-label="업종"><div class="truncate" style="max-width: 110px;">{{ item.industry_type or '-' }}</div></td>
                         <td data-label="매출액(억)"><span style="color: var(--neon-cyan); font-weight: 700;">{{ item.revenue or '0.0' }}</span></td>
-                        <td data-label="순이익(억)"><span style="color: {{ '#ff6b6b' if item.net_income|float < 0 else 'var(--neon-blue)' }}; font-weight: 700;">{{ item.net_income or '0.0' }}</span></td>
-                        <td data-label="등록일">{{ item.created_at[:10] if item.created_at else '-' }}</td>
+                        <td data-label="등록일" style="text-align: center;">{{ item.created_at[:10] if item.created_at else '-' }}</td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="10" style="text-align: center; padding: 50px;">
+                        <td colspan="8" style="text-align: center; padding: 50px;">
                             
                             검색된 데이터가 없습니다.
                         </td>
@@ -510,6 +515,10 @@
                             <label>매출액 (억 단위)</label>
                             <input type="number" name="revenue" step="0.1">
                         </div>
+                        <div class="form-group">
+                            <label>직원수</label>
+                            <input type="number" name="employee_count" placeholder="0">
+                        </div>
                     </div>
                     <div style="margin-top: 30px; text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
                         <button type="button" class="btn-reset" onclick="closeModal('addModal')">취소</button>
@@ -557,6 +566,7 @@
                     <div class="info-item"><label>대표자명</label><span id="detail_representative">-</span></div>
                     <div class="info-item"><label>나이(생년)</label><span id="detail_birth_year">-</span></div>
                     <div class="info-item"><label>업종</label><span id="detail_industry">-</span></div>
+                    <div class="info-item"><label>직원수</label><span id="detail_employee_count">-</span></div>
                     <div class="info-item"><label>전화번호</label><span id="detail_phone">-</span></div>
                 </div>
                 <div style="margin-bottom: 25px;">
@@ -567,6 +577,7 @@
                 <div class="info-grid" style="background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.1); margin-bottom: 25px;">
                     <div class="info-item"><label>재무년도</label><span id="detail_financial_year">-</span></div>
                     <div class="info-item"><label>매출액(억)</label><span id="detail_revenue" style="color: var(--neon-cyan); font-weight: 700;">-</span></div>
+                    <div class="info-item"><label>자본총계(억)</label><span id="detail_total_capital" style="color: var(--neon-cyan); font-weight: 700;">-</span></div>
                     <div class="info-item"><label>당기순이익(억)</label><span id="detail_net_income" style="color: var(--neon-blue); font-weight: 700;">-</span></div>
                 </div>
 
@@ -779,28 +790,36 @@
                 
                 const row = document.querySelector(`tr[onclick*="'${id}'"]`);
                 
-                // Set basic info
+                // Set basic info based on updated column indices
                 document.getElementById('detail_company_name').innerText = row.cells[1].textContent.trim().split('\n')[0];
                 document.getElementById('detail_business_number').innerText = row.cells[2].textContent;
                 document.getElementById('detail_representative').innerText = row.cells[3].textContent;
-                document.getElementById('detail_birth_year').innerText = row.cells[4].textContent;
+                document.getElementById('detail_address').innerText = row.cells[4].textContent;
                 document.getElementById('detail_industry').innerText = row.cells[5].textContent;
-                document.getElementById('detail_financial_year').innerText = row.cells[6].textContent;
-                document.getElementById('detail_revenue').innerText = row.cells[7].textContent;
-                document.getElementById('detail_net_income').innerText = row.cells[8].textContent;
+                document.getElementById('detail_revenue').innerText = row.cells[6].textContent;
                 
                 if (result.success) {
                     const data = result.data;
                     document.getElementById('detail_status_input').value = data.status || '접촉대기';
                     document.getElementById('detail_contact_date_input').value = data.contact_date || '';
+                    if (data.address) document.getElementById('detail_address').innerText = data.address;
+                    if (data.employee_count) document.getElementById('detail_employee_count').innerText = data.employee_count + ' 명'; else document.getElementById('detail_employee_count').innerText = '-';
+                    if (data.phone_number) document.getElementById('detail_phone').innerText = data.phone_number; else document.getElementById('detail_phone').innerText = '-';
+                    if (data.birth_year) document.getElementById('detail_birth_year').innerText = data.birth_year; else document.getElementById('detail_birth_year').innerText = '-';
+                    if (data.financial_year) document.getElementById('detail_financial_year').innerText = data.financial_year + '년'; else document.getElementById('detail_financial_year').innerText = '-';
+                    if (data.revenue) document.getElementById('detail_revenue').innerText = data.revenue; else document.getElementById('detail_revenue').innerText = '-';
+                    if (data.net_income) document.getElementById('detail_net_income').innerText = data.net_income; else document.getElementById('detail_net_income').innerText = '-';
+                    if (data.total_capital) document.getElementById('detail_total_capital').innerText = data.total_capital; else document.getElementById('detail_total_capital').innerText = '-';
                     
                     // Render History
                     renderHistory(data.history);
                     document.getElementById('historyForm').style.display = 'none';
                 }
-                
                 openModal('detailModal');
-            } catch (e) { alert('상세 정보를 불러올 수 없습니다.'); }
+            } catch (e) { 
+                console.error(e);
+                alert('상세 정보를 불러올 수 없습니다.'); 
+            }
         }
 
         function renderHistory(history) {

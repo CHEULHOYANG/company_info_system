@@ -319,12 +319,9 @@
                         <th>기업명</th>
                         <th>사업자번호</th>
                         <th>대표자명</th>
-                        <th>생년</th>
+                        <th>주소</th>
                         <th>업종</th>
-                        <th>설립년도</th>
                         <th>매출액(억)</th>
-                        <th>순이익(억)</th>
-                        <th>종업원수</th>
                         <th style="text-align: right;">최근 접촉일</th>
                     </tr>
                 </thead>
@@ -348,12 +345,9 @@
                         <td data-label="기업명"><span style="color: #fff; font-weight: 700; font-size: 14px;">{{ item.company_name }}</span></td>
                         <td data-label="사업자번호">{{ item.business_number or '-' }}</td>
                         <td data-label="대표자명">{{ item.representative_name or '-' }}</td>
-                        <td data-label="생년">{{ item.birth_year or '-' }}</td>
+                        <td data-label="주소"><div style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.address or '-' }}</div></td>
                         <td data-label="업종">{{ item.industry_type or '-' }}</td>
-                        <td data-label="설립년도">{{ item.establishment_year or '-' }}</td>
                         <td data-label="매출액(억)"><span style="color: var(--neon-blue); font-weight: 700;">{{ item.revenue or '0' }}</span></td>
-                        <td data-label="순이익(억)"><span style="font-weight: 700;">{{ item.net_income or '0' }}</span></td>
-                        <td data-label="종업원수">{{ item.employee_count or '0' }}</td>
                         <td data-label="최근접촉일" style="text-align: right;"><span class="contact-date">{{ item.contact_date or '-' }}</span></td>
                     </tr>
                     {% else %}
@@ -402,13 +396,18 @@
                     <div class="info-item"><label>대표자명</label><span id="detail_representative">-</span></div>
                     <div class="info-item"><label>나이(생년)</label><span id="detail_birth_year">-</span></div>
                     <div class="info-item"><label>업종</label><span id="detail_industry">-</span></div>
-                    <div class="info-item"><label>종업원수</label><span id="detail_employee_count">-</span></div>
+                    <div class="info-item"><label>직원수</label><span id="detail_employee_count">-</span></div>
+                    <div class="info-item"><label>전화번호</label><span id="detail_phone">-</span></div>
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <label style="font-size: 11px; color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; opacity: 0.7; display: block; margin-bottom: 5px;">주소</label>
+                    <span id="detail_address" style="color: #fff;">-</span>
                 </div>
 
-                <div class="section-title">재무 데이터</div>
-                <div class="info-grid" style="background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.1); margin-bottom: 25px; padding: 15px; border-radius: 12px;">
+                <div class="info-grid" style="background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.1); margin-bottom: 25px;">
                     <div class="info-item"><label>재무년도</label><span id="detail_financial_year">-</span></div>
                     <div class="info-item"><label>매출액(억)</label><span id="detail_revenue" style="color: var(--neon-cyan); font-weight: 700;">-</span></div>
+                    <div class="info-item"><label>자본총계(억)</label><span id="detail_total_capital" style="color: var(--neon-cyan); font-weight: 700;">-</span></div>
                     <div class="info-item"><label>당기순이익(억)</label><span id="detail_net_income" style="color: var(--neon-blue); font-weight: 700;">-</span></div>
                 </div>
 
@@ -522,17 +521,23 @@
                 document.getElementById('detail_company_name').innerText = row.cells[2].textContent;
                 document.getElementById('detail_business_number').innerText = row.cells[3].textContent;
                 document.getElementById('detail_representative').innerText = row.cells[4].textContent;
-                document.getElementById('detail_birth_year').innerText = row.cells[5].textContent;
+                document.getElementById('detail_address').innerText = row.cells[5].textContent;
                 document.getElementById('detail_industry').innerText = row.cells[6].textContent;
-                document.getElementById('detail_employee_count').innerText = row.cells[10].textContent;
-                document.getElementById('detail_financial_year').innerText = row.cells[7].textContent;
-                document.getElementById('detail_revenue').innerText = row.cells[8].textContent;
-                document.getElementById('detail_net_income').innerText = row.cells[9].textContent;
+                document.getElementById('detail_revenue').innerText = row.cells[7].textContent;
                 
                 if (result.success) {
                     const data = result.data;
                     document.getElementById('detail_status_input').value = data.status || '접촉중';
                     document.getElementById('detail_contact_date_input').value = data.contact_date || '';
+                    if (data.address) document.getElementById('detail_address').innerText = data.address;
+                    if (data.employee_count) document.getElementById('detail_employee_count').innerText = data.employee_count + ' 명'; else document.getElementById('detail_employee_count').innerText = '-';
+                    if (data.phone_number) document.getElementById('detail_phone').innerText = data.phone_number; else document.getElementById('detail_phone').innerText = '-';
+                    if (data.birth_year) document.getElementById('detail_birth_year').innerText = data.birth_year; else document.getElementById('detail_birth_year').innerText = '-';
+                    if (data.financial_year) document.getElementById('detail_financial_year').innerText = data.financial_year + '년'; else document.getElementById('detail_financial_year').innerText = '-';
+                    if (data.revenue) document.getElementById('detail_revenue').innerText = data.revenue; else document.getElementById('detail_revenue').innerText = '-';
+                    if (data.net_income) document.getElementById('detail_net_income').innerText = data.net_income; else document.getElementById('detail_net_income').innerText = '-';
+                    if (data.total_capital) document.getElementById('detail_total_capital').innerText = data.total_capital; else document.getElementById('detail_total_capital').innerText = '-';
+                    
                     renderHistory(data.history);
                     document.getElementById('historyForm').style.display = 'none';
                 }

@@ -8171,6 +8171,8 @@ def individual_business_list():
             cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN contact_date TEXT")
         if 'is_released' not in columns:
             cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN is_released TEXT DEFAULT 'N'")
+        if 'operating_profit' not in columns:
+            cursor.execute("ALTER TABLE individual_business_owners ADD COLUMN operating_profit TEXT")
         conn.commit()
         
         # 동적 SQL 쿼리 구성
@@ -8315,11 +8317,10 @@ def visit_management_list():
     status_filter = request.args.get('status', '').strip()
     is_clear = request.args.get('clear', 'false').lower() == 'true'
     
-    # 기본 접촉일자 설정: 명시적 초기화(?clear=true)가 아니며 검색 파라미터가 아예 없는 최초 접근 시에만 오늘로 설정.
-    if not is_clear and 'start_date' not in request.args and 'end_date' not in request.args:
-        today_str = get_kst_now().strftime('%Y-%m-%d')
-        start_date = today_str
-        end_date = today_str
+    # 검색 파라미터가 아예 없는 최초 접근 시나 초기화 시에는 날짜 필터를 비워둠 (모든 기록 조회)
+    if is_clear or ('start_date' not in request.args and 'end_date' not in request.args):
+        start_date = ''
+        end_date = ''
         
     user_id = session.get('user_id')
     
@@ -8508,8 +8509,11 @@ def upload_individual_business_excel():
                 '자본총계(억)': 'total_capital',
                 '매출액': 'revenue',
                 '매출액(억)': 'revenue',
+                '매출액(억)': 'revenue',
                 '당기순이익': 'net_income',
                 '당기순이익(억)': 'net_income',
+                '영업이익': 'operating_profit',
+                '영업이익(억)': 'operating_profit',
                 '사업장주소': 'address',
                 '사업자주소': 'address',
                 '주소': 'address',
@@ -8553,6 +8557,7 @@ def upload_individual_business_excel():
                     total_capital TEXT,
                     revenue TEXT,
                     net_income TEXT,
+                    operating_profit TEXT,
                     address TEXT,
                     business_number TEXT,
                     phone_number TEXT,
@@ -8719,16 +8724,13 @@ def get_individual_business_detail(id):
         ''', (id,))
         history = [{'id': h['id'], 'type': h['type'], 'content': h['content'], 'created_at': h['created_at'], 'created_by': h['created_by']} for h in cursor.fetchall()]
         
+        # 모든 데이터 필드를 반환하도록 수정 (자료가 빈칸으로 나오는 문제 해결)
+        data_dict = dict(row)
+        data_dict['history'] = history
+        
         return jsonify({
             'success': True,
-            'data': {
-                'memo': memo,
-                'status': status,
-                'assigned_user_id': assigned_user_id,
-                'contact_date': contact_date,
-                'is_released': is_released,
-                'history': history
-            }
+            'data': data_dict
         })
     except Exception as e:
         print(f"상세 조회 오류: {e}")
@@ -9613,6 +9615,8 @@ def execute_individual_business_upload():
             '당기순이익': 'net_income',
             '당기순이익(억)': 'net_income',
             '당기순이익(백만)': 'net_income',
+            '영업이익': 'operating_profit',
+            '영업이익(억)': 'operating_profit',
             '총자산': 'total_assets',
             '총자산(억)': 'total_assets',
             '자본총계': 'total_capital',
