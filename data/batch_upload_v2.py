@@ -81,43 +81,172 @@ def check_source_file():
         return False
 
 def run_generation_scripts():
-    """Executes the Python scripts that convert Excel to Output Files"""
-    log("=== Step 1: generating Output files from Excel ===")
-    success_count = 0
+    """Optimized: Executes the conversion logic using Pandas directly for speed"""
+    log("=== Step 1: generating Output files from Excel (Optimized) ===")
+    source_file = "251102_insert.xlsx"
     
-    env = os.environ.copy()
-    env["PYTHONIOENCODING"] = "utf-8"
+    try:
+        import pandas as pd
+        log("Reading source Excel...")
+        # Read the main sheet. Skip first 2 rows to start data at row 3 (0-indexed 2)
+        # We read the whole sheet into memory once.
+        df_source = pd.read_excel(source_file, sheet_name="법인사업자", header=None)
+        # Data starts from row index 2
+        df_data = df_source.iloc[2:].copy()
+        
+        # 1. Company_Basic (using mapping)
+        log("Generating Company_Basic...")
+        mapping_file = "company_basic.xlsx"
+        if os.path.exists(mapping_file):
+            df_mapping = pd.read_excel(mapping_file, sheet_name="company_basic")
+            mapping_dict = {} # csv_header -> source_col (1-indexed)
+            for _, row in df_mapping.iterrows():
+                if pd.notna(row[0]) and pd.notna(row[1]):
+                    mapping_dict[str(row[0]).strip()] = int(row[1])
+            
+            # Forced / Manual mapping as in basic.py
+            manual = {
+                "biz_no": 24, "company_name": 2, "company_size": 3, "company_type": 4,
+                "corporate_reg_no": 25, "establish_date": 26, "industry_code": 31,
+                "industry_name": 32, "zip_code": 33, "jibun_address": 34, "address": 35,
+                "region": 36, "city_district": 37, "phone_number": 38, "email": 39,
+                "fax_number": 40, "representative_name": 44, "national_pension": 20,
+                "pension_count": 22, "employee_count": 22, "pension_date": 23,
+                "ked_transaction_yn": 161, "patent_transaction_yn": 164, "group_transaction_yn": 167,
+                "gfc_transaction_yn": 168
+            }
+            mapping_dict.update(manual)
+            
+            basic_rows = []
+            headers = list(mapping_dict.keys())
+            for _, row in df_data.iterrows():
+                # Col indices in mapping are 1-based, pandas iloc is 0-based
+                biz_no_val = row.iloc[24-1]
+                if pd.notna(biz_no_val) and str(biz_no_val).strip() != "0":
+                    item = []
+                    for h in headers:
+                        col_idx = mapping_dict[h] - 1
+                        val = row.iloc[col_idx] if col_idx < len(row) else ""
+                        if h == "establish_date" and isinstance(val, (datetime, pd.Timestamp)):
+                            val = val.strftime('%Y-%m-%d')
+                        item.append(val)
+                    basic_rows.append(item)
+            pd.DataFrame(basic_rows, columns=headers).to_excel("Company_Basic_Output.xlsx", index=False)
+            pd.DataFrame(basic_rows, columns=headers).to_csv("Company_Basic_Output.csv", index=False)
 
-    for script in GENERATION_SCRIPTS:
-        script_path = os.path.join(DATA_DIR, script)
-        if not os.path.exists(script_path):
-            log(f"ERROR: Script not found: {script}")
-            continue
-            
-        try:
-            log(f"Running {script}...")
-            # Run using same python interpreter
-            result = subprocess.run(
-                [sys.executable, script],
-                capture_output=True,
-                text=True,
-                cwd=DATA_DIR,
-                encoding='utf-8',
-                env=env
-            )
-            
-            if result.returncode == 0:
-                log(f"  [OK] {script}")
-                success_count += 1
-            else:
-                log(f"  [FAIL] {script}")
-                log(f"    Error: {result.stderr.strip()}")
+        # 2. Company_Financial
+        log("Generating Company_Financial...")
+        fin_rows = []
+        fin_headers = ["biz_no", "fiscal_year", "rating1", "rating2", "rating3", "sales_revenue", "operating_income", "net_income", "total_assets", "total_liabilities", "total_equity", "retained_earnings", "capital_surplus", "earned_reserve", "additional_paid_in_capital", "corporate_tax", "land_asset", "building_asset", "investment_real_ground", "investment_real_building", "rental_income", "rent_amt", "advances_paid", "advances_received", "capital_stock_value", "undistributed_retained_earnings", "current_assets", "cash_equivalents", "short_term_loan", "short_term_deposit", "principal_short_long_term_bonds", "interest_income", "capital_reserve", "shares_issued_count"]
+        for _, row in df_data.iterrows():
+            biz_no = str(row.iloc[24-1]).strip()
+            if biz_no and biz_no != "0":
+                # Static data
+                r1 = str(row.iloc[7-1]) if pd.notna(row.iloc[7-1]) else ""
+                r2 = str(row.iloc[6-1]) if pd.notna(row.iloc[6-1]) else ""
+                r3 = str(row.iloc[5-1]) if pd.notna(row.iloc[5-1]) else ""
                 
-        except Exception as e:
-            log(f"  [FAIL] Exception running {script}: {e}")
-            
-    log(f"Generation complete. Success: {success_count}/{len(GENERATION_SCRIPTS)}")
-    return success_count > 0
+                def get_n(v, m=1000):
+                    try: return float(v) * m if pd.notna(v) else 0
+                    except: return 0
+                
+                # Shared among years
+                ta = get_n(row.iloc[139-1]); tl = get_n(row.iloc[137-1]); cs = get_n(row.iloc[138-1])
+                er = get_n(row.iloc[125-1]); apic = get_n(row.iloc[126-1]); la = get_n(row.iloc[117-1])
+                ba = get_n(row.iloc[118-1]); irg = get_n(row.iloc[119-1]); irb = get_n(row.iloc[120-1])
+                ri = get_n(row.iloc[121-1]); ramt = get_n(row.iloc[122-1]); adp = get_n(row.iloc[127-1])
+                adr = get_n(row.iloc[128-1]); csv = get_n(row.iloc[129-1]); ure = get_n(row.iloc[130-1])
+                ca = get_n(row.iloc[131-1]); ce = get_n(row.iloc[132-1]); stl = get_n(row.iloc[133-1])
+                std = get_n(row.iloc[134-1]); sltb = get_n(row.iloc[135-1]); ii = get_n(row.iloc[136-1])
+                cr = get_n(row.iloc[138-1]); sic = get_n(row.iloc[140-1], 1)
+
+                years = [
+                    (2024, 100, 101, 102, 123, 144), # User logic was 100,101,102...
+                    (2023, 103, 104, 105, 123, 145),
+                    (2022, 106, 107, 108, 123, 146)
+                ]
+                for yr, s_col, o_col, e_col, r_col, t_col in years:
+                    sales = get_n(row.iloc[s_col-1], 1000000)
+                    op_inc = get_n(row.iloc[o_col-1], 1000000)
+                    te = get_n(row.iloc[e_col-1])
+                    ret = get_n(row.iloc[r_col-1])
+                    tax = get_n(row.iloc[t_col-1])
+                    fin_rows.append([biz_no, yr, r1, r2, r3, sales, op_inc, op_inc, ta, tl, te, ret, cs, er, apic, tax, la, ba, irg, irb, ri, ramt, adp, adr, csv, ure, ca, ce, stl, std, sltb, ii, cr, sic])
+        pd.DataFrame(fin_rows, columns=fin_headers).to_excel("Company_Financial_Output.xlsx", index=False)
+
+        # 3. Company_Representative
+        log("Generating Company_Representative...")
+        rep_rows = []
+        rep_headers = ["biz_no", "name", "gender", "age", "is_gfc", "birth_date"]
+        for _, row in df_data.iterrows():
+            biz_no = str(row.iloc[24-1]).strip()
+            if biz_no and biz_no != "0":
+                name = str(row.iloc[44-1]).strip() if pd.notna(row.iloc[44-1]) else ""
+                if name:
+                    gender = "M" if "남" in str(row.iloc[45-1]) else ("F" if "여" in str(row.iloc[45-1]) else "")
+                    age = int(row.iloc[46-1]) if pd.notna(row.iloc[46-1]) else 0
+                    rep_rows.append([biz_no, name, gender, age, "N", ""])
+        pd.DataFrame(rep_rows, columns=rep_headers).to_excel("Company_Representative_Output.xlsx", index=False)
+
+        # 4. Company_Shareholder
+        log("Generating Company_Shareholder...")
+        sha_rows = []
+        sha_headers = ["biz_no", "shareholder_name", "ownership_percent", "relationship", "shareholder_type", "management_type", "silent_partner_relationship"]
+        # In Shareholder.py: Rep1=44, Rep2=52, Rep3=60. SH1=65... (each 7 cols)
+        for _, row in df_data.iterrows():
+            biz_no = str(row.iloc[24-1]).strip()
+            if biz_no and biz_no != "0":
+                # Get Rep names for "representative-shareholder same" check
+                rep1 = str(row.iloc[44-1]).strip() if pd.notna(row.iloc[44-1]) else ""
+                rep2 = str(row.iloc[52-1]).strip() if pd.notna(row.iloc[52-1]) else ""
+                rep3 = str(row.iloc[60-1]).strip() if pd.notna(row.iloc[60-1]) else ""
+                reps = [rep1, rep2, rep3]
+
+                # SH1=65, SH2=72, SH3=79, SH4=86, SH5=93
+                for idx, start_col in enumerate([65, 72, 79, 86, 93]):
+                    name = str(row.iloc[start_col-1]).strip() if pd.notna(row.iloc[start_col-1]) else ""
+                    if name and name != "0":
+                        rel = str(row.iloc[start_col+1-1]) if pd.notna(row.iloc[start_col+1-1]) else ""
+                        sil_rel = str(row.iloc[start_col+2-1]) if pd.notna(row.iloc[start_col+2-1]) else ""
+                        perc = get_n(row.iloc[start_col+6-1], 1)
+                        m_type = "대표자-주주 동일" if name in reps else ""
+                        sha_rows.append([biz_no, name, perc, rel, f"주주{idx+1}", m_type, sil_rel])
+        pd.DataFrame(sha_rows, columns=sha_headers).to_excel("Company_Shareholder_Output.xlsx", index=False)
+
+        # 5. Company_Additional
+        log("Generating Company_Additional...")
+        add_rows = []
+        add_headers = ["biz_no", "patent_applications_count", "registered_patents_count", "has_research_institute", "research_institute_date", "is_innobiz", "innobiz_cert_date", "innobiz_expiry_date", "is_mainbiz", "mainbiz_cert_date", "mainbiz_expiry_date", "is_venture", "venture_cert_date", "venture_expiry_date", "group_agreement_yn", "gfc_yn"]
+        for _, row in df_data.iterrows():
+            biz_no = str(row.iloc[24-1]).strip()
+            if biz_no and biz_no != "0":
+                def get_b(v): 
+                    s = str(v).strip().upper() if pd.notna(v) else ""
+                    return "1" if s in ["Y", "1", "YES", "TRUE", "여"] else "0"
+                def get_d(v):
+                    if isinstance(v, (datetime, pd.Timestamp)): return v.strftime('%Y-%m-%d')
+                    return str(v).strip() if pd.notna(v) and str(v).strip() != "0" else ""
+                
+                item = [
+                    biz_no,
+                    get_n(row.iloc[166-1], 1), get_n(row.iloc[165-1], 1),
+                    get_b(row.iloc[153-1]), get_d(row.iloc[154-1]),
+                    get_b(row.iloc[155-1]), get_d(row.iloc[156-1]), get_d(row.iloc[157-1]),
+                    get_b(row.iloc[158-1]), get_d(row.iloc[159-1]), get_d(row.iloc[160-1]),
+                    get_b(row.iloc[161-1]), get_d(row.iloc[162-1]), get_d(row.iloc[163-1]),
+                    get_b(row.iloc[167-1]), get_b(row.iloc[168-1])
+                ]
+                add_rows.append(item)
+        pd.DataFrame(add_rows, columns=add_headers).to_excel("Company_Additional_Output.xlsx", index=False)
+
+        log("Generation complete (Optimized).")
+        return True
+        
+    except Exception as e:
+        log(f"CRITICAL ERROR in optimized generation: {e}")
+        import traceback
+        log(traceback.format_exc())
+        return False
 
 def load_data_frame(table_name):
     """Smart loader: tries XLSX then CSV"""
