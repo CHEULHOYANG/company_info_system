@@ -209,6 +209,43 @@
             color: #000;
         }
 
+        /* Scroll Buttons */
+        .scroll-buttons {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 9999;
+        }
+
+        .scroll-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #333333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .scroll-btn:hover {
+            transform: translateY(-5px);
+            background: rgba(0, 123, 255, 0.1);
+            color: #007bff;
+            border-color: rgba(0, 123, 255, 0.2);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+        }
+
         .results-table th {
             padding: 15px;
             text-align: left;
@@ -475,8 +512,8 @@
                 <a href="{{ url_for('main') }}" class="back-button">메인으로</a>
                 <span style="font-weight:bold; color:#333;">{{ user_name }}님</span>
                 {% if session.get('user_level') == 'V' %}
-                <a href="{{ url_for('user_management') }}" class="admin-gear" title="관리자 설정">
-                    <i class="fas fa-cog"></i>
+                <a href="{{ url_for('db_management_popup') }}" class="admin-gear" title="DB 관리">
+                    <i class="fas fa-database"></i>
                 </a>
                 {% endif %}
                 {% if subscription_info %}
@@ -964,6 +1001,14 @@
             };
         });
     </script>
+    <!-- Scroll Buttons -->
+    <div class="scroll-buttons">
+        <div class="scroll-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="맨 위로">
+            <i class="fas fa-arrow-up"></i>
+        </div>
+        <div class="scroll-btn" onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="맨 아래로">
+            <i class="fas fa-arrow-down"></i>
+        </div>
+    </div>
 </body>
-
 </html>

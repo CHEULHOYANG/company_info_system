@@ -2575,27 +2575,43 @@ def download_database_page():
             }
             .btn {
                 background: linear-gradient(45deg, #667eea, #764ba2);
-                color: white; border: none; padding: 15px 30px;
-                border-radius: 25px; cursor: pointer; font-size: 16px;
-                transition: all 0.3s ease; text-decoration: none;
-                display: inline-block; margin: 10px;
+                color: white; border: none;        <style>
+            :root {
+                --neon-blue: #00d4ff;
+                --deep-bg: #020617;
+                --card-border: rgba(255, 255, 255, 0.08);
             }
-            .btn:hover { 
-                transform: translateY(-2px); 
-                box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
-                color: white; text-decoration: none;
+            body { 
+                font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
+                background-color: var(--deep-bg);
+                background-image: url('/static/images/space_bg.png');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+                margin: 0; padding: 20px; min-height: 100vh;
+                color: #fff;
             }
-            .btn-secondary {
-                background: linear-gradient(45deg, #78909c, #546e7a);
+            .container { 
+                max-width: 850px; margin: 40px auto; 
+                background: rgba(2, 6, 23, 0.7);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid var(--card-border);
+                border-radius: 20px; padding: 40px;
+                box-shadow: 0 40px 80px rgba(0,0,0,0.5);
             }
-            .loading { display: none; margin: 20px 0; text-align: center; }
-            .status { margin: 20px 0; padding: 15px; border-radius: 8px; }
-            .status.success { background: #e8f5e8; color: #2e7d32; }
-            .status.error { background: #ffebee; color: #c62828; }
-            .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
-            .stat-item { 
-                text-align: center; padding: 15px; background: white; 
-                border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            .header {
+                display: flex; justify-content: space-between; align-items: center;
+                margin-bottom: 30px; padding-bottom: 20px;
+                border-bottom: 1px solid var(--card-border);
+            }
+            h2 { font-size: 28px; font-weight: 700; color: var(--neon-blue); margin: 0; }
+            .close-btn {
+                background: rgba(220, 53, 69, 0.2); color: #ff6b6b; border: 1px solid rgba(220, 53, 69, 0.3);
+                padding: 10px 24px; border-radius: 50px; cursor: pointer;
+                font-weight: bold; font-size: 14px; transition: 0.3s;
+            }
+            .close-btn:hover { background: #dc3545; color: white; }px rgba(0,0,0,0.1);
             }
             .stat-number { font-size: 24px; font-weight: bold; color: #667eea; }
             .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
@@ -2780,100 +2796,199 @@ def db_management_popup():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>데이터베이스 관리</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
+            :root {
+                --neon-blue: #00d4ff;
+                --deep-bg: #020617;
+                --card-bg: rgba(255, 255, 255, 0.05);
+                --card-border: rgba(255, 255, 255, 0.1);
+                --text-main: #e2e8f0;
+                --text-muted: #94a3b8;
+            }
             body { 
                 font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background-color: var(--deep-bg);
+                background-image: url('/static/images/space_bg.png');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
                 margin: 0; padding: 20px; min-height: 100vh;
+                color: var(--text-main);
             }
             .container { 
-                max-width: 750px; margin: 20px auto; 
-                background: rgba(255,255,255,0.95);
-                border-radius: 15px; padding: 30px;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                max-width: 850px; margin: 40px auto; 
+                background: rgba(15, 23, 42, 0.8);
+                backdrop-filter: blur(20px);
+                border: 1px solid var(--card-border);
+                border-radius: 24px; padding: 40px;
+                box-shadow: 0 40px 100px rgba(0,0,0,0.5);
             }
             .header {
                 display: flex; justify-content: space-between; align-items: center;
-                margin-bottom: 30px; padding-bottom: 15px;
-                border-bottom: 2px solid #667eea;
+                margin-bottom: 30px; padding-bottom: 20px;
+                border-bottom: 1px solid var(--card-border);
             }
-            h2 { color: #333; margin: 0; }
+            h2 { color: var(--neon-blue); margin: 0; font-size: 24px; font-weight: 700; }
             .close-btn {
-                background: #dc3545; color: white; border: none;
-                padding: 8px 16px; border-radius: 5px; cursor: pointer;
-                font-weight: bold; font-size: 14px;
+                background: rgba(220, 53, 69, 0.2); color: #ff6b6b; border: 1px solid rgba(220, 53, 69, 0.3);
+                padding: 10px 20px; border-radius: 50px; cursor: pointer;
+                font-weight: bold; font-size: 14px; transition: 0.3s;
             }
-            .close-btn:hover { background: #c82333; }
+            .close-btn:hover { background: #dc3545; color: white; }
             .info-card {
-                background: #f8f9fa; padding: 20px; border-radius: 10px;
-                margin: 20px 0; border-left: 4px solid #667eea;
+                background: var(--card-bg); padding: 25px; border-radius: 16px;
+                margin: 20px 0; border: 1px solid var(--card-border);
             }
             .table-grid {
                 display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 10px; margin: 15px 0;
+                gap: 15px; margin: 20px 0;
             }
             .table-item {
-                background: white; padding: 10px; border-radius: 5px;
-                border: 1px solid #e0e0e0; font-size: 14px;
+                background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;
+                border: 1px solid var(--card-border); font-size: 14px;
             }
             .action-area {
-                text-align: center; padding: 30px; margin: 20px 0;
-                background: linear-gradient(45deg, #e3f2fd, #f3e5f5);
-                border-radius: 10px; border: 2px dashed #667eea;
+                text-align: center; padding: 40px; margin: 30px 0;
+                background: rgba(0, 212, 255, 0.05);
+                border-radius: 20px; border: 1px dashed var(--neon-blue);
             }
             .btn {
-                background: linear-gradient(45deg, #667eea, #764ba2);
-                color: white; border: none; padding: 12px 24px;
-                border-radius: 25px; cursor: pointer; font-size: 14px;
+                background: linear-gradient(45deg, #00d4ff, #0080ff);
+                color: white; border: none; padding: 14px 28px;
+                border-radius: 50px; cursor: pointer; font-size: 15px;
                 transition: all 0.3s ease; text-decoration: none;
-                display: inline-block; margin: 8px;
+                display: inline-block; margin: 10px; font-weight: 600;
             }
             .btn:hover { 
                 transform: translateY(-2px); 
-                box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
-                color: white; text-decoration: none;
+                box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3); 
             }
-            .btn-success { background: linear-gradient(45deg, #4CAF50, #45a049); }
-            .btn-primary { background: linear-gradient(45deg, #2196F3, #1976D2); }
-            .btn-secondary { background: linear-gradient(45deg, #78909c, #546e7a); }
+            .btn-success { background: linear-gradient(45deg, #10b981, #059669); }
+            .btn-primary { background: linear-gradient(45deg, #3b82f6, #2563eb); }
+            .btn-secondary { background: rgba(255,255,255,0.1); border: 1px solid var(--card-border); }
             .loading { display: none; margin: 20px 0; text-align: center; }
-            .status { margin: 20px 0; padding: 15px; border-radius: 8px; }
-            .status.success { background: #e8f5e8; color: #2e7d32; }
-            .status.error { background: #ffebee; color: #c62828; }
+            .status { margin: 20px 0; padding: 15px; border-radius: 12px; }
+            .status.success { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+            .status.error { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
             .stats { 
-                display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-                gap: 15px; margin: 20px 0;
+                display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+                gap: 20px; margin: 30px 0;
             }
             .stat-item { 
-                text-align: center; padding: 15px; background: white; 
-                border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                text-align: center; padding: 20px; background: var(--card-bg); 
+                border-radius: 16px; border: 1px solid var(--card-border);
             }
             .stat-number { font-size: 24px; font-weight: bold; color: #667eea; }
             .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
             .upload-section {
-                background: #fff3cd; padding: 20px; border-radius: 10px;
-                margin: 20px 0; border-left: 4px solid #ffc107;
+                background: rgba(255, 193, 7, 0.05); padding: 30px; border-radius: 20px;
+                margin: 40px 0; border: 1px solid rgba(255, 193, 7, 0.2);
             }
-            .file-input {
-                margin: 10px 0; padding: 10px; 
-                border: 2px dashed #ccc; border-radius: 8px;
-                background: #f9f9f9;
+            .file-input-wrapper {
+                margin: 20px 0; padding: 30px; 
+                border: 2px dashed rgba(255, 255, 255, 0.1); border-radius: 16px;
+                background: rgba(255, 255, 255, 0.02);
+                transition: 0.3s;
+                text-align: center;
+            }
+            .file-input-wrapper:hover {
+                border-color: var(--neon-blue);
+                background: rgba(0, 212, 255, 0.05);
+            }
+            input[type="file"] {
+                color: var(--text-muted);
+                font-size: 14px;
             }
         </style>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
-                <h2>데이터베이스 관리</h2>
-            </div>
+    <!-- Scroll Buttons -->
+    <div class="scroll-buttons">
+        <div class="scroll-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="맨 위로">
+            <i class="fas fa-chevron-up"></i>
+        </div>
+        <div class="scroll-btn" onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="맨 아래로">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </div>
+
+    <style>
+        .scroll-buttons {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 9999;
+        }
+
+        .scroll-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(0, 40, 80, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 18px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .scroll-btn:hover {
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+            transform: translateY(-5px);
+            border-width: 1.5px;
+        }
+
+        .bottom-close-area {
+            text-align: center;
+            margin: 50px 0 20px 0;
+            padding-top: 30px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .btn-close-wide {
+            background: rgba(220, 53, 69, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            padding: 14px 60px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close-wide:hover {
+            background: #dc3545;
+            color: white;
+            box-shadow: 0 10px 25px rgba(220, 53, 69, 0.4);
+            transform: translateY(-2px);
+        }
+    </style>
+
+    <div class="container">
+        <div class="header">
+            <h2>ㅁ 데이터베이스 관리</h2>
+            <button class="close-btn" onclick="location.href='/main'">닫기</button>
+        </div>
             
             <!-- 백업 섹션 -->
             <div class="info-card">
-                <h3>백업 다운로드</h3>
-                <ul>
-                    <li><strong>완전백업 (권장)</strong>: 데이터베이스 + 첨부파일(영수증 등)을 ZIP으로 압축</li>
-                    <li><strong>DB만 백업</strong>: 데이터베이스 파일만 다운로드 (첨부파일 제외)</li>
-                    <li>파일명에 타임스탬프가 자동으로 포함됩니다</li>
+                <h3 style="color: var(--neon-blue); margin-top: 0;">ㅁ 백업 다운로드</h3>
+                <ul style="color: var(--text-muted); line-height: 1.6;">
+                    <li><strong>전체 백업 (권장)</strong>: DB 데이터 + 전산 내역(파일 등) 포함</li>
+                    <li><strong>DB 전용 백업</strong>: 데이터베이스 원본 파일만 추출</li>
+                    <li>백업은 자동 타임스탬프와 함께 압축 파일 형태로 생성됩니다.</li>
                 </ul>
             </div>
             
@@ -2902,12 +3017,14 @@ def db_management_popup():
             
             <!-- 업로드 섹션 -->
             <div class="upload-section">
-                <h3>데이터베이스 복원</h3>
-                <p>백업된 데이터베이스 파일을 업로드하여 시스템을 복원할 수 있습니다.</p>
-                <div class="file-input">
+                <h3 style="color: #ffc107; margin-top: 0;">ㅁ 데이터베이스 복원</h3>
+                <p style="color: var(--text-muted); font-size: 14px;">보관된 .db 또는 .zip 백업 파일을 업로드하여 시스템 데이터를 특정 시점으로 복원합니다.</p>
+                <div class="file-input-wrapper">
                     <form id="uploadForm" enctype="multipart/form-data">
                         <input type="file" id="dbFile" name="database" accept=".db,.zip" required>
-                        <button type="submit" class="btn btn-secondary">업로드 & 복원</button>
+                        <div style="margin-top: 20px;">
+                            <button type="submit" class="btn btn-secondary" style="border: 1px solid rgba(255,193,7,0.5); color: #ffc107;">복원 실행 (업로드)</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -3064,8 +3181,8 @@ def db_management_popup():
         </script>
         
         <!-- 닫기 버튼 -->
-        <div style="text-align: center; margin: 30px 0; padding: 20px; border-top: 1px solid #eee;">
-            <button onclick="window.close()" style="background: #dc3545; color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 500; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">닫기</button>
+        <div class="bottom-close-area">
+            <button class="btn-close-wide" onclick="location.href='/main'">닫기</button>
         </div>
     </body>
     </html>
