@@ -9969,13 +9969,21 @@ def api_email_target_groups_list():
     if category != 'ALL':
         groups = [g for g in groups if g['category'] == category]
         
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT group_name, COUNT(*) as cnt FROM send_batches GROUP BY group_name')
+    send_counts = {row['group_name']: row['cnt'] for row in cursor.fetchall() if row['group_name']}
+    conn.close()
+        
     # Standardize field names for frontend: name -> range, member_count -> count
     formatted = []
     for g in groups:
+        sent_times = send_counts.get(g['name'], 0)
         formatted.append({
             'id': g['id'],
             'range': g['name'],
-            'count': g['member_count']
+            'count': g['member_count'],
+            'sent_times': sent_times
         })
     return jsonify({'success': True, 'groups': formatted})
 
@@ -10004,6 +10012,21 @@ def api_email_batch_send_new():
         
     conn = get_db_connection()
     cursor = conn.cursor()
+    
+    if not group_name and biz_nos:
+        placeholders_group = ','.join(['?'] * len(biz_nos))
+        cursor.execute(f'''
+            SELECT eg.name
+            FROM email_groups eg
+            JOIN email_group_members egm ON eg.id = egm.group_id
+            WHERE egm.biz_no IN ({placeholders_group})
+            GROUP BY eg.name
+            ORDER BY COUNT(*) DESC
+            LIMIT 1
+        ''', biz_nos)
+        row = cursor.fetchone()
+        if row:
+            group_name = row['name']
     
     cursor.execute('SELECT * FROM smtp_configs WHERE config_id = ? AND user_id = ?', (smtp_config_id, user_id))
     config = cursor.fetchone()

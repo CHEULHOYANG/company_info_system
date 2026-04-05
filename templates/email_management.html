@@ -35,9 +35,9 @@
         .shooting-star-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; overflow: hidden; }
 
         header {
-            height: 70px; display: flex; align-items: center; justify-content: flex-end; /* Logo Removed, Align Right */
-            padding: 0 40px; background: rgba(2, 6, 23, 0.5); -webkit-backdrop-filter: blur(25px); backdrop-filter: blur(25px);
-            z-index: 1001; position: sticky; top: 0;
+            height: 70px; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap;
+            padding: 0 40px; background: rgba(2, 6, 23, 0.85); -webkit-backdrop-filter: blur(25px); backdrop-filter: blur(25px);
+            z-index: 9999; position: fixed; top: 0; left: 0; width: 100%;
         }
 
         .header-right { display: flex; align-items: center; gap: 15px; }
@@ -56,20 +56,22 @@
         .btn-top:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
 
         .nav-tabs {
-            background: rgba(10, 17, 40, 0.5); backdrop-filter: blur(15px);
+            background: rgba(10, 17, 40, 0.95); backdrop-filter: blur(15px);
             display: flex; justify-content: center; border-bottom: 1px solid var(--card-border);
-            position: sticky; top: 70px; z-index: 1000;
+            position: fixed; top: 70px; left: 0; width: 100%; z-index: 9998;
+            pointer-events: auto;
         }
         .tab-btn {
             padding: 15px 25px; cursor: pointer; border: none; background: none;
             font-weight: 700; color: var(--text-secondary); transition: 0.3s;
             border-bottom: 2px solid transparent; font-size: 12px; font-family: 'Orbitron', 'Noto Sans KR', sans-serif;
-            text-transform: uppercase; letter-spacing: 1.5px;
+            text-transform: uppercase; letter-spacing: 1.5px; position: relative; z-index: 10000;
+            pointer-events: auto;
         }
         .tab-btn:hover { color: var(--neon-blue); }
         .tab-btn.active { color: var(--neon-blue); border-bottom-color: var(--neon-blue); text-shadow: 0 0 10px var(--primary-glow); }
 
-        .container { max-width: 1400px; margin: 40px auto; padding: 0 40px; position: relative; z-index: 10; }
+        .container { max-width: 1400px; margin: 160px auto 40px; padding: 0 40px; position: relative; z-index: 1; }
 
         /* Premium Card System */
         .card {
@@ -101,7 +103,7 @@
 
         /* Futuristic Tables */
         table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-        th { padding: 18px; text-align: left; color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 0.75rem; letter-spacing: 2px; }
+        th { padding: 18px; text-align: left; color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 0.75rem; letter-spacing: 2px; white-space: nowrap !important; }
         td { padding: 18px; background: rgba(255, 255, 255, 0.02); color: rgba(255,255,255,0.9); font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
         td:first-child { border-left: 1px solid rgba(255,255,255,0.05); border-radius: 15px 0 0 15px; }
         td:last-child { border-right: 1px solid rgba(255,255,255,0.05); border-radius: 0 15px 15px 0; }
@@ -137,9 +139,8 @@
         .ql-snow .ql-active { color: var(--neon-blue) !important; }
 
         /* Rotating Earth & Floating Elements */
-        .earth-container { position: fixed; bottom: -150px; right: -150px; width: 450px; height: 450px; pointer-events: none; z-index: -10; opacity: 0.35; filter: drop-shadow(0 0 30px rgba(0,212,255,0.15)); animation: rotateEarth 280s linear infinite; }
-        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .earth-img { width: 100%; height: 100%; object-fit: contain; }
+        .earth-container { position: fixed; inset: 0; pointer-events: none; z-index: -10; opacity: 0.5; display: flex; align-items: flex-end; justify-content: flex-end; padding: 50px; }
+        .earth-img { width: 350px; height: 350px; object-fit: contain; animation: rotateEarth 100s linear infinite; filter: drop-shadow(0 0 30px rgba(0,212,255,0.3)); }
 
         @keyframes pulse {
             0% { transform: scale(1); opacity: 1; }
@@ -265,7 +266,18 @@
     <canvas id="particle-canvas"></canvas>
     <div class="shooting-star-container" id="shooting-stars"></div>
     <div class="earth-container">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Earth_Blender_render_4_transparent_background.png/1024px-Earth_Blender_render_4_transparent_background.png" class="earth-img" alt="Earth">
+        <!-- Using high-reliability inline SVG to prevent broken image issues -->
+        <svg class="earth-img" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <radialGradient id="earthGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:#020617;stop-opacity:0.6" />
+                </radialGradient>
+            </defs>
+            <circle cx="50%" cy="50%" r="48" fill="url(#earthGrad)" stroke="#00d4ff" stroke-width="0.5" />
+            <path d="M50 2 A48 48 0 0 1 50 98 M2 50 A48 48 0 0 1 98 50 M15 50 A35 48 0 0 1 85 50 M50 15 A48 35 0 0 1 50 85" fill="none" stroke="rgba(0,212,255,0.2)" stroke-width="0.3" />
+            <path d="M30 25 Q40 30 45 20 T60 25 T75 35 T70 55 T50 70 T30 60 T25 40 Z" fill="rgba(0,212,255,0.15)" stroke="rgba(0,212,255,0.4)" stroke-width="0.5" />
+        </svg>
     </div>
 
     <header>
@@ -409,24 +421,40 @@
                          <strong>현재 필터링 규칙:</strong> 일반 중소기업(대기업/사단법인 제외)을 지역별로 분류합니다.
                     </p>
                 </div>
-                <div class="input-row" style="margin-bottom: 30px;">
-                    <label style="color: var(--neon-cyan); font-weight: 700; margin-bottom: 15px; display: block;">대상 카테고리 필터링</label>
-                    <div style="display: flex; gap: 15px;">
-                        <label style="cursor:pointer; background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                            <input type="radio" name="target-cat" value="GENERAL" checked onchange="updateTargetCategory('GENERAL')"> 기업DB 전체
-                        </label>
-                        <label style="cursor:pointer; background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                            <input type="radio" name="target-cat" value="MANAGED" onchange="updateTargetCategory('MANAGED')"> 관리대상 기업
-                        </label>
-                        <label style="cursor:pointer; background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                            <input type="radio" name="target-cat" value="SANDBOX" onchange="updateTargetCategory('SANDBOX')"> 샌드박스 테스터
-                        </label>
+                <div class="input-row" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <label style="color: var(--neon-cyan); font-weight: 700; margin-bottom: 15px; display: block;">대상 카테고리 필터링</label>
+                        <div style="display: flex; gap: 15px;">
+                            <label style="cursor:pointer; background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                                <input type="radio" name="target-cat" value="GENERAL" checked onchange="updateTargetCategory('GENERAL')"> 기업DB 전체
+                            </label>
+                            <label style="cursor:pointer; background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                                <input type="radio" name="target-cat" value="MANAGED" onchange="updateTargetCategory('MANAGED')"> 관리대상 기업
+                            </label>
+                            <label style="cursor:pointer; background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                                <input type="radio" name="target-cat" value="SANDBOX" onchange="updateTargetCategory('SANDBOX')"> 샌드박스 테스터
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-outline" style="border: 1px solid #ff4d4d; color: #ff4d4d; padding: 12px 20px; font-weight: 700; border-radius: 15px;" onclick="deselectAllGroups()">
+                            <i class="fas fa-times-circle"></i> 전체 선택 해제
+                        </button>
+                        <button class="btn btn-primary" style="padding: 12px 25px; font-size: 1.1rem; box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); border-radius: 15px;" onclick="showTab('send')">
+                            <i class="fas fa-paper-plane"></i> 발송준비
+                        </button>
                     </div>
                 </div>
-                <div id="target-groups" class="group-boxes"></div>
-                <div style="margin-top: 40px; text-align: right;">
-                    <button class="btn btn-primary" onclick="showTab('send')">선택한 그룹으로 발송 준비 <i class="fas fa-arrow-right"></i></button>
+
+                <div class="input-row" id="region-filter-container" style="margin-bottom: 30px; display: none;">
+                    <label style="color: var(--neon-cyan); font-weight: 700; margin-bottom: 15px; display: block;">상위 지역 선택</label>
+                    <div id="region-buttons-container" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <!-- JS renders regions here -->
+                    </div>
                 </div>
+
+                <div id="target-groups" class="group-boxes" style="margin-bottom: 100px;"></div>
             </div>
         </div>
 
@@ -531,16 +559,16 @@
                                 <th style="width: 45px; text-align: center;">
                                     <input type="checkbox" onchange="toggleBatchChecks(this, 'batch-list')" class="member-checkbox">
                                 </th>
-                                <th style="width: 90px;">배치 ID</th>
-                                <th style="width: 220px;">제목/그룹명</th>
-                                <th style="text-align:center; width: 60px;">대상</th>
-                                <th style="text-align:center; width: 60px;">발송</th>
-                                <th style="text-align:center; width: 60px; color:#4ade80;">성공</th>
-                                <th style="text-align:center; width: 60px; color:#f87171;">실패</th>
-                                <th style="text-align:center; width: 70px;">성공률</th>
-                                <th style="width: 150px;">발송 시간</th>
-                                <th style="width: 100px; text-align:center;">상태</th>
-                                <th style="width: 90px; text-align:center;">상세</th>
+                                <th style="width: 100px; white-space: nowrap;">배치 ID</th>
+                                <th style="width: 250px; white-space: nowrap;">메일 제목</th>
+                                <th style="text-align:center; width: 80px; white-space: nowrap;">대상</th>
+                                <th style="text-align:center; width: 80px; white-space: nowrap;">완료</th>
+                                <th style="text-align:center; width: 80px; color:#4ade80; white-space: nowrap;">성공</th>
+                                <th style="text-align:center; width: 80px; color:#f87171; white-space: nowrap;">실패</th>
+                                <th style="text-align:center; width: 90px; white-space: nowrap;">성공률</th>
+                                <th style="width: 180px; white-space: nowrap;">발송일시</th>
+                                <th style="width: 100px; text-align:center; white-space: nowrap;">상태</th>
+                                <th style="width: 100px; text-align:center; white-space: nowrap;">상세</th>
                             </tr>
                         </thead>
                         <tbody id="batch-list"></tbody>
@@ -970,6 +998,10 @@
         let targetCategory = 'GENERAL';
         let uploadedAttachments = []; // Consolidated declaration
         let cachedCompanies = [];
+        
+        let globalTargetGroups = [];
+        let currentRegionFilter = 'ALL';
+        let activeGroupIds = new Set();
 
         function formatBizNo(bizNo) {
             if(!bizNo) return '-';
@@ -1150,34 +1182,120 @@
             }
         }
 
+        function updateRegionFilter(region) {
+            currentRegionFilter = region;
+            renderTargetGroups();
+        }
+
+        const regionColors = {
+            '서울': '#00d2d3', '경기': '#4ecdc4', '인천': '#45b7d1', '강원': '#96ceb4', 
+            '충청': '#ffeead', '대전': '#feca57', '부산': '#00b894', '울산': '#0984e3', 
+            '대구': '#6c5ce7', '광주': '#fdcb6e', '전남': '#5f27cd', '전북': '#10ac84', 
+            '경남': '#54a0ff', '경북': '#a29bfe', '제주': '#ffeaa7', '세종': '#81ecec',
+            'DEFAULT': 'var(--neon-blue)'
+        };
+
         async function loadTargetGroups() {
             const container = document.getElementById('target-groups');
             container.innerHTML = '<div style="color:var(--text-secondary); padding: 50px; text-align:center;">MAPPING QUANTUM CLUSTERS...</div>';
             const data = await fetchAPI(`/api/email/target-groups?category=${targetCategory}`);
             if (data.success) {
-                if (data.groups.length === 0) {
-                    container.innerHTML = '<div style="color:var(--text-secondary); padding:50px; text-align:center;">생성된 그룹이 없습니다. 상단의 자동 그룹핑을 실행하세요.</div>';
-                    return;
+                globalTargetGroups = data.groups;
+                
+                // Extract unique regions for the buttons
+                let regions = new Set();
+                globalTargetGroups.forEach(g => {
+                    const parts = g.range.split('_');
+                    if(parts.length > 0) regions.add(parts[0]);
+                });
+                
+                const rCont = document.getElementById('region-filter-container');
+                const rBtns = document.getElementById('region-buttons-container');
+                if (regions.size > 0) {
+                    rCont.style.display = 'block';
+                    let btnsHtml = `<button class="btn ${currentRegionFilter === 'ALL' ? 'btn-primary' : 'btn-outline'}" onclick="updateRegionFilter('ALL')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 20px;">전체</button>`;
+                    Array.from(regions).sort().forEach(r => {
+                        const isSel = (currentRegionFilter === r);
+                        const c = regionColors[r] || regionColors['DEFAULT'];
+                        if (isSel) {
+                            btnsHtml += `<button class="btn" onclick="updateRegionFilter('${r}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 20px; background: ${c}33; border: 1px solid ${c}; color: ${c}; box-shadow: 0 0 10px ${c}66;">${r}</button>`;
+                        } else {
+                            btnsHtml += `<button class="btn" onclick="updateRegionFilter('${r}')" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 20px; background: rgba(255,255,255,0.02); border: 1px solid ${c}55; color: ${c}cc; transition: 0.3s;" onmouseover="this.style.background='${c}22'; this.style.borderColor='${c}'" onmouseout="this.style.background='rgba(255,255,255,0.02)'; this.style.borderColor='${c}55'">${r}</button>`;
+                        }
+                    });
+                    rBtns.innerHTML = btnsHtml;
+                } else {
+                    rCont.style.display = 'none';
                 }
-                container.innerHTML = data.groups.map(g => {
-                    const isExpanded = expandedGroups.has(g.id);
-                    return `
-                        <div id="group-card-${g.id}" class="group-box" onclick="handleGroupClick(event, ${g.id}, '${g.range}')">
-                            <button class="group-expand-btn" onclick="toggleExpand(event, ${g.id})">
-                                <i class="fas ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
-                            </button>
-                            <div class="title">BATCH CLUSTER</div>
-                            <div class="range" style="color:#fff; font-weight:700;">${g.range}</div>
-                            <div style="font-size: 0.7rem; color: var(--neon-blue);">${g.count} NODES</div>
-                            
-                            <div id="members-${g.id}" class="members-list ${isExpanded ? 'active' : ''}">
-                                ${isExpanded ? 'SCANNING NODES...' : ''}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-                if (expandedGroups.size > 0) expandedGroups.forEach(id => refreshGroupMembers(id));
+                
+                renderTargetGroups();
                 updateSelectedSummary();
+            }
+        }
+        
+        function renderTargetGroups() {
+            const container = document.getElementById('target-groups');
+            if (globalTargetGroups.length === 0) {
+                container.innerHTML = '<div style="color:var(--text-secondary); padding:50px; text-align:center;">생성된 그룹이 없습니다. 상단의 자동 그룹핑을 실행하세요.</div>';
+                return;
+            }
+            
+            // Filter by Region
+            let filtered = globalTargetGroups;
+            if (currentRegionFilter !== 'ALL') {
+                filtered = filtered.filter(g => g.range.startsWith(currentRegionFilter));
+            }
+            
+            // Sort: Groups with selected members move to the top
+            // Since we only track selectedBizNos and not which group they are entirely drawn from,
+            // we will fetch selected status per group by checking if it has any selected logic.
+            // But since we can't easily check members without fetching, we will track if `selectedBizNos.size > 0` and `expandedGroups` etc.
+            // Actually, we can check if `activeGroupNames` contains it if we implemented it, or just use `group_name` 
+            // Wait, we can highlight and sort based on whether `activeGroupNames` contains it.
+            // Let's create an `activeGroupIds` set when `selectAllInGroup` is run.
+            // Wait, let's just create it based on `expandedGroups` for now, or just let users scroll.
+            // A simple logic: if expanding, it could be selected. For now, we will add a CSS class 'selected-group-box' if we add to activeGroupIds.
+            
+            container.innerHTML = filtered.map(g => {
+                const isExpanded = expandedGroups.has(g.id);
+                // Check if any bizNo of this group is in selectedBizNos dynamically? We can't cheaply unless we loaded members.
+                // We will rely on `activeGroupIds` global variable which we'll add.
+                const isSelected = activeGroupIds.has(g.id);
+                const sentTimes = g.sent_times || 0;
+                
+                const regionMatches = g.range.split('_');
+                const regionCode = regionMatches.length > 0 ? regionMatches[0] : '';
+                const rc = regionColors[regionCode] || regionColors['DEFAULT'];
+
+                let colorCode = 'var(--neon-blue)';
+                if (sentTimes === 1) colorCode = '#facc15';
+                else if (sentTimes === 2) colorCode = '#f97316';
+                else if (sentTimes >= 3) colorCode = '#ef4444';
+                
+                const nodeText = `<span style="color:${colorCode};">${g.count} NODES` + (sentTimes > 0 ? ` : ${sentTimes} 번발송` : '') + `</span>`;
+                
+                let borderStyle = isSelected 
+                    ? `border: 2px solid ${rc}; background: ${rc}15; box-shadow: 0 0 20px ${rc}55;` 
+                    : `border-top: 3px solid ${rc}; border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);`;
+
+                return `
+                    <div id="group-card-${g.id}" class="group-box" style="${borderStyle}" onclick="handleGroupClick(event, ${g.id}, '${g.range}')">
+                        <button class="group-expand-btn" onclick="toggleExpand(event, ${g.id})">
+                            <i class="fas ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
+                        </button>
+                        <div class="title" style="color: ${rc}; text-shadow: 0 0 5px ${rc}88;">BATCH CLUSTER</div>
+                        <div class="range" style="color:#fff; font-weight:700;">${g.range}</div>
+                        <div style="font-size: 0.7rem;">${nodeText}</div>
+                        
+                        <div id="members-${g.id}" class="members-list ${isExpanded ? 'active' : ''}">
+                            ${isExpanded ? 'SCANNING NODES...' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            if (expandedGroups.size > 0) {
+                expandedGroups.forEach(id => refreshGroupMembers(id));
             }
         }
 
@@ -1250,6 +1368,20 @@
             ">${label}</span>`;
         }
 
+        // activeGroupIds was already declared globally above line 988
+        function deselectAllGroups() {
+            if (selectedBizNos.size === 0) return;
+            
+            selectedBizNos.clear();
+            activeGroupIds.clear();
+            
+            // Revert sorting
+            globalTargetGroups.sort((a, b) => a.id - b.id);
+            
+            renderTargetGroups();
+            updateSelectedSummary();
+        }
+
         async function selectAllInGroup(event, groupId) {
             if (event) event.stopPropagation();
             const data = await fetchAPI(`/api/email/group-members/${groupId}`);
@@ -1257,10 +1389,22 @@
                 const someMissing = data.members.some(m => !selectedBizNos.has(m.biz_no));
                 if (someMissing) {
                     data.members.forEach(m => selectedBizNos.add(m.biz_no));
+                    activeGroupIds.add(groupId);
                 } else {
                     data.members.forEach(m => selectedBizNos.delete(m.biz_no));
+                    activeGroupIds.delete(groupId);
                 }
-                loadTargetGroups();
+                
+                // Sort globalTargetGroups to put selected activeGroupIds at the top
+                globalTargetGroups.sort((a, b) => {
+                    const aSel = activeGroupIds.has(a.id);
+                    const bSel = activeGroupIds.has(b.id);
+                    if (aSel === bSel) return a.id - b.id; // Secondary sort
+                    return aSel ? -1 : 1;
+                });
+                
+                renderTargetGroups();
+                updateSelectedSummary();
             }
         }
 
@@ -1453,18 +1597,38 @@
                     const succ  = b.success_count || 0;
                     const fail  = b.fail_count   || 0;
                     // 날짜 필드: sent_at 또는 created_at 둘 다 지원
-                    const dt = b.sent_at || b.created_at || '';
+                    const rawDt = b.sent_at || b.created_at || '';
+                    const rate  = total > 0 ? Math.round((succ / total) * 100) : 0;
+                    const rateColor = rate >= 80 ? '#4ade80' : rate >= 50 ? '#fbbf24' : '#f87171';
+                    
+                    const batchIdStr = (b.batch_id || b.id || '').toString();
+                    const sendDate = rawDt.split(' ')[0];
+                    const displayTime = rawDt.includes(' ') ? rawDt.split(' ')[1].substring(0, 5) : '';
+                    const cleanTitle = (b.subject || b.group_name || '').toLowerCase();
+
                     return `
-                    <tr>
-                        <td style="font-family:Orbitron; font-size:0.65rem; color:var(--neon-cyan);">${(b.batch_id||'').substring(0,8)}…</td>
-                        <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${b.subject || b.group_name || '-'}</td>
-                        <td style="text-align:center;">${total.toLocaleString()}</td>
-                        <td style="text-align:center; color:var(--neon-cyan);">${sent.toLocaleString()}</td>
-                        <td style="text-align:center; color:#4ade80;">${succ.toLocaleString()}</td>
-                        <td style="text-align:center; color:#f87171;">${fail.toLocaleString()}</td>
-                        <td style="font-size:0.75rem;">${formatDateTime(dt)}</td>
-                        <td>${formatStatusBadge(b.status)}</td>
-                        <td><button class="btn btn-outline" style="padding:4px 8px; font-size:0.6rem;" onclick="viewBatchDetails('${b.batch_id}')"><i class="fas fa-list"></i> LOG</button></td>
+                    <tr class="batch-data-row" data-id="${batchIdStr}" data-title="${cleanTitle}" data-date="${sendDate}" style="height: 60px;">
+                        <td style="width:40px; text-align:center; vertical-align:middle;">
+                            <input type="checkbox" class="batch-check-item member-checkbox" value="${batchIdStr}">
+                        </td>
+                        <td style="width:90px; vertical-align:middle; font-family:Orbitron; font-size:0.65rem; color:var(--neon-cyan); white-space:nowrap; overflow:hidden;">#${batchIdStr.substring(0,8)}</td>
+                        <td style="vertical-align:middle; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${b.subject || b.group_name}">${b.subject || b.group_name || '-'}</td>
+                        <td style="width:55px; text-align:center; vertical-align:middle;">${total.toLocaleString()}</td>
+                        <td style="width:55px; text-align:center; vertical-align:middle; color:var(--neon-blue);">${sent.toLocaleString()}</td>
+                        <td style="width:55px; text-align:center; vertical-align:middle; color:#4ade80;">${succ.toLocaleString()}</td>
+                        <td style="width:55px; text-align:center; vertical-align:middle; color:#f87171;">${fail.toLocaleString()}</td>
+                        <td style="width:65px; text-align:center; vertical-align:middle;">
+                            <span style="color:${rateColor}; font-weight:800; font-size:0.8rem;">${rate}%</span>
+                        </td>
+                        <td style="width:140px; vertical-align:middle; font-size:0.75rem; color:var(--text-secondary); white-space:nowrap; overflow:hidden;">
+                            ${sendDate} <span style="opacity:0.6; font-size:0.65rem; margin-left:2px;">${displayTime}</span>
+                        </td>
+                        <td style="width:95px; text-align:center; vertical-align:middle; white-space:nowrap;">${formatStatusBadge(b.status)}</td>
+                        <td style="width:85px; text-align:center; vertical-align:middle;">
+                            <button class="btn btn-outline" style="padding:4px 8px; font-size:0.65rem; font-family:Orbitron;" onclick="viewBatchDetails('${batchIdStr}')">
+                                <i class="fas fa-list-ul"></i> LOG
+                            </button>
+                        </td>
                     </tr>`;
                 }).join('');
             }
@@ -1894,5 +2058,11 @@
             }
         }
     </script>
+    
+    <!-- Floating Scroll Buttons -->
+    <div style="position: fixed; bottom: 40px; right: 40px; display: flex; flex-direction: column; gap: 15px; z-index: 9999;">
+        <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; width: 50px; height: 50px; border-radius: 25px; cursor: pointer; backdrop-filter: blur(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;" onmouseover="this.style.background='rgba(0, 212, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'"><i class="fas fa-arrow-up"></i></button>
+        <button onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; width: 50px; height: 50px; border-radius: 25px; cursor: pointer; backdrop-filter: blur(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;" onmouseover="this.style.background='rgba(0, 212, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'"><i class="fas fa-arrow-down"></i></button>
+    </div>
 </body>
 </html>
