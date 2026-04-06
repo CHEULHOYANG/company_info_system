@@ -369,28 +369,29 @@ def cleanup_email_groups():
     finally:
         conn.close()
 
-def generate_smart_groups(category='GENERAL', limit_per_group=100):
+def generate_smart_groups(category='GENERAL', limit_per_group=100, is_risk_mode=False):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        # Region Mapping based on DB values found in distinct_regions.txt
+        # Prevent Duplicates for the specific category: Clear only relevant groups before generation
+        # This allows GENERAL, MANAGED, and SANDBOX groups to coexist.
+        cursor.execute('''
+            DELETE FROM email_group_members 
+            WHERE group_id IN (SELECT id FROM email_groups WHERE category = ?)
+        ''', (category,))
+        cursor.execute('DELETE FROM email_groups WHERE category = ?', (category,))
+        
+        # High Risk Industry Keywords
+        HIGH_RISK_KEYWORDS = ['자동차부품', '금속가공', '화학', '고무', '플라스틱', '물류창고', '목재', '용접']
+        risk_conditions = " OR ".join([f"industry_name LIKE '%{k}%'" for k in HIGH_RISK_KEYWORDS])
+        
+        # Region Mapping
         region_map = {
-            '서울': ['서울'],
-            '경기': ['경기', '경기도'],
-            '인천': ['인천', '인천광역시'],
-            '강원': ['강원', '강원특별자치도'],
-            '충청': ['충남', '충북'],
-            '대전': ['대전'],
-            '부산': ['부산'],
-            '울산': ['울산', '울산광역시'],
-            '대구': ['대구'],
-            '광주': ['광주'],
-            '전남': ['전남'],
-            '전북': ['전북', '전북특별자치도'],
-            '경남': ['경남'],
-            '경북': ['경북'],
-            '제주': ['제주', '제주특별자치도'],
-            '세종': ['세종']
+            '서울': ['서울'], '경기': ['경기', '경기도'], '인천': ['인천', '인천광역시'],
+            '강원': ['강원', '강원특별자치도'], '충청': ['충남', '충북'], '대전': ['대전'],
+            '부산': ['부산'], '울산': ['울산', '울산광역시'], '대구': ['대구'],
+            '광주': ['광주'], '전남': ['전남'], '전북': ['전북', '전북특별자치도'],
+            '경남': ['경남'], '경북': ['경북'], '제주': ['제주', '제주특별자치도'], '세종': ['세종']
         }
         
         total_created = 0
@@ -399,24 +400,33 @@ def generate_smart_groups(category='GENERAL', limit_per_group=100):
         for region_name, db_regions in region_map.items():
             filter_sql = ""
             if category == 'GENERAL':
-                # Apply strict filters only for general DB
                 filter_sql = """
                     AND company_size NOT IN ('대기업', '중견기업')
                     AND company_name NOT LIKE '%(사)%'
                     AND company_name NOT LIKE '%사단법인%'
                 """
             
+            # Risk Mode Filtering: if ON, only show high risk. Otherwise, show all but sort by risk.
+            mode_filter = ""
+            if is_risk_mode:
+                mode_filter = f"AND ({risk_conditions})"
+            
             query = f'''
-                SELECT biz_no FROM Company_Basic 
+                SELECT biz_no, 
+                       (CASE WHEN {risk_conditions} THEN 1 ELSE 0 END) as is_high_risk
+                FROM Company_Basic 
                 WHERE email_usable = 1 
                 AND email IS NOT NULL 
                 AND email != ''
                 AND category = ?
                 AND region IN ({",".join(["'"+r+"'" for r in db_regions])})
                 {filter_sql}
+                {mode_filter}
+                ORDER BY is_high_risk DESC, biz_no ASC
             '''
             cursor.execute(query, (category,))
-            biz_nos = [row['biz_no'] for row in cursor.fetchall()]
+            rows = cursor.fetchall()
+            biz_nos = [row['biz_no'] for row in rows]
             
             if not biz_nos:
                 continue
@@ -429,8 +439,13 @@ def generate_smart_groups(category='GENERAL', limit_per_group=100):
                 end = min((i + 1) * limit_per_group, len(biz_nos))
                 chunk = biz_nos[start:end]
                 
-                # Naming: 지역_100_순번
-                group_name = f"{region_name}_100_{i+1}"
+                # Check if this chunk has any high risk members (always true if is_risk_mode is ON)
+                # But even in regular mode, if high risk companies are at the start, name them accordingly.
+                has_high_risk = any(row['is_high_risk'] == 1 for row in rows[start:end])
+                
+                # Naming: 지역_[제조_]100_순번
+                industry_tag = "제조_" if has_high_risk else ""
+                group_name = f"{region_name}_{industry_tag}{limit_per_group}_{i+1}"
                 
                 cursor.execute('''
                     INSERT INTO email_groups (name, category, member_count) 

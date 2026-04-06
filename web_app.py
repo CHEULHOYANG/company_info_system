@@ -184,6 +184,22 @@ def api_v3_email_setup():
             if conn: conn.close()
             return jsonify({'success': False, 'message': f'저장 오류: {str(e)}'}), 500
 
+@app.route('/api/v3/email-setup/<int:config_id>', methods=['DELETE'])
+def api_v3_email_setup_delete(config_id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    user_id = session['user_id']
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM smtp_configs WHERE config_id = ? AND user_id = ?", (config_id, user_id))
+        conn.commit()
+        return jsonify({'success': True, 'message': '설정이 삭제되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
 @app.route('/api/email/init', methods=['POST'])
 def api_email_init():
     if 'user_id' not in session:
@@ -9020,7 +9036,6 @@ def update_individual_business_history(history_id):
         
         if not content:
             return jsonify({'success': False, 'message': '내용을 입력해주세요.'})
-            
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -9033,11 +9048,69 @@ def update_individual_business_history(history_id):
         print(f"히스토리 수정 오류: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
+@app.route('/api/corporate/validate_upload', methods=['POST'])
+def validate_corporate_upload():
+    """법인 일괄 업로드 검증 (SSE 스트리밍으로 진행 상황 실시간 확인)"""
+    if 'company_file' not in request.files:
+        return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
+        
+    file = request.files['company_file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': '선택된 파일이 없습니다.'}), 400
+        
+    if not (file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
+        return jsonify({'success': False, 'message': '엑셀(.xlsx) 파일만 업로드 가능합니다.'}), 400
 
+    # Save file
+    target_path = os.path.join(CORPORATE_DATA_DIR, "251102_insert.xlsx")
+    if not os.path.exists(CORPORATE_DATA_DIR):
+        os.makedirs(CORPORATE_DATA_DIR)
+    file.save(target_path)
+    
+    def generate():
+        cmd = [sys.executable, CORPORATE_SCRIPT_PATH, "--mode", "validate"]
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            cwd=CORPORATE_DATA_DIR,
+            encoding='utf-8',
+            env=env
+        )
+        
+        stats = {}
+        for line in iter(process.stdout.readline, ''):
+            if not line: continue
+            clean = line.strip()
+            if not clean: continue
+            
+            # Identify JSON stats results
+            if clean.startswith('{') and clean.endswith('}'):
+                try:
+                    data = json.loads(clean)
+                    if data.get('type') == 'result':
+                        stats[data['key']] = data['value']
+                    elif data.get('type') in ['log', 'progress', 'table_start', 'table_done']:
+                        yield f"data: {json.dumps(data)}\n\n"
+                    else:
+                        stats.update(data)
+                except:
+                    yield f"data: {json.dumps({'type': 'log', 'message': clean})}\n\n"
+            else:
+                yield f"data: {json.dumps({'type': 'log', 'message': clean})}\n\n"
+        
+        process.wait()
+        
+        if stats:
+            yield f"data: {json.dumps({'type': 'complete', 'success': True, 'stats': stats})}\n\n"
+        else:
+            yield f"data: {json.dumps({'type': 'complete', 'success': False, 'message': '검증 결과가 올바르게 생성되지 않았습니다.'})}\n\n"
 
-
-
-
+    return Response(generate(), mimetype='text/event-stream')
 
 def initialize_db():
     print("\n=== 데이터베이스 테이블 초기화 (Production/Development) ===")
@@ -9838,88 +9911,6 @@ def download_corporate_template():
     else:
         return jsonify({'success': False, 'message': 'Template file not found on server.'}), 404
 
-@app.route('/api/corporate/validate_upload', methods=['POST'])
-def validate_corporate_upload():
-    """법인 일괄 업로드 검증 (1단계: 파일 저장 및 생성 스크립트 실행)"""
-    if 'company_file' not in request.files:
-        return jsonify({'success': False, 'message': '파일이 없습니다.'}), 400
-        
-    file = request.files['company_file']
-    if file.filename == '':
-        return jsonify({'success': False, 'message': '선택된 파일이 없습니다.'}), 400
-        
-    if not (file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
-        return jsonify({'success': False, 'message': '엑셀(.xlsx) 파일만 업로드 가능합니다.'}), 400
-
-    try:
-        # 1. Save File to Fixed Location (Overwriting existing)
-        if not os.path.exists(CORPORATE_DATA_DIR):
-            os.makedirs(CORPORATE_DATA_DIR)
-            
-        target_path = os.path.join(CORPORATE_DATA_DIR, "251102_insert.xlsx")
-        
-        # Backup existing
-        if os.path.exists(target_path):
-            try:
-                shutil.copy2(target_path, target_path + ".bak")
-            except: pass
-            
-        file.save(target_path)
-        
-        # 2. Run Script in Validate Mode
-        env = os.environ.copy()
-        env["PYTHONIOENCODING"] = "utf-8"
-        
-        cmd = [sys.executable, CORPORATE_SCRIPT_PATH, "--mode", "validate"]
-        
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            cwd=CORPORATE_DATA_DIR
-        )
-        
-        stdout, _ = process.communicate()
-        try:
-            stdout = stdout.decode('utf-8')
-        except:
-            stdout = stdout.decode('cp949', errors='ignore')
-        
-        # LOGGING FOR DEBUG
-        print(f"[DEBUG_BATCH] RAW OUTPUT START\n{stdout}\n[DEBUG_BATCH] RAW OUTPUT END", flush=True)
-
-        # Parse JSON results from stdout
-        stats = {}
-        logs = [] # Keep logs for error message
-        for line in stdout.splitlines():
-            clean_line = line.strip()
-            if not clean_line: continue
-            logs.append(clean_line) # Append to logs before parsing
-            
-            if clean_line.startswith('{'):
-                try:
-                    data = json.loads(clean_line)
-                    if data.get('type') == 'result':
-                        stats[data['key']] = data['value']
-                except Exception as e:
-                    print(f"[DEBUG_BATCH] JSON PARSE ERROR: {str(e)} in line: {clean_line}", flush=True)
-        
-        print(f"[DEBUG_BATCH] FINAL STATS: {stats}", flush=True)
-            
-        if process.returncode != 0:
-            # Send last few logs as message
-            err_msg = '\n'.join(logs[-5:])
-            return jsonify({'success': False, 'message': f'Script execution failed:\n{err_msg}'}), 500
-            
-        return jsonify({
-            'success': True, 
-            'stats': stats,
-            'message': '파일 검증 및 데이터 생성이 완료되었습니다.'
-        })
-
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
 @app.route('/api/corporate/execute_upload', methods=['POST'])
 def execute_corporate_upload():
     """법인 일괄 업로드 실행 (2단계: DB 반영) - SSE 스트리밍"""
@@ -9964,11 +9955,13 @@ def execute_corporate_upload():
                     if clean.startswith('{'):
                         print(f"[DEBUG_EXEC] STREAM LINE: {clean}", flush=True)
                         evt = json.loads(clean)
-                        # Forward progress events
-                        if evt.get('type') in ['table_start', 'progress', 'table_done']:
+                        # Forward progress/log events
+                        if evt.get('type') in ['table_start', 'progress', 'table_done', 'log']:
                             yield f"data: {json.dumps(evt)}\n\n"
                         elif evt.get('type') == 'result':
                             stats[evt['key']] = evt['value']
+                        else:
+                            stats.update(evt)
                 except:
                     pass
             
@@ -10075,9 +10068,10 @@ def api_generate_groups():
     data = request.json
     category = data.get('category', 'GENERAL')
     limit = data.get('limit', 100)
+    is_risk_mode = data.get('is_risk_mode', False)
     
     from email_service import generate_smart_groups
-    result = generate_smart_groups(category, limit)
+    result = generate_smart_groups(category, limit, is_risk_mode)
     return jsonify(result)
 
 @app.route('/api/email/target-groups')

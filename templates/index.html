@@ -809,6 +809,16 @@
                         <span style="font-weight: bold; color: #f39c12;">데이터 검증 중...</span>
                     </div>
 
+                    <div id="validationProgress" style="display:none; margin-top:15px; border-radius: 12px; overflow: hidden; border: 1px solid #eee; background: #fcfcfc; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                        <div style="background: #34495e; color: #fff; padding: 8px 15px; font-size: 13px; font-weight: bold; display: flex; justify-content: space-between;">
+                            <span>실시간 서버 로그</span>
+                            <span id="logCounter" style="color: #00d4ff;">0 / 0</span>
+                        </div>
+                        <div id="validationLog" style="height: 180px; overflow-y: auto; padding: 12px; font-family: 'Consolas', monospace; font-size: 11px; background: #1e1e1e; color: #d4d4d4; line-height: 1.6;">
+                            <div style="color: #00d4ff;">> 시스템 준비 완료...</div>
+                        </div>
+                    </div>
+
                     <div id="validationResult" class="corp-validation-results"
                         style="display:none; margin-top:20px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
                         <h4 class="corp-validation-title"
@@ -821,14 +831,9 @@
                     </div>
 
                     <div id="executionSection" class="corp-execution-section"
-                        style="display:none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
-                            <span style="font-size: 13px; font-weight: bold; color: #555;">🔒 관리자 승인:</span>
-                            <input type="password" id="corpUploadPassword" placeholder="비밀번호 입력"
-                                class="corp-password-input" style="width: 200px;">
-                        </div>
+                        style="display:none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: right;">
                         <div id="executionLoading" class="corp-execution-loading"
-                            style="text-align: right; display:none;">
+                            style="display:none;">
                             ⚠️ DB 반영 중... 잠시만 기다려주세요.
                         </div>
                     </div>
@@ -875,6 +880,7 @@
             const dropZone = document.getElementById('dropZone');
             const fileInput = document.getElementById('corpFileUpload');
             const fileNameDisplay = document.getElementById('selectedFileName');
+            let currentSelectedFile = null;
 
             if (openBtn) {
                 openBtn.onclick = function (e) {
@@ -897,35 +903,73 @@
             };
 
             function resetModalState() {
+                if (fileInput) fileInput.value = '';
+                currentSelectedFile = null;
+                if (fileNameDisplay) fileNameDisplay.style.display = 'none';
+                
+                const res = document.getElementById('validationResult');
+                if (res) res.style.display = 'none';
+                
+                const exe = document.getElementById('executionSection');
+                if (exe) exe.style.display = 'none';
+                
+                const prg = document.getElementById('progressSection');
+                if (prg) prg.style.display = 'none';
+                
+                const pwd = document.getElementById('corpUploadPassword');
+                if (pwd) pwd.value = '';
+                
+                const lod = document.getElementById('validationLoading');
+                if (lod) lod.style.display = 'none';
+                
+                const valPrg = document.getElementById('validationProgress');
+                if (valPrg) valPrg.style.display = 'none';
+
+                const execBtn = document.getElementById('executeUploadBtn');
+                if (execBtn) {
+                    execBtn.style.display = 'none';
+                    execBtn.disabled = false;
+                }
+            }
+
+
+            dropZone.onclick = () => fileInput.click();
+
+            dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = '#00d4ff'; };
+            dropZone.ondragleave = () => { dropZone.style.borderColor = '#dcdde1'; };
+            dropZone.ondrop = (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#dcdde1';
+                if (e.dataTransfer.files.length) {
+                    currentSelectedFile = e.dataTransfer.files[0];
+                    handleFileSelect(currentSelectedFile);
+                }
+            };
+
+            fileInput.onchange = () => { 
+                if (fileInput.files.length) {
+                    currentSelectedFile = fileInput.files[0];
+                    handleFileSelect(currentSelectedFile);
+                }
+            };
+
+            function resetModalState() {
                 fileInput.value = '';
-                fileNameDisplay.textContent = '';
+                currentSelectedFile = null;
                 fileNameDisplay.style.display = 'none';
                 document.getElementById('validationResult').style.display = 'none';
                 document.getElementById('executionSection').style.display = 'none';
-                document.getElementById('uploadStatus').style.display = 'none';
                 document.getElementById('progressSection').style.display = 'none';
-                document.getElementById('corpUploadPassword').value = '';
                 document.getElementById('validationLoading').style.display = 'none';
                 const execBtn = document.getElementById('executeUploadBtn');
                 execBtn.style.display = 'none';
                 execBtn.disabled = false;
             }
 
-            dropZone.onclick = () => fileInput.click();
-
-            dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = '#4a90e2'; };
-            dropZone.ondragleave = () => { dropZone.style.borderColor = '#dcdde1'; };
-            dropZone.ondrop = (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = '#dcdde1';
-                if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
-            };
-
-            fileInput.onchange = () => { if (fileInput.files.length) handleFileSelect(fileInput.files[0]); };
-
             function handleFileSelect(file) {
                 fileNameDisplay.textContent = "📄 선택된 파일: " + file.name;
                 fileNameDisplay.style.display = 'block';
+                fileNameDisplay.classList.add('fade-in');
             }
 
             function renderStatsTable(stats) {
@@ -941,27 +985,93 @@
             document.getElementById('downloadTemplateBtn').onclick = () => window.location.href = '/api/corporate/template';
 
             document.getElementById('validateUploadBtn').onclick = function () {
-                const file = fileInput.files[0] || (dropZone.files ? dropZone.files[0] : null);
-                if (!file) { alert("파일을 선택해주세요."); return; }
+                if (!currentSelectedFile) { alert("파일을 선택해주세요."); return; }
                 const formData = new FormData();
-                formData.append('company_file', file);
+                formData.append('company_file', currentSelectedFile);
+                
                 document.getElementById('validationLoading').style.display = 'block';
+                document.getElementById('validationProgress').style.display = 'block';
+                const logArea = document.getElementById('validationLog');
+                logArea.innerHTML = '<div>검증 작업을 시작합니다...</div>';
+                
+                document.getElementById('validationResult').style.display = 'none';
+                document.getElementById('executionSection').style.display = 'none';
+
                 fetch('/api/corporate/validate_upload', { method: 'POST', body: formData })
-                    .then(res => res.json())
-                    .then(data => {
+                    .then(response => {
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder();
+                        
+                        let buffer = '';
+                        function readStream() {
+                            reader.read().then(({ value, done }) => {
+                                if (done) {
+                                    document.getElementById('validationLoading').style.display = 'none';
+                                    return;
+                                }
+                                const chunk = decoder.decode(value, { stream: true });
+                                buffer += chunk;
+                                
+                                let lines = buffer.split('\n');
+                                buffer = lines.pop(); // Keep partial line in buffer
+
+                                lines.forEach(line => {
+                                    if (line.startsWith('data: ')) {
+                                        try {
+                                            const data = JSON.parse(line.substring(6));
+                                            if (data.type === 'log') {
+                                                const div = document.createElement('div');
+                                                div.textContent = data.message;
+                                                if (data.message.includes("ERROR")) div.style.color = "#ff5252";
+                                                logArea.appendChild(div);
+                                                logArea.scrollTop = logArea.scrollHeight;
+                                            } else if (data.type === 'progress') {
+                                                const progressBar = document.getElementById('uploadProgressBar');
+                                                const progressText = document.getElementById('progressText');
+                                                const tableStatus = document.getElementById('tableStatus');
+                                                document.getElementById('progressSection').style.display = 'block';
+                                                
+                                                const pct = Math.round((data.current / data.total) * 100);
+                                                if (progressBar) progressBar.style.width = pct + '%';
+                                                if (progressText) progressText.textContent = pct + '%';
+                                                if (tableStatus) {
+                                                    tableStatus.textContent = `${data.table || ''} 검증 중... (${data.current} / ${data.total})`;
+                                                }
+                                                document.getElementById('logCounter').textContent = data.current + " / " + data.total;
+                                            } else if (data.type === 'complete') {
+                                                document.getElementById('validationLoading').style.display = 'none';
+                                                const progressBar = document.getElementById('uploadProgressBar');
+                                                const progressText = document.getElementById('progressText');
+                                                const tableStatus = document.getElementById('tableStatus');
+                                                if (progressBar) progressBar.style.width = '100%';
+                                                if (progressText) progressText.textContent = '100%';
+                                                if (tableStatus) tableStatus.textContent = '데이터 검증이 완료되었습니다.';
+                                                
+                                                if (data.success) {
+                                                    document.getElementById('validationStats').innerHTML = renderStatsTable(data.stats || {});
+                                                    document.getElementById('validationResult').style.display = 'block';
+                                                    document.getElementById('executionSection').style.display = 'block';
+                                                    document.getElementById('executeUploadBtn').style.display = 'inline-block';
+                                                } else {
+                                                    alert("검증 실패: " + data.message);
+                                                }
+                                            }
+                                        } catch(e) {}
+                                    }
+                                });
+                                readStream();
+                            });
+                        }
+                        readStream();
+                    })
+                    .catch(e => {
                         document.getElementById('validationLoading').style.display = 'none';
-                        if (data.success) {
-                            document.getElementById('validationStats').innerHTML = renderStatsTable(data.stats);
-                            document.getElementById('validationResult').style.display = 'block';
-                            document.getElementById('executionSection').style.display = 'block';
-                            document.getElementById('executeUploadBtn').style.display = 'inline-block';
-                        } else { alert("검증 실패: " + data.message); }
+                        alert("통신 오류가 발생했습니다.");
+                        console.error(e);
                     });
             };
 
             document.getElementById('executeUploadBtn').onclick = function () {
-                const pwd = document.getElementById('corpUploadPassword').value;
-                if (!pwd) { alert("비밀번호를 입력해주세요."); return; }
                 if (!confirm("정말로 DB에 반영하시겠습니까?")) return;
 
                 document.getElementById('progressSection').style.display = 'block';
@@ -972,24 +1082,50 @@
                 fetch('/api/corporate/execute_upload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: pwd })
+                    body: JSON.stringify({ })
                 }).then(response => {
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
+                    let buffer = '';
+
                     function read() {
                         reader.read().then(({ value, done }) => {
                             if (done) return;
-                            const text = decoder.decode(value);
-                            text.split('\n').forEach(line => {
+                            const chunk = decoder.decode(value, { stream: true });
+                            buffer += chunk;
+                            
+                            let lines = buffer.split('\n');
+                            buffer = lines.pop(); // Keep partial line in buffer
+
+                            lines.forEach(line => {
                                 if (line.startsWith('data: ')) {
-                                    const data = JSON.parse(line.substring(6));
-                                    if (data.type === 'progress') {
-                                        const pct = Math.round((data.current / data.total) * 100);
-                                        progressBar.style.width = pct + '%';
-                                        progressText.textContent = pct + '%';
-                                    } else if (data.type === 'complete') {
-                                        alert("업로드 완료!");
-                                        location.reload();
+                                    try {
+                                        const data = JSON.parse(line.substring(6));
+                                        if (data.type === 'progress') {
+                                            const pct = Math.round((data.current / data.total) * 100);
+                                            progressBar.style.width = pct + '%';
+                                            progressText.textContent = pct + '%';
+                                            if (data.current === data.total) {
+                                                tableStatus.textContent = '모든 데이터 처리가 완료되었습니다.';
+                                            } else {
+                                                tableStatus.textContent = `${data.table || ''} 처리 중... (${data.current} / ${data.total})`;
+                                            }
+                                        } else if (data.type === 'log') {
+                                            const logDiv = document.getElementById('validationLog');
+                                            const newLog = document.createElement('div');
+                                            newLog.textContent = data.message;
+                                            if (data.message.includes('[Error]')) newLog.style.color = '#ff5252';
+                                            logDiv.appendChild(newLog);
+                                            logDiv.scrollTop = logDiv.scrollHeight;
+                                        } else if (data.type === 'complete') {
+                                            progressBar.style.width = '100%';
+                                            progressText.textContent = '100%';
+                                            tableStatus.textContent = '모든 데이터 처리가 완료되었습니다.';
+                                            alert("업로드 완료!");
+                                            location.reload();
+                                        }
+                                    } catch (e) {
+                                        console.error("JSON Parse Error:", e, "Line:", line);
                                     }
                                 }
                             });

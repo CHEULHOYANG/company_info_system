@@ -89,7 +89,23 @@
         }
         .form-control:focus { border-color: var(--neon-blue); box-shadow: 0 0 15px var(--primary-glow); background: rgba(255,255,255,0.08); }
         
-        select.form-control option { background-color: #020617 !important; color: white !important; }
+        /* Global Select Styling for Dark Theme Visibility */
+        select option {
+            background-color: #0c142d !important;
+            color: #ffffff !important;
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 14px center !important;
+            background-size: 16px !important;
+            padding-right: 40px !important;
+        }
 
         .btn {
             padding: 12px 24px; border-radius: 14px; font-weight: 700; cursor: pointer;
@@ -319,8 +335,20 @@
                             2. <strong>타겟 필터링</strong>: 주소록에서 유효한 법인을 그룹화합니다.<br>
                             3. <strong>배치 발송</strong>: 시스템이 자동으로 100건씩 분할하여 안전하게 전달합니다.
                         </p>
+                        <div style="margin-top: 25px; padding: 18px; background: rgba(0, 212, 255, 0.05); border-left: 3px solid #4285F4; border-radius: 0 12px 12px 0;">
+                            <h5 style="color: #fff; margin-bottom: 10px; font-size: 0.95rem; font-weight: 700;"><i class="fas fa-key" style="color: #4285F4; margin-right: 8px;"></i>주요 포털 SMTP 앱 비밀번호 설정 안내</h5>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 10px;">
+                                외부 이메일 연동 시에는 계정 기본 비밀번호가 아닌, <strong>'앱 비밀번호'</strong>나 <strong>'외부 서비스 연동 비밀번호'</strong>를 생성하여 입력해야 합니다.
+                            </p>
+                            <ul style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.8; padding-left: 20px; list-style-type: none; margin: 0;">
+                                <li><strong style="color: #fff;"><i class="fab fa-google" style="color:#4285F4;"></i> 구글 (Gmail):</strong> Google 계정 > 보안 > 2단계 인증 > 앱 비밀번호 <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" style="color:var(--neon-blue); text-decoration:none;"><i class="fas fa-external-link-alt"></i> 설정 바로가기</a></li>
+                                <li><strong style="color: #fff;"><i class="fas fa-n" style="color:#2DB400;"></i> 네이버 (Naver):</strong> 네이버 내정보 > 보안설정 > 2단계 인증 관리 > 앱 비밀번호 생성</li>
+                                <li><strong style="color: #fff;"><i class="fas fa-comment" style="color:#FEE500;"></i> 카카오/다음:</strong> 카카오계정 관리 > 계정 보안 > 2단계 인증 > 앱 비밀번호</li>
+                                <li><strong style="color: #fff;"><i class="fas fa-envelope-open" style="color:#FF0000;"></i> 네이트 (Nate):</strong> 메일 환경설정 > POP3/IMAP 설정 > IMAP/SMTP 사용 설정</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div style="text-align: center; padding: 20px;">
+                    <div style="text-align: center; padding: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <i class="fas fa-atom" style="font-size: 4rem; color: var(--neon-blue); margin-bottom: 20px; animation: spin 10s linear infinite;"></i>
                         <h4 style="letter-spacing: 2px;">시스템 무결성 상태 확인 필</h4>
                     </div>
@@ -433,6 +461,9 @@
                             </label>
                             <label style="cursor:pointer; background: rgba(255,255,255,0.05); padding: 15px 25px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);">
                                 <input type="radio" name="target-cat" value="SANDBOX" onchange="updateTargetCategory('SANDBOX')"> 샌드박스 테스터
+                            </label>
+                            <label style="cursor:pointer; background: rgba(0, 212, 255, 0.05); padding: 15px 25px; border-radius: 15px; border: 1px solid var(--neon-blue); color: var(--neon-blue); display: flex; align-items: center; gap: 10px; margin-left: 10px;">
+                                <input type="checkbox" id="risk-mode-check" onchange="updateTargetCategory(targetCategory)" style="width: 18px; height: 18px; accent-color: var(--neon-blue);"> 위험 직군(제조/물류)
                             </label>
                         </div>
                     </div>
@@ -837,7 +868,7 @@
                 </div>
                 <div style="display: flex; gap: 15px;">
                     <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeCorpAddModal()">취소</button>
-                    <button type="button" class="btn btn-primary" style="flex:1;" onclick="saveNewCompany()">영구 저장</button>
+                    <button type="button" class="btn btn-primary" style="flex:1;" onclick="saveNewCompany()">저장</button>
                 </div>
             </form>
         </div>
@@ -879,6 +910,15 @@
             <h2 class="card-title" style="margin-bottom: 30px;"><i class="fas fa-server"></i> SMTP 릴레이 구성</h2>
             <form id="smtp-form">
                 <input type="hidden" id="smtp-id">
+                <select id="smtp-provider" class="form-control" style="margin-bottom: 15px;" onchange="handleSmtpProviderChange()">
+                    <option value="">-- 웹메일 서비스 선택 (선택 시 자동입력) --</option>
+                    <option value="naver">네이버 (Naver)</option>
+                    <option value="gmail">구글 (Gmail)</option>
+                    <option value="kakao">카카오 (Kakao/Daum)</option>
+                    <option value="hanmail">한메일 (Hanmail)</option>
+                    <option value="nate">네이트 (Nate)</option>
+                    <option value="custom">직접 입력 (Custom)</option>
+                </select>
                 <input type="text" id="smtp-name" class="form-control" placeholder="관리 명칭 (예: 네이버 주력 서버)" style="margin-bottom: 15px;">
                 <input type="text" id="smtp-server" class="form-control" placeholder="SMTP 호스트 (e.g. smtp.naver.com)" style="margin-bottom: 15px;">
                 <input type="number" id="smtp-port" class="form-control" placeholder="포트번호" value="465" style="margin-bottom: 15px;">
@@ -1115,35 +1155,50 @@
             if (data.success) {
                 const list = document.getElementById('smtp-list');
                 const select = document.getElementById('send-smtp-id');
-                list.innerHTML = data.configs.map(cfg => `
+                list.innerHTML = data.configs.map(cfg => {
+                    const cfgJson = JSON.stringify(cfg).replace(/"/g, '&quot;');
+                    return `
                     <tr>
                         <td>${cfg.config_name}</td>
                         <td>${cfg.smtp_server}</td>
                         <td>${cfg.smtp_port}</td>
                         <td style="color:var(--neon-cyan);">${cfg.sender_email}</td>
                         <td><span class="badge badge-success">활성</span></td>
-                        <td><button class="btn btn-outline" style="padding:4px 10px;" onclick='editSmtp(${JSON.stringify(cfg)})'>구성</button></td>
-                    </tr>
-                `).join('');
+                        <td>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <button class="btn btn-outline" style="padding:4px 10px; font-size:0.75rem;" onclick="editSmtp(${cfgJson})">수정</button>
+                                <button class="btn btn-outline" style="padding:4px 10px; font-size:0.75rem; border-color:#ff6b6b; color:#ff6b6b;" onclick="deleteSmtp(${cfg.config_id})">삭제</button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
                 select.innerHTML = '<option value="">-- 게이트웨이 선택 --</option>' + data.configs.map(cfg => `<option value="${cfg.config_id}">${cfg.config_name} (${cfg.sender_email})</option>`).join('');
             }
         }
 
         function updateTargetCategory(cat) {
             targetCategory = cat;
+            const isRisk = document.getElementById('risk-mode-check').checked;
             const banner = document.getElementById('filter-info-text');
-            if (cat === 'GENERAL') {
-                banner.innerHTML = '<i class="fas fa-info-circle" style="color:var(--neon-blue); margin-right:8px;"></i> <strong>현재 필터링 규칙:</strong> 일반 중소기업(대기업/사단법인 제외)을 지역별로 분류합니다.';
-            } else if (cat === 'MANAGED') {
-                banner.innerHTML = '<i class="fas fa-info-circle" style="color:var(--neon-blue); margin-right:8px;"></i> <strong>현재 필터링 규칙:</strong> 관리대상의 모든 유효 이메일 기업을 지역별로 분류합니다.';
+            
+            let text = "";
+            if (isRisk) {
+                text = "화재/안전 사고 위험도가 높은 제조 및 물류 업종을 우선 분류합니다.";
             } else {
-                banner.innerHTML = '<i class="fas fa-info-circle" style="color:var(--neon-blue); margin-right:8px;"></i> <strong>현재 필터링 규칙:</strong> 샌드박스 테스트용 데이터를 지역별로 구성합니다.';
+                if (cat === 'GENERAL') text = "일반 중소기업(대기업/사단법인 제외)을 지역별로 분류합니다.";
+                else if (cat === 'MANAGED') text = "관리대상의 모든 유효 이메일 기업을 지역별로 분류합니다.";
+                else text = "샌드박스 테스트용 데이터를 지역별로 구성합니다.";
             }
+            
+            banner.innerHTML = `<i class="fas fa-info-circle" style="color:var(--neon-blue); margin-right:8px;"></i> <strong>현재 필터링 규칙:</strong> ${text}`;
             loadTargetGroups();
         }
 
         async function generateSmartGroups() {
-            if(!confirm(`${targetCategory} 카테고리의 일반 중소기업(대기업/사단법인 제외)을 100건씩 그룹핑하시겠습니까?`)) return;
+            const isRiskMode = document.getElementById('risk-mode-check').checked;
+            const riskMsg = isRiskMode ? "\n(고위험 제조/물류 업종 우선 모드가 활성 상태입니다.)" : "";
+            
+            if(!confirm(`${targetCategory} 카테고리의 기업을 100건씩 그룹핑하시겠습니까?${riskMsg}`)) return;
             
             const btn = event.target.closest('button');
             const originalText = btn.innerHTML;
@@ -1153,7 +1208,7 @@
             try {
                 const data = await fetchAPI('/api/email/generate-groups', {
                     method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ category: targetCategory, limit: 100 })
+                    body: JSON.stringify({ category: targetCategory, limit: 100, is_risk_mode: isRiskMode })
                 });
                 
                 if (data.success) {
@@ -1258,14 +1313,20 @@
             
             container.innerHTML = filtered.map(g => {
                 const isExpanded = expandedGroups.has(g.id);
-                // Check if any bizNo of this group is in selectedBizNos dynamically? We can't cheaply unless we loaded members.
-                // We will rely on `activeGroupIds` global variable which we'll add.
                 const isSelected = activeGroupIds.has(g.id);
                 const sentTimes = g.sent_times || 0;
                 
                 const regionMatches = g.range.split('_');
                 const regionCode = regionMatches.length > 0 ? regionMatches[0] : '';
-                const rc = regionColors[regionCode] || regionColors['DEFAULT'];
+                
+                // --- 구분 로직 (제조/위험 vs 일반) ---
+                const isRisk = g.range.includes('_제조_');
+                const riskColor = '#f97316'; // Amber/Orange for Risk
+                const generalColor = regionColors[regionCode] || regionColors['DEFAULT'];
+                const accentColor = isRisk ? riskColor : generalColor;
+                const riskBadge = isRisk 
+                    ? `<span style="background:${riskColor}22; color:${riskColor}; border:1px solid ${riskColor}55; padding:2px 8px; border-radius:5px; font-size:0.6rem; vertical-align:middle; margin-left:8px; font-weight:800;">위험 업종(제조/물류)</span>`
+                    : `<span style="background:rgba(255,255,255,0.05); color:var(--text-secondary); border:1px solid rgba(255,255,255,0.1); padding:2px 8px; border-radius:5px; font-size:0.6rem; vertical-align:middle; margin-left:8px;">일반 기업</span>`;
 
                 let colorCode = 'var(--neon-blue)';
                 if (sentTimes === 1) colorCode = '#facc15';
@@ -1275,15 +1336,18 @@
                 const nodeText = `<span style="color:${colorCode};">${g.count} NODES` + (sentTimes > 0 ? ` : ${sentTimes} 번발송` : '') + `</span>`;
                 
                 let borderStyle = isSelected 
-                    ? `border: 2px solid ${rc}; background: ${rc}15; box-shadow: 0 0 20px ${rc}55;` 
-                    : `border-top: 3px solid ${rc}; border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);`;
+                    ? `border: 2px solid ${accentColor}; background: ${accentColor}15; box-shadow: 0 0 20px ${accentColor}55;` 
+                    : `border-top: 4px solid ${accentColor}; border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);`;
 
                 return `
                     <div id="group-card-${g.id}" class="group-box" style="${borderStyle}" onclick="handleGroupClick(event, ${g.id}, '${g.range}')">
                         <button class="group-expand-btn" onclick="toggleExpand(event, ${g.id})">
                             <i class="fas ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
                         </button>
-                        <div class="title" style="color: ${rc}; text-shadow: 0 0 5px ${rc}88;">BATCH CLUSTER</div>
+                        <div style="display:flex; align-items:center; margin-bottom:10px;">
+                            <div class="title" style="color: ${accentColor}; text-shadow: 0 0 5px ${accentColor}88; margin-bottom:0;">BATCH CLUSTER</div>
+                            ${riskBadge}
+                        </div>
                         <div class="range" style="color:#fff; font-weight:700;">${g.range}</div>
                         <div style="font-size: 0.7rem;">${nodeText}</div>
                         
@@ -1706,8 +1770,62 @@
         // --- Modals Logic (Maintained) ---
         function openCorpAddModal() { document.getElementById('corp-add-modal').style.display = 'flex'; }
         function closeCorpAddModal() { document.getElementById('corp-add-modal').style.display = 'none'; }
-        function openSmtpModal() { document.getElementById('smtp-modal').style.display = 'flex'; }
+        
+        function openSmtpModal() { 
+            document.getElementById('smtp-id').value = '';
+            document.getElementById('smtp-name').value = '';
+            document.getElementById('smtp-server').value = '';
+            document.getElementById('smtp-port').value = '465';
+            document.getElementById('smtp-email').value = '';
+            document.getElementById('smtp-password').value = '';
+            document.getElementById('smtp-provider').value = '';
+            document.getElementById('smtp-modal').style.display = 'flex'; 
+        }
         function closeSmtpModal() { document.getElementById('smtp-modal').style.display = 'none'; }
+
+        function handleSmtpProviderChange() {
+            const provider = document.getElementById('smtp-provider').value;
+            const sv = document.getElementById('smtp-server');
+            const pt = document.getElementById('smtp-port');
+            const nm = document.getElementById('smtp-name');
+            
+            if (provider === 'naver') { sv.value = 'smtp.naver.com'; pt.value = 465; if(!nm.value) nm.value = '네이버 메일'; }
+            else if (provider === 'gmail') { sv.value = 'smtp.gmail.com'; pt.value = 465; if(!nm.value) nm.value = '구글 메일'; }
+            else if (provider === 'kakao') { sv.value = 'smtp.kakao.com'; pt.value = 465; if(!nm.value) nm.value = '카카오 메일'; }
+            else if (provider === 'hanmail') { sv.value = 'smtp.daum.net'; pt.value = 465; if(!nm.value) nm.value = '다음 메일'; }
+            else if (provider === 'nate') { sv.value = 'smtp.mail.nate.com'; pt.value = 465; if(!nm.value) nm.value = '네이트 메일'; }
+            else if (provider === 'custom') { sv.value = ''; pt.value = 465; }
+        }
+
+        function editSmtp(cfg) {
+            document.getElementById('smtp-id').value = cfg.config_id || '';
+            document.getElementById('smtp-name').value = cfg.config_name || '';
+            document.getElementById('smtp-server').value = cfg.smtp_server || '';
+            document.getElementById('smtp-port').value = cfg.smtp_port || 465;
+            document.getElementById('smtp-email').value = cfg.sender_email || '';
+            document.getElementById('smtp-password').value = cfg.sender_password || '';
+            document.getElementById('smtp-provider').value = 'custom';
+            
+            const s = (cfg.smtp_server || '').toLowerCase();
+            if (s.includes('naver')) document.getElementById('smtp-provider').value = 'naver';
+            else if (s.includes('gmail')) document.getElementById('smtp-provider').value = 'gmail';
+            else if (s.includes('kakao')) document.getElementById('smtp-provider').value = 'kakao';
+            else if (s.includes('daum')) document.getElementById('smtp-provider').value = 'hanmail';
+            else if (s.includes('nate')) document.getElementById('smtp-provider').value = 'nate';
+
+            document.getElementById('smtp-modal').style.display = 'flex';
+        }
+
+        async function deleteSmtp(id) {
+            if(!confirm('이 SMTP 설정을 삭제하시겠습니까?')) return;
+            const data = await fetchAPI(`/api/v3/email-setup/${id}`, { method: 'DELETE' });
+            if (data.success) {
+                alert('설정이 삭제되었습니다.');
+                loadSmtpConfigs();
+            } else {
+                alert('삭제 실패: ' + data.message);
+            }
+        }
 
         async function saveNewCompany() {
             const payload = {
@@ -1725,6 +1843,7 @@
 
         async function saveSmtpConfig() {
             const config = {
+                config_id: document.getElementById('smtp-id').value || null,
                 config_name: document.getElementById('smtp-name').value,
                 smtp_server: document.getElementById('smtp-server').value,
                 smtp_port: parseInt(document.getElementById('smtp-port').value),
