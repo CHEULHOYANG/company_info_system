@@ -56,11 +56,11 @@
         
         label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.6rem; }
         input, select { 
-            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); 
-            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: white; font-size: 1rem; transition: 0.3s;
+            width: 100%; background: #fff; border: 1px solid rgba(0, 0, 0, 0.15); 
+            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: #000 !important; font-size: 1rem; transition: 0.3s;
         }
-        input:focus { border-color: var(--neon-blue); background: rgba(255, 255, 255, 0.08); outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
-        select option { background: #020817; color: white; }
+        input:focus, select:focus { border-color: var(--neon-blue); background: #fdfaf0; outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+        select option { background: #fff; color: #000; }
 
         .calc-btn {
             grid-column: span 2; background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
@@ -68,6 +68,20 @@
             font-family: 'Orbitron', 'Noto Sans KR', sans-serif; letter-spacing: 3px; transition: 0.4s;
         }
         .calc-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); }
+
+        /* Responsive Optimization */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .container { padding: 1.5rem; border-radius: 1.5rem; }
+            h1 { font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 2rem; }
+            .form-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+            .calc-btn { grid-column: auto; font-size: 0.9rem; padding: 1.1rem; }
+            .result-grid { grid-template-columns: 1fr; }
+            .final-result { grid-column: auto; padding: 1.5rem; }
+            .final-value { font-size: 2rem; }
+            .form-group { padding: 1.2rem; }
+            .main-nav-btn { top: 1rem; right: 1rem; padding: 0.5rem 1rem; font-size: 0.7rem; }
+        }
 
         .result-container { margin-top: 2.5rem; display: none; animation: fadeInUp 0.6s ease forwards; }
         .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
@@ -84,16 +98,17 @@
             font-size: 3.5rem; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-blue));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0.5rem;
         }
-        @media (max-width: 768px) { h1 { font-size: 2rem; } .form-grid { grid-template-columns: 1fr; } .container { padding: 2rem; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Earth Fix */
+
     </style>
 </head>
 
 <body>
     <canvas id="particle-canvas"></canvas>
     <div class="shooting-star-container" id="shooting-stars"></div>
-    <div class="earth-container">
-        <img src="https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yNF9waG90b19vZl9lYXJ0aF9mcm9tX3NwYWNlX2lzb2xhdGVkX29uX3RyYW5zcGFyZW50X2JhXzkzNTY3MjFhLTk1NDQtNGVjMi1hYzRjLTZlODQzMWU0MzlhYl8xLnBuZw.png" class="earth-img" alt="Earth Rotation Element">
-    </div>
+
     <a href="/main" class="main-nav-btn">대시보드 복귀</a>
 
     <div class="container">
@@ -101,10 +116,10 @@
 
         <form id="transferForm">
             <div class="form-grid">
-                <div class="form-group">
-                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 자산 정보</h3>
+                <div class="form-group" style="background: #fdfaf0; border: 1px solid #e6e1d3;">
+                    <h3 style="color: #000;"><span style="color:var(--neon-blue); margin-right:8px;">■</span> 자산 정보</h3>
                     <div style="margin-bottom:1.2rem;">
-                        <label>자산 종류</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">자산 종류</label>
                         <select id="assetType">
                             <option value="house1">1세대 1주택 (비과세 요건 확인)</option>
                             <option value="houseMulti">다주택자 (주택)</option>
@@ -112,32 +127,32 @@
                         </select>
                     </div>
                     <div style="margin-bottom:1.2rem;">
-                        <label>양도가액 (원)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">양도가액 (원)</label>
                         <input type="text" id="transferPrice" placeholder="0" required>
                     </div>
                     <div>
-                        <label>취득가액 (원)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">취득가액 (원)</label>
                         <input type="text" id="acquisitionPrice" placeholder="0" required>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 추가 정보</h3>
+                <div class="form-group" style="background: #fdfaf0; border: 1px solid #e6e1d3;">
+                    <h3 style="color: #000;"><span style="color:var(--neon-blue); margin-right:8px;">■</span> 추가 정보</h3>
                     <div style="margin-bottom:1.2rem;">
-                        <label>보유 기간 (년)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">보유 기간 (년)</label>
                         <input type="number" id="holdingYears" value="1" min="0">
                     </div>
                     <div style="margin-bottom:1.2rem;">
-                        <label>거주 기간 (년) - 1주택자 해당</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">거주 기간 (년) - 1주택자 해당</label>
                         <input type="number" id="residentYears" value="0" min="0">
                     </div>
                     <div>
-                        <label>필요 경비 (원)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">필요 경비 (원)</label>
                         <input type="text" id="necessaryExpenses" value="0">
                     </div>
                 </div>
 
-                <button type="submit" class="calc-btn">계산하기 // ANALYZE</button>
+                <button type="submit" class="calc-btn">계산 정밀 분석 // ANALYZE</button>
             </div>
         </form>
 

@@ -56,10 +56,11 @@
         
         label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.6rem; }
         input, select { 
-            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); 
-            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: white; font-size: 1rem; transition: 0.3s;
+            width: 100%; background: #fff; border: 1px solid rgba(0, 0, 0, 0.15); 
+            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: #000 !important; font-size: 1rem; transition: 0.3s;
         }
-        input:focus { border-color: var(--neon-blue); background: rgba(255, 255, 255, 0.08); outline: none; box-shadow: 0 0 15px rgba(0, 21Cut: true, 2, 255, 0.2); }
+        input:focus, select:focus { border-color: var(--neon-blue); background: #fdfaf0; outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+        select option { background: #fff; color: #000; }
 
         .calc-btn {
             grid-column: span 2; background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
@@ -67,6 +68,20 @@
             font-family: 'Orbitron', 'Noto Sans KR', sans-serif; letter-spacing: 3px; transition: 0.4s;
         }
         .calc-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); }
+
+        /* Responsive Optimization */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .container { padding: 1.5rem; border-radius: 1.5rem; }
+            h1 { font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 2rem; }
+            .form-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+            .calc-btn { grid-column: auto; font-size: 0.9rem; padding: 1.1rem; }
+            .result-grid { grid-template-columns: 1fr; }
+            .final-result { grid-column: auto; padding: 1.5rem; }
+            .final-value { font-size: 2rem; }
+            .form-group { padding: 1.2rem; }
+            .main-nav-btn { top: 1rem; right: 1rem; padding: 0.5rem 1rem; font-size: 0.7rem; }
+        }
 
         .result-container { margin-top: 2.5rem; display: none; animation: fadeInUp 0.6s ease forwards; }
         .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
@@ -83,24 +98,17 @@
             font-size: 3.5rem; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-blue));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0.5rem;
         }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Earth Rotation Layer Animation */
-        .earth-container {
-            position: fixed; bottom: -120px; right: -120px; width: 620px; height: 620px;
-            pointer-events: none; z-index: -1; opacity: 0.7; filter: drop-shadow(0 0 50px rgba(0, 212, 255, 0.2));
-            animation: rotateEarth 320s linear infinite;
-        }
-        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .earth-img { width: 100%; height: 100%; object-fit: contain; }
+
     </style>
 </head>
 
 <body>
     <canvas id="particle-canvas"></canvas>
     <div class="shooting-star-container" id="shooting-stars"></div>
-    <div class="earth-container">
-        <img src="https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yNF9waG90b19vZl9lYXJ0aF9mcm9tX3NwYWNlX2lzb2xhdGVkX29uX3RyYW5zcGFyZW50X2JhXzkzNTY3MjFhLTk1NDQtNGVjMi1hYzRjLTZlODQzMWU0MzlhYl8xLnBuZw.png" class="earth-img" alt="Earth Rotation">
-    </div>
+
     <a href="/main" class="main-nav-btn">대시보드 복귀</a>
 
     <div class="container">
@@ -108,14 +116,14 @@
 
         <form id="giftForm">
             <div class="form-grid">
-                <div class="form-group">
-                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 증여 자산</h3>
+                <div class="form-group" style="background: #fdfaf0; border: 1px solid #e6e1d3;">
+                    <h3 style="color: #000;"><span style="color:var(--neon-blue); margin-right:8px;">■</span> 증여 자산</h3>
                     <div style="margin-bottom:1.5rem;">
-                        <label>증여 재산가액 (원)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">증여 재산가액 (원)</label>
                         <input type="text" id="giftAmount" placeholder="0" required>
                     </div>
                     <div style="margin-bottom:1.5rem;">
-                        <label>수증자와의 관계</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">수증자와의 관계</label>
                         <select id="relationship">
                             <option value="spouse">배우자 (6억 미과세)</option>
                             <option value="child">직계비속-성년 (5천 미과세)</option>
@@ -127,23 +135,23 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 추가 공제</h3>
+                <div class="form-group" style="background: #fdfaf0; border: 1px solid #e6e1d3;">
+                    <h3 style="color: #000;"><span style="color:var(--neon-blue); margin-right:8px;">■</span> 추가 공제</h3>
                     <div style="margin-bottom:1.5rem; display: flex; align-items: center; gap: 10px;">
-                        <input type="checkbox" id="marriageDeduction" style="width: 20px; height: 20px;">
-                        <label style="margin-bottom: 0;">혼인/출산 증여재산 공제 (1억 추가)</label>
+                        <input type="checkbox" id="marriageDeduction" style="width: 20px; height: 20px; accent-color: var(--neon-blue);">
+                        <label style="margin-bottom: 0; color: #4a4a4a; font-weight: 600;">혼인/출산 증여재산 공제 (1억 추가)</label>
                     </div>
                     <div style="margin-bottom:1.5rem;">
-                        <label>채무 인수액 (원)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">채무 인수액 (원)</label>
                         <input type="text" id="debts" value="0">
                     </div>
                     <div>
-                        <label>기납부 세액 (원)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">기납부 세액 (원)</label>
                         <input type="text" id="priorTax" value="0">
                     </div>
                 </div>
 
-                <button type="submit" class="calc-btn">증여세 계산 수행 // ANALYZE</button>
+                <button type="submit" class="calc-btn">증여세 정밀 분석 // ANALYZE</button>
             </div>
         </form>
 

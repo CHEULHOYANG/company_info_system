@@ -56,10 +56,11 @@
         
         label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.6rem; }
         input, select { 
-            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); 
-            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: white; font-size: 1rem; transition: 0.3s;
+            width: 100%; background: #fff; border: 1px solid rgba(0, 0, 0, 0.15); 
+            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: #000 !important; font-size: 1rem; transition: 0.3s;
         }
-        input:focus { border-color: var(--neon-blue); background: rgba(255, 255, 255, 0.08); outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+        input:focus, select:focus { border-color: var(--neon-blue); background: #fdfaf0; outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+        select option { background: #fff; color: #000; }
 
         .calc-btn {
             grid-column: span 2; background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
@@ -67,6 +68,20 @@
             font-family: 'Orbitron', 'Noto Sans KR', sans-serif; letter-spacing: 3px; transition: 0.4s;
         }
         .calc-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); }
+
+        /* Responsive Optimization */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .container { padding: 1.5rem; border-radius: 1.5rem; }
+            h1 { font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 2rem; }
+            .form-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+            .calc-btn { grid-column: auto; font-size: 0.9rem; padding: 1.1rem; }
+            .result-grid { grid-template-columns: 1fr; }
+            .final-result { grid-column: auto; padding: 1.5rem; }
+            .final-value { font-size: 2rem; }
+            .form-group { padding: 1.2rem; }
+            .main-nav-btn { top: 1rem; right: 1rem; padding: 0.5rem 1rem; font-size: 0.7rem; }
+        }
 
         .result-container { margin-top: 2.5rem; display: none; animation: fadeInUp 0.6s ease forwards; }
         .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
@@ -82,23 +97,15 @@
         .final-value { font-size: 3.5rem; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0.5rem; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Earth Rotation Layer */
-        .earth-container {
-            position: fixed; bottom: -120px; right: -120px; width: 620px; height: 620px;
-            pointer-events: none; z-index: -1; opacity: 0.7; filter: drop-shadow(0 0 50px rgba(0, 212, 255, 0.2));
-            animation: rotateEarth 320s linear infinite;
-        }
-        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .earth-img { width: 100%; height: 100%; object-fit: contain; }
+        /* Earth Rotation Fix */
+
     </style>
 </head>
 
 <body>
     <canvas id="particle-canvas"></canvas>
     <div class="shooting-star-container" id="shooting-stars"></div>
-    <div class="earth-container">
-        <img src="https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yNF9waG90b19vZl9lYXJ0aF9mcm9tX3NwYWNlX2lzb2xhdGVkX29uX3RyYW5zcGFyZW50X2JhXzkzNTY3MjFhLTk1NDQtNGVjMi1hYzRjLTZlODQzMWU0MzlhYl8xLnBuZw.png" class="earth-img" alt="Earth Rotation">
-    </div>
+
     <a href="/main" class="main-nav-btn">대시보드 복귀</a>
 
     <div class="container">
@@ -106,14 +113,14 @@
 
         <form id="acqForm">
             <div class="form-grid">
-                <div class="form-group">
-                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 부동산 정보</h3>
+                <div class="form-group" style="background: #fdfaf0; border: 1px solid #e6e1d3;">
+                    <h3 style="color: #000;"><span style="color:var(--neon-blue); margin-right:8px;">■</span> 부동산 정보</h3>
                     <div style="margin-bottom:1.2rem;">
-                        <label>취득 가액 (원)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">취득 가액 (원)</label>
                         <input type="text" id="acqPrice" placeholder="0" required>
                     </div>
                     <div>
-                        <label>부동산 종류</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">부동산 종류</label>
                         <select id="propertyType">
                             <option value="house">주택 (1주택자 기준)</option>
                             <option value="land">토지 / 상가 (4.6%)</option>
@@ -122,14 +129,14 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 면적 정보</h3>
+                <div class="form-group" style="background: #fdfaf0; border: 1px solid #e6e1d3;">
+                    <h3 style="color: #000;"><span style="color:var(--neon-blue); margin-right:8px;">■</span> 면적 정보</h3>
                     <div style="margin-bottom:1.2rem;">
-                        <label>전용 면적 (㎡)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">전용 면적 (㎡)</label>
                         <input type="number" id="areaSize" value="84" step="0.1">
                     </div>
                     <div>
-                        <label>농어촌특별세 대상 여부</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">농어촌특별세 대상 여부</label>
                         <select id="taxExempt">
                             <option value="no">85㎡ 이하 (농특세 비과세)</option>
                             <option value="yes">85㎡ 초과 (농특세 과세)</option>
@@ -137,7 +144,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="calc-btn">취득세 산출 시뮬레이션 // START</button>
+                <button type="submit" class="calc-btn">취득세 정밀 분석 // START</button>
             </div>
         </form>
 

@@ -65,7 +65,28 @@
         }
         .calc-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); }
 
-        .result-container { margin-top: 2.5rem; display: none; animation: fadeInUp 0.6s ease forwards; }
+        .date-select {
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;
+            width: 100%; cursor: pointer; transition: 0.3s; appearance: none; text-align-last: center;
+        }
+        .date-select:focus { border-color: var(--neon-blue); background: rgba(0, 212, 255, 0.1); }
+        .date-select option { background: #020817; color: #fff; }
+
+        /* Responsive Optimization */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .container { padding: 1.5rem; border-radius: 1.5rem; }
+            h1 { font-size: 1.8rem; letter-spacing: 2px; }
+            .form-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .calc-btn { grid-column: auto; font-size: 0.9rem; padding: 1.1rem; }
+            .result-grid { grid-template-columns: 1fr; }
+            .final-result { grid-column: auto; padding: 1.5rem; }
+            .final-value { font-size: 2rem; }
+            .date-select { font-size: 0.8rem; padding: 8px; }
+            .form-group { padding: 1.2rem; }
+            .main-nav-btn { top: 1rem; right: 1rem; padding: 0.5rem 1rem; font-size: 0.7rem; }
+        }
         .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         .result-item { background: rgba(255, 255, 255, 0.03); padding: 1.5rem; border-radius: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.05); }
         .result-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
@@ -80,50 +101,73 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Earth Rotation */
-        .earth-container {
-            position: fixed; bottom: -120px; right: -120px; width: 620px; height: 620px;
-            pointer-events: none; z-index: -1; opacity: 0.7; filter: drop-shadow(0 0 50px rgba(0, 212, 255, 0.2));
-            animation: rotateEarth 320s linear infinite;
-        }
-        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .earth-img { width: 100%; height: 100%; object-fit: contain; }
+
     </style>
 </head>
 
 <body>
     <canvas id="particle-canvas"></canvas>
     <div class="shooting-star-container" id="shooting-stars"></div>
-    <div class="earth-container">
-        <img src="https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yNF9waG90b19vZl9lYXJ0aF9mcm9tX3NwYWNlX2lzb2xhdGVkX29uX3RyYW5zcGFyZW50X2JhXzkzNTY3MjFhLTk1NDQtNGVjMi1hYzRjLTZlODQzMWU0MzlhYl8xLnBuZw.png" class="earth-img" alt="Earth Rotation">
-    </div>
+
     <a href="/main" class="main-nav-btn">대시보드 복귀</a>
 
     <div class="container">
         <h1>퇴직금 계산기</h1>
 
         <form id="retirementForm">
+            <div style="display:flex; justify-content:center; gap:30px; margin-bottom:30px; background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; border:1px solid rgba(0,212,255,0.2);">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--neon-blue); font-weight:800; font-size:1rem;">
+                    <input type="radio" name="calc-mode" value="EXECUTIVE" checked style="width:18px; height:18px; accent-color:var(--neon-blue);"> 대표임원
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:#fff; font-weight:600; font-size:1rem;">
+                    <input type="radio" name="calc-mode" value="EMPLOYEE" style="width:18px; height:18px; accent-color:var(--neon-blue);"> 일반직원
+                </label>
+            </div>
+
             <div class="form-grid">
                 <div class="form-group">
                     <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 근무 정보</h3>
-                    <div style="margin-bottom:1.2rem;">
-                        <label>입사일</label>
-                        <input type="date" id="joinDate" required>
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:flex; justify-content:space-between;">입사일 <i class="fas fa-calendar-alt" style="color:var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan);"></i></label>
+                        <div style="display:flex; gap:5px;">
+                            <select id="joinYear" class="date-select" style="flex:2;"></select>
+                            <select id="joinMonth" class="date-select" style="flex:1;">
+                                <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option>
+                                <option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option>
+                                <option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+                            </select>
+                            <select id="joinDay" class="date-select" style="flex:1;"></select>
+                        </div>
                     </div>
                     <div>
-                        <label>퇴사일</label>
-                        <input type="date" id="exitDate" required>
+                        <label style="display:flex; justify-content:space-between;">퇴사일 <i class="fas fa-calendar-check" style="color:#fff; text-shadow: 0 0 10px #fff;"></i></label>
+                        <div style="display:flex; gap:5px;">
+                            <select id="exitYear" class="date-select" style="flex:2;"></select>
+                            <select id="exitMonth" class="date-select" style="flex:1;">
+                                <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option>
+                                <option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option>
+                                <option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+                            </select>
+                            <select id="exitDay" class="date-select" style="flex:1;"></select>
+                        </div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 급여 정보</h3>
-                    <div style="margin-bottom:1.2rem;">
-                        <label>최근 3개월 월 기본급 합계 (원)</label>
+                    <div style="margin-bottom:1.5rem;">
+                        <label id="salaryLabel">최근 3개월 월 기본급 합계 (원)</label>
                         <input type="text" id="baseSalary" placeholder="0" required>
                     </div>
-                    <div>
-                        <label>연간 상여금 총액 (원)</label>
-                        <input type="text" id="bonusSalary" value="0">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div>
+                            <label>연간 상여금 총액 (원)</label>
+                            <input type="text" id="bonusSalary" value="0">
+                        </div>
+                        <div id="multiplierGroup" style="display:none;">
+                            <label>퇴직금 지급 배수</label>
+                            <input type="number" id="execMultiplier" value="2" min="1" step="0.5" style="padding: 0.8rem 1.1rem;">
+                        </div>
                     </div>
                 </div>
 
@@ -134,11 +178,11 @@
         <div id="retirementResult" class="result-container">
             <div class="result-grid">
                 <div class="result-item">
-                    <div class="result-label">총 재직일수</div>
-                    <div id="res-days" class="result-value">0 일</div>
+                    <div class="result-label">재직 기간</div>
+                    <div id="res-duration" class="result-value" style="color:var(--neon-cyan);">0년 0개월 (0일)</div>
                 </div>
                 <div class="result-item">
-                    <div class="result-label">평균 임금 (1일)</div>
+                    <div class="result-label" id="avgLabel">평균 임금 (1일)</div>
                     <div id="res-avg-daily" class="result-value">0 원</div>
                 </div>
                 <div class="final-result">
@@ -266,21 +310,86 @@
             }
         });
 
+        // Date Select Initializer (20 years ago support)
+        const currentYear = new Date().getFullYear();
+        function populateDateSelectors(prefix) {
+            const y = document.getElementById(prefix + 'Year');
+            const d = document.getElementById(prefix + 'Day');
+            for(let i = currentYear + 5; i >= currentYear - 50; i--) {
+                const opt = document.createElement('option');
+                opt.value = i; opt.textContent = i + '년';
+                if(i === currentYear) opt.selected = true;
+                y.appendChild(opt);
+            }
+            for(let i = 1; i <= 31; i++) {
+                const opt = document.createElement('option');
+                opt.value = i; opt.textContent = i + '일';
+                d.appendChild(opt);
+            }
+        }
+        populateDateSelectors('join');
+        populateDateSelectors('exit');
+
+        const multiplierGroup = document.getElementById('multiplierGroup');
+        const salaryLabel = document.getElementById('salaryLabel');
+        const avgLabel = document.getElementById('avgLabel');
+        const modeRadios = document.querySelectorAll('input[name="calc-mode"]');
+
+        modeRadios.forEach(r => {
+            r.addEventListener('change', () => {
+                if(r.value === 'EXECUTIVE') {
+                    multiplierGroup.style.display = 'block';
+                    salaryLabel.textContent = '최근 1년간 총 급여액 (비과세 제외)';
+                    avgLabel.textContent = '연평균 환산 급여 (1/10 기준)';
+                } else {
+                    multiplierGroup.style.display = 'none';
+                    salaryLabel.textContent = '최근 3개월 월 기본급 합계 (원)';
+                    avgLabel.textContent = '평균 임금 (1일)';
+                }
+            });
+        });
+
+        // Initialize state
+        if(document.querySelector('input[name="calc-mode"]:checked').value === 'EXECUTIVE') {
+            multiplierGroup.style.display = 'block';
+            salaryLabel.textContent = '최근 1년간 총 급여액 (비과세 제외)';
+        }
+
         document.getElementById('retirementForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const join = new Date(document.getElementById('joinDate').value);
-            const exit = new Date(document.getElementById('exitDate').value);
+            const join = new Date(document.getElementById('joinYear').value, document.getElementById('joinMonth').value - 1, document.getElementById('joinDay').value);
+            const exit = new Date(document.getElementById('exitYear').value, document.getElementById('exitMonth').value - 1, document.getElementById('exitDay').value);
             const base = parseInt(removeComma(document.getElementById('baseSalary').value)) || 0;
             const bonus = parseInt(removeComma(document.getElementById('bonusSalary').value)) || 0;
+            const isExecutive = document.querySelector('input[name="calc-mode"]:checked').value === 'EXECUTIVE';
+            const multiplier = parseFloat(document.getElementById('execMultiplier').value) || 1;
 
             if (exit <= join) return alert('퇴사일은 입사일보다 커야 합니다.');
 
-            const days = Math.floor((exit - join) / (1000 * 60 * 60 * 24));
-            const avgDaily = (base + (bonus / 4)) / 90;
-            const total = (avgDaily * 30) * (days / 365);
+            const diffTime = Math.abs(exit - join);
+            const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const years = Math.floor(days / 365);
+            const months = Math.floor((days % 365) / 30);
 
-            document.getElementById('res-days').textContent = addComma(days) + ' 일';
-            document.getElementById('res-avg-daily').textContent = addComma(Math.round(avgDaily)) + ' 원';
+            let avgDaily, total;
+
+            if(isExecutive) {
+                // 임원 세법 기준 한도 계산 (간략화: 최근 1년 총급여 기반)
+                // 실제 세법: (최근 3년 총급여 / 3) * 1/10 * 근속연수 * 배수
+                // 여기서는 입력받은 base가 최근 1년 총급여라고 가정
+                const annualAvg = base + bonus; 
+                avgDaily = annualAvg / 10; // 1/10 ratio for executive rule
+                total = avgDaily * (days / 365) * multiplier;
+                
+                document.getElementById('res-avg-daily').textContent = addComma(Math.round(avgDaily)) + ' 원 (환산)';
+            } else {
+                // 일반 직원 기준
+                avgDaily = (base + (bonus / 4)) / 90;
+                total = (avgDaily * 30) * (days / 365);
+                document.getElementById('res-avg-daily').textContent = addComma(Math.round(avgDaily)) + ' 원';
+            }
+
+            document.getElementById('res-duration').innerHTML = `${years}년 ${months}개월 <span style="font-size:0.8rem; color:var(--text-secondary); opacity:0.7;">(${addComma(days)}일)</span>`;
             document.getElementById('res-total').textContent = addComma(Math.round(total)) + ' 원';
             
             document.getElementById('retirementResult').style.display = 'block';

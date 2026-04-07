@@ -10219,6 +10219,29 @@ def api_email_delete_batch(batch_id):
     finally:
         conn.close()
 
+@app.route('/api/email/latest-body')
+def api_email_latest_body():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            SELECT body FROM send_batches 
+            WHERE user_id = ? AND body IS NOT NULL AND body != ''
+            ORDER BY sent_at DESC LIMIT 1
+        ''', (session['user_id'],))
+        row = cursor.fetchone()
+        if row:
+            return jsonify({'success': True, 'body': row['body']})
+        else:
+            return jsonify({'success': False, 'message': '저장된 이전 본문이 없습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/api/email/update-company', methods=['POST'])
 def api_email_update_company():
     if 'user_id' not in session:

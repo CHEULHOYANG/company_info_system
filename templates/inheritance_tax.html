@@ -56,10 +56,11 @@
         
         label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.6rem; }
         input, select { 
-            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); 
-            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: white; font-size: 1rem; transition: 0.3s;
+            width: 100%; background: #fff; border: 1px solid rgba(0, 0, 0, 0.15); 
+            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: #000 !important; font-size: 1rem; transition: 0.3s;
         }
-        input:focus { border-color: var(--neon-blue); background: rgba(255, 255, 255, 0.08); outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+        input:focus, select:focus { border-color: var(--neon-blue); background: #fdfaf0; outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+        select option { background: #fff; color: #000; }
 
         .calc-btn {
             grid-column: span 2; background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
@@ -68,46 +69,30 @@
         }
         .calc-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); }
 
-        .result-container { margin-top: 2.5rem; display: none; animation: fadeInUp 0.6s ease forwards; }
-        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .result-item { background: rgba(255, 255, 255, 0.03); padding: 1.5rem; border-radius: 1.2rem; border: 1px solid rgba(255, 255, 255, 0.05); }
-        .result-label { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
-        .result-value { font-size: 1.2rem; font-weight: 600; }
+        .calc-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4); }
 
-        .final-result {
-            grid-column: span 2; background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(123, 47, 255, 0.1));
-            border: 1px solid var(--neon-blue); padding: 2.5rem; text-align: center; border-radius: 1.5rem;
-        }
-        .final-label { color: var(--neon-blue); font-family: 'Orbitron', sans-serif; font-size: 1rem; letter-spacing: 3px; }
-        .final-value {
-            font-size: 3.5rem; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-blue));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0.5rem;
+        /* Responsive Optimization */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .container { padding: 1.5rem; border-radius: 1.5rem; }
+            h1 { font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 2rem; }
+            .form-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+            .calc-btn { grid-column: auto; font-size: 0.9rem; padding: 1.1rem; }
+            .result-grid { grid-template-columns: 1fr; }
+            .final-result { grid-column: auto; padding: 1.5rem; }
+            .final-value { font-size: 2rem; }
+            .form-group { padding: 1.2rem; }
+            .main-nav-btn { top: 1rem; right: 1rem; padding: 0.5rem 1rem; font-size: 0.7rem; }
         }
 
-        /* Earth Rotation */
-        .earth-container {
-            position: fixed; 
-            bottom: -150px; 
-            right: -150px; 
-            width: 450px; 
-            height: 450px;
-            pointer-events: none; 
-            z-index: -5; 
-            opacity: 0.45; 
-            filter: drop-shadow(0 0 40px rgba(0, 212, 255, 0.15));
-            animation: rotateEarth 280s linear infinite;
-        }
-        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .earth-img { width: 100%; height: 100%; object-fit: contain; }
+
     </style>
 </head>
 
 <body>
     <canvas id="particle-canvas"></canvas>
     <div class="shooting-star-container" id="shooting-stars"></div>
-    <div class="earth-container">
-        <img src="https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yNF9waG90b19vZl9lYXJ0aF9mcm9tX3NwYWNlX2lzb2xhdGVkX29uX3RyYW5zcGFyZW50X2JhXzkzNTY3MjFhLTk1NDQtNGVjMi1hYzRjLTZlODQzMWU0MzlhYl8xLnBuZw.png" class="earth-img" alt="Earth Rotation Element">
-    </div>
+
     <a href="/main" class="main-nav-btn">대시보드 복귀</a>
 
     <div class="container">
@@ -115,34 +100,48 @@
 
         <form id="inheritanceForm">
             <div class="form-grid">
-                <div class="form-group">
-                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 상속 자산</h3>
+                <div class="form-group" style="background: #fdfaf0; border: 1px solid #e6e1d3;">
+                    <h3 style="color: #000;"><span style="color:var(--neon-blue); margin-right:8px;">■</span> 상속 자산 구성</h3>
                     <div style="margin-bottom:1.5rem;">
-                        <label>총 상속 재산가액 (원)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">총 상속 재산가액 (부동산/예금 등)</label>
                         <input type="text" id="totalAsset" placeholder="0" required>
                     </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:1.5rem;">
+                        <div>
+                            <label style="color: #4a4a4a; font-weight: 600;">금융재산 가액</label>
+                            <input type="text" id="financialAsset" value="0">
+                        </div>
+                        <div>
+                            <label style="color: #4a4a4a; font-weight: 600;">사전증여재산 (10년이내)</label>
+                            <input type="text" id="preGift" value="0">
+                        </div>
+                    </div>
                     <div>
-                        <label>채무 및 장례비용 (원)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">비용 공제 (채무/장례비 등)</label>
                         <input type="text" id="debts" value="0">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 공제 및 관계</h3>
+                <div class="form-group" style="background: #fdfaf0; border: 1px solid #e6e1d3;">
+                    <h3 style="color: #000;"><span style="color:var(--neon-blue); margin-right:8px;">■</span> 공제 및 관계</h3>
                     <div style="margin-bottom:1.5rem;">
-                        <label>배우자 상속 여부</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">배우자 상속 여부</label>
                         <select id="spousePresence">
                             <option value="yes">배우자 있음 (최소 5억 공제)</option>
                             <option value="no">배우자 없음</option>
                         </select>
                     </div>
-                    <div>
-                        <label>실제 배우자 상속분 (원)</label>
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="color: #4a4a4a; font-weight: 600;">실제 배우자 상속분 (원)</label>
                         <input type="text" id="spouseAsset" value="0">
+                    </div>
+                    <div>
+                        <label style="color: #4a4a4a; font-weight: 600;">추정상속재산 (사용처불분명)</label>
+                        <input type="text" id="estimatedAsset" value="0">
                     </div>
                 </div>
 
-                <button type="submit" class="calc-btn">상속세 계산 수행 // ANALYZE</button>
+                <button type="submit" class="calc-btn">상속세 정밀 분석 // ANALYZE</button>
             </div>
         </form>
 
@@ -275,7 +274,7 @@
         function addComma(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
         function removeComma(x) { return x.replace(/,/g, ""); }
 
-        const inputIds = ['totalAsset', 'debts', 'spouseAsset'];
+        const inputIds = ['totalAsset', 'debts', 'spouseAsset', 'financialAsset', 'preGift', 'estimatedAsset'];
         inputIds.forEach(id => {
             const el = document.getElementById(id);
             if(el) {
@@ -289,18 +288,36 @@
         document.getElementById('inheritanceForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const total = parseInt(removeComma(document.getElementById('totalAsset').value)) || 0;
+            const financeAsset = parseInt(removeComma(document.getElementById('financialAsset').value)) || 0;
+            const preGift = parseInt(removeComma(document.getElementById('preGift').value)) || 0;
             const debt = parseInt(removeComma(document.getElementById('debts').value)) || 0;
             const spouseAct = parseInt(removeComma(document.getElementById('spouseAsset').value)) || 0;
+            const estimated = parseInt(removeComma(document.getElementById('estimatedAsset').value)) || 0;
             const spouseOn = document.getElementById('spousePresence').value;
 
+            // 1. 과세가액 산정 (자산 + 사전증여 + 추정재산 - 비용)
+            const grossAsset = total + preGift + estimated - debt;
+
+            // 2. 일괄공제 (기본 5억)
             let basicDed = 500000000;
+            
+            // 3. 배우자 공제 (최소 5억 ~ 최대 30억)
             let spouseDed = 0;
             if(spouseOn === 'yes') {
                 spouseDed = Math.max(500000000, Math.min(spouseAct, 3000000000));
             }
 
-            const taxBase = Math.max(0, total - debt - basicDed - spouseDed);
+            // 4. 금융재산 상속공제 (20%, 최대 2억)
+            let financeDed = 0;
+            if(financeAsset > 20000000) {
+                financeDed = Math.min(financeAsset * 0.2, 200000000);
+                if(financeDed < 20000000) financeDed = 20000000;
+            }
+
+            // 5. 과세표준
+            const taxBase = Math.max(0, grossAsset - basicDed - spouseDed - financeDed);
             
+            // 6. 세율 적용 (누진세율)
             let rate = 0, stepDed = 0;
             if(taxBase <= 100000000) { rate = 0.1; stepDed = 0; }
             else if(taxBase <= 500000000) { rate = 0.2; stepDed = 10000000; }
@@ -310,8 +327,8 @@
 
             const tax = (taxBase * rate) - stepDed;
 
-            document.getElementById('res-spouse-presence').textContent = spouseOn === 'yes' ? '있음' : '없음';
-            document.getElementById('res-spouse-deduction').textContent = addComma(spouseDed) + ' 원';
+            document.getElementById('res-spouse-presence').textContent = spouseOn === 'yes' ? '공제 대상' : '없음';
+            document.getElementById('res-spouse-deduction').textContent = addComma(spouseDed + financeDed + basicDed) + ' 원 (총 공제)';
             document.getElementById('res-tax-base').textContent = addComma(taxBase) + ' 원';
             document.getElementById('res-total-tax').textContent = addComma(Math.max(0, Math.round(tax))) + ' 원';
             

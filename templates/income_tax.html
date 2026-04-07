@@ -56,10 +56,11 @@
         
         label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.6rem; }
         input, select { 
-            width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); 
-            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: white; font-size: 1rem; transition: 0.3s;
+            width: 100%; background: #fff !important; border: 1px solid rgba(0, 0, 0, 0.2); 
+            padding: 0.9rem 1.1rem; border-radius: 0.6rem; color: #000 !important; font-size: 1rem; transition: 0.3s;
         }
-        input:focus { border-color: var(--neon-blue); background: rgba(255, 255, 255, 0.08); outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+        input:focus, select:focus { border-color: var(--neon-blue); background: #fdfaf0 !important; outline: none; box-shadow: 0 0 15px rgba(0, 212, 255, 0.2); }
+        select option { background: #fff; color: #000; }
 
         .calc-btn {
             grid-column: span 2; background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
@@ -79,29 +80,34 @@
             border: 1px solid var(--neon-blue); padding: 2.5rem; text-align: center; border-radius: 1.5rem;
         }
         .final-label { color: var(--neon-blue); font-family: 'Orbitron', 'Noto Sans KR', sans-serif; font-size: 1rem; letter-spacing: 3px; }
-        .final-value {
-            font-size: 3.5rem; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-blue));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0.5rem;
-        }
+        .final-value { font-size: 3.5rem; font-weight: 900; background: linear-gradient(90deg, #fff, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0.5rem; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Earth Rotation */
-        .earth-container {
-            position: fixed; bottom: -120px; right: -120px; width: 620px; height: 620px;
-            pointer-events: none; z-index: -1; opacity: 0.7; filter: drop-shadow(0 0 50px rgba(0, 212, 255, 0.2));
-            animation: rotateEarth 320s linear infinite;
+        .info-box { background: rgba(255, 255, 255, 0.05); border-left: 4px solid var(--neon-blue); padding: 1.5rem; margin-top: 2rem; font-size: 0.85rem; line-height: 1.6; color: var(--text-primary); border-radius: 0.5rem; }
+        .info-box ul { padding-left: 1.2rem; margin-top: 0.5rem; }
+        .info-title { color: var(--neon-blue); font-weight: 700; margin-bottom: 0.5rem; display: block; }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .container { padding: 1.5rem; border-radius: 1.5rem; }
+            h1 { font-size: 1.8rem; letter-spacing: 2px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .calc-btn { grid-column: auto; }
+            .result-grid { grid-template-columns: 1fr; }
+            .final-result { grid-column: auto; padding: 1.5rem; }
+            .final-value { font-size: 2.2rem; }
+            .main-nav-btn { top: 1rem; right: 1rem; padding: 0.5rem 1rem; font-size: 0.7rem; }
         }
-        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .earth-img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* Earth Rotation Fix */
+
     </style>
 </head>
 
 <body>
     <canvas id="particle-canvas"></canvas>
     <div class="shooting-star-container" id="shooting-stars"></div>
-    <div class="earth-container">
-        <img src="https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA4L3Jhd3BpeGVsX29mZmljZV8yNF9waG90b19vZl9lYXJ0aF9mcm9tX3NwYWNlX2lzb2xhdGVkX29uX3RyYW5zcGFyZW50X2JhXzkzNTY3MjFhLTk1NDQtNGVjMi1hYzRjLTZlODQzMWU0MzlhYl8xLnBuZw.png" class="earth-img" alt="Earth Rotation">
-    </div>
+
     <a href="/main" class="main-nav-btn">대시보드 복귀</a>
 
     <div class="container">
@@ -109,10 +115,10 @@
 
         <form id="incomeForm">
             <div class="form-grid">
-                <div class="form-group">
-                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 소득 정보 설정</h3>
+                <div class="form-group" style="background: #fdfaf0; border: 1px solid #e6e1d3;">
+                    <h3 style="color: #000;"><span style="color:var(--neon-blue); margin-right:8px;">■</span> 소득 정보 설정</h3>
                     <div style="margin-bottom:1.2rem;">
-                        <label>소득 유형</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">소득 유형</label>
                         <select id="incomeType">
                             <option value="business">사업소득 (개인사업자/프리랜서)</option>
                             <option value="wage">근로소득 (직장인)</option>
@@ -120,32 +126,39 @@
                         </select>
                     </div>
                     <div style="margin-bottom:1.2rem;">
-                        <label>연간 총 수입금액 (세전)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">연간 총 수입금액 (세전)</label>
                         <input type="text" id="totalIncome" placeholder="0" required>
                     </div>
                     <div>
-                        <label>필요경비 / 수입금액 제외액</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">필요경비 / 수입금액 제외액</label>
                         <input type="text" id="expenses" placeholder="0">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <h3><span style="color:var(--neon-blue); margin-right:8px;">■</span> 공제 정보 입력</h3>
+                <div class="form-group" style="background: #fdfaf0; border: 1px solid #e6e1d3;">
+                    <h3 style="color: #000;"><span style="color:var(--neon-blue); margin-right:8px;">■</span> 공제 정보 입력</h3>
                     <div style="margin-bottom:1.2rem;">
-                        <label>인적공제 (가족 수 포함)</label>
+                        <label style="color: #4a4a4a; font-weight: 600;">인적공제 (본인 포함 가족 수)</label>
                         <input type="number" id="familyCount" value="1" min="1">
                     </div>
                     <div style="margin-bottom:1.2rem;">
-                        <label>기타 소득공제 합계</label>
-                        <input type="text" id="otherDeductions" placeholder="0">
+                        <label style="color: #4a4a4a; font-weight: 600;">8세 이상 자녀 수 (자녀세액공제)</label>
+                        <input type="number" id="childCount" value="0" min="0">
                     </div>
-                    <div>
-                        <label>세액공제 / 감면액</label>
-                        <input type="text" id="taxCredits" placeholder="0">
+                    <div style="margin-bottom:1.2rem;">
+                        <label style="color: #4a4a4a; font-weight: 600;">혼인신고 여부 (2024~2026 신규)</label>
+                        <select id="isMarried">
+                            <option value="no">해당 없음</option>
+                            <option value="yes">당해년도 혼인 (50만원 공제)</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom:1.2rem;">
+                        <label style="color: #4a4a4a; font-weight: 600;">기타 소득공제 / 세액공제 합계</label>
+                        <input type="text" id="otherDeductions" placeholder="0">
                     </div>
                 </div>
 
-                <button type="submit" class="calc-btn">소득세 시뮬레이션 실행 // ANALYZE</button>
+                <button type="submit" class="calc-btn">소득세 정밀 분석 // ANALYZE</button>
             </div>
         </form>
 
@@ -282,7 +295,7 @@
         function addComma(x) { return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
         function removeComma(x) { return x.replace(/,/g, ""); }
 
-        const financeInputs = ['totalIncome', 'expenses', 'otherDeductions', 'taxCredits'];
+        const financeInputs = ['totalIncome', 'expenses', 'otherDeductions'];
         financeInputs.forEach(id => {
             const el = document.getElementById(id);
             if(el) {
@@ -298,10 +311,12 @@
             const inc = parseInt(removeComma(document.getElementById('totalIncome').value)) || 0;
             const exp = parseInt(removeComma(document.getElementById('expenses').value)) || 0;
             const family = parseInt(document.getElementById('familyCount').value) || 1;
+            const children = parseInt(document.getElementById('childCount').value) || 0;
+            const isMarried = document.getElementById('isMarried').value === 'yes';
             const otherDed = parseInt(removeComma(document.getElementById('otherDeductions').value)) || 0;
-            const credits = parseInt(removeComma(document.getElementById('taxCredits').value)) || 0;
             const type = document.getElementById('incomeType').value;
 
+            // Basic Tax Base: Income - Expenses - Basic Deduction (1.5M/person)
             const taxBase = Math.max(0, inc - exp - (family * 1500000) - otherDed);
             
             let rate = 0, stepDed = 0;
@@ -314,7 +329,16 @@
             else if(taxBase <= 1000000000) { rate = 0.42; stepDed = 35940000; }
             else { rate = 0.45; stepDed = 65940000; }
 
-            const basicTax = Math.max(0, (taxBase * rate) - stepDed - credits);
+            // 2026 Child Tax Credit: 1st 250k, 2nd 300k, 3rd+ 400k
+            let childCredit = 0;
+            if(children >= 1) childCredit += 250000;
+            if(children >= 2) childCredit += 300000;
+            if(children >= 3) childCredit += (children - 2) * 400000;
+
+            // 2026 Marriage Credit: 500k
+            let marriageCredit = isMarried ? 500000 : 0;
+
+            const basicTax = Math.max(0, (taxBase * rate) - stepDed - childCredit - marriageCredit);
             const totalTax = basicTax * 1.1;
 
             const typeMap = { 'business': '사업소득', 'wage': '근로소득', 'etc': '기타소득' };
@@ -325,6 +349,26 @@
             document.getElementById('res-total-tax').textContent = addComma(Math.round(totalTax)) + ' 원';
             
             document.getElementById('incomeResult').style.display = 'block';
+
+            // Add info box for 2026
+            if(!document.getElementById('tax-info')) {
+                const info = document.createElement('div');
+                info.id = 'tax-info';
+                info.className = 'info-box';
+                info.innerHTML = `
+                    <span class="info-title">💡 2026년 소득세 개정 확정 안내 (Update)</span>
+                    <ul>
+                        <li><b>자녀세액공제 대폭 확대:</b> 2026년부터 첫째 25만원, 둘째 30만원, 셋째 이후 인당 40만원으로 상향되었습니다.</li>
+                        <li><b>결혼세액공제 적용:</b> 2024~2026년 기간 중 혼인신고 시 1인당 50만원(부부 합산 100만원) 세액공제가 한시 적용됩니다.</li>
+                        <li><b>자녀보육수당 비과세 확대:</b> 기존 월 20만원 한도에서 자녀 1인당 월 20만원으로 비과세 혜택이 늘어났습니다.</li>
+                        <li><b>교육비 공제 범위 확대:</b> 만 9세 미만 자녀의 예능/체육시설 학원비가 세액공제 대상에 포함됩니다.</li>
+                    </ul>
+                `;
+                document.getElementById('incomeResult').appendChild(info);
+            } else {
+                document.getElementById('tax-info').querySelector('.info-title').textContent = "💡 2026년 소득세 개정 확정 안내 (Update)";
+            }
+
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         });
     </script>

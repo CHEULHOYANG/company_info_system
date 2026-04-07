@@ -46,13 +46,7 @@
             z-index: -1; pointer-events: none; overflow: hidden;
         }
 
-        .earth-container {
-            position: fixed; bottom: -50px; right: -50px; width: 400px; height: 400px;
-            pointer-events: none; z-index: -10; opacity: 0.5;
-            display: flex; align-items: flex-end; justify-content: flex-end;
-        }
-        .earth-img { width: 100%; height: 100%; animation: rotateEarth 100s linear infinite; filter: drop-shadow(0 0 30px rgba(0,212,255,0.3)); }
-        @keyframes rotateEarth { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
 
         header {
             height: 65px; display: flex; align-items: center; justify-content: space-between;
@@ -330,20 +324,7 @@
 <body>
     <canvas id="particle-canvas"></canvas>
     <div class="shooting-star-container" id="shooting-stars"></div>
-    <div class="earth-container">
-        <!-- Using high-reliability inline SVG to prevent broken image issues -->
-        <svg class="earth-img" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <radialGradient id="earthGradCorp" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:0.3" />
-                    <stop offset="100%" style="stop-color:#020617;stop-opacity:0.6" />
-                </radialGradient>
-            </defs>
-            <circle cx="50%" cy="50%" r="48" fill="url(#earthGradCorp)" stroke="#00d4ff" stroke-width="0.5" />
-            <path d="M50 2 A48 48 0 0 1 50 98 M2 50 A48 48 0 0 1 98 50 M15 50 A35 48 0 0 1 85 50 M50 15 A48 35 0 0 1 50 85" fill="none" stroke="rgba(0,212,255,0.2)" stroke-width="0.3" />
-            <path d="M30 25 Q40 30 45 20 T60 25 T75 35 T70 55 T50 70 T30 60 T25 40 Z" fill="rgba(0,212,255,0.15)" stroke="rgba(0,212,255,0.4)" stroke-width="0.5" />
-        </svg>
-    </div>
+
 
     <header>
         <div class="header-title">
