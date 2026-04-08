@@ -143,7 +143,13 @@ def api_v3_email_setup():
     cursor = conn.cursor()
     
     if request.method == 'GET':
-        cursor.execute('SELECT * FROM smtp_configs WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
+        # ct0001, ct0002는 서로의 SMTP 설정을 조회할 수 있음
+        allowed_users = [user_id]
+        if user_id in ['ct0001', 'ct0002']:
+            allowed_users = ['ct0001', 'ct0002']
+        
+        placeholders = ','.join(['?' for _ in allowed_users])
+        cursor.execute(f'SELECT * FROM smtp_configs WHERE user_id IN ({placeholders}) ORDER BY created_at DESC', allowed_users)
         configs = [dict(row) for row in cursor.fetchall()]
         conn.close()
         return jsonify({'success': True, 'configs': configs})
@@ -163,12 +169,21 @@ def api_v3_email_setup():
             
         try:
             if config_id:
-                cursor.execute('''
-                    UPDATE smtp_configs SET 
-                        config_name = ?, smtp_server = ?, smtp_port = ?, 
-                        sender_email = ?, sender_password = ?
-                    WHERE config_id = ? AND user_id = ?
-                ''', (config_name, smtp_server, smtp_port, sender_email, sender_password, config_id, user_id))
+                # 수정 시에도 ct0001과 ct0002 권한 체크
+                if user_id in ['ct0001', 'ct0002']:
+                    cursor.execute('''
+                        UPDATE smtp_configs SET 
+                            config_name = ?, smtp_server = ?, smtp_port = ?, 
+                            sender_email = ?, sender_password = ?
+                        WHERE config_id = ? AND user_id IN ('ct0001', 'ct0002')
+                    ''', (config_name, smtp_server, smtp_port, sender_email, sender_password, config_id))
+                else:
+                    cursor.execute('''
+                        UPDATE smtp_configs SET 
+                            config_name = ?, smtp_server = ?, smtp_port = ?, 
+                            sender_email = ?, sender_password = ?
+                        WHERE config_id = ? AND user_id = ?
+                    ''', (config_name, smtp_server, smtp_port, sender_email, sender_password, config_id, user_id))
                 message = 'SMTP 설정이 수정되었습니다.'
             else:
                 cursor.execute('''
@@ -461,40 +476,6 @@ def init_emergency_database(conn):
         
     except Exception as e:
         print(f"Error creating emergency database: {e}")
-
-# 구독 정보 조회 함수
-def get_user_subscription_info(user_id):
-    """사용자의 구독 정보를 조회합니다."""
-    conn = get_db_connection()
-    try:
-        subscription = conn.execute('''
-            SELECT subscription_type, subscription_start_date, subscription_end_date
-            FROM User_Subscriptions 
-            WHERE user_id = ?
-        ''', (user_id,)).fetchone()
-        
-        if subscription:
-            from datetime import datetime
-            import pytz
-            
-            # 한국 시간대로 현재 날짜 계산
-            korea_tz = pytz.timezone('Asia/Seoul')
-            now = datetime.now(korea_tz)
-            end_date = datetime.strptime(subscription['subscription_end_date'], '%Y-%m-%d')
-            end_date = korea_tz.localize(end_date.replace(hour=23, minute=59, second=59))
-            
-            days_remaining = (end_date - now).days
-            
-            return {
-                'subscription_type': subscription['subscription_type'],
-                'start_date': subscription['subscription_start_date'],
-                'end_date': subscription['subscription_end_date'],
-                'days_remaining': days_remaining
-            }
-        else:
-            return None
-    finally:
-        conn.close()
 
 # 사용자 테이블 초기화 함수
 def init_user_tables():
@@ -10143,17 +10124,33 @@ def api_email_batch_send_new():
         if row:
             group_name = row['name']
     
-    cursor.execute('SELECT * FROM smtp_configs WHERE config_id = ? AND user_id = ?', (smtp_config_id, user_id))
+    # ct0001, ct0002는 SMTP 설정을 서로 공유할 수 있음
+    smtp_users = [user_id]
+    if user_id in ['ct0001', 'ct0002']:
+        smtp_users = ['ct0001', 'ct0002']
+    
+    placeholders_smtp = ','.join(['?' for _ in smtp_users])
+    cursor.execute(f'SELECT * FROM smtp_configs WHERE config_id = ? AND user_id IN ({placeholders_smtp})', 
+                   [smtp_config_id] + smtp_users)
     config = cursor.fetchone()
     if not config:
         conn.close()
         return jsonify({'success': False, 'message': 'SMTP 설정을 찾을 수 없습니다.'}), 404
         
-    # Get company details for personalization
+    # Get company details for personalization (반송된 이메일 제외)
     placeholders = ','.join(['?'] * len(biz_nos))
-    cursor.execute(f'SELECT biz_no, company_name, representative_name, email, phone_number, phone_number as phone, address FROM Company_Basic WHERE biz_no IN ({placeholders})', biz_nos)
+    cursor.execute(f'SELECT biz_no, company_name, representative_name, email, phone_number, phone_number as phone, address FROM Company_Basic WHERE biz_no IN ({placeholders}) AND (email_usable = 1 OR email_usable IS NULL)', biz_nos)
     companies = [dict(row) for row in cursor.fetchall()]
+    
+    # 반송된 이메일 확인
+    cursor.execute(f'SELECT COUNT(*) as bounce_count FROM Company_Basic WHERE biz_no IN ({placeholders}) AND email_usable = 0', biz_nos)
+    bounce_info = cursor.fetchone()
+    bounce_count = bounce_info['bounce_count'] if bounce_info else 0
+    
     conn.close()
+    
+    if bounce_count > 0 and len(companies) > 0:
+        print(f"[INFO] {bounce_count}건의 반송된 이메일이 제외되었습니다.")
     
     # Initialize EmailSender with the retrieved config
     from email_service import EmailSender
@@ -10181,18 +10178,176 @@ def api_email_batches():
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
     
-    from email_service import get_all_batches
-    batches = get_all_batches(session['user_id'])
-    return jsonify({'success': True, 'batches': batches})
+    user_id = session['user_id']
+    
+    # ct0001, ct0002는 서로의 이메일 배치를 공유할 수 있음
+    allowed_users = [user_id]
+    if user_id in ['ct0001', 'ct0002']:
+        allowed_users = ['ct0001', 'ct0002']
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        placeholders = ','.join(['?' for _ in allowed_users])
+        query = f"""
+            SELECT batch_id, user_id, subject, total_count, sent_count, 
+                   success_count, fail_count, status, sent_at, completed_at, group_name
+            FROM send_batches 
+            WHERE user_id IN ({placeholders})
+            ORDER BY sent_at DESC
+            LIMIT 50
+        """
+        batches = cursor.execute(query, allowed_users).fetchall()
+        return jsonify({'success': True, 'batches': [dict(row) for row in batches]})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+# 이메일 발송 내역 조회 (상세)
+@app.route('/api/email/history')
+def api_email_send_history():
+    """이메일 발송 이력 전체 조회 - ct0001/ct0002 공유"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    user_id = session['user_id']
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('limit', 20, type=int)
+    offset = (page - 1) * per_page
+    
+    # ct0001, ct0002는 서로의 이메일 발송 이력을 조회 가능
+    allowed_users = [user_id]
+    if user_id in ['ct0001', 'ct0002']:
+        allowed_users = ['ct0001', 'ct0002']
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        placeholders = ','.join(['?' for _ in allowed_users])
+        
+        # 전체 개수 조회
+        count_query = f"""
+            SELECT COUNT(*) as total FROM send_batches 
+            WHERE user_id IN ({placeholders})
+        """
+        total = cursor.execute(count_query, allowed_users).fetchone()['total']
+        
+        # 페이지네이션 조회
+        query = f"""
+            SELECT batch_id, user_id, subject, total_count, sent_count, 
+                   success_count, fail_count, status, sent_at, completed_at, group_name, last_error
+            FROM send_batches 
+            WHERE user_id IN ({placeholders})
+            ORDER BY sent_at DESC
+            LIMIT ? OFFSET ?
+        """
+        batches = cursor.execute(query, allowed_users + [per_page, offset]).fetchall()
+        
+        return jsonify({
+            'success': True,
+            'batches': [dict(row) for row in batches],
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': total,
+                'total_pages': (total + per_page - 1) // per_page
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+# 개별 배치 발송 상세 로그 조회
+@app.route('/api/email/batch-logs/<batch_id>')
+def api_email_batch_logs(batch_id):
+    """특정 배치의 개별 발송 로그 조회"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    user_id = session['user_id']
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 배치 정보 조회 및 권한 검증
+        batch = cursor.execute(
+            'SELECT user_id FROM send_batches WHERE batch_id = ?',
+            (batch_id,)
+        ).fetchone()
+        
+        if not batch:
+            return jsonify({'success': False, 'message': '배치를 찾을 수 없습니다.'}), 404
+        
+        # ct0001/ct0002 공유 권한 체크
+        if user_id not in [batch['user_id']]:
+            if not (user_id in ['ct0001', 'ct0002'] and batch['user_id'] in ['ct0001', 'ct0002']):
+                return jsonify({'success': False, 'message': '접근 권한이 없습니다.'}), 403
+        
+        # 로그 조회
+        logs = cursor.execute("""
+            SELECT id, batch_id, biz_no, email, group_name, subject, status, sent_at, error_msg
+            FROM email_send_log 
+            WHERE batch_id = ?
+            ORDER BY sent_at DESC
+        """, (batch_id,)).fetchall()
+        
+        return jsonify({
+            'success': True,
+            'logs': [dict(log) for log in logs]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
 
 @app.route('/api/email/batch-details/<batch_id>')
 def api_email_batch_details(batch_id):
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
     
-    from email_service import get_email_history
-    history = get_email_history(batch_id)
-    return jsonify({'success': True, 'details': history})
+    user_id = session['user_id']
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 배치 정보 조회
+        batch = cursor.execute(
+            'SELECT * FROM send_batches WHERE batch_id = ?', 
+            (batch_id,)
+        ).fetchone()
+        
+        if not batch:
+            return jsonify({'success': False, 'message': '배치를 찾을 수 없습니다.'}), 404
+        
+        # ct0001, ct0002는 서로의 데이터를 볼 수 있음
+        batch_user = batch['user_id']
+        if user_id not in ['ct0001', 'ct0002'] and batch_user != user_id:
+            return jsonify({'success': False, 'message': '접근 권한이 없습니다.'}), 403
+        if user_id in ['ct0001', 'ct0002'] and batch_user not in ['ct0001', 'ct0002']:
+            return jsonify({'success': False, 'message': '접근 권한이 없습니다.'}), 403
+        
+        # 개별 이메일 로그 조회
+        logs = cursor.execute(
+            """SELECT batch_id, biz_no, email, group_name, subject, status, 
+                      sent_at, error_msg
+               FROM email_send_log 
+               WHERE batch_id = ?
+               ORDER BY sent_at DESC""",
+            (batch_id,)
+        ).fetchall()
+        
+        batch_dict = dict(batch)
+        batch_dict['logs'] = [dict(log) for log in logs]
+        
+        return jsonify({'success': True, 'details': batch_dict})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
 
 @app.route('/api/email/delete-batch/<batch_id>', methods=['DELETE'])
 def api_email_delete_batch(batch_id):
@@ -10494,6 +10649,261 @@ def api_email_check_bounces():
     return jsonify(result)
 
 
+@app.route('/api/email/bounced-emails', methods=['GET'])
+def api_email_bounced_emails():
+    """반송된 이메일 목록 조회 (email_usable=0)"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    offset = (page - 1) * per_page
+    
+    # 필터 옵션
+    search_term = request.args.get('search', '', type=str)
+    date_from = request.args.get('date_from', '', type=str)
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # 반송 이메일 총 개수 조회
+    query_count = '''
+        SELECT COUNT(*) as total 
+        FROM Company_Basic 
+        WHERE email_usable = 0 AND last_send_status = 'BOUNCE'
+    '''
+    params = []
+    
+    if search_term:
+        query_count += ' AND (email LIKE ? OR company_name LIKE ?)'
+        params.extend([f'%{search_term}%', f'%{search_term}%'])
+    
+    if date_from:
+        query_count += ' AND last_send_at >= ?'
+        params.append(date_from)
+    
+    cursor.execute(query_count, params)
+    total = cursor.fetchone()['total']
+    
+    # 반송 이메일 목록 조회
+    query = '''
+        SELECT biz_no, company_name, email, phone_number, last_send_at, 
+               representative_name, region
+        FROM Company_Basic 
+        WHERE email_usable = 0 AND last_send_status = 'BOUNCE'
+    '''
+    
+    params = []
+    if search_term:
+        query += ' AND (email LIKE ? OR company_name LIKE ?)'
+        params.extend([f'%{search_term}%', f'%{search_term}%'])
+    
+    if date_from:
+        query += ' AND last_send_at >= ?'
+        params.append(date_from)
+    
+    query += ' ORDER BY last_send_at DESC LIMIT ? OFFSET ?'
+    params.extend([per_page, offset])
+    
+    cursor.execute(query, params)
+    bounced_emails = [dict(row) for row in cursor.fetchall()]
+    
+    # 반송 로그 상세 정보 (상위 5개 샘플)
+    log_query = '''
+        SELECT email, error_msg, sent_at, COUNT(*) as count
+        FROM email_send_log
+        WHERE status = 'BOUNCE'
+        GROUP BY email
+        ORDER BY sent_at DESC
+        LIMIT 5
+    '''
+    cursor.execute(log_query)
+    bounce_logs = [dict(row) for row in cursor.fetchall()]
+    
+    conn.close()
+    
+    return jsonify({
+        'success': True,
+        'data': {
+            'bounced_emails': bounced_emails,
+            'total': total,
+            'page': page,
+            'per_page': per_page,
+            'pages': (total + per_page - 1) // per_page,
+            'recent_bounces': bounce_logs
+        }
+    })
+
+
+@app.route('/api/email/bounce-stats', methods=['GET'])
+def api_email_bounce_stats():
+    """반송 통계 조회"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # 1. 전체 반송 수
+    cursor.execute('SELECT COUNT(*) as count FROM Company_Basic WHERE email_usable = 0 AND last_send_status = "BOUNCE"')
+    total_bounce = cursor.fetchone()['count']
+    
+    # 2. 발송될 수 없는 이메일 (no email)
+    cursor.execute('SELECT COUNT(*) as count FROM Company_Basic WHERE (email IS NULL OR email = "")')
+    no_email = cursor.fetchone()['count']
+    
+    # 3. 정상 발송 가능 이메일
+    cursor.execute('SELECT COUNT(*) as count FROM Company_Basic WHERE email_usable = 1 AND email IS NOT NULL AND email != ""')
+    valid_email = cursor.fetchone()['count']
+    
+    # 4. 최근 반송 (7일)
+    cursor.execute('''
+        SELECT COUNT(*) as count FROM Company_Basic 
+        WHERE email_usable = 0 
+        AND last_send_status = 'BOUNCE'
+        AND last_send_at >= datetime('now', '-7 days')
+    ''')
+    recent_bounce = cursor.fetchone()['count']
+    
+    # 5. 발송 배치 현황
+    cursor.execute('''
+        SELECT status, COUNT(*) as count FROM send_batches
+        GROUP BY status
+    ''')
+    batch_stats = {row['status']: row['count'] for row in cursor.fetchall()}
+    
+    # 6. 지역별 반송 통계
+    cursor.execute('''
+        SELECT region, COUNT(*) as count 
+        FROM Company_Basic
+        WHERE email_usable = 0 AND last_send_status = 'BOUNCE'
+        GROUP BY region
+        ORDER BY count DESC
+        LIMIT 10
+    ''')
+    region_stats = [dict(row) for row in cursor.fetchall()]
+    
+    conn.close()
+    
+    return jsonify({
+        'success': True,
+        'data': {
+            'total_bounce': total_bounce,
+            'no_email': no_email,
+            'valid_email': valid_email,
+            'recent_bounce_7days': recent_bounce,
+            'batch_stats': batch_stats,
+            'region_stats': region_stats
+        }
+    })
+
+
+@app.route('/api/email/recover-bounce', methods=['POST'])
+def api_email_recover_bounce():
+    """반송된 이메일 복구 (email_usable을 1로 변경)"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    data = request.json or {}
+    biz_no = data.get('biz_no')
+    
+    if not biz_no:
+        return jsonify({'success': False, 'message': '사업자번호가 필요합니다.'}), 400
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 현재 상태 확인
+        cursor.execute('SELECT email, email_usable, last_send_status FROM Company_Basic WHERE biz_no = ?', (biz_no,))
+        company = cursor.fetchone()
+        
+        if not company:
+            return jsonify({'success': False, 'message': '기업 정보를 찾을 수 없습니다.'}), 404
+        
+        if not company['email']:
+            return jsonify({'success': False, 'message': '이메일 주소가 없습니다.'}), 400
+        
+        # 복구 처리
+        cursor.execute('''
+            UPDATE Company_Basic
+            SET email_usable = 1, last_send_status = 'RECOVERED', last_send_at = ?
+            WHERE biz_no = ?
+        ''', (datetime.now().isoformat(), biz_no))
+        
+        # 로그 기록
+        cursor.execute('''
+            INSERT INTO email_send_log 
+            (batch_id, biz_no, email, status, sent_at, error_msg)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (f'RECOVER-{datetime.now().timestamp()}', biz_no, company['email'], 
+              'RECOVERED', datetime.now().isoformat(), f"반송 복구: {company['last_send_status']}"))
+        
+        conn.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'이메일이 복구되었습니다: {company["email"]}',
+            'data': {'biz_no': biz_no, 'email': company['email'], 'status': 'RECOVERED'}
+        })
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/email/bulk-recover-bounces', methods=['POST'])
+def api_email_bulk_recover_bounces():
+    """일괄 반송 복구"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    data = request.json or {}
+    action = data.get('action', 'all')  # 'all' or 'list'
+    biz_nos = data.get('biz_nos', [])
+    
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        if action == 'all':
+            # 모든 반송 이메일 복구
+            cursor.execute('''
+                UPDATE Company_Basic
+                SET email_usable = 1, last_send_status = 'BULK_RECOVERED', last_send_at = ?
+                WHERE email_usable = 0 AND last_send_status = 'BOUNCE'
+            ''', (datetime.now().isoformat(),))
+            
+            recovered_count = cursor.rowcount
+        else:
+            # 특정 목록 복구
+            if not biz_nos:
+                return jsonify({'success': False, 'message': '사업자번호 목록이 필요합니다.'}), 400
+            
+            placeholders = ','.join(['?'] * len(biz_nos))
+            cursor.execute(f'''
+                UPDATE Company_Basic
+                SET email_usable = 1, last_send_status = 'BULK_RECOVERED', last_send_at = ?
+                WHERE biz_no IN ({placeholders}) AND email_usable = 0
+            ''', [datetime.now().isoformat()] + biz_nos)
+            
+            recovered_count = cursor.rowcount
+        
+        conn.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'{recovered_count}건의 반송된 이메일이 복구되었습니다.',
+            'data': {'recovered_count': recovered_count}
+        })
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        conn.close()
+
+
 @app.route('/api/email/upload-bulk-results', methods=['POST'])
 def api_email_upload_bulk_results():
     """외부 결과 CSV 파일을 업로드하여 시스템에 일괄 반영합니다."""
@@ -10592,6 +11002,7 @@ def api_email_delete_batches():
 
 
 if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
     initialize_db()
     app.run(host='0.0.0.0', port=5000, debug=True)
