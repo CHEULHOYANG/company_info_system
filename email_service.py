@@ -310,13 +310,20 @@ def get_email_groups():
     return groups
 
 def get_group_members(group_id):
+    """
+    그룹에 속한 모든 멤버를 조회합니다.
+    반송 상태(email_usable=0)도 함께 반환하여 UI에서 표시할 수 있게 합니다.
+    """
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT cb.biz_no, cb.company_name, cb.email, cb.representative_name 
+        SELECT cb.biz_no, cb.company_name, cb.email, cb.representative_name, 
+               cb.email_usable, cb.last_send_status, cb.region
         FROM Company_Basic cb
         JOIN email_group_members egm ON cb.biz_no = egm.biz_no
-        WHERE egm.group_id = ? AND cb.email_usable = 1
+        WHERE egm.group_id = ?
+        ORDER BY CASE WHEN cb.email_usable = 0 THEN 1 ELSE 0 END,
+                 cb.company_name
     ''', (group_id,))
     members = [dict(row) for row in cursor.fetchall()]
     conn.close()
@@ -563,8 +570,14 @@ class EmailReceiver:
         반송된 이메일 주소 목록(소문자 set)을 반환합니다.
         """
         bounced = set()
+        mail = None
         try:
-            mail = self.connect()
+            try:
+                mail = self.connect()
+            except imaplib.IMAP4.error as e:
+                raise Exception(f"IMAP 인증 실패: {str(e)}. 비밀번호 또는 IMAP 서버 설정을 확인해주세요.")
+            except Exception as e:
+                raise Exception(f"IMAP 연결 실패 ({self.imap_server}:{self.imap_port}): {str(e)}")
             
             # Gmail의 경우 "[Gmail]/All Mail" (전체보관함)을 우선 시도 (가장 확실함)
             # 다른 서버는 INBOX를 기본으로 사용
@@ -632,6 +645,12 @@ class EmailReceiver:
         except Exception as e:
             print(f"[EmailReceiver] IMAP 연결/검색 오류: {e}")
             raise
+        finally:
+            try:
+                if mail:
+                    mail.logout()
+            except:
+                pass
 
         return bounced
 

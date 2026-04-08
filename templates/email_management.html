@@ -1385,16 +1385,24 @@
                         <span style="font-size:0.75rem; color:var(--neon-cyan);">INNER NODES</span>
                         <button class="btn btn-outline" style="padding:4px 8px; font-size:0.6rem;" onclick="selectAllInGroup(event, ${groupId})">전체 선택</button>
                     </div>
-                    ${data.members.map(m => `
-                        <div class="member-item">
-                            <input type="checkbox" class="member-checkbox" ${selectedBizNos.has(m.biz_no) ? 'checked' : ''} 
+                    ${data.members.map(m => {
+                        const isBounce = m.email_usable === 0;
+                        const bounceStyle = isBounce ? 'opacity: 0.6; background: rgba(255, 77, 77, 0.1);' : '';
+                        const bounceLabel = isBounce ? ' 🔴 반송됨' : '';
+                        return `
+                        <div class="member-item" style="${bounceStyle}">
+                            <input type="checkbox" class="member-checkbox" 
+                                   ${selectedBizNos.has(m.biz_no) && !isBounce ? 'checked' : ''} 
+                                   ${isBounce ? 'disabled' : ''}
                                    onchange="toggleMemberSelection('${m.biz_no}')">
                             <div style="flex:1;">
-                                <div style="font-weight:700;">${m.company_name}</div>
-                                <div style="font-size:0.7rem; color:var(--text-secondary);">${formatBizNo(m.biz_no)} | ${m.email || '<span style="color:#ff4d4d;">N/A</span>'}</div>
+                                <div style="font-weight:700; color: ${isBounce ? '#ff6b6b' : '#fff'};">${m.company_name}${bounceLabel}</div>
+                                <div style="font-size:0.7rem; color:${isBounce ? '#ff9999' : 'var(--text-secondary)'};">${formatBizNo(m.biz_no)} | ${m.email || '<span style="color:#ff4d4d;">N/A</span>'}</div>
+                                ${isBounce ? `<div style="font-size:0.65rem; color:#ff6b6b; margin-top:3px;">최종상태: ${m.last_send_status}</div>` : ''}
                             </div>
                         </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 `;
             }
         }
@@ -1445,12 +1453,17 @@
             if (event) event.stopPropagation();
             const data = await fetchAPI(`/api/email/group-members/${groupId}`);
             if (data.success) {
-                const someMissing = data.members.some(m => !selectedBizNos.has(m.biz_no));
+                // 반송되지 않은 기업만 필터링
+                const validMembers = data.members.filter(m => m.email_usable !== 0 && m.email_usable !== '0');
+                const someMissing = validMembers.some(m => !selectedBizNos.has(m.biz_no));
+                
                 if (someMissing) {
-                    data.members.forEach(m => selectedBizNos.add(m.biz_no));
+                    // 반송되지 않은 기업만 추가
+                    validMembers.forEach(m => selectedBizNos.add(m.biz_no));
                     activeGroupIds.add(groupId);
                 } else {
-                    data.members.forEach(m => selectedBizNos.delete(m.biz_no));
+                    // 모두 선택 해제
+                    validMembers.forEach(m => selectedBizNos.delete(m.biz_no));
                     activeGroupIds.delete(groupId);
                 }
                 

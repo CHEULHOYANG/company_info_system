@@ -10644,9 +10644,18 @@ def api_email_check_bounces():
         conn2.commit()
         conn2.close()
 
-    from email_service import check_bounce_and_update
-    result = check_bounce_and_update(int(smtp_config_id), since_date)
-    return jsonify(result)
+    try:
+        from email_service import check_bounce_and_update
+        result = check_bounce_and_update(int(smtp_config_id), since_date)
+        return jsonify(result)
+    except Exception as e:
+        error_msg = str(e)
+        print(f"[api_email_check_bounces] Error: {error_msg}")
+        return jsonify({
+            'success': False, 
+            'message': f'반송 검사 실패: {error_msg}',
+            'error_details': error_msg
+        }), 500
 
 
 @app.route('/api/email/bounced-emails', methods=['GET'])
