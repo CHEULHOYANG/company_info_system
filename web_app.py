@@ -10067,19 +10067,59 @@ def api_email_target_groups_list():
         
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('SELECT group_name, COUNT(*) as cnt FROM send_batches GROUP BY group_name')
-    send_counts = {row['group_name']: row['cnt'] for row in cursor.fetchall() if row['group_name']}
+
+    # 그룹별 반송 기업 수, 전송가능 기업 수, 발송 횟수 통합 조회
+    group_bounce_info = {}
+    group_sent_counts = {}
+    if groups:
+        group_ids = [g['id'] for g in groups]
+        placeholders = ','.join(['?'] * len(group_ids))
+
+        # 1) 반송/활성 기업 수 집계
+        cursor.execute(f'''
+            SELECT egm.group_id,
+                   COUNT(*) as total,
+                   SUM(CASE WHEN cb.email_usable = 0 THEN 1 ELSE 0 END) as bounce_count,
+                   SUM(CASE WHEN cb.email_usable = 1 THEN 1 ELSE 0 END) as active_count
+            FROM email_group_members egm
+            JOIN Company_Basic cb ON egm.biz_no = cb.biz_no
+            WHERE egm.group_id IN ({placeholders})
+            GROUP BY egm.group_id
+        ''', group_ids)
+        for row in cursor.fetchall():
+            group_bounce_info[row['group_id']] = {
+                'bounce_count': row['bounce_count'] or 0,
+                'active_count': row['active_count'] or 0
+            }
+
+        # 2) 실제 발송 횟수: email_send_log에서 그룹 멤버에게 발송된 배치 수를 집계
+        #    (group_name 문자열 매칭이 아닌 실제 biz_no 기준)
+        cursor.execute(f'''
+            SELECT egm.group_id, COUNT(DISTINCT esl.batch_id) as sent_times
+            FROM email_group_members egm
+            JOIN email_send_log esl ON egm.biz_no = esl.biz_no
+                AND esl.status IN ('SUCCESS', 'BOUNCE', 'FAIL')
+            WHERE egm.group_id IN ({placeholders})
+            GROUP BY egm.group_id
+        ''', group_ids)
+        for row in cursor.fetchall():
+            group_sent_counts[row['group_id']] = row['sent_times'] or 0
+
     conn.close()
-        
+
     # Standardize field names for frontend: name -> range, member_count -> count
     formatted = []
     for g in groups:
-        sent_times = send_counts.get(g['name'], 0)
+        # 실제 발송 배치 수 우선, 없으면 group_name 기준 fallback
+        sent_times = group_sent_counts.get(g['id'], 0)
+        bounce_info = group_bounce_info.get(g['id'], {'bounce_count': 0, 'active_count': g['member_count']})
         formatted.append({
             'id': g['id'],
             'range': g['name'],
             'count': g['member_count'],
-            'sent_times': sent_times
+            'sent_times': sent_times,
+            'bounce_count': bounce_info['bounce_count'],
+            'active_count': bounce_info['active_count']
         })
     return jsonify({'success': True, 'groups': formatted})
 

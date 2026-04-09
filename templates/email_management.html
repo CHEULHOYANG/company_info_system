@@ -159,6 +159,48 @@
         .ql-snow .ql-active { color: var(--neon-blue) !important; }
 
 
+        /* 🎯 Date Input 시인성 강화 (블랙 테마 완전 대응) */
+        input[type="date"] {
+            color-scheme: dark;
+            color: #ffffff !important;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) brightness(1.5);
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        input[type="date"]::-webkit-datetime-edit { color: #ffffff !important; }
+        input[type="date"]::-webkit-datetime-edit-fields-wrapper { color: #ffffff !important; }
+        input[type="date"]::-webkit-datetime-edit-text { color: rgba(255,255,255,0.6) !important; }
+        input[type="date"]::-webkit-datetime-edit-month-field,
+        input[type="date"]::-webkit-datetime-edit-day-field,
+        input[type="date"]::-webkit-datetime-edit-year-field { color: #ffffff !important; }
+        /* select 다크 테마 강화 */
+        select.dark-select { color: #fff !important; background-color: rgba(0,0,0,0.5) !important; }
+        /* 반송 패널 전용 스타일 */
+        #bounce-check-panel select,
+        #bounce-check-panel input[type="date"] {
+            color: #ffffff !important;
+            background: rgba(10, 20, 50, 0.7) !important;
+            border: 1px solid rgba(0, 212, 255, 0.3) !important;
+        }
+        /* 반송 기업 수 표시 뱃지 */
+        .bounce-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: rgba(248, 113, 113, 0.15); color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.4); border-radius: 6px;
+            padding: 2px 8px; font-size: 0.62rem; font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        .all-bounce-badge {
+            background: rgba(220, 38, 38, 0.2); color: #fca5a5;
+            border: 1px solid rgba(220, 38, 38, 0.5); border-radius: 6px;
+            padding: 3px 10px; font-size: 0.65rem; font-weight: 900;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; } 50% { opacity: 0.6; }
+        }
 
         /* Group Cluster Grid */
         .group-boxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
@@ -665,18 +707,18 @@
                             다음 타겟 그룹 생성 시 자동으로 제외됩니다.
                         </p>
                         <div style="margin-bottom:16px;">
-                            <label style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:6px;">SMTP 계정 선택</label>
-                            <select id="bounce-smtp-select" style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:#fff; font-size:0.9rem;">
-                                <option value="">-- 계정 선택 --</option>
+                            <label style="font-size:0.8rem; color:var(--neon-cyan); font-weight:700; display:block; margin-bottom:8px;"><i class="fas fa-server" style="margin-right:6px;"></i>SMTP 계정 선택</label>
+                            <select id="bounce-smtp-select" style="width:100%; padding:12px 14px; background:rgba(0,0,0,0.5); border:1px solid rgba(0,212,255,0.3); border-radius:10px; color:#ffffff; font-size:0.9rem; font-weight:600; outline:none; cursor:pointer;">
+                                <option value="" style="background:#0a0e1a; color:#fff;">-- 계정 선택 --</option>
                             </select>
                         </div>
                         <div style="margin-bottom:20px;">
-                            <label style="font-size:0.8rem; color:var(--text-secondary); display:block; margin-bottom:6px;">검사 시작 날짜 (이 날짜 이후 반송 메일 스캔)</label>
+                            <label style="font-size:0.8rem; color:var(--neon-cyan); font-weight:700; display:block; margin-bottom:8px;"><i class="fas fa-calendar-alt" style="margin-right:6px;"></i>검사 시작 날짜 (이 날짜 이후 반송 메일 스캔)</label>
                             <input type="date" id="bounce-since-date"
-                                style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:#fff; font-size:0.9rem;"
+                                style="width:100%; padding:12px 14px; background:rgba(0,0,0,0.5); border:1px solid rgba(0,212,255,0.3); border-radius:10px; color:#ffffff; font-size:0.9rem; font-weight:600; outline:none;"
                             >
                         </div>
-                        <button class="btn btn-primary" onclick="checkBounces()" id="btn-check-bounces" style="width:100%;">
+                        <button class="btn btn-primary" onclick="checkBounces()" id="btn-check-bounces" style="width:100%; padding:14px; font-size:1rem; letter-spacing:1px; box-shadow: 0 0 20px rgba(0,212,255,0.3);">
                             <i class="fas fa-search"></i> &nbsp;반송 메일 스캔 &amp; 업데이트
                         </button>
                     </div>
@@ -1316,6 +1358,10 @@
                 const isExpanded = expandedGroups.has(g.id);
                 const isSelected = activeGroupIds.has(g.id);
                 const sentTimes = g.sent_times || 0;
+                const bounceCount = g.bounce_count || 0;
+                const activeCount = g.active_count !== undefined ? g.active_count : g.count;
+                const totalCount = g.count || 0;
+                const isAllBounced = totalCount > 0 && activeCount === 0;
                 
                 const regionMatches = g.range.split('_');
                 const regionCode = regionMatches.length > 0 ? regionMatches[0] : '';
@@ -1324,7 +1370,7 @@
                 const isRisk = g.range.includes('_제조_');
                 const riskColor = '#f97316'; // Amber/Orange for Risk
                 const generalColor = regionColors[regionCode] || regionColors['DEFAULT'];
-                const accentColor = isRisk ? riskColor : generalColor;
+                const accentColor = isAllBounced ? '#dc2626' : (isRisk ? riskColor : generalColor);
                 const riskBadge = isRisk 
                     ? `<span style="background:${riskColor}22; color:${riskColor}; border:1px solid ${riskColor}55; padding:2px 8px; border-radius:5px; font-size:0.6rem; vertical-align:middle; margin-left:8px; font-weight:800;">위험 업종(제조/물류)</span>`
                     : `<span style="background:rgba(255,255,255,0.05); color:var(--text-secondary); border:1px solid rgba(255,255,255,0.1); padding:2px 8px; border-radius:5px; font-size:0.6rem; vertical-align:middle; margin-left:8px;">일반 기업</span>`;
@@ -1334,23 +1380,39 @@
                 else if (sentTimes === 2) colorCode = '#f97316';
                 else if (sentTimes >= 3) colorCode = '#ef4444';
                 
-                const nodeText = `<span style="color:${colorCode};">${g.count} NODES` + (sentTimes > 0 ? ` : ${sentTimes} 번발송` : '') + `</span>`;
+                const nodeText = `<span style="color:${colorCode};">${totalCount} NODES` + (sentTimes > 0 ? ` : ${sentTimes}번 발송` : '') + `</span>`;
                 
-                let borderStyle = isSelected 
+                // 반송 뱃지 & 전송가능 수 표시
+                let bounceHtml = '';
+                if (isAllBounced) {
+                    bounceHtml = `<span class="all-bounce-badge"><i class="fas fa-ban" style="margin-right:4px;"></i>전송불가 (전체반송)</span>`;
+                } else if (bounceCount > 0) {
+                    const bounceRate = Math.round((bounceCount / totalCount) * 100);
+                    bounceHtml = `<span class="bounce-badge"><i class="fas fa-exclamation-triangle"></i>${bounceCount}건 반송 (${bounceRate}%)</span>`;
+                }
+                
+                let borderStyle = isAllBounced
+                    ? `border: 2px solid rgba(220,38,38,0.5); background: rgba(220,38,38,0.07); opacity:0.7;`
+                    : isSelected 
                     ? `border: 2px solid ${accentColor}; background: ${accentColor}15; box-shadow: 0 0 20px ${accentColor}55;` 
                     : `border-top: 4px solid ${accentColor}; border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05);`;
 
+                const cannotSendOverlay = isAllBounced ? `<div style="position:absolute; inset:0; border-radius:18px; background:repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(220,38,38,0.03) 8px, rgba(220,38,38,0.03) 16px);"></div>` : '';
+
                 return `
-                    <div id="group-card-${g.id}" class="group-box" style="${borderStyle}" onclick="handleGroupClick(event, ${g.id}, '${g.range}')">
+                    <div id="group-card-${g.id}" class="group-box" style="${borderStyle}" onclick="${isAllBounced ? 'showAllBouncedAlert()' : `handleGroupClick(event, ${g.id}, '${g.range}')`}">
+                        ${cannotSendOverlay}
                         <button class="group-expand-btn" onclick="toggleExpand(event, ${g.id})">
                             <i class="fas ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
                         </button>
-                        <div style="display:flex; align-items:center; margin-bottom:10px;">
-                            <div class="title" style="color: ${accentColor}; text-shadow: 0 0 5px ${accentColor}88; margin-bottom:0;">BATCH CLUSTER</div>
+                        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-bottom:8px;">
+                            <div class="title" style="color: ${accentColor}; text-shadow: 0 0 5px ${accentColor}88; margin-bottom:0;">${isAllBounced ? '⛔ BLOCKED' : 'BATCH CLUSTER'}</div>
                             ${riskBadge}
                         </div>
-                        <div class="range" style="color:#fff; font-weight:700;">${g.range}</div>
-                        <div style="font-size: 0.7rem;">${nodeText}</div>
+                        <div class="range" style="color:${isAllBounced ? '#fca5a5' : '#fff'}; font-weight:700; margin-bottom:6px;">${g.range}</div>
+                        <div style="font-size: 0.7rem; margin-bottom:${bounceHtml ? '8px' : '0'};">${nodeText}</div>
+                        ${bounceHtml ? `<div style="margin-top:6px;">${bounceHtml}</div>` : ''}
+                        ${bounceCount > 0 && !isAllBounced ? `<div style="margin-top:4px; font-size:0.65rem; color:var(--text-secondary);">전송가능: <span style="color:#4ade80; font-weight:700;">${activeCount}건</span></div>` : ''}
                         
                         <div id="members-${g.id}" class="members-list ${isExpanded ? 'active' : ''}">
                             ${isExpanded ? 'SCANNING NODES...' : ''}
@@ -2086,8 +2148,11 @@
                         emailList.innerHTML = (data.bounced_emails || []).map(addr =>
                             `<div>📧 ${addr}</div>`
                         ).join('');
-                        // 발송 현황 탭 갱신
+                        // 발송 현황 탭 갱신 + 발송 이력 탭 성공/실패 건수 업데이트
                         loadDispatchStats();
+                        loadBatches();
+                        // 타겟 그룹 반송 상태 갱신
+                        loadTargetGroups();
                     }
                 } else {
                     summary.innerHTML = `<i class="fas fa-times-circle" style="color:#f87171; margin-right:8px;"></i>스캔 실패`;
@@ -2103,6 +2168,20 @@
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-search"></i> &nbsp;반송 메일 스캔 &amp; 업데이트';
             }
+        }
+
+        function showAllBouncedAlert() {
+            // 전체 반송 그룹 클릭시 안내
+            const el = document.createElement('div');
+            el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:rgba(10,14,30,0.97);border:2px solid #dc2626;border-radius:20px;padding:35px 45px;text-align:center;box-shadow:0 0 40px rgba(220,38,38,0.4);';
+            el.innerHTML = `
+                <i class="fas fa-ban" style="font-size:2.5rem;color:#f87171;margin-bottom:15px;display:block;"></i>
+                <div style="color:#fff;font-size:1.1rem;font-weight:800;margin-bottom:10px;">전송 불가 그룹</div>
+                <div style="color:rgba(255,255,255,0.7);font-size:0.85rem;margin-bottom:20px;">이 그룹의 모든 기업이 반송 처리되어<br>더 이상 메일을 전송할 수 없습니다.</div>
+                <button onclick="this.parentElement.remove()" style="background:linear-gradient(135deg,#dc2626,#991b1b);border:none;color:#fff;padding:10px 25px;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.9rem;">확인</button>
+            `;
+            document.body.appendChild(el);
+            setTimeout(() => { if(el.parentElement) el.remove(); }, 4000);
         }
 
         async function repairCategories() {
