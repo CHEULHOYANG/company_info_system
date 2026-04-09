@@ -9005,6 +9005,22 @@ def add_individual_business_history(id):
         print(f"히스토리 추가 오류: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
+@app.route('/individual_businesses/history/<int:history_id>/delete', methods=['POST', 'DELETE'])
+def delete_individual_business_history(history_id):
+    """개인사업자 접촉 히스토리 삭제"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'})
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM individual_business_history WHERE id = ?", (history_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': '삭제되었습니다.'})
+    except Exception as e:
+        print(f"히스토리 삭제 오류: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
 @app.route('/individual_businesses/history/<int:history_id>/update', methods=['POST'])
 def update_individual_business_history(history_id):
     """개인사업자 접촉 히스토리 수정"""
