@@ -2106,34 +2106,67 @@
         }
 
         async function checkBounces() {
-            const smtpId   = document.getElementById('bounce-smtp-select').value;
+            const smtpId    = document.getElementById('bounce-smtp-select').value;
             const sinceDate = document.getElementById('bounce-since-date').value;
 
-            if (!smtpId) { alert('SMTP 계정을 선택해주세요.'); return; }
+            if (!smtpId)    { alert('SMTP 계정을 선택해주세요.'); return; }
             if (!sinceDate) { alert('검사 시작 날짜를 선택해주세요.'); return; }
 
             const btn = document.getElementById('btn-check-bounces');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> &nbsp;IMAP 스캔 중... (최대 30초 소요)';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> &nbsp;IMAP 스캔 시작 중...';
 
             const resultArea   = document.getElementById('bounce-result-area');
             const noResultArea = document.getElementById('bounce-no-result');
             resultArea.style.display = 'none';
 
             try {
-                const data = await fetchAPI('/api/email/check-bounces', {
+                // 1단계: 백그라운드 스캔 시작 → job_id 수신
+                const startData = await fetchAPI('/api/email/check-bounces', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ smtp_config_id: parseInt(smtpId), since_date: sinceDate })
                 });
 
+                if (!startData.success && !startData.job_id) {
+                    throw new Error(startData.message || '스캔 시작 실패');
+                }
+
+                const jobId = startData.job_id;
+                let elapsed = 0;
+                const maxWait = 120; // 최대 120초 대기
+
+                // 2단계: polling — 3초마다 결과 확인
+                const pollResult = await new Promise((resolve, reject) => {
+                    const interval = setInterval(async () => {
+                        elapsed += 3;
+                        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> &nbsp;IMAP 스캔 중... (${elapsed}초)`;
+
+                        try {
+                            const statusData = await fetchAPI(`/api/email/bounce-job-status/${jobId}`);
+                            if (statusData.status === 'done' || statusData.status === 'error') {
+                                clearInterval(interval);
+                                resolve(statusData.result);
+                            } else if (elapsed >= maxWait) {
+                                clearInterval(interval);
+                                reject(new Error('스캔 시간 초과 (120초). 나중에 다시 시도해주세요.'));
+                            }
+                        } catch(e) {
+                            clearInterval(interval);
+                            reject(e);
+                        }
+                    }, 3000);
+                });
+
+                // 3단계: 결과 표시
                 noResultArea.style.display = 'none';
                 resultArea.style.display   = 'block';
 
-                const summary = document.getElementById('bounce-result-summary');
+                const summary   = document.getElementById('bounce-result-summary');
                 const emailList = document.getElementById('bounce-email-list');
+                const data = pollResult;
 
-                if (data.success) {
+                if (data && data.success) {
                     if (data.bounced_count === 0) {
                         summary.innerHTML = `<i class="fas fa-check-circle" style="color:#4ade80; margin-right:8px;"></i>반송 메일 없음 — 모두 정상 전달`;
                         emailList.innerHTML = `<span style="color:var(--text-secondary);">받은편지함에 반송 메일이 감지되지 않았습니다.</span>`;
@@ -2148,22 +2181,21 @@
                         emailList.innerHTML = (data.bounced_emails || []).map(addr =>
                             `<div>📧 ${addr}</div>`
                         ).join('');
-                        // 발송 현황 탭 갱신 + 발송 이력 탭 성공/실패 건수 업데이트
                         loadDispatchStats();
                         loadBatches();
-                        // 타겟 그룹 반송 상태 갱신
                         loadTargetGroups();
                     }
                 } else {
                     summary.innerHTML = `<i class="fas fa-times-circle" style="color:#f87171; margin-right:8px;"></i>스캔 실패`;
-                    emailList.innerHTML = `<span style="color:#f87171;">${data.message || '알 수 없는 오류'}</span>`;
+                    emailList.innerHTML = `<span style="color:#f87171;">${(data && data.message) || '알 수 없는 오류'}</span>`;
                 }
             } catch(e) {
                 noResultArea.style.display = 'none';
                 resultArea.style.display   = 'block';
                 document.getElementById('bounce-result-summary').innerHTML =
-                    `<i class="fas fa-times-circle" style="color:#f87171;"></i> 네트워크 오류`;
-                document.getElementById('bounce-email-list').textContent = e.toString();
+                    `<i class="fas fa-times-circle" style="color:#f87171;"></i> 스캔 실패`;
+                document.getElementById('bounce-email-list').innerHTML =
+                    `<span style="color:#f87171;">${e.message || e.toString()}</span>`;
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-search"></i> &nbsp;반송 메일 스캔 &amp; 업데이트';

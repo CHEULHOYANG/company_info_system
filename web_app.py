@@ -10636,9 +10636,14 @@ def api_email_upload_attachments():
     return jsonify({'success': True, 'files': uploaded})
 
 
+# 반송 스캔 작업 상태 맴리저 (in-memory, 세션 키 기준)
+_bounce_jobs = {}  # {job_id: {'status': 'running'|'done'|'error', 'result': {...}}}
+
 @app.route('/api/email/check-bounces', methods=['POST'])
 def api_email_check_bounces():
-    """IMAP으로 반송 메일을 확인하고 DB(email_send_log + Company_Basic)를 업데이트합니다."""
+    """IMAP으로 반송 메일을 확인하고 DB(email_send_log + Company_Basic)를 업데이트합니다.
+    Render의 30초 요청 타임아웃을 피하기 위해 백그라운드 스레드로 실행합니다.
+    """
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
 
@@ -10649,7 +10654,6 @@ def api_email_check_bounces():
     if not smtp_config_id:
         return jsonify({'success': False, 'message': 'SMTP 설정을 선택해주세요.'}), 400
     if not since_date:
-        # 기본값: 오늘 날짜
         from datetime import date
         since_date = date.today().strftime('%Y-%m-%d')
 
@@ -10677,25 +10681,47 @@ def api_email_check_bounces():
         else:
             auto_imap = smtp_srv.replace('smtp.', 'imap.')
 
-        # imap_server 자동 업데이트
         conn2 = get_db_connection()
         conn2.execute('UPDATE smtp_configs SET imap_server = ?, imap_port = 993 WHERE config_id = ?',
                       (auto_imap, smtp_config_id))
         conn2.commit()
         conn2.close()
 
-    try:
-        from email_service import check_bounce_and_update
-        result = check_bounce_and_update(int(smtp_config_id), since_date)
-        return jsonify(result)
-    except Exception as e:
-        error_msg = str(e)
-        print(f"[api_email_check_bounces] Error: {error_msg}")
-        return jsonify({
-            'success': False, 
-            'message': f'반송 검사 실패: {error_msg}',
-            'error_details': error_msg
-        }), 500
+    # 백그라운드 작업 시작
+    import uuid as _uuid
+    job_id = _uuid.uuid4().hex
+    _bounce_jobs[job_id] = {'status': 'running', 'result': None}
+
+    def _run_bounce_scan(job_id, smtp_config_id, since_date):
+        try:
+            from email_service import check_bounce_and_update
+            result = check_bounce_and_update(int(smtp_config_id), since_date)
+            _bounce_jobs[job_id] = {'status': 'done', 'result': result}
+        except Exception as e:
+            err_msg = str(e)
+            print(f"[bounce_scan_thread] Error: {err_msg}")
+            _bounce_jobs[job_id] = {
+                'status': 'error',
+                'result': {'success': False, 'message': f'반송 검사 실패: {err_msg}'}
+            }
+
+    import threading
+    t = threading.Thread(target=_run_bounce_scan, args=(job_id, smtp_config_id, since_date), daemon=True)
+    t.start()
+
+    return jsonify({'success': True, 'job_id': job_id, 'status': 'running',
+                    'message': 'IMAP 스캔이 시작되었습니다. 잠시 후 결과를 확인하세요.'})
+
+
+@app.route('/api/email/bounce-job-status/<job_id>')
+def api_bounce_job_status(job_id):
+    """check-bounces 백그라운드 작업 상태 조회"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    job = _bounce_jobs.get(job_id)
+    if not job:
+        return jsonify({'success': False, 'message': '작업을 찾을 수 없습니다.'}), 404
+    return jsonify({'success': True, 'status': job['status'], 'result': job.get('result')})
 
 
 @app.route('/api/email/bounced-emails', methods=['GET'])

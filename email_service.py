@@ -557,11 +557,18 @@ class EmailReceiver:
 
     def connect(self):
         """IMAP 서버에 연결하고 mail 객체를 반환합니다."""
-        if self.imap_port == 993:
-            mail = imaplib.IMAP4_SSL(self.imap_server, self.imap_port)
-        else:
-            mail = imaplib.IMAP4(self.imap_server, self.imap_port)
-        mail.login(self.email_addr, self.password)
+        import socket
+        # Render/클라우드 환경에서 IMAP 연결 타임아웃 설정 (25초)
+        socket.setdefaulttimeout(25)
+        try:
+            if self.imap_port == 993:
+                mail = imaplib.IMAP4_SSL(self.imap_server, self.imap_port)
+            else:
+                mail = imaplib.IMAP4(self.imap_server, self.imap_port)
+            mail.login(self.email_addr, self.password)
+        finally:
+            # 타임아웃을 기본값으로 복구 (다른 연결에 영향 없도록)
+            socket.setdefaulttimeout(None)
         return mail
 
     def check_bounces(self, since_date: str):
