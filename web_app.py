@@ -266,148 +266,18 @@ def format_kst_datetime(dt_str=None):
 template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app.jinja_loader = UTF8FileSystemLoader(template_dir)
 
-# DB 경로 설정 (Render Persistent Disk 사용)
+# --- 데이터베이스 설정 단일화 (Config Unification) ---
+import os
 app_dir = os.path.dirname(os.path.abspath(__file__))
 
-# render.com에서는 환경변수 RENDER가 설정됨
-if os.environ.get('RENDER'):
-    # render.com 서버 환경 - 다양한 경로 확인
-    print("=== RENDER 서버 환경 감지 ===")
-    print(f"현재 작업 디렉터리: {os.getcwd()}")
-    print(f"앱 디렉터리: {app_dir}")
-    print(f"HOME 환경변수: {os.environ.get('HOME', 'N/A')}")
-    print(f"USER 환경변수: {os.environ.get('USER', 'N/A')}")
-    
-    # 루트 디렉터리 확인
-    print("\n=== 루트 디렉터리 구조 확인 ===")
-    try:
-        root_items = os.listdir('/')
-        print(f"/ 디렉터리 내용: {root_items}")
-    except Exception as e:
-        print(f"루트 디렉터리 확인 실패: {e}")
-    
-    # 가능한 경로들 확인
-    possible_paths = [
-        '/var/data',
-        '/opt/render/project/data', 
-        '/opt/render/data',
-        '/data',
-        '/tmp/data',
-        '/app/data',
-        os.path.join(app_dir, 'data')
-    ]
-    
-    print(f"\n=== 가능한 데이터 경로들 확인 ===")
-    persistent_disk_path = None
-    for path in possible_paths:
-        print(f"경로 확인 중: {path}")
-        if os.path.exists(path):
-            print(f"? 발견: {path}")
-            
-            # 디렉터리 내용 확인
-            try:
-                contents = os.listdir(path)
-                print(f"  내용: {contents}")
-            except Exception as e:
-                print(f"  내용 확인 실패: {e}")
-            
-            # 디렉터리에 쓰기 권한이 있는지 확인
-            try:
-                test_file = os.path.join(path, 'test_write.tmp')
-                with open(test_file, 'w') as f:
-                    f.write('test')
-                os.remove(test_file)
-                persistent_disk_path = path
-                print(f"? 쓰기 권한 확인: {path}")
-                break
-            except Exception as e:
-                print(f"? 쓰기 권한 없음: {path} - {e}")
-        else:
-            print(f"? 없음: {path}")
-    
-    # Persistent Disk 디렉터리 확인 및 생성
-    if persistent_disk_path:
-        # Persistent Disk가 마운트된 경우
-        DB_PATH = os.path.join(persistent_disk_path, 'company_database.db')
-        print(f"\n? 사용할 DB 경로: {DB_PATH}")
-        
-        # 기존 DB 파일 확인
-        if os.path.exists(DB_PATH):
-            print(f"? 기존 DB 파일 발견: {DB_PATH}")
-        else:
-            print(f"새 DB 파일 생성 예정: {DB_PATH}")
-        
-        # 디렉터리 생성 시도
-        try:
-            os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-            print(f"? DB 디렉터리 준비 완료: {os.path.dirname(DB_PATH)}")
-        except Exception as e:
-            print(f"? DB 디렉터리 생성 실패: {e}")
-    else:
-        print("\n? 사용 가능한 Persistent Disk 경로를 찾을 수 없음")
-        # Persistent Disk가 없는 경우 (기존 로직 유지)
-        # 1순위: 기존 DB 파일이 있으면 계속 사용 (데이터 보존)
-        existing_db = os.path.join(app_dir, 'company_database.db')
-        if os.path.exists(existing_db):
-            DB_PATH = existing_db
-            print(f"Using existing DB (no persistent disk): {DB_PATH}")
-        else:
-            # 2순위: 기존 DB가 없으면 data 폴더에 새로 생성
-            db_dir = os.path.join(app_dir, 'data')
-            os.makedirs(db_dir, exist_ok=True)
-            DB_PATH = os.path.join(db_dir, 'company_database.db')
-            print(f"Creating new DB (no persistent disk): {DB_PATH}")
-else:
-    # 로컬 개발 환경 - 기존 파일 사용
-    DB_PATH = os.path.join(app_dir, 'company_database.db')
-    print(f"Local DB: {DB_PATH}")
+from email_service import DB_PATH, get_db_connection
 
-# --- DB 연결 함수 및 사용자 계정 ---
-def get_db_connection():
-    """데이터베이스 연결을 반환합니다. Persistent Disk 지원 및 타임아웃 강화"""
-    try:
-        # 데이터베이스 디렉터리가 없으면 생성
-        db_dir = os.path.dirname(DB_PATH)
-        if db_dir and not os.path.exists(db_dir):
-            os.makedirs(db_dir, exist_ok=True)
-            print(f"Created DB directory: {db_dir}")
-        
-        # 병렬 요청 시 'database is locked' 방지를 위해 타임아웃 20초 설정
-        conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=20)
-        conn.row_factory = sqlite3.Row
-        
-        # 연결 테스트 및 기본 테이블 확인
-        try:
-            conn.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1").fetchone()
-            return conn
-        except Exception as table_error:
-            # 신규 데이터베이스인 경우 table_info가 실패할 수 있음 - 정상 진행 유도
-            print(f"Database table check (info only): {table_error}")
-            return conn
-    except Exception as e:
-        print(f"FATAL: Database connection failed: {e}")
-        raise e
-            
-    except Exception as e:
-        print(f"Database connection error: {e}")
-        print(f"DB_PATH was: {DB_PATH}")
-        
-        # 연결 실패 시 강제로 새 DB 생성 시도
-        try:
-            # 임시 DB 경로로 재시도
-            temp_db_path = os.path.join(app_dir, 'emergency_database.db')
-            print(f"Attempting emergency DB creation at: {temp_db_path}")
-            
-            conn = sqlite3.connect(temp_db_path, check_same_thread=False)
-            conn.row_factory = sqlite3.Row
-            
-            # 기본 테이블들 생성
-            init_emergency_database(conn)
-            
-            return conn
-            
-        except Exception as emergency_error:
-            print(f"Emergency DB creation failed: {emergency_error}")
+# 배포 환경 디버깅용 로그
+if os.environ.get('RENDER'):
+    print(f"[WebUI] Using Shared Database at: {DB_PATH}")
+# -----------------------------------------------
+
+def init_emergency_database(conn):
             # 최후의 수단: 메모리 DB + 기본 테이블 생성
             print("Using in-memory database with basic tables")
             conn = sqlite3.connect(':memory:', check_same_thread=False)
@@ -10904,6 +10774,8 @@ def api_email_recover_bounce():
     # 사업자 번호 정규화: 하이픈 제거
     biz_no = str(raw_biz_no).replace('-', '').strip()
     
+    print(f"[RECOVER] Attempting to recover: {raw_biz_no} -> Normalized: {biz_no} (DB: {DB_PATH})")
+    
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
@@ -10913,9 +10785,11 @@ def api_email_recover_bounce():
         company = cursor.fetchone()
         
         if not company:
+            print(f"[RECOVER] FAIL: Company not found in DB with biz_no={biz_no}")
             return jsonify({'success': False, 'message': f'기업 정보를 찾을 수 없습니다. (ID: {biz_no})'}), 404
         
         if not company['email']:
+            print(f"[RECOVER] FAIL: No email address for biz_no={biz_no}")
             return jsonify({'success': False, 'message': '이메일 주소가 없습니다.'}), 400
         
         # 복구 처리
@@ -10926,6 +10800,7 @@ def api_email_recover_bounce():
         ''', (datetime.now().isoformat(), biz_no))
         
         affected_rows = cursor.rowcount
+        print(f"[RECOVER] Update affected rows: {affected_rows}")
         
         if affected_rows == 0:
             return jsonify({'success': False, 'message': '상태 업데이트에 실패했습니다. 이미 해제되었거나 대상이 없습니다.'}), 400
@@ -10939,6 +10814,7 @@ def api_email_recover_bounce():
               'RECOVERED', datetime.now().isoformat(), f"반송 복구: {company['last_send_status']}"))
         
         conn.commit()
+        print(f"[RECOVER] SUCCESS: {biz_no} is now usable.")
         
         return jsonify({
             'success': True,

@@ -26,35 +26,63 @@ def get_kst_now():
 import os
 app_dir = os.path.dirname(os.path.abspath(__file__))
 
-# 데이터베이스 경로 설정: Render 서버 환경과 로컬 환경 동시 대응
-if os.environ.get('RENDER'):
-    # Render.com 서버 환경 - Persistent Disk 우선 확인
-    possible_paths = [
-        '/var/data',
-        '/opt/render/project/data',
-        os.path.join(app_dir, 'data'),
-        app_dir
-    ]
-    DB_PATH = None
-    for path in possible_paths:
-        candidate_db = os.path.join(path, 'company_database.db')
-        if os.path.exists(candidate_db):
-            DB_PATH = candidate_db
-            break
+# --- 데이터베이스 경로 및 연결 설정 (Config) ---
+import sqlite3
+import os
+
+app_dir = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = None
+
+def _initialize_db_path():
+    global DB_PATH
+    if os.environ.get('RENDER'):
+        # render.com 서버 환경 - 쓰기 가능한 Persistent Disk 우선 확인
+        possible_paths = [
+            '/var/data',
+            '/opt/render/project/data',
+            '/opt/render/data',
+            '/data',
+            os.path.join(app_dir, 'data'),
+            app_dir
+        ]
+        
+        selected_path = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                # 쓰기 권한 테스트
+                try:
+                    test_file = os.path.join(path, 'db_write_test.tmp')
+                    with open(test_file, 'w') as f: f.write('test')
+                    os.remove(test_file)
+                    selected_path = path
+                    break
+                except: continue
+        
+        if selected_path:
+            DB_PATH = os.path.join(selected_path, 'company_database.db')
+        else:
+            # 최종 Fallback: 현재 디렉터리
+            DB_PATH = os.path.join(app_dir, 'company_database.db')
+    else:
+        # 로컬 개발 환경
+        DB_PATH = os.path.join(app_dir, 'company_database.db')
     
-    # 만약 기존 파일을 못 찾았다면 기본 저장소 경로 설정
-    if not DB_PATH:
-        DB_PATH = '/var/data/company_database.db'
-else:
-    # 로컬 개발 환경 (윈도우/맥/리눅스 공통)
-    DB_PATH = os.path.join(app_dir, 'company_database.db')
+    # 디렉토리 보장
+    db_dir = os.path.dirname(DB_PATH)
+    if db_dir and not os.path.exists(db_dir):
+        try: os.makedirs(db_dir, exist_ok=True)
+        except: pass
+    
+    print(f"[DB_CONFIG] Using Database at: {DB_PATH}")
 
-print(f"[EmailService] Using Database at: {DB_PATH}")
+_initialize_db_path()
 
-def get_db_connection():
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+def get_db_connection(timeout=20):
+    """데이터베이스 연결을 반환합니다. 병렬 처리 및 성능 최적화."""
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=timeout)
     conn.row_factory = sqlite3.Row
     return conn
+# ---------------------------------------------
 
 class EmailSender:
     def __init__(self, smtp_server='smtp.gmail.com', smtp_port=587, 
