@@ -10896,10 +10896,13 @@ def api_email_recover_bounce():
         return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
     
     data = request.json or {}
-    biz_no = data.get('biz_no')
+    raw_biz_no = data.get('biz_no')
     
-    if not biz_no:
+    if not raw_biz_no:
         return jsonify({'success': False, 'message': '사업자번호가 필요합니다.'}), 400
+    
+    # 사업자 번호 정규화: 하이픈 제거
+    biz_no = str(raw_biz_no).replace('-', '').strip()
     
     conn = get_db_connection()
     try:
@@ -10910,7 +10913,7 @@ def api_email_recover_bounce():
         company = cursor.fetchone()
         
         if not company:
-            return jsonify({'success': False, 'message': '기업 정보를 찾을 수 없습니다.'}), 404
+            return jsonify({'success': False, 'message': f'기업 정보를 찾을 수 없습니다. (ID: {biz_no})'}), 404
         
         if not company['email']:
             return jsonify({'success': False, 'message': '이메일 주소가 없습니다.'}), 400
@@ -10922,6 +10925,11 @@ def api_email_recover_bounce():
             WHERE biz_no = ?
         ''', (datetime.now().isoformat(), biz_no))
         
+        affected_rows = cursor.rowcount
+        
+        if affected_rows == 0:
+            return jsonify({'success': False, 'message': '상태 업데이트에 실패했습니다. 이미 해제되었거나 대상이 없습니다.'}), 400
+
         # 로그 기록
         cursor.execute('''
             INSERT INTO email_send_log 

@@ -87,14 +87,17 @@ class EmailSender:
         finally:
             conn.close()
 
-    def _send_batch_worker(self, batch_id, companies_data, subject, body_template, group_name, attachments=None):
-        success_count = 0
-        fail_count = 0
-        sent_count = 0
-        total = len(companies_data)
-        
-        print(f"\n[BATCH START] ID: {batch_id} | Total: {total} | Group: {group_name}")
-        print("="*60)
+    def _is_sender_error(self, error_msg):
+        """에러 메시지를 분석하여 송신자 측 오류(한도 초과 등)인지 판별합니다."""
+        if not error_msg: return False
+        msg = str(error_msg).lower()
+        sender_error_keywords = [
+            'limit exceeded', 'quota', 'authentication', 'auth', 
+            'timeout', 'connection refused', 'network', 'too many',
+            'blocked', '554 5.7.1', 'daily', 'per day'
+        ]
+        return any(kw in msg for kw in sender_error_keywords)
+
         
     def _get_smtp_connection(self):
         """Creates and returns a new SMTP connection based on current config."""
@@ -170,9 +173,16 @@ class EmailSender:
                     success_count += 1
                 else:
                     fail_count += 1
-                    # AUTO FILTER: Disable invalid email for future batches
-                    self._log_email_result(batch_id, biz_no, email, group_name, current_subject, 'FAIL', error=error_msg)
-                    self._disable_invalid_email(biz_no, error_msg)
+                    # 송신 오류인지 수신 계정(반송) 오류인지 판별
+                    is_sender_err = self._is_sender_error(error_msg)
+                    
+                    if is_sender_err:
+                        # 송신 한도 초과 등은 계정 차단하지 않음
+                        self._log_email_result(batch_id, biz_no, email, group_name, current_subject, 'FAIL', error=error_msg, is_bounce=False)
+                    else:
+                        # 수신자 계정 문제(반송 등)인 경우에만 자동 보정 대상 포함
+                        self._log_email_result(batch_id, biz_no, email, group_name, current_subject, 'FAIL', error=error_msg, is_bounce=True)
+                        self._disable_invalid_email(biz_no, error_msg)
 
                 # Real-time progress update
                 self._update_batch_progress(batch_id, sent_count, success_count, fail_count)
@@ -196,7 +206,7 @@ class EmailSender:
                 except:
                     pass
 
-    def _log_email_result(self, batch_id, biz_no, email, group_name, subject, status, error=None):
+    def _log_email_result(self, batch_id, biz_no, email, group_name, subject, status, error=None, is_bounce=False):
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -217,12 +227,20 @@ class EmailSender:
                 WHERE biz_no = ?
             ''', (now_str, biz_no))
         else:
-            # Failure (especially bounce/reject) means email is NOT usable until fixed
-            cursor.execute('''
-                UPDATE Company_Basic 
-                SET email_usable = 0, last_send_at = ?, last_send_status = 'FAIL'
-                WHERE biz_no = ?
-            ''', (now_str, biz_no))
+            # Failure (특히 송신 측 오류가 아닌 '반송'인 경우에만 사용 불가 처리)
+            if is_bounce:
+                cursor.execute('''
+                    UPDATE Company_Basic 
+                    SET email_usable = 0, last_send_at = ?, last_send_status = 'FAIL'
+                    WHERE biz_no = ?
+                ''', (now_str, biz_no))
+            else:
+                # 송신 측 오류일 경우 usable 상태 유지
+                cursor.execute('''
+                    UPDATE Company_Basic 
+                    SET last_send_at = ?, last_send_status = 'FAIL_SENDER'
+                    WHERE biz_no = ?
+                ''', (now_str, biz_no))
             
         conn.commit()
         conn.close()

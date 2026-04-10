@@ -1560,7 +1560,7 @@
                                 ${isBounce ? `<div style="font-size:0.65rem; color:#ef4444; margin-top:2px;">최종상태: ${m.last_send_status || 'REJECTED'}</div>` : ''}
                             </div>
                             ${isBounce ? `
-                            <button onclick="unblockEmail('${m.biz_no}', '${m.email || ''}', ${groupId})" 
+                            <button onclick="unblockEmail('${m.biz_no}', '${m.email || ''}', ${groupId}, this)" 
                                     title="발송 차단 해제"
                                     style="background: #f0fdf4; border: 1px solid #86efac; color: #16a34a;
                                            padding: 5px 11px; border-radius: 8px; font-size: 0.7rem; cursor:pointer;
@@ -2356,9 +2356,18 @@
         }
 
         // BOUNCE 계정 해제 함수
-        async function unblockEmail(bizNo, email, groupId) {
+        async function unblockEmail(bizNo, email, groupId, btnEl) {
             const confirmMsg = `다음 계정의 발송 차단을 해제하시겠습니까?\n\n사업자번호: ${bizNo}\n이메일: ${email || '(없음)'}\n\n※ 송신 서버 문제로 인한 오류이거나, 이메일 주소를 수정한 경우에만 해제하세요.`;
             if (!confirm(confirmMsg)) return;
+            
+            // 버튼 로딩 상태 표시
+            let originalContent = "";
+            if (btnEl) {
+                originalContent = btnEl.innerHTML;
+                btnEl.disabled = true;
+                btnEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btnEl.style.opacity = "0.7";
+            }
             
             try {
                 const res = await fetchAPI('/api/email/recover-bounce', {
@@ -2370,20 +2379,38 @@
                 if (res.success) {
                     // 성공 토스트 알림
                     const toast = document.createElement('div');
-                    toast.style.cssText = 'position:fixed;top:85px;right:25px;z-index:99999;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:14px 22px;color:#16a34a;font-weight:700;font-size:0.85rem;box-shadow:0 4px 15px rgba(0,0,0,0.1);';
-                    toast.innerHTML = `<i class="fas fa-lock-open" style="margin-right:8px;"></i>발송 차단 해제 완료: ${email || bizNo}`;
+                    toast.style.cssText = 'position:fixed;top:85px;right:25px;z-index:99999;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:14px 22px;color:#16a34a;font-weight:700;font-size:0.85rem;box-shadow:0 4px 15px rgba(0,0,0,0.1);animation:fadeInUp 0.3s ease-out;';
+                    toast.innerHTML = `<i class="fas fa-lock-open" style="margin-right:8px;"></i>${email || bizNo} 해제 완료`;
                     document.body.appendChild(toast);
-                    setTimeout(() => toast.remove(), 3500);
+                    setTimeout(() => {
+                        toast.style.opacity = "0";
+                        toast.style.transition = "0.5s";
+                        setTimeout(() => toast.remove(), 500);
+                    }, 3000);
                     
-                    // 그룹 멤버 목록 새로고침
-                    if (groupId) await refreshGroupMembers(groupId);
-                    // 타겟 그룹 전체 다시 로드
+                    // 1. 타겟 그룹 요약 정보(카드 상단 카운트 등) 새로고침
                     await loadTargetGroups();
+                    
+                    // 2. 만약 해당 그룹이 펼쳐져 있다면 멤버 목록도 새로고침
+                    if (groupId) {
+                        await refreshGroupMembers(groupId);
+                    }
                 } else {
                     alert('해제 실패: ' + res.message);
+                    if (btnEl) {
+                        btnEl.disabled = false;
+                        btnEl.innerHTML = originalContent;
+                        btnEl.style.opacity = "1";
+                    }
                 }
             } catch(e) {
+                console.error(e);
                 alert('오류 발생: ' + e.message);
+                if (btnEl) {
+                    btnEl.disabled = false;
+                    btnEl.innerHTML = originalContent;
+                    btnEl.style.opacity = "1";
+                }
             }
         }
 
