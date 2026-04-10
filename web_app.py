@@ -11093,8 +11093,15 @@ def api_email_delete_batches():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
-    initialize_db()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Render.com 배포 환경 대응: 포트 번호를 환경 변수에서 읽어옴
+    port = int(os.environ.get("PORT", 5000))
+    
+    # DB 초기화 및 스키마 체크
+    try:
+        initialize_db()
+    except Exception as e:
+        print(f"DB 초기화 중 오류 발생: {e}")
+    
+    # 서버 실행 (Production 환경에서는 debug=False 추천)
+    app.run(host='0.0.0.0', port=port, debug=False)
 
