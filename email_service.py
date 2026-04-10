@@ -98,6 +98,13 @@ class EmailSender:
         ]
         return any(kw in msg for kw in sender_error_keywords)
 
+    def _is_limit_error(self, error_msg):
+        """에러 메시지 중 발송 한도 초과(Daily Limit) 오류인지 판별합니다."""
+        if not error_msg: return False
+        msg = str(error_msg).lower()
+        limit_keywords = ['limit exceeded', 'quota', 'per day', 'for day', 'too many requests']
+        return any(kw in msg for kw in limit_keywords)
+
         
     def _get_smtp_connection(self):
         """Creates and returns a new SMTP connection based on current config."""
@@ -175,10 +182,17 @@ class EmailSender:
                     fail_count += 1
                     # 송신 오류인지 수신 계정(반송) 오류인지 판별
                     is_sender_err = self._is_sender_error(error_msg)
+                    is_limit_err = self._is_limit_error(error_msg)
                     
                     if is_sender_err:
                         # 송신 한도 초과 등은 계정 차단하지 않음
                         self._log_email_result(batch_id, biz_no, email, group_name, current_subject, 'FAIL', error=error_msg, is_bounce=False)
+                        
+                        # 일일 한도 초과인 경우 즉시 루프 중단
+                        if is_limit_err:
+                            print(f"[LIMIT EXCEEDED] ID: {batch_id} | Stopping batch...")
+                            self._update_batch_status(batch_id, status='LIMIT_EXCEEDED', completed=True)
+                            break
                     else:
                         # 수신자 계정 문제(반송 등)인 경우에만 자동 보정 대상 포함
                         self._log_email_result(batch_id, biz_no, email, group_name, current_subject, 'FAIL', error=error_msg, is_bounce=True)

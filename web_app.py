@@ -355,7 +355,7 @@ if os.environ.get('RENDER'):
             # 2순위: 기존 DB가 없으면 data 폴더에 새로 생성
             db_dir = os.path.join(app_dir, 'data')
             os.makedirs(db_dir, exist_ok=True)
-            DB_PATH = os.path.join(db_dir, 'company_info.db')
+            DB_PATH = os.path.join(db_dir, 'company_database.db')
             print(f"Creating new DB (no persistent disk): {DB_PATH}")
 else:
     # 로컬 개발 환경 - 기존 파일 사용

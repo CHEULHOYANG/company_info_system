@@ -1587,6 +1587,7 @@
             if (s === 'COMPLETED' || s === 'SUCCESS') { color = 'var(--neon-green)'; label = '완료'; }
             else if (s === 'SENDING' || s === 'SEND' || s === 'PROCESSING') { color = 'var(--neon-cyan)'; label = '발송중'; }
             else if (s === 'ERROR' || s === 'FAIL' || s === 'FAILED' || s === 'BOUNCE') { color = '#dc2626'; label = '실패'; }
+            else if (s === 'LIMIT_EXCEEDED') { color = '#ef4444'; label = '한도초과'; }
             else if (s === 'REJECTED') { color = '#ef4444'; label = '거부됨'; }
             else if (s === 'RECOVERED') { color = '#16a34a'; label = '복구'; }
             
@@ -1739,11 +1740,36 @@
                     document.getElementById('progress-fail').textContent = failCnt;
                     document.getElementById('progress-summary').textContent = `${processed.toLocaleString()} / ${total.toLocaleString()} 유닛 처리 중...`;
                     
-                    const st = (status.status || '').toLowerCase();
-                    if (st === 'completed' || st === 'send' || st === 'error' || st === 'failed') {
+                    const st = (status.status || '').toUpperCase();
+                    if (st === 'COMPLETED' || st === 'SEND' || st === 'ERROR' || st === 'FAILED' || st === 'LIMIT_EXCEEDED') {
                         clearInterval(interval);
                         document.getElementById('btn-progress-close').style.display = 'block';
-                        if (st === 'error' || st === 'failed') {
+                        
+                        if (st === 'LIMIT_EXCEEDED') {
+                            // 한도 초과 전용 경고 팝업
+                            const el = document.createElement('div');
+                            el.id = 'limit-alert-modal';
+                            el.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:100000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);';
+                            el.innerHTML = `
+                                <div style="background:#fff; width:420px; padding:40px; border-radius:30px; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.5); border:1px solid #fecaca; animation:zoomIn 0.3s ease-out;">
+                                    <div style="background:#fee2e2; width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 25px;">
+                                        <i class="fas fa-exclamation-circle" style="font-size:40px; color:#dc2626;"></i>
+                                    </div>
+                                    <h2 style="font-size:1.6rem; font-weight:900; color:#1a202c; margin-bottom:15px; font-family:'Orbitron', sans-serif;">발송 한도 초과</h2>
+                                    <p style="color:#4a5568; line-height:1.6; font-size:1rem; margin-bottom:30px;">
+                                        오늘의 <b>일일 발송 한도</b>를 모두 사용했습니다.<br>
+                                        남은 발송은 중단되었으며,<br>
+                                        내일 다시 시도해주시기 바랍니다.
+                                    </p>
+                                    <button onclick="document.getElementById('limit-alert-modal').remove()" 
+                                            style="background:#dc2626; color:#fff; border:none; padding:15px 40px; border-radius:15px; font-weight:700; cursor:pointer; font-size:1.1rem; width:100%; transition:0.2s;">
+                                        네, 확인했습니다
+                                    </button>
+                                </div>
+                            `;
+                            document.body.appendChild(el);
+                            document.getElementById('progress-summary').innerHTML = `<i class="fas fa-history" style="color:#f87171;"></i> 일일 발송 한도 초과로 중단됨`;
+                        } else if (st === 'ERROR' || st === 'FAILED') {
                             document.getElementById('progress-summary').innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#f87171;"></i> 엔진 일시 중단: ${status.last_error || '네트워크 오류'}`;
                         } else {
                             document.getElementById('progress-summary').innerHTML = `
