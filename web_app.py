@@ -10780,10 +10780,16 @@ def api_email_recover_bounce():
     try:
         cursor = conn.cursor()
         
-        # 현재 상태 확인
-        cursor.execute('SELECT email, email_usable, last_send_status FROM Company_Basic WHERE biz_no = ?', (biz_no,))
+        # 현재 상태 확인 (방어적 쿼리: 하이픈 및 공백 무시)
+        query = "SELECT email, email_usable, last_send_status FROM Company_Basic WHERE TRIM(REPLACE(biz_no, '-', '')) = ?"
+        cursor.execute(query, (biz_no,))
         company = cursor.fetchone()
         
+        if not company:
+            # 보조 검색: CAST 활용 (숫자로 저장된 경우 대비)
+            cursor.execute("SELECT email, email_usable, last_send_status FROM Company_Basic WHERE CAST(biz_no AS TEXT) LIKE ?", (f'%{biz_no}%',))
+            company = cursor.fetchone()
+
         if not company:
             print(f"[RECOVER] FAIL: Company not found in DB with biz_no={biz_no}")
             return jsonify({'success': False, 'message': f'기업 정보를 찾을 수 없습니다. (ID: {biz_no})'}), 404
@@ -10792,12 +10798,12 @@ def api_email_recover_bounce():
             print(f"[RECOVER] FAIL: No email address for biz_no={biz_no}")
             return jsonify({'success': False, 'message': '이메일 주소가 없습니다.'}), 400
         
-        # 복구 처리
+        # 복구 처리 (방어적 업데이트)
         cursor.execute('''
             UPDATE Company_Basic
             SET email_usable = 1, last_send_status = 'RECOVERED', last_send_at = ?
-            WHERE biz_no = ?
-        ''', (datetime.now().isoformat(), biz_no))
+            WHERE TRIM(REPLACE(biz_no, '-', '')) = ? OR CAST(biz_no AS TEXT) = ?
+        ''', (datetime.now().isoformat(), biz_no, biz_no))
         
         affected_rows = cursor.rowcount
         print(f"[RECOVER] Update affected rows: {affected_rows}")
@@ -10818,8 +10824,8 @@ def api_email_recover_bounce():
         
         return jsonify({
             'success': True,
-            'message': f'이메일이 복구되었습니다: {company["email"]}',
-            'data': {'biz_no': biz_no, 'email': company['email'], 'status': 'RECOVERED'}
+            'message': f'성공적으로 해제되었습니다. ({affected_rows}건)',
+            'affected_rows': affected_rows
         })
     except Exception as e:
         conn.rollback()
