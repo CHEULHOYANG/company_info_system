@@ -35,6 +35,8 @@ DB_PATH = None
 
 def _initialize_db_path():
     global DB_PATH
+    print(f"\n[DB_CONFIG] Starting discovery... (RENDER={os.environ.get('RENDER')})")
+    
     if os.environ.get('RENDER'):
         # render.com 서버 환경 - 쓰기 가능한 Persistent Disk 우선 확인
         possible_paths = [
@@ -51,36 +53,46 @@ def _initialize_db_path():
             if os.path.exists(path):
                 # 쓰기 권한 테스트
                 try:
-                    test_file = os.path.join(path, 'db_write_test.tmp')
+                    test_file = os.path.join(path, f'db_write_test_{int(time.time())}.tmp')
                     with open(test_file, 'w') as f: f.write('test')
                     os.remove(test_file)
                     selected_path = path
+                    print(f"[DB_CONFIG] Found writable path: {path}")
                     break
-                except: continue
+                except Exception as e:
+                    print(f"[DB_CONFIG] Path exists but not writable: {path} ({str(e)})")
+                    continue
         
         if selected_path:
             DB_PATH = os.path.join(selected_path, 'company_database.db')
         else:
-            # 최종 Fallback: 현재 디렉터리
             DB_PATH = os.path.join(app_dir, 'company_database.db')
     else:
-        # 로컬 개발 환경
         DB_PATH = os.path.join(app_dir, 'company_database.db')
     
     # 디렉토리 보장
     db_dir = os.path.dirname(DB_PATH)
     if db_dir and not os.path.exists(db_dir):
-        try: os.makedirs(db_dir, exist_ok=True)
-        except: pass
+        try: 
+            os.makedirs(db_dir, exist_ok=True)
+            print(f"[DB_CONFIG] Created directory: {db_dir}")
+        except Exception as e:
+            print(f"[DB_CONFIG] Failed to create directory: {db_dir} ({str(e)})")
     
-    print(f"[DB_CONFIG] Using Database at: {DB_PATH}")
+    print(f"[DB_CONFIG] FINAL DATABASE PATH: {DB_PATH}")
 
 _initialize_db_path()
 
-def get_db_connection(timeout=20):
-    """데이터베이스 연결을 반환합니다. 병렬 처리 및 성능 최적화."""
+def get_db_connection(timeout=30):
+    """데이터베이스 연결을 반환합니다. WAL 모드 활성화로 동시성 강화."""
     conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=timeout)
     conn.row_factory = sqlite3.Row
+    try:
+        # WAL 모드 활성화: 읽기/쓰기 동시성 대폭 향상
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA synchronous=NORMAL;")
+    except Exception as e:
+        print(f"[DB_CONFIG] PRAGMA failed: {str(e)}")
     return conn
 # ---------------------------------------------
 

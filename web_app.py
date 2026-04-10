@@ -10774,64 +10774,72 @@ def api_email_recover_bounce():
     # 사업자 번호 정규화: 하이픈 제거
     biz_no = str(raw_biz_no).replace('-', '').strip()
     
-    print(f"[RECOVER] Attempting to recover: {raw_biz_no} -> Normalized: {biz_no} (DB: {DB_PATH})")
+    print(f"[RECOVER] Starting recovery for: {raw_biz_no} (Normalized: {biz_no})")
+    print(f"[RECOVER] Current DB_PATH: {DB_PATH}")
     
     conn = get_db_connection()
     try:
         cursor = conn.cursor()
         
-        # 현재 상태 확인 (방어적 쿼리: 하이픈 및 공백 무시)
-        query = "SELECT email, email_usable, last_send_status FROM Company_Basic WHERE TRIM(REPLACE(biz_no, '-', '')) = ?"
-        cursor.execute(query, (biz_no,))
-        company = cursor.fetchone()
+        # 1. 이전 상태 확인
+        query_check = "SELECT email, email_usable, last_send_status FROM Company_Basic WHERE TRIM(REPLACE(biz_no, '-', '')) = ? OR CAST(biz_no AS TEXT) = ?"
+        cursor.execute(query_check, (biz_no, biz_no))
+        before = cursor.fetchone()
         
-        if not company:
-            # 보조 검색: CAST 활용 (숫자로 저장된 경우 대비)
-            cursor.execute("SELECT email, email_usable, last_send_status FROM Company_Basic WHERE CAST(biz_no AS TEXT) LIKE ?", (f'%{biz_no}%',))
-            company = cursor.fetchone()
-
-        if not company:
-            print(f"[RECOVER] FAIL: Company not found in DB with biz_no={biz_no}")
+        if not before:
+            print(f"[RECOVER] FAIL: No company found with biz_no={biz_no}")
             return jsonify({'success': False, 'message': f'기업 정보를 찾을 수 없습니다. (ID: {biz_no})'}), 404
         
-        if not company['email']:
-            print(f"[RECOVER] FAIL: No email address for biz_no={biz_no}")
+        print(f"[RECOVER] Before Update: email_usable={before['email_usable']}, status={before['last_send_status']}")
+        
+        if not before['email']:
+            print(f"[RECOVER] FAIL: No email for biz_no={biz_no}")
             return jsonify({'success': False, 'message': '이메일 주소가 없습니다.'}), 400
         
-        # 복구 처리 (방어적 업데이트)
-        cursor.execute('''
+        # 2. 업데이트 실행
+        update_query = '''
             UPDATE Company_Basic
             SET email_usable = 1, last_send_status = 'RECOVERED', last_send_at = ?
             WHERE TRIM(REPLACE(biz_no, '-', '')) = ? OR CAST(biz_no AS TEXT) = ?
-        ''', (datetime.now().isoformat(), biz_no, biz_no))
+        '''
+        cursor.execute(update_query, (datetime.now().isoformat(), biz_no, biz_no))
+        affected = cursor.rowcount
+        print(f"[RECOVER] rowcount: {affected}")
         
-        affected_rows = cursor.rowcount
-        print(f"[RECOVER] Update affected rows: {affected_rows}")
-        
-        if affected_rows == 0:
-            return jsonify({'success': False, 'message': '상태 업데이트에 실패했습니다. 이미 해제되었거나 대상이 없습니다.'}), 400
-
-        # 로그 기록
+        # 3. 로그 기록
         cursor.execute('''
             INSERT INTO email_send_log 
             (batch_id, biz_no, email, status, sent_at, error_msg)
             VALUES (?, ?, ?, ?, ?, ?)
-        ''', (f'RECOVER-{datetime.now().timestamp()}', biz_no, company['email'], 
-              'RECOVERED', datetime.now().isoformat(), f"반송 복구: {company['last_send_status']}"))
+        ''', (f'RECOVER-{datetime.now().timestamp()}', biz_no, before['email'], 
+              'RECOVERED', datetime.now().isoformat(), f"반송 복구 시도 (이전상태: {before['last_send_status']})"))
         
         conn.commit()
-        print(f"[RECOVER] SUCCESS: {biz_no} is now usable.")
         
-        return jsonify({
-            'success': True,
-            'message': f'성공적으로 해제되었습니다. ({affected_rows}건)',
-            'affected_rows': affected_rows
-        })
+        # 4. 사후 검증 (최종 확인)
+        cursor.execute(query_check, (biz_no, biz_no))
+        after = cursor.fetchone()
+        print(f"[RECOVER] After Update: email_usable={after['email_usable']}, status={after['last_send_status']}")
+        
+        if after['email_usable'] == 1:
+            print(f"[RECOVER] SUCCESS: {biz_no} recovered.")
+            return jsonify({
+                'success': True,
+                'message': f'해제 완료: {before["email"]} (수정됨: {affected}건)',
+                'affected_rows': affected
+            })
+        else:
+            print(f"[RECOVER] CRITICAL FAIL: Update query ran but data not changed in DB!")
+            return jsonify({'success': False, 'message': 'DB 업데이트가 물리적으로 반영되지 않았습니다. 파일 권한을 확인하세요.'}), 500
+
     except Exception as e:
-        conn.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[RECOVER] ERROR: {str(e)}\n{error_trace}")
+        if 'conn' in locals(): conn.rollback()
+        return jsonify({'success': False, 'message': f'서버 내부 오류: {str(e)}'}), 500
     finally:
-        conn.close()
+        if 'conn' in locals(): conn.close()
 
 
 @app.route('/api/email/bulk-recover-bounces', methods=['POST'])
