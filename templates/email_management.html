@@ -534,7 +534,7 @@
         <div id="tab-send" class="tab-content">
             <div class="card">
                 <div class="card-header"><h2 class="card-title">퀀텀 메일 발송 관제소</h2></div>
-                <div style="display: grid; grid-template-columns: 350px 1fr; gap: 40px;">
+                <div style="display: grid; grid-template-columns: 210px 1fr; gap: 40px;">
                     <div>
                         <div class="form-group" style="margin-bottom: 25px;">
                             <label style="color: var(--neon-cyan); font-weight: 700; margin-bottom: 10px; display: block;">사용할 SMTP 게이트웨이</label>
@@ -592,12 +592,16 @@
                                 <button class="btn btn-outline" style="padding: 5px 10px; font-size: 0.72rem; color: #16a34a; border-color: #86efac; background:#f0fdf4;" onclick="previewEmail()">
                                     <i class="fas fa-eye" style="margin-right:3px;"></i>미리보기
                                 </button>
+                                <button class="btn btn-outline" style="padding: 5px 10px; font-size: 0.72rem; color: #3b82f6; border-color: #93c5fd; background:#eff6ff;" onclick="toggleHtmlSource(this)">
+                                    <i class="fas fa-code" style="margin-right:3px;"></i>HTML 작성
+                                </button>
                                 <button class="btn btn-outline" style="padding: 5px 10px; font-size: 0.72rem; color: #dc2626; border-color: #fca5a5; background:#fef2f2;" onclick="clearEmailBody()">
                                     <i class="fas fa-trash-alt" style="margin-right:3px;"></i>초기화
                                 </button>
                             </div>
                         </div>
                         <div id="quill-editor" style="height: 500px;"></div>
+                        <textarea id="html-source-editor" style="display:none; width: 100%; height: 500px; padding: 20px; font-family: monospace; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px; font-size: 0.95rem; line-height: 1.5; resize: vertical;" placeholder="이곳에 HTML 소스 코드를 직접 입력할 수 있습니다."></textarea>
                         
                         <div style="margin-top: 30px; display:flex; justify-content:space-between; align-items:center;">
                             <div style="font-size:0.78rem; color:#94a3b8;">
@@ -1146,6 +1150,32 @@
         function clearEmailBody() {
             if(confirm('작성 중인 본문 내용이 모두 삭제됩니다. 초기화하시겠습니까?')) {
                 quill.root.innerHTML = '';
+                document.getElementById('html-source-editor').value = '';
+            }
+        }
+
+        let isHtmlMode = false;
+        function toggleHtmlSource(btn) {
+            const textArea = document.getElementById('html-source-editor');
+            const qlToolbar = document.querySelector('.ql-toolbar');
+            const qlContainer = document.querySelector('.ql-container');
+            
+            if(!isHtmlMode) {
+                // Switch to HTML mode
+                textArea.value = quill.root.innerHTML;
+                if(qlToolbar) qlToolbar.style.display = 'none';
+                if(qlContainer) qlContainer.style.display = 'none';
+                textArea.style.display = 'block';
+                btn.innerHTML = '<i class="fas fa-pen" style="margin-right:3px;"></i>에디터 모드';
+                isHtmlMode = true;
+            } else {
+                // Switch to Visual mode
+                quill.root.innerHTML = textArea.value;
+                if(qlToolbar) qlToolbar.style.display = 'block';
+                if(qlContainer) qlContainer.style.display = 'block';
+                textArea.style.display = 'none';
+                btn.innerHTML = '<i class="fas fa-code" style="margin-right:3px;"></i>HTML 작성';
+                isHtmlMode = false;
             }
         }
 
@@ -1154,6 +1184,7 @@
                 const data = await fetchAPI('/api/email/latest-body');
                 if (data && data.success && data.body) {
                     quill.root.innerHTML = data.body;
+                    document.getElementById('html-source-editor').value = data.body;
                 } else {
                     alert(data?.message || '이전 발송 본문을 찾을 수 없습니다.');
                 }
@@ -1163,7 +1194,7 @@
         // --- 이메일 미리보기 ---
         function previewEmail() {
             const subject = (document.getElementById('email-subject')?.value || '(제목 없음)').trim();
-            const bodyHtml = quill.root.innerHTML;
+            const bodyHtml = isHtmlMode ? document.getElementById('html-source-editor').value : quill.root.innerHTML;
             
             // 샘플 데이터로 치환
             const sampleBody = bodyHtml
@@ -1685,7 +1716,7 @@
         async function startDispatch() {
             const smtpId = document.getElementById('send-smtp-id').value;
             const subject = document.getElementById('email-subject').value;
-            const content = quill.root.innerHTML;
+            const content = isHtmlMode ? document.getElementById('html-source-editor').value : quill.root.innerHTML;
             
             if(!smtpId) return alert("SMTP 게이트웨이를 선택해주세요.");
             if(!subject) return alert("메일 제목을 입력해주세요.");
