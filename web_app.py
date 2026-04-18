@@ -7261,7 +7261,7 @@ def register_seminar_api():
         if not data:
             return jsonify({"success": False, "message": "데이터가 없습니다."}), 400
             
-        required_fields = ['seminar_title', 'name', 'phone', 'biz_no']
+        required_fields = ['seminar_title', 'name', 'phone']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({"success": False, "message": f"필수 항목이 누락되었습니다: {field}"}), 400
@@ -7278,7 +7278,7 @@ def register_seminar_api():
                 data['phone'],
                 data.get('company_name', ''),
                 data.get('position', ''),
-                data['biz_no']
+                data.get('biz_no', '')
             ))
             conn.commit()
             return jsonify({"success": True, "message": "세미나 참가 신청이 완료되었습니다."})
