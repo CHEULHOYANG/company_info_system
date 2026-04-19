@@ -82,7 +82,7 @@ def get_kst_now():
     return datetime.now(KST)
 import pytz
 from datetime import datetime, timedelta, date
-from email_service import EmailSender, get_email_history, get_all_batches
+from email_service import EmailSender, get_email_history, get_all_batches, DB_PATH, get_db_connection
 
 # --- 커스텀 템플릿 로더 (UTF-8 우선, CP949 폴백) ---
 class UTF8FileSystemLoader(FileSystemLoader):
@@ -114,10 +114,10 @@ class UTF8FileSystemLoader(FileSystemLoader):
         
         raise TemplateNotFound(template)
 
-# 업로드 폴더 설정
-app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+# 업로드 폴더 설정 (DB와 동일한 영구 저장소 위치 사용)
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(DB_PATH), 'uploads')
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # --- Email Management System Routes (Relocated to top for reliability) ---
 
@@ -270,7 +270,7 @@ app.jinja_loader = UTF8FileSystemLoader(template_dir)
 import os
 app_dir = os.path.dirname(os.path.abspath(__file__))
 
-from email_service import DB_PATH, get_db_connection
+
 
 # 배포 환경 디버깅용 로그
 if os.environ.get('RENDER'):
