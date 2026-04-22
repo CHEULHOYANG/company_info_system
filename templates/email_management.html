@@ -2329,7 +2329,7 @@
 
                 const jobId = startData.job_id;
                 let elapsed = 0;
-                const maxWait = 120; // 최대 120초 대기
+                const maxWait = 300; // 최대 300초 대기 (대량 메일함 대응)
 
                 // 2단계: polling — 3초마다 결과 확인
                 const pollResult = await new Promise((resolve, reject) => {

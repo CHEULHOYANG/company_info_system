@@ -658,18 +658,16 @@ class EmailReceiver:
             except Exception as e:
                 raise Exception(f"IMAP 연결 실패 ({self.imap_server}:{self.imap_port}): {str(e)}")
             
-            # Gmail의 경우 "[Gmail]/All Mail" (전체보관함)을 우선 시도 (가장 확실함)
-            # 다른 서버는 INBOX를 기본으로 사용
+            # Gmail의 경우 "[Gmail]/All Mail" (전체보관함)은 너무 크므로 제외하고,
+            # 실질적으로 반송 메일이 들어오는 INBOX와 Spam만 스캔합니다.
             is_gmail = 'gmail' in self.imap_server.lower()
-            target_folders = []
             if is_gmail:
-                target_folders = ['"[Gmail]/All Mail"', 'INBOX', '"[Gmail]/Spam"', 'INBOX.Junk']
+                target_folders = ['INBOX', '"[Gmail]/Spam"']
             else:
                 target_folders = ['INBOX', 'Spam', 'Junk']
 
             for folder in target_folders:
                 try:
-                    # 폴더 선택 (Gmail의 경우 영문 명칭이 한글 계정에서도 작동함)
                     status, _ = mail.select(folder)
                     if status != 'OK': continue
 
@@ -679,27 +677,39 @@ class EmailReceiver:
                     if status != 'OK':
                         continue
 
-                    for num in messages[0].split():
-                        try:
-                            status, data = mail.fetch(num, '(RFC822)')
-                            if status != 'OK':
-                                continue
-                            raw_email = data[0][1]
-                            msg = em_message_from_bytes(raw_email)
+                    msg_ids = messages[0].split()
+                    if not msg_ids:
+                        continue
 
-                            # 발신자가 반송 시스템인지 확인
-                            sender = str(msg.get('From', '')).lower()
-                            subject_raw = str(msg.get('Subject', '')).lower()
-                            is_bounce = any(kw in sender for kw in [
+                    # 1단계: 헤더만 먼저 가져와서 반송 메일인지 1차 필터링 (속도 향상을 위해)
+                    # RFC822 전체를 가져오는 대신 BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)] 사용
+                    for num in msg_ids:
+                        try:
+                            # 헤더 필드만 우선 확인
+                            status, data = mail.fetch(num, '(BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)])')
+                            if status != 'OK': continue
+                            
+                            header_msg = em_lib.message_from_bytes(data[0][1])
+                            sender = str(header_msg.get('From', '')).lower()
+                            subject_raw = str(header_msg.get('Subject', '')).lower()
+                            
+                            is_potential_bounce = any(kw in sender for kw in [
                                 'mailer-daemon', 'postmaster', 'delivery', 'noreply', 'no-reply'
                             ]) or any(kw in subject_raw for kw in [
                                 'delivery status', 'undeliverable', 'returned mail',
                                 'failure notice', 'delivery failure', 'mail delivery failed',
                                 '반송', '전달 실패', 'delivery notification'
                             ])
-
-                            if not is_bounce:
+                            
+                            if not is_potential_bounce:
                                 continue
+
+                            # 2단계: 반송 메일로 의심되는 경우에만 전체 본문을 가져와서 분석
+                            status, data = mail.fetch(num, '(RFC822)')
+                            if status != 'OK': continue
+                            
+                            raw_email = data[0][1]
+                            msg = em_message_from_bytes(raw_email)
 
                             # 메일 본문에서 이메일 주소 추출
                             content = self._extract_text(msg)
@@ -713,7 +723,7 @@ class EmailReceiver:
                                    not any(kw in addr_lower for kw in ['mailer-daemon', 'postmaster']):
                                     bounced.add(addr_lower)
                         except Exception as e:
-                            print(f"[EmailReceiver] 메일 파싱 오류: {e}")
+                            print(f"[EmailReceiver] 개별 메일 처리 오류: {e}")
                             continue
 
                 except Exception as fe:
