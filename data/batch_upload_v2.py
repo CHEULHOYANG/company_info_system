@@ -638,6 +638,23 @@ def process_company_basic(conn, df, execute=False, global_current=0, global_tota
     cursor.execute("PRAGMA table_info(Company_Basic)")
     db_cols = [row[1] for row in cursor.fetchall()]
 
+    existing_biz_nos = set()
+    if execute and df is not None and not df.empty:
+        unique_biz_nos = df['biz_no'].dropna().unique().tolist()
+        CHUNK = 500
+        for i in range(0, len(unique_biz_nos), CHUNK):
+            chunk = unique_biz_nos[i:i+CHUNK]
+            placeholders = ','.join(['?']*len(chunk))
+            cursor.execute(f"SELECT biz_no FROM Company_Basic WHERE biz_no IN ({placeholders})", chunk)
+            for row in cursor.fetchall():
+                existing_biz_nos.add(row[0])
+
+    update_data_list = []
+    insert_data_list = []
+    
+    valid_cols = [col for col in db_cols if col in df.columns]
+    update_cols = [col for col in valid_cols if col != 'biz_no']
+
     for i, (_, row) in enumerate(df.iterrows()):
         global_current += 1
         # Emit progress every 50 rows globally
@@ -655,40 +672,44 @@ def process_company_basic(conn, df, execute=False, global_current=0, global_tota
             continue
         
         try:
-            cursor.execute("SELECT 1 FROM Company_Basic WHERE biz_no = ?", (biz_no,))
-            exists = cursor.fetchone()
-            
-            data_to_save = {}
-            for col in db_cols:
-                if col in row:
-                    data_to_save[col] = row[col]
+            exists = False
+            if execute:
+                exists = biz_no in existing_biz_nos
             
             if exists:
-                # UPDATE
                 count_updated += 1
-                if execute:
-                    update_data = {k: v for k, v in data_to_save.items() if k != 'biz_no'}
-                    if update_data:
-                        set_clause = ", ".join([f"{k} = ?" for k in update_data.keys()])
-                        values = list(update_data.values()) + [biz_no]
-                        cursor.execute(f"UPDATE Company_Basic SET {set_clause} WHERE biz_no = ?", values)
+                if execute and update_cols:
+                    update_data_list.append([row.get(c) for c in update_cols] + [biz_no])
             else:
-                # INSERT
                 count_inserted += 1
                 if execute:
-                    cols = list(data_to_save.keys())
-                    placeholders = ", ".join(["?" for _ in cols])
-                    values = list(data_to_save.values())
-                    cursor.execute(f"INSERT INTO Company_Basic ({', '.join(cols)}) VALUES ({placeholders})", values)
+                    insert_data_list.append([row.get(c) for c in valid_cols])
         except Exception as e:
             count_error += 1
-            error_msg = f"[오류] Company_Basic 엑셀의 {i+1}번째 행(사업자번호: {biz_no}) 처리 중 실패했습니다.\n"
+            if count_error == 1: json_result("LastError", f"[Company_Basic] {str(e)}")
+            log(f"  [Error] Basic biz_no={biz_no}: {e}")
+            
+    if execute:
+        try:
+            if update_data_list and update_cols:
+                set_clause = ", ".join([f"{k} = ?" for k in update_cols])
+                sql = f"UPDATE Company_Basic SET {set_clause} WHERE biz_no = ?"
+                CHUNK_SIZE = 500
+                for i in range(0, len(update_data_list), CHUNK_SIZE):
+                    cursor.executemany(sql, update_data_list[i:i+CHUNK_SIZE])
+                    
+            if insert_data_list:
+                placeholders = ",".join(["?" for _ in valid_cols])
+                sql = f"INSERT INTO Company_Basic ({','.join(valid_cols)}) VALUES ({placeholders})"
+                CHUNK_SIZE = 500
+                for i in range(0, len(insert_data_list), CHUNK_SIZE):
+                    cursor.executemany(sql, insert_data_list[i:i+CHUNK_SIZE])
+                    
+        except Exception as e:
+            error_msg = f"[오류] Company_Basic 엑셀 데이터 다중 삽입/수정 중 실패했습니다.\n"
             error_msg += f"- 사유: {str(e)}\n"
-            error_msg += f"- 데이터: {row.to_dict()}\n"
-            error_msg += "데이터를 수정 후 다시 업로드해주세요."
             print(json.dumps({"type": "error", "message": error_msg}), flush=True)
             sys.exit(1)
-            
     if execute: conn.commit()
     log(f"  Inserted: {count_inserted}, Updated: {count_updated}, Errors: {count_error}")
     json_result("Company_Basic_Inserted", count_inserted)
@@ -716,6 +737,22 @@ def process_company_representative(conn, df, execute=False, global_current=0, gl
     # Emit table start event
     progress_event("table_start", "Company_Representative", total=total_rows)
     
+    # 1. Bulk check existence
+    existing_reps_map = {}
+    if execute and df is not None and not df.empty:
+        unique_biz_nos = df['biz_no'].dropna().unique().tolist()
+        CHUNK = 500
+        for i in range(0, len(unique_biz_nos), CHUNK):
+            chunk = unique_biz_nos[i:i+CHUNK]
+            placeholders = ','.join(['?']*len(chunk))
+            cursor.execute(f"SELECT company_representative_id, name, biz_no FROM Company_Representative WHERE biz_no IN ({placeholders})", chunk)
+            for rid, rname, rbiz in cursor.fetchall():
+                if rbiz not in existing_reps_map:
+                    existing_reps_map[rbiz] = []
+                existing_reps_map[rbiz].append((rid, rname))
+
+    update_data_list = []
+    insert_data_list = []
     for i, (_, row) in enumerate(df.iterrows()):
         global_current += 1
         if global_current % 50 == 0 or i == 0 or i == total_rows - 1:
@@ -732,8 +769,7 @@ def process_company_representative(conn, df, execute=False, global_current=0, gl
             continue
             
         try:
-            cursor.execute("SELECT company_representative_id, name FROM Company_Representative WHERE biz_no = ?", (biz_no,))
-            existing_reps = cursor.fetchall()
+            existing_reps = existing_reps_map.get(biz_no, [])
             
             match_found = False
             target_id = None
@@ -748,21 +784,19 @@ def process_company_representative(conn, df, execute=False, global_current=0, gl
                 for rid, rname in existing_reps:
                     if not is_masked(rname) and fuzzy_name_match(new_name, rname):
                         match_found = True; target_id = rid
-                        row['name'] = rname # Keep DB name
+                        new_name = rname # Keep DB name
                         break
             
             if target_id:
-                # Update (simple fields)
+                # Update
                 count_updated += 1
                 if execute:
-                    sql = "UPDATE Company_Representative SET gender=?, age=?, is_gfc=? WHERE company_representative_id=?"
-                    cursor.execute(sql, (row.get('gender',''), row.get('age',0), row.get('is_gfc','N'), target_id))
+                    update_data_list.append((row.get('gender',''), row.get('age',0), row.get('is_gfc','N'), target_id))
             else:
                 # Insert
                 count_inserted += 1
                 if execute:
-                    sql = "INSERT INTO Company_Representative (biz_no, name, gender, age, is_gfc, birth_date) VALUES (?, ?, ?, ?, ?, ?)"
-                    cursor.execute(sql, (biz_no, new_name, row.get('gender',''), row.get('age',0), row.get('is_gfc','N'), row.get('birth_date','')))
+                    insert_data_list.append((biz_no, new_name, row.get('gender',''), row.get('age',0), row.get('is_gfc','N'), row.get('birth_date','')))
         except Exception as e:
             count_error += 1
             error_msg = f"[오류] Company_Representative 엑셀의 {i+1}번째 행(사업자번호: {biz_no}) 처리 중 실패했습니다.\n"
@@ -772,6 +806,26 @@ def process_company_representative(conn, df, execute=False, global_current=0, gl
             print(json.dumps({"type": "error", "message": error_msg}), flush=True)
             sys.exit(1)
         
+    if execute:
+        try:
+            if update_data_list:
+                sql = "UPDATE Company_Representative SET gender=?, age=?, is_gfc=? WHERE company_representative_id=?"
+                CHUNK_SIZE = 500
+                for i in range(0, len(update_data_list), CHUNK_SIZE):
+                    cursor.executemany(sql, update_data_list[i:i+CHUNK_SIZE])
+                    
+            if insert_data_list:
+                sql = "INSERT INTO Company_Representative (biz_no, name, gender, age, is_gfc, birth_date) VALUES (?, ?, ?, ?, ?, ?)"
+                CHUNK_SIZE = 500
+                for i in range(0, len(insert_data_list), CHUNK_SIZE):
+                    cursor.executemany(sql, insert_data_list[i:i+CHUNK_SIZE])
+                    
+        except Exception as e:
+            error_msg = f"[오류] Company_Representative 엑셀 데이터 다중 삽입/수정 중 실패했습니다.\n"
+            error_msg += f"- 사유: {str(e)}\n"
+            print(json.dumps({"type": "error", "message": error_msg}), flush=True)
+            sys.exit(1)
+            
     if execute: conn.commit()
     log(f"  Inserted: {count_inserted}, Updated: {count_updated}, Errors: {count_error}")
     json_result("Company_Representative_Inserted", count_inserted)
@@ -987,6 +1041,28 @@ def process_generic_table(conn, df, table_name, pk_cols, execute=False, global_c
     count_updated = 0
     count_error = 0
     
+    # 1. Bulk check existence
+    existing_pks = set()
+    if execute and df is not None and not df.empty:
+        # We only handle single PK column optimization for speed
+        if len(pk_cols) == 1:
+            pk_col = pk_cols[0]
+            unique_pks = df[pk_col].dropna().unique().tolist()
+            CHUNK = 500
+            for i in range(0, len(unique_pks), CHUNK):
+                chunk = unique_pks[i:i+CHUNK]
+                placeholders = ','.join(['?']*len(chunk))
+                cursor.execute(f"SELECT {pk_col} FROM {table_name} WHERE {pk_col} IN ({placeholders})", chunk)
+                for row in cursor.fetchall():
+                    existing_pks.add(row[0])
+                    
+    update_data_list = []
+    insert_data_list = []
+    
+    # Valid columns for this table
+    valid_cols = [col for col in db_cols if col in df.columns]
+    update_cols = [col for col in valid_cols if col not in pk_cols]
+
     for i, (_, row) in enumerate(df.iterrows()):
         global_current += 1
         if global_current % 50 == 0 or i == 0 or i == total_rows - 1:
@@ -996,33 +1072,59 @@ def process_generic_table(conn, df, table_name, pk_cols, execute=False, global_c
             log(f"  > [{table_name}] Processing {i+1} / {total_rows}...")
         
         try:
-            where_parts = [f"{pk} = ?" for pk in pk_cols]; where_vals = [row[pk] for pk in pk_cols]
-            cursor.execute(f"SELECT count(*) FROM {table_name} WHERE {' AND '.join(where_parts)}", where_vals)
-            exists = cursor.fetchone()[0] > 0
+            # Prepare row data
+            data = {col: row[col] for col in valid_cols}
             
-            data = {col: row[col] for col in db_cols if col in row}
+            # Check existence
+            exists = False
+            if execute and len(pk_cols) == 1:
+                pk_val = row[pk_cols[0]]
+                exists = pk_val in existing_pks
+            elif execute:
+                # Fallback for multi-column PK
+                where_parts = [f"{pk} = ?" for pk in pk_cols]
+                where_vals = [row[pk] for pk in pk_cols]
+                cursor.execute(f"SELECT 1 FROM {table_name} WHERE {' AND '.join(where_parts)}", where_vals)
+                exists = cursor.fetchone() is not None
+
             if exists:
                 count_updated += 1
-                if execute:
-                    update_data = {k: v for k, v in data.items() if k not in pk_cols}
-                    if update_data:
-                        set_parts = [f"{k}=?" for k in update_data.keys()]
-                        sql = f"UPDATE {table_name} SET {', '.join(set_parts)} WHERE {' AND '.join(where_parts)}"
-                        cursor.execute(sql, list(update_data.values()) + where_vals)
+                if execute and update_cols:
+                    update_data_list.append([row.get(c) for c in update_cols] + [row[pk] for pk in pk_cols])
             else:
                 count_inserted += 1
                 if execute:
-                    cols = list(data.keys()); placeholders = ",".join(["?" for _ in cols])
-                    sql = f"INSERT INTO {table_name} ({','.join(cols)}) VALUES ({placeholders})"
-                    cursor.execute(sql, list(data.values()))
+                    insert_data_list.append([row.get(c) for c in valid_cols])
+                    
         except Exception as e:
             count_error += 1
             error_msg = f"[오류] {table_name} 엑셀의 {i+1}번째 행 처리 중 실패했습니다.\n"
             error_msg += f"- 사유: {str(e)}\n"
             error_msg += f"- 오류 데이터: {row.to_dict()}\n"
             error_msg += "데이터를 수정 후 다시 시도해주세요."
+            print(json.dumps({"type": "error", "message": error_msg}), flush=True)
+            sys.exit(1)
             
-            # 프론트엔드에 오류 이벤트를 발생시키고 스크립트를 중단합니다.
+    if execute:
+        try:
+            if update_data_list and update_cols:
+                set_parts = [f"{c}=?" for c in update_cols]
+                where_parts = [f"{pk}=?" for pk in pk_cols]
+                sql = f"UPDATE {table_name} SET {', '.join(set_parts)} WHERE {' AND '.join(where_parts)}"
+                CHUNK_SIZE = 500
+                for i in range(0, len(update_data_list), CHUNK_SIZE):
+                    cursor.executemany(sql, update_data_list[i:i+CHUNK_SIZE])
+                    
+            if insert_data_list:
+                placeholders = ",".join(["?" for _ in valid_cols])
+                sql = f"INSERT INTO {table_name} ({','.join(valid_cols)}) VALUES ({placeholders})"
+                CHUNK_SIZE = 500
+                for i in range(0, len(insert_data_list), CHUNK_SIZE):
+                    cursor.executemany(sql, insert_data_list[i:i+CHUNK_SIZE])
+                    
+        except Exception as e:
+            error_msg = f"[오류] {table_name} 엑셀 데이터 다중 삽입/수정 중 실패했습니다.\n"
+            error_msg += f"- 사유: {str(e)}\n"
             print(json.dumps({"type": "error", "message": error_msg}), flush=True)
             sys.exit(1)
         
