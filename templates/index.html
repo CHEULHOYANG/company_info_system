@@ -933,7 +933,11 @@
             }
 
 
-            dropZone.onclick = () => fileInput.click();
+            dropZone.onclick = (e) => {
+                if (e.target !== fileInput) {
+                    fileInput.click();
+                }
+            };
 
             dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = '#00d4ff'; };
             dropZone.ondragleave = () => { dropZone.style.borderColor = '#dcdde1'; };
@@ -1006,6 +1010,31 @@
                         function readStream() {
                             reader.read().then(({ value, done }) => {
                                 if (done) {
+                                    if (buffer.trim()) {
+                                        let lines = buffer.split('\n');
+                                        lines.forEach(line => {
+                                            if (line.startsWith('data: ')) {
+                                                try {
+                                                    const data = JSON.parse(line.substring(6));
+                                                    if (data.type === 'complete') {
+                                                        document.getElementById('validationLoading').style.display = 'none';
+                                                        const progressBar = document.getElementById('uploadProgressBar');
+                                                        const progressText = document.getElementById('progressText');
+                                                        const tableStatus = document.getElementById('tableStatus');
+                                                        if (progressBar) progressBar.style.width = '100%';
+                                                        if (progressText) progressText.textContent = '100%';
+                                                        if (tableStatus) tableStatus.textContent = '데이터 검증이 완료되었습니다.';
+                                                        if (data.success) {
+                                                            document.getElementById('validationStats').innerHTML = renderStatsTable(data.stats || {});
+                                                            document.getElementById('validationResult').style.display = 'block';
+                                                            document.getElementById('executionSection').style.display = 'block';
+                                                            document.getElementById('executeUploadBtn').style.display = 'inline-block';
+                                                        }
+                                                    }
+                                                } catch(e) {}
+                                            }
+                                        });
+                                    }
                                     document.getElementById('validationLoading').style.display = 'none';
                                     return;
                                 }
@@ -1090,7 +1119,29 @@
 
                     function read() {
                         reader.read().then(({ value, done }) => {
-                            if (done) return;
+                            if (done) {
+                                if (buffer.trim()) {
+                                    let lines = buffer.split('\n');
+                                    lines.forEach(line => {
+                                        if (line.startsWith('data: ')) {
+                                            try {
+                                                const data = JSON.parse(line.substring(6));
+                                                if (data.type === 'complete') {
+                                                    const progressBar = document.getElementById('uploadProgressBar');
+                                                    const progressText = document.getElementById('progressText');
+                                                    const tableStatus = document.getElementById('tableStatus');
+                                                    progressBar.style.width = '100%';
+                                                    progressText.textContent = '100%';
+                                                    tableStatus.textContent = '모든 데이터 처리가 완료되었습니다.';
+                                                    alert("업로드 완료!");
+                                                    location.reload();
+                                                }
+                                            } catch (e) {}
+                                        }
+                                    });
+                                }
+                                return;
+                            }
                             const chunk = decoder.decode(value, { stream: true });
                             buffer += chunk;
                             
@@ -1123,6 +1174,13 @@
                                             tableStatus.textContent = '모든 데이터 처리가 완료되었습니다.';
                                             alert("업로드 완료!");
                                             location.reload();
+                                        } else if (data.type === 'error') {
+                                            progressBar.style.backgroundColor = '#ff5252';
+                                            tableStatus.textContent = '오류 발생: ' + data.message;
+                                            tableStatus.style.color = '#ff5252';
+                                            alert("처리 중 오류가 발생했습니다:\n" + data.message);
+                                            // 에러 발생시 더 이상 진행하지 않음
+                                            document.getElementById('executeUploadBtn').disabled = false;
                                         }
                                     } catch (e) {
                                         console.error("JSON Parse Error:", e, "Line:", line);

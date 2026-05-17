@@ -45,7 +45,7 @@ def log(message):
     timestamp = datetime.now().strftime("%H:%M:%S")
     # Prefix regular logs so frontend can filter if needed, 
     # but for now we just print.
-    print(f"[{timestamp}] {message}", flush=True)
+    print(json.dumps({"type": "log", "message": f"[{timestamp}] {message}"}), flush=True)
 
 def json_result(key, value):
     """Print a JSON object on a separate line for the backend to parse"""
@@ -682,8 +682,12 @@ def process_company_basic(conn, df, execute=False, global_current=0, global_tota
                     cursor.execute(f"INSERT INTO Company_Basic ({', '.join(cols)}) VALUES ({placeholders})", values)
         except Exception as e:
             count_error += 1
-            if count_error == 1: json_result("LastError", f"[Company_Basic] {str(e)}")
-            log(f"  [Error] Basic biz_no={biz_no}: {e}")
+            error_msg = f"[오류] Company_Basic 엑셀의 {i+1}번째 행(사업자번호: {biz_no}) 처리 중 실패했습니다.\n"
+            error_msg += f"- 사유: {str(e)}\n"
+            error_msg += f"- 데이터: {row.to_dict()}\n"
+            error_msg += "데이터를 수정 후 다시 업로드해주세요."
+            print(json.dumps({"type": "error", "message": error_msg}), flush=True)
+            sys.exit(1)
             
     if execute: conn.commit()
     log(f"  Inserted: {count_inserted}, Updated: {count_updated}, Errors: {count_error}")
@@ -761,8 +765,12 @@ def process_company_representative(conn, df, execute=False, global_current=0, gl
                     cursor.execute(sql, (biz_no, new_name, row.get('gender',''), row.get('age',0), row.get('is_gfc','N'), row.get('birth_date','')))
         except Exception as e:
             count_error += 1
-            if count_error == 1: json_result("LastError", f"[Company_Representative] {str(e)}")
-            log(f"  [Error] Rep biz_no={biz_no}: {e}")
+            error_msg = f"[오류] Company_Representative 엑셀의 {i+1}번째 행(사업자번호: {biz_no}) 처리 중 실패했습니다.\n"
+            error_msg += f"- 사유: {str(e)}\n"
+            error_msg += f"- 데이터: {row.to_dict()}\n"
+            error_msg += "데이터를 수정 후 다시 업로드해주세요."
+            print(json.dumps({"type": "error", "message": error_msg}), flush=True)
+            sys.exit(1)
         
     if execute: conn.commit()
     log(f"  Inserted: {count_inserted}, Updated: {count_updated}, Errors: {count_error}")
@@ -837,18 +845,30 @@ def process_company_shareholder(conn, df, execute=False, global_current=0, globa
         count_inserted += 1
 
         if execute and len(insert_data_list) >= CHUNK_SIZE:
-             placeholders = ", ".join(["?" for _ in insert_cols])
-             cursor.executemany(f"INSERT INTO Company_Shareholder ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
-             insert_data_list = []
-             conn.commit()
+             try:
+                 placeholders = ", ".join(["?" for _ in insert_cols])
+                 cursor.executemany(f"INSERT INTO Company_Shareholder ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
+                 insert_data_list = []
+                 conn.commit()
+             except Exception as e:
+                 error_msg = f"[오류] Company_Shareholder 엑셀 데이터 다중 삽입 중 실패했습니다.\n"
+                 error_msg += f"- 사유: {str(e)}\n"
+                 error_msg += f"- 오류 데이터 예시: {insert_data_list[0]}\n"
+                 error_msg += "데이터를 수정 후 다시 업로드해주세요."
+                 print(json.dumps({"type": "error", "message": error_msg}), flush=True)
+                 sys.exit(1)
 
     if execute and insert_data_list:
         try:
             placeholders = ", ".join(["?" for _ in insert_cols])
             cursor.executemany(f"INSERT INTO Company_Shareholder ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
         except Exception as e:
-            log(f"  [Error] Final Bulk Insert failed: {e}")
-            count_error += len(insert_data_list)
+            error_msg = f"[오류] Company_Shareholder 엑셀 데이터 마지막 삽입 중 실패했습니다.\n"
+            error_msg += f"- 사유: {str(e)}\n"
+            error_msg += f"- 오류 데이터 예시: {insert_data_list[0]}\n"
+            error_msg += "데이터를 수정 후 다시 업로드해주세요."
+            print(json.dumps({"type": "error", "message": error_msg}), flush=True)
+            sys.exit(1)
 
     if execute: conn.commit()
     log(f"  Processed: {count_inserted}, Errors: {count_error}")
@@ -915,18 +935,30 @@ def process_company_financial(conn, df, execute=False, global_current=0, global_
         count_inserted += 1
 
         if execute and len(insert_data_list) >= CHUNK_SIZE:
-             placeholders = ", ".join(["?" for _ in insert_cols])
-             cursor.executemany(f"INSERT INTO Company_Financial ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
-             insert_data_list = []
-             conn.commit()
+             try:
+                 placeholders = ", ".join(["?" for _ in insert_cols])
+                 cursor.executemany(f"INSERT INTO Company_Financial ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
+                 insert_data_list = []
+                 conn.commit()
+             except Exception as e:
+                 error_msg = f"[오류] Company_Financial 엑셀 데이터 다중 삽입 중 실패했습니다.\n"
+                 error_msg += f"- 사유: {str(e)}\n"
+                 error_msg += f"- 오류 데이터 예시: {insert_data_list[0]}\n"
+                 error_msg += "데이터를 수정 후 다시 업로드해주세요."
+                 print(json.dumps({"type": "error", "message": error_msg}), flush=True)
+                 sys.exit(1)
 
     if execute and insert_data_list:
         try:
             placeholders = ", ".join(["?" for _ in insert_cols])
             cursor.executemany(f"INSERT INTO Company_Financial ({', '.join(insert_cols)}) VALUES ({placeholders})", insert_data_list)
         except Exception as e:
-            log(f"  [Error] Final Bulk Insert failed: {e}")
-            count_error += len(insert_data_list)
+            error_msg = f"[오류] Company_Financial 엑셀 데이터 마지막 삽입 중 실패했습니다.\n"
+            error_msg += f"- 사유: {str(e)}\n"
+            error_msg += f"- 오류 데이터 예시: {insert_data_list[0]}\n"
+            error_msg += "데이터를 수정 후 다시 업로드해주세요."
+            print(json.dumps({"type": "error", "message": error_msg}), flush=True)
+            sys.exit(1)
 
     if execute: conn.commit()
     log(f"  Processed: {count_inserted}, Errors: {count_error}")
@@ -985,7 +1017,14 @@ def process_generic_table(conn, df, table_name, pk_cols, execute=False, global_c
                     cursor.execute(sql, list(data.values()))
         except Exception as e:
             count_error += 1
-            log(f"  [Error] {table_name} row {i}: {e}")
+            error_msg = f"[오류] {table_name} 엑셀의 {i+1}번째 행 처리 중 실패했습니다.\n"
+            error_msg += f"- 사유: {str(e)}\n"
+            error_msg += f"- 오류 데이터: {row.to_dict()}\n"
+            error_msg += "데이터를 수정 후 다시 시도해주세요."
+            
+            # 프론트엔드에 오류 이벤트를 발생시키고 스크립트를 중단합니다.
+            print(json.dumps({"type": "error", "message": error_msg}), flush=True)
+            sys.exit(1)
         
     if execute: conn.commit()
     log(f"  Inserted: {count_inserted}, Updated: {count_updated}, Errors: {count_error}")

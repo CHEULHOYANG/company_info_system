@@ -9823,7 +9823,7 @@ def execute_corporate_upload():
                         print(f"[DEBUG_EXEC] STREAM LINE: {clean}", flush=True)
                         evt = json.loads(clean)
                         # Forward progress/log events
-                        if evt.get('type') in ['table_start', 'progress', 'table_done', 'log']:
+                        if evt.get('type') in ['table_start', 'progress', 'table_done', 'log', 'error']:
                             yield f"data: {json.dumps(evt)}\n\n"
                         elif evt.get('type') == 'result':
                             stats[evt['key']] = evt['value']
