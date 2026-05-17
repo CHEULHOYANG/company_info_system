@@ -185,16 +185,21 @@ def run_generation_scripts():
 
             years = [(2024, 100, 101, 102, 123, 144), (2023, 103, 104, 105, 123, 145), (2022, 106, 107, 108, 123, 146)]
             for yr, s_col, o_col, e_col, r_col, t_col in years:
-                sales = get_n(get_v(row_data, s_col), 1000000); op_inc = get_n(get_v(row_data, o_col), 1000000)
+                sales = get_n(get_v(row_data, s_col), 1000000)
+                net_inc = get_n(get_v(row_data, o_col), 1000000)
+                op_inc = get_n(get_v(row_data, 143), 1000000) 
                 te = get_n(get_v(row_data, e_col)); ret = get_n(get_v(row_data, r_col)); tax = get_n(get_v(row_data, t_col))
-                fin_rows.append([biz_no, yr, r1, r2, r3, sales, op_inc, op_inc, ta, tl, te, ret, cs, er, apic, tax, la, ba, irg, irb, ri, ramt, adp, adr, csv, ure, ca, ce, stl, std, sltb, ii, cr, sic])
+                fin_rows.append([biz_no, yr, r1, r2, r3, sales, op_inc, net_inc, ta, tl, te, ret, cs, er, apic, tax, la, ba, irg, irb, ri, ramt, adp, adr, csv, ure, ca, ce, stl, std, sltb, ii, cr, sic])
 
             # 3. Company_Representative
-            name = str(get_v(row_data, 44) or "").strip()
-            if name:
-                gender = "M" if "남" in str(get_v(row_data, 45) or "") else ("F" if "여" in str(get_v(row_data, 45) or "") else "")
-                age = int(get_n(get_v(row_data, 46), 1))
-                rep_rows.append([biz_no, name, gender, age, "N", ""])
+            for r_col in [44, 52, 60]:
+                name = str(get_v(row_data, r_col) or "").strip()
+                if name and name != "0":
+                    gender_str = str(get_v(row_data, r_col+1) or "")
+                    gender = "M" if "남" in gender_str else ("F" if "여" in gender_str else "")
+                    age = int(get_n(get_v(row_data, r_col+2), 1))
+                    birth_date = get_d(get_v(row_data, r_col+3))
+                    rep_rows.append([biz_no, name, gender, age, "N", birth_date])
 
             # 4. Company_Shareholder
             sh_reps = [str(get_v(row_data, 44) or "").strip(), str(get_v(row_data, 52) or "").strip(), str(get_v(row_data, 60) or "").strip()]
@@ -203,19 +208,12 @@ def run_generation_scripts():
                 if sh_nm and sh_nm != "0":
                     sh_rel = str(get_v(row_data, s_col+1) or "").strip()
                     sh_sil = str(get_v(row_data, s_col+2) or "").strip()
-                    sh_p = get_n(get_v(row_data, s_col+6), 1)
+                    sh_stock = get_n(get_v(row_data, s_col+3), 1)  # 소유주식합계
+                    sh_p = get_n(get_v(row_data, s_col+6), 1)     # 지분율
                     m_type = "대표자-주주 동일" if sh_nm in sh_reps else ""
-                    sha_rows.append([biz_no, sh_nm, sh_p, sh_rel, f"주주{sh_idx+1}", m_type, sh_sil])
+                    sha_rows.append([biz_no, sh_nm, sh_p, sh_rel, f"주주{sh_idx+1}", m_type, sh_sil, sh_stock])
 
             # 5. Company_Additional
-            def get_b(v): 
-                s = str(v or "").strip().upper()
-                return "1" if s in ["Y", "1", "YES", "TRUE", "여"] else "0"
-            def get_d(v):
-                if isinstance(v, (datetime, pd.Timestamp)): return v.strftime('%Y-%m-%d')
-                s_val = str(v or "").strip()
-                return s_val if s_val != "0" else ""
-            
             add_rows.append([
                 biz_no, get_n(get_v(row_data, 166), 1), get_n(get_v(row_data, 165), 1),
                 get_b(get_v(row_data, 153)), get_d(get_v(row_data, 154)),
@@ -232,7 +230,7 @@ def run_generation_scripts():
         if basic_rows: pd.DataFrame(basic_rows, columns=list(mapping_dict.keys())).to_excel("Company_Basic_Output.xlsx", index=False)
         if fin_rows: pd.DataFrame(fin_rows, columns=["biz_no", "fiscal_year", "rating1", "rating2", "rating3", "sales_revenue", "operating_income", "net_income", "total_assets", "total_liabilities", "total_equity", "retained_earnings", "capital_surplus", "earned_reserve", "additional_paid_in_capital", "corporate_tax", "land_asset", "building_asset", "investment_real_ground", "investment_real_building", "rental_income", "rent_amt", "advances_paid", "advances_received", "capital_stock_value", "undistributed_retained_earnings", "current_assets", "cash_equivalents", "short_term_loan", "short_term_deposit", "principal_short_long_term_bonds", "interest_income", "capital_reserve", "shares_issued_count"]).to_excel("Company_Financial_Output.xlsx", index=False)
         if rep_rows: pd.DataFrame(rep_rows, columns=["biz_no", "name", "gender", "age", "is_gfc", "birth_date"]).to_excel("Company_Representative_Output.xlsx", index=False)
-        if sha_rows: pd.DataFrame(sha_rows, columns=["biz_no", "shareholder_name", "ownership_percent", "relationship", "shareholder_type", "management_type", "silent_partner_relationship"]).to_excel("Company_Shareholder_Output.xlsx", index=False)
+        if sha_rows: pd.DataFrame(sha_rows, columns=["biz_no", "shareholder_name", "ownership_percent", "relationship", "shareholder_type", "management_type", "silent_partner_relationship", "total_shares_owned"]).to_excel("Company_Shareholder_Output.xlsx", index=False)
         if add_rows: pd.DataFrame(add_rows, columns=["biz_no", "patent_applications_count", "registered_patents_count", "has_research_institute", "research_institute_date", "is_innobiz", "innobiz_cert_date", "innobiz_expiry_date", "is_mainbiz", "mainbiz_cert_date", "mainbiz_expiry_date", "is_venture", "venture_cert_date", "venture_expiry_date", "group_agreement_yn", "gfc_yn"]).to_excel("Company_Additional_Output.xlsx", index=False)
         log(f"Validation complete: Found {count} records across all categories.")
         return True
