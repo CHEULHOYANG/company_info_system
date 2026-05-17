@@ -145,6 +145,15 @@ def run_generation_scripts():
             "gfc_transaction_yn": 168
         }
 
+        def get_b(v): 
+            s = str(v or "").strip().upper()
+            return "1" if s in ["Y", "1", "YES", "TRUE", "여"] else "0"
+            
+        def get_d(v):
+            if isinstance(v, (datetime, pd.Timestamp)): return v.strftime('%Y-%m-%d')
+            s_val = str(v or "").strip()
+            return s_val if s_val != "0" else ""
+
         basic_rows = []; fin_rows = []; rep_rows = []; sha_rows = []; add_rows = []
         
         # Process all rows in one pass
