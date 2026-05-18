@@ -4704,12 +4704,20 @@ def signup_request():
     # 디버그: 수신된 데이터 확인
     print(f"회원가입 신청 데이터: {data}")
     
-    # 필수 필드 검증
-    required_fields = ['user_id', 'name', 'phone', 'email', 'birth_date', 'gender', 'position']
+    # 필수 필드 검증 (폼에 있는 항목만 필수로 검증)
+    required_fields = ['user_id', 'name', 'phone', 'email']
     for field in required_fields:
         if not data.get(field):
             print(f"누락된 필드: {field}")
             return jsonify({"success": False, "message": f"{field}는 필수 항목입니다."}), 400
+    
+    # 선택 항목 기본값 처리 (birth_date, gender, position은 선택사항)
+    if not data.get('birth_date'):
+        data['birth_date'] = ''
+    if not data.get('gender'):
+        data['gender'] = ''
+    if not data.get('position'):
+        data['position'] = ''
     
     # branch_name이 없으면 기본값 설정
     if not data.get('branch_name'):
