@@ -1365,14 +1365,15 @@ def initialize_application():
 initialize_application()
 
 # --- 비상장 주식 가치 계산 ---
-def calculate_unlisted_stock_value(financial_data):
+def calculate_unlisted_stock_value(financial_data, biz_no=None):
     """
     필요한 재무 항목:
     - total_assets: 자산총계
     - total_liabilities: 부채총계
     - net_income: 순이익(최근 3년 평균)
-    - shares_issued_count: 발행주식수(없으면 자본금/5000)
+    - shares_issued_count: 발행주식수(없으면 주주합계 → 자본금/5000)
     - capital_stock_value: 자본금
+    biz_no: 주주 합계 조회 시 사용
     """
     if not financial_data:
         return {}
@@ -1397,41 +1398,58 @@ def calculate_unlisted_stock_value(financial_data):
 
     # 주식수 계산 - 계층적 fallback 적용
     total_shares = float(latest_data.get('shares_issued_count') or 0)
-    
+    shares_source = '발행주식수'  # 출처 표시용
+
     # 1단계: shares_issued_count가 없거나 1 이하인 경우
     if total_shares <= 1:
-        # 2단계: 주주 소유 주식수 합계 시도
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT SUM(CAST(total_shares_owned AS REAL)) 
-                FROM Company_Shareholder 
-                WHERE biz_no = ? AND total_shares_owned IS NOT NULL AND total_shares_owned != ''
-            """, (latest_data.get('biz_no', ''),))
-            total_owned_shares = cursor.fetchone()[0]
-            conn.close()
-            
-            if total_owned_shares and total_owned_shares > 0:
-                total_shares = total_owned_shares
-            else:
-                # 3단계: 자본금/5000 계산
+        # 2단계: 주주 소유 주식수 합계 시도 (biz_no 파라미터 우선, 없으면 data에서 시도)
+        lookup_biz_no = biz_no or latest_data.get('biz_no', '')
+        if lookup_biz_no:
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT SUM(CAST(total_shares_owned AS REAL)) 
+                    FROM Company_Shareholder 
+                    WHERE biz_no = ? AND total_shares_owned IS NOT NULL AND total_shares_owned != '' AND total_shares_owned != '0'
+                """, (lookup_biz_no,))
+                total_owned_shares = cursor.fetchone()[0]
+                conn.close()
+
+                if total_owned_shares and total_owned_shares > 0:
+                    total_shares = total_owned_shares
+                    shares_source = '주주합계'
+                else:
+                    # 3단계: 자본금/5000 계산
+                    capital_stock = float(latest_data.get('capital_stock_value') or 0)
+                    if capital_stock > 0:
+                        total_shares = capital_stock / 5000
+                        shares_source = '자본금추정'
+                    else:
+                        total_shares = 1
+                        shares_source = '기본값'
+            except Exception as e:
+                print(f"주주 소유 주식수 합계 계산 오류: {e}")
                 capital_stock = float(latest_data.get('capital_stock_value') or 0)
                 if capital_stock > 0:
                     total_shares = capital_stock / 5000
+                    shares_source = '자본금추정'
                 else:
                     total_shares = 1
-        except Exception as e:
-            print(f"주주 소유 주식수 합계 계산 오류: {e}")
-            # 3단계: 자본금/5000 계산
+                    shares_source = '기본값'
+        else:
+            # biz_no 없으면 자본금으로 fallback
             capital_stock = float(latest_data.get('capital_stock_value') or 0)
             if capital_stock > 0:
                 total_shares = capital_stock / 5000
+                shares_source = '자본금추정'
             else:
                 total_shares = 1
-    
+                shares_source = '기본값'
+
     if total_shares == 0:
         total_shares = 1
+        shares_source = '기본값'
 
     stock_value = calculated_value / total_shares if total_shares else 0
 
@@ -1440,6 +1458,7 @@ def calculate_unlisted_stock_value(financial_data):
         "profit_value": profit_value,
         "calculated_value": calculated_value,
         "total_shares_issued": total_shares,
+        "shares_source": shares_source,
         "estimated_stock_value": stock_value
     }
 
@@ -3680,7 +3699,7 @@ def company_detail(biz_no):
             additional_info['is_venture'] = '0'
 
     financial_data_for_calc = [dict(row) for row in financial_info] if financial_info else []
-    stock_valuation = calculate_unlisted_stock_value(financial_data_for_calc)
+    stock_valuation = calculate_unlisted_stock_value(financial_data_for_calc, biz_no=biz_no)
     
     # 주주 정보 처리 개선 - 지분율, 주식수, 금액 계산
     processed_shareholders = []

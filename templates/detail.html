@@ -461,18 +461,35 @@
                             <div><strong>1주당 평가액</strong></div>
 
                             <div><strong class="text-danger">{{
-
                                     "{:,.0f}".format(company.stock_valuation.estimated_stock_value) if
-
                                     company.stock_valuation.estimated_stock_value else 'N/A' }} 원</strong></div>
 
                             <div></div>
 
-                            <div><span class="text-primary-large">(발행주식수: {{
-
-                                    "{:,.0f}".format(company.stock_valuation.total_shares_issued) if
-
-                                    company.stock_valuation.total_shares_issued else 'N/A' }} 주)</span></div>
+                            <div>
+                                {% set src = company.stock_valuation.shares_source %}
+                                {% if src == '주주합계' %}
+                                <span class="text-primary-large">
+                                    (주주 보유주식수 합계: {{ "{:,.0f}".format(company.stock_valuation.total_shares_issued) }} 주)
+                                </span>
+                                <br>
+                                <span style="font-size:11px; color:#e67e22;">
+                                    ※ 발행주식수 미등록 → 주주1~5 보유주식수 합계로 산정
+                                </span>
+                                {% elif src == '자본금추정' %}
+                                <span class="text-primary-large">
+                                    (발행주식수 추정: {{ "{:,.0f}".format(company.stock_valuation.total_shares_issued) }} 주)
+                                </span>
+                                <br>
+                                <span style="font-size:11px; color:#e67e22;">
+                                    ※ 발행주식수 미등록 → 자본금 ÷ 5,000원으로 추정
+                                </span>
+                                {% else %}
+                                <span class="text-primary-large">
+                                    (발행주식수: {{ "{:,.0f}".format(company.stock_valuation.total_shares_issued) if company.stock_valuation.total_shares_issued else 'N/A' }} 주)
+                                </span>
+                                {% endif %}
+                            </div>
 
                         </div>
 
