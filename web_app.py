@@ -4712,12 +4712,13 @@ def signup_request():
             return jsonify({"success": False, "message": f"{field}는 필수 항목입니다."}), 400
     
     # 선택 항목 기본값 처리 (birth_date, gender, position은 선택사항)
+    # gender는 DB CHECK 제약 (IN ('M', 'F'))이 있으므로 미입력 시 None(NULL)으로 처리
     if not data.get('birth_date'):
-        data['birth_date'] = ''
+        data['birth_date'] = None
     if not data.get('gender'):
-        data['gender'] = ''
+        data['gender'] = None
     if not data.get('position'):
-        data['position'] = ''
+        data['position'] = None
     
     # branch_name이 없으면 기본값 설정
     if not data.get('branch_name'):
